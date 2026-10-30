@@ -5,6 +5,7 @@ using HillNGun.Core;
 using HillNGun.Characters;
 using HillNGun.AI;
 using HillNGun.Cover;
+using HillNGun.Combat;
 
 namespace HillNGun.PvP
 {
@@ -73,7 +74,7 @@ namespace HillNGun.PvP
         public event System.Action<CharacterStateMachine> OnCharacterDowned;
         public event System.Action<CharacterStateMachine> OnCharacterEliminated;
 
-        private enum PvPPhase
+        public enum PvPPhase
         {
             PreMatch,
             RoundStart,
@@ -231,7 +232,14 @@ namespace HillNGun.PvP
 
         private void ResetCoversForRound()
         {
-            var covers = FindObjectsByType<CoverInstance>(FindObjectsSortMode.None);
+            var combatSystem = ServiceLocator.Get<CombatSystem>();
+            if (combatSystem != null)
+            {
+                foreach (var cover in combatSystem.Covers)
+                {
+                    cover.Reset();
+                }
+            }
         }
 
         private void Update()

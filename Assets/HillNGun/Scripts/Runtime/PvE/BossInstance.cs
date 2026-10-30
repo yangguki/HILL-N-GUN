@@ -29,7 +29,7 @@ namespace HillNGun.PvE
         private float _warningTimer;
         private WarningType _currentWarningType;
 
-        private enum WarningType { None, FanShot, TailSweep }
+        public enum WarningType { None, FanShot, TailSweep }
 
         public event Action<BossInstance> OnPhaseChanged;
         public event Action<BossInstance, int, Vector2> OnDamageTaken;

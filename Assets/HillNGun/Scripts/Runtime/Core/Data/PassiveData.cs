@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using HillNGun.Core;
 
 namespace HillNGun.Data
 {
@@ -47,12 +48,6 @@ namespace HillNGun.Data
         }
     }
 
-    public enum PassiveType
-    {
-        RollShot,      // 버스터: 구르기 후 첫 발 보너스
-        Weakpoint,     // 레이븐: 장시간 조준 시 약점 보너스
-        FastRevive     // 볼트: 빠른 소생
-    }
 
     [System.Serializable]
     public class PassiveParameter

@@ -65,9 +65,9 @@ namespace HillNGun.Core
     public enum CoverStage
     {
         Intact,
-        Light,
-        Medium,
-        Heavy
+        Cracked,
+        Damaged,
+        Destroyed
     }
 
     public enum GameMode
