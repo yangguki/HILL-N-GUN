@@ -1,0 +1,60 @@
+using UnityEngine;
+
+namespace HillNGun.Data
+{
+    [CreateAssetMenu(fileName = "bot_behavior_", menuName = "HillNGun/Bot Behavior Data")]
+    public class BotBehaviorData : ScriptableObject
+    {
+        [Header("Decision Making")]
+        [Tooltip("Time between AI decisions")]
+        public float decisionInterval = 0.3f;
+
+        [Header("Targeting")]
+        [Tooltip("Weight for closer enemies")]
+        [Range(0f, 2f)]
+        public float distanceWeight = 1f;
+
+        [Tooltip("Weight for lower HP enemies")]
+        [Range(0f, 2f)]
+        public float lowHpWeight = 0.5f;
+
+        [Header("Aiming")]
+        [Tooltip("Time to aim before firing")]
+        public float aimDuration = 0.4f;
+
+        [Tooltip("Random aim variation in degrees")]
+        [Range(0f, 30f)]
+        public float aimJitter = 5f;
+
+        [Header("Movement")]
+        [Tooltip("Chance to change rows instead of moving horizontally")]
+        [Range(0f, 1f)]
+        public float rowChangeChance = 0.3f;
+
+        [Header("Dodging")]
+        [Tooltip("HP ratio below which bot considers dodging")]
+        [Range(0f, 1f)]
+        public float dodgeHpThreshold = 0.5f;
+
+        [Tooltip("Chance to dodge when HP is low")]
+        [Range(0f, 1f)]
+        public float dodgeChance = 0.4f;
+
+        [Header("Abilities")]
+        [Tooltip("Chance to use grenade when available")]
+        [Range(0f, 1f)]
+        public float grenadeUseChance = 0.3f;
+
+        [Tooltip("Chance to use skill when available")]
+        [Range(0f, 1f)]
+        public float skillUseChance = 0.2f;
+
+        [Header("Reviving")]
+        [Tooltip("Priority for reviving downed allies")]
+        [Range(0f, 1f)]
+        public float revivePriority = 0.6f;
+
+        [Tooltip("Distance at which bot will move to revive")]
+        public float reviveSeekDistance = 5f;
+    }
+}

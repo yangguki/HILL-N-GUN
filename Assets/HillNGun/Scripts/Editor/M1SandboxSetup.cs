@@ -57,6 +57,12 @@ namespace HillNGun.Editor
                 "확인");
         }
 
+        public static void SetupDataOnly()
+        {
+            CreateDirectories();
+            CreateDataAssets();
+        }
+
         private static void CreateDirectories()
         {
             string[] dirs = {

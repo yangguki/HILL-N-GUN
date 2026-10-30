@@ -1,5 +1,11 @@
 namespace HillNGun.Core
 {
+    public enum Team
+    {
+        Player,
+        Enemy
+    }
+
     public enum Role
     {
         Assault,
@@ -20,6 +26,13 @@ namespace HillNGun.Core
         DragRelease
     }
 
+    public enum PassiveType
+    {
+        RollShot,
+        Weakpoint,
+        FastRevive
+    }
+
     public enum MovementState
     {
         Idle,
@@ -31,9 +44,12 @@ namespace HillNGun.Core
     public enum ActionState
     {
         None,
+        Idle,
         Aiming,
-        Firing,
         Charging,
+        Firing,
+        Reloading,
+        Skill,
         GrenadeAiming,
         UsingSkill
     }
@@ -42,27 +58,71 @@ namespace HillNGun.Core
     {
         Active,
         Downed,
+        BeingRevived,
         Eliminated
     }
 
     public enum CoverStage
     {
-        Intact,      // 100-67%
-        Cracked,     // 66-34%
-        Damaged,     // 33-1%
-        Destroyed    // 0%
+        Intact,
+        Light,
+        Medium,
+        Heavy
     }
 
-    public enum Team
+    public enum GameMode
     {
-        Player,
-        Enemy
+        None,
+        Practice,
+        PvE,
+        PvP
     }
 
-    public enum TargetType
+    public enum GamePhase
     {
-        Character,
-        Cover,
-        Target
+        None,
+        Title,
+        ModeSelect,
+        CharacterSelect,
+        Match,
+        Result
+    }
+
+    public enum MatchResult
+    {
+        None,
+        Victory,
+        Defeat
+    }
+
+    public enum PvERoundResult
+    {
+        InProgress,
+        StageCleared,
+        StageFailed,
+        BossDefeated
+    }
+
+    public enum PvPRoundResult
+    {
+        InProgress,
+        PlayerWins,
+        EnemyWins,
+        Draw
+    }
+
+    public enum EnemyType
+    {
+        PistolMook,
+        DynamiteBandit,
+        MountedRaider,
+        BossRattlesnakeRex
+    }
+
+    public enum BossPhase
+    {
+        Phase1,
+        Phase2,
+        Phase3
     }
 }

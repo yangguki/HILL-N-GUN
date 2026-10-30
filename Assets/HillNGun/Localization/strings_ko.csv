@@ -1,4 +1,40 @@
 key,ko
+game.title,힐앤건
+game.subtitle,서부 카우보이 슈팅
+ui.start_game,게임 시작
+ui.select_mode,모드 선택
+ui.select_team,팀 구성
+ui.start_match,전투 시작
+ui.back,뒤로
+ui.paused,일시정지
+ui.resume,재개
+ui.restart,재시작
+ui.quit_to_menu,메뉴로 나가기
+ui.quit_to_title,타이틀로 나가기
+ui.retry,재도전
+ui.to_title,타이틀
+mode.pve.title,PvE 스토리
+mode.pve.desc,"먼지 마을을 지켜라!
+3개 스테이지 + 보스전"
+mode.pvp.title,PvP 대전
+mode.pvp.desc,"봇과 3v3 탈락전
+3판 2선승"
+mode.practice.title,연습장
+mode.practice.desc,"조작 연습 및 테스트
+과녁과 엄폐물"
+role.assault,돌격
+role.sniper,저격
+role.support,지원
+result.victory,승리!
+result.defeat,패배
+stats.match_time,전투 시간
+stats.kills,처치
+stats.deaths,사망
+stats.damage_dealt,가한 피해
+stats.damage_taken,받은 피해
+stats.enemies_defeated,처치한 적
+stats.rounds,라운드
+stats.covers_destroyed,파괴된 엄폐물
 char.buster.name,버스터
 char.raven.name,레이븐
 char.volt.name,볼트
@@ -38,3 +74,21 @@ debug.stats,상태 표시
 debug.grid,그리드 표시
 debug.invincible,무적
 debug.slow_motion,슬로모션
+pve.stage.dusty_town_1,먼지 마을 1-1
+pve.stage.dusty_town_2,먼지 마을 1-2
+pve.stage.dusty_town_3,먼지 마을 1-3
+pve.boss.rattlesnake_rex,방울뱀 렉스
+pve.enemy.pistol_mook,권총 졸개
+pve.enemy.dynamite_bandit,다이너마이트 강도
+pve.enemy.mounted_raider,말 탄 약탈자
+pve.ui.wave,웨이브
+pve.ui.gauge,적 게이지
+pve.ui.stage_clear,스테이지 클리어!
+pve.ui.stage_failed,스테이지 실패
+pve.ui.boss_warning,보스 등장!
+pve.ui.boss_defeated,보스 처치!
+pvp.ui.round,라운드
+pvp.ui.round_win,라운드 승리
+pvp.ui.round_lose,라운드 패배
+pvp.ui.round_draw,무승부
+pvp.map.main_street,마을 큰길

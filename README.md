@@ -1,6 +1,6 @@
-﻿# 힐앤건 (HILL N GUN) - M1 조작 샌드박스
+﻿# 힐앤건 (HILL N GUN) - 서부 카우보이 3v3 슈팅
 
-서부 카우보이 3대3 슈팅 게임의 조작 프로토타입입니다.
+서부 카우보이 3대3 슈팅 게임입니다.
 
 ## 요구 사항
 
@@ -17,20 +17,38 @@
 3. 이 저장소의 루트 폴더 선택
 4. Unity 6000.0.85f1로 프로젝트 열기
 
-### 2. M1 샌드박스 설정
+### 2. 전체 게임 설정
 
 프로젝트를 처음 열면 다음 메뉴를 실행하세요:
 
-**메뉴: `HillNGun` → `Setup M1 Sandbox`**
+**메뉴: `HillNGun` → `Setup All Scenes and Data`**
 
 이 명령은 다음을 수행합니다:
-- 기준안 수치로 ScriptableObject 데이터 에셋 생성 (버스터, 레이븐, 볼트)
-- M1_Sandbox 씬 생성 및 구성
+- 모든 ScriptableObject 데이터 에셋 생성 (캐릭터, 적, 스테이지, 보스 등)
+- 모든 게임 씬 생성 (Title, ModeSelect, CharacterSelect, PvE_Match, PvP_Match, M1_Sandbox, Result)
+- Build Settings 업데이트
 
 ### 3. 게임 실행
 
-1. `Assets/HillNGun/Scenes/M1_Sandbox.unity` 씬 열기
+1. `Assets/HillNGun/Scenes/Title.unity` 씬 열기
 2. Play 버튼 클릭
+
+## 게임 모드
+
+### PvE 스토리 모드
+- **먼지 마을** 3개 스테이지 + 보스전
+- 적 게이지를 채워 스테이지 클리어
+- 적 타입: 권총 졸개, 다이너마이트 강도, 말 탄 약탈자
+- 보스: 방울뱀 렉스 (3페이즈)
+
+### PvP 대전 모드
+- 봇과 3v3 탈락전
+- 3판 2선승 (라운드당 80초)
+- 봇 AI가 플레이어와 같은 입력 커맨드 사용
+
+### 연습장 (M1 Sandbox)
+- 조작 연습 및 테스트
+- 과녁과 엄폐물
 
 ## 조작법 (에디터 - 마우스/키보드)
 
@@ -44,7 +62,7 @@
 | 1 / 2 / 3 | 캐릭터 전환 (버스터/레이븐/볼트) |
 | R | 과녁, 엄폐물, 더미 아군 리셋 |
 | Tab | 설정 패널 열기/닫기 |
-| Esc | 설정 패널 닫기 |
+| Esc | 일시정지 메뉴 / 설정 패널 닫기 |
 
 ### 디버그 단축키
 
@@ -58,6 +76,60 @@
 | F6 | 그리드 표시 토글 |
 | F7 | 무적 모드 토글 |
 | F8 | 슬로모션 토글 (0.25x ↔ 1x) |
+
+## 빌드
+
+### 메뉴에서 빌드
+
+- `HillNGun` → `Build` → `Build All Platforms`: 모든 플랫폼 빌드
+- `HillNGun` → `Build` → `Build Windows`: Windows 빌드
+- `HillNGun` → `Build` → `Build macOS`: macOS 빌드
+- `HillNGun` → `Build` → `Build Android APK`: Android APK 빌드
+
+### 커맨드라인 빌드
+
+```bash
+Unity -batchmode -quit -projectPath . -executeMethod HillNGun.Editor.BuildHelper.BuildFromCommandLine -platform windows
+```
+
+빌드 결과물은 `Builds/` 폴더에 저장됩니다.
+
+## 캐릭터
+
+### 버스터 (돌격)
+- 체력: 3,200
+- 무기: 더블배럴 산탄총 (5알 × 150, 사거리 5타일)
+- 스킬: 돌파 사격 (퍼짐각 증가, 엄폐물 피해 2배)
+- 패시브: 구르기 후 첫 발 +30%
+
+### 레이븐 (저격)
+- 체력: 2,200
+- 무기: 충전식 사냥총 (900~1,440, 사거리 12타일)
+- 스킬: 관통탄 (엄폐물 1개 관통)
+- 패시브: 2초 이상 조준 시 약점 피해 +25%
+
+### 볼트 (지원)
+- 체력: 2,600
+- 무기: 대구경 권총 (520, 사거리 7타일)
+- 스킬: 긴급 보수 (엄폐물 40% 수리)
+- 패시브: 소생 시간 2초
+
+## 적 타입 (PvE)
+
+### 권총 졸개
+- 체력: 600, 공격력: 120, 게이지: +1
+
+### 다이너마이트 강도
+- 체력: 900, 폭발 공격력: 450, 게이지: +2
+
+### 말 탄 약탈자
+- 체력: 1400, 공격력: 100×3, 게이지: +3
+
+### 보스: 방울뱀 렉스
+- 체력: 24,000
+- Phase 1: 부채꼴 5발 + 꼬리 휘두르기
+- Phase 2: 부채꼴 7발 + 졸개 소환
+- Phase 3: 부채꼴 9발 + 광폭화
 
 ## 핵심 시스템
 
@@ -80,26 +152,6 @@
 - 무적 시간: 0.35초 (시작부터)
 - 구르기 중 사격 불가
 
-## 캐릭터
-
-### 버스터 (돌격)
-- 체력: 3,200
-- 무기: 더블배럴 산탄총 (5알 × 150, 사거리 5타일)
-- 스킬: 돌파 사격 (퍼짐각 증가, 엄폐물 피해 2배)
-- 패시브: 구르기 후 첫 발 +30%
-
-### 레이븐 (저격)
-- 체력: 2,200
-- 무기: 충전식 사냥총 (900~1,440, 사거리 12타일)
-- 스킬: 관통탄 (엄폐물 1개 관통)
-- 패시브: 2초 이상 조준 시 약점 피해 +25%
-
-### 볼트 (지원)
-- 체력: 2,600
-- 무기: 대구경 권총 (520, 사거리 7타일)
-- 스킬: 긴급 보수 (엄폐물 40% 수리)
-- 패시브: 소생 시간 2초
-
 ## 폴더 구조
 
 ```
@@ -118,11 +170,21 @@ Assets/HillNGun/
 │   ├── Input/              # 입력 설정
 │   ├── Downed/             # 기절/소생 설정
 │   ├── Feel/               # 타격감 설정
-│   └── Targets/            # 과녁 데이터
+│   ├── Targets/            # 과녁 데이터
+│   ├── Enemies/            # 적 데이터 (PvE)
+│   ├── Stages/             # 스테이지 데이터 (PvE)
+│   ├── Bosses/             # 보스 데이터 (PvE)
+│   └── AI/                 # 봇 AI 설정 (PvP)
 ├── Localization/           # 로컬라이제이션 (strings_ko.csv)
 ├── Prefabs/                # 프리팹
 ├── Scenes/                 # 씬
-│   └── M1_Sandbox.unity
+│   ├── Title.unity         # 타이틀 화면
+│   ├── ModeSelect.unity    # 모드 선택
+│   ├── CharacterSelect.unity # 캐릭터 선택
+│   ├── PvE_Match.unity     # PvE 스토리
+│   ├── PvP_Match.unity     # PvP 대전
+│   ├── M1_Sandbox.unity    # 연습장
+│   └── Result.unity        # 결과 화면
 ├── Scripts/
 │   ├── Runtime/            # 런타임 코드
 │   │   ├── Core/           # 핵심 시스템 및 데이터 클래스
@@ -134,7 +196,10 @@ Assets/HillNGun/
 │   │   ├── Feel/           # 타격감 (히트스톱, 흔들림)
 │   │   ├── Logging/        # CSV 로깅
 │   │   ├── UI/             # UI 시스템
-│   │   └── DebugTools/     # 디버그 도구
+│   │   ├── DebugTools/     # 디버그 도구
+│   │   ├── PvE/            # PvE 모드
+│   │   ├── PvP/            # PvP 모드
+│   │   └── AI/             # 봇 AI
 │   └── Editor/             # 에디터 스크립트
 └── Tests/                  # 테스트
     ├── EditMode/           # EditMode 테스트
@@ -146,22 +211,6 @@ Assets/HillNGun/
 모든 게임플레이 수치는 ScriptableObject 에셋에 저장됩니다.
 Inspector에서 직접 변경하면 플레이 중에도 즉시 반영됩니다.
 
-### 미확정 설정값
-
-다음 설정들은 기획 확정이 필요합니다 (기본값이 적용됨):
-
-| 설정 | 위치 | 기본값 |
-|------|------|--------|
-| 레이븐 충전 입력 | WeaponData.fireMode | ChargeRelease |
-| 구르기 중 사격 | RollData.canFireDuring | false |
-| 줄 구르기 허용 | RollData.allowRowRoll | true |
-| 수류탄 엄폐 무시 | GrenadeData.ignoresCover | true |
-| 아군 오사격 | MatchRulesData.friendlyFire | false |
-| 기절 체력 | DownedData.downedHp | 600 |
-| 소생 후 체력 | DownedData.reviveHpRatio | 0.3 |
-| 원근 스케일 | BattlefieldData.perspectiveScaleTop | 0.8 |
-| 데드존 비율 | InputData.deadzoneRatio | 0.2 |
-
 상세한 질문 목록: [docs/QUESTIONS_FOR_DESIGN.md](docs/QUESTIONS_FOR_DESIGN.md)
 
 ## 로그
@@ -170,8 +219,6 @@ Inspector에서 직접 변경하면 플레이 중에도 즉시 반영됩니다.
 - 위치: `Application.persistentDataPath/logs/`
 - 형식: `<session_id>.csv`
 
-로그 이벤트: session_start, char_select, move_row, aim_start, aim_cancel, shot_fired, hit, gauge_empty, gauge_full, roll, grenade_throw, grenade_explode, skill_use, cover_damaged, cover_destroyed, downed, revived, out, perf_sample, session_end
-
 ## 테스트
 
 EditMode 테스트 실행:
@@ -179,22 +226,11 @@ EditMode 테스트 실행:
 2. EditMode 탭 선택
 3. Run All 클릭
 
-테스트 항목:
-- AmmoGaugeTests: 게이지 충전 (손을 떼야만 충전)
-- InputDeadzoneTests: 탭 데드존 내 발사 안 함
-- ProjectileHitTests: 투사체 쓸기 판정, 첫 충돌만 피해
-- RollInvulnerabilityTests: 구르기 무적 프레임
-- CoverDurabilityTests: 엄폐물 4단계 파괴
-- GrenadeFalloffTests: 수류탄 거리별 피해 감쇠
-- WeaponChargeTests: 레이븐 충전 피해 계산
-
-## 제한사항 (M1 범위)
+## 제한사항
 
 - 오프라인 전용
-- 적 AI 없음 (과녁만)
-- 라운드/승패 시스템 없음
-- 플레이스홀더 사운드 (절차적 생성)
 - Spine 미설치 (플레이스홀더 그래픽 사용)
+- 플레이스홀더 사운드 (절차적 생성)
 
 ## 추가 시스템
 

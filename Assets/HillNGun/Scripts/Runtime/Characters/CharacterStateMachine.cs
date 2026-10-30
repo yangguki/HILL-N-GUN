@@ -603,6 +603,28 @@ namespace HillNGun.Characters
             _currentRowIndex = rowIndex;
         }
 
+        public void ResetForRound(Vector2 spawnPosition, int rowIndex)
+        {
+            _position = spawnPosition;
+            _currentRowIndex = rowIndex;
+            _currentHp = _data.maxHp;
+            _overallState = CharacterOverallState.Active;
+            _movementState = MovementState.Idle;
+            _actionState = ActionState.None;
+            _isAiming = false;
+            _downedTimer = 0f;
+            _downedHp = 0;
+            _reviveProgress = 0f;
+            _rollTimer = 0f;
+            _rollCooldownTimer = 0f;
+            _skillCooldownTimer = 0f;
+            _skillActiveTimer = 0f;
+            _rollShotBonusActive = false;
+
+            _ammoGauge?.Reset();
+            _grenadeSystem?.Reset();
+        }
+
         public float GetWeakpointBonusMultiplier()
         {
             if (_data.passive?.passiveType != PassiveType.Weakpoint) return 1f;
