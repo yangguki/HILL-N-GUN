@@ -17,11 +17,15 @@ namespace HillNGun.Characters
         private Color _originalColor;
         private float _hitFlashTimer;
         private bool _isFlashing;
+        private LineRenderer _aimLine;
+        private TextMesh _nameLabel;
 
         public void Initialize(CharacterStateMachine character)
         {
             _character = character;
             _battlefield = ServiceLocator.Get<BattlefieldSystem>();
+            
+            SetupVisuals(character);
             
             if (_bodyRenderer != null)
             {
@@ -35,6 +39,70 @@ namespace HillNGun.Characters
             }
 
             UpdateView(character);
+        }
+
+        private void SetupVisuals(CharacterStateMachine character)
+        {
+            if (_bodyRenderer == null)
+            {
+                _bodyRenderer = GetComponent<SpriteRenderer>();
+                if (_bodyRenderer == null)
+                {
+                    _bodyRenderer = gameObject.AddComponent<SpriteRenderer>();
+                }
+                _bodyRenderer.sprite = CreateBodySprite();
+            }
+
+            var aimLineGo = new GameObject("AimLine");
+            aimLineGo.transform.SetParent(transform);
+            aimLineGo.transform.localPosition = Vector3.zero;
+            _aimLine = aimLineGo.AddComponent<LineRenderer>();
+            _aimLine.startWidth = 0.05f;
+            _aimLine.endWidth = 0.02f;
+            _aimLine.positionCount = 2;
+            _aimLine.material = new Material(Shader.Find("Sprites/Default"));
+            _aimLine.startColor = Color.white;
+            _aimLine.endColor = new Color(1, 1, 1, 0.3f);
+            _aimLine.sortingOrder = 5;
+
+            var labelGo = new GameObject("NameLabel");
+            labelGo.transform.SetParent(transform);
+            labelGo.transform.localPosition = new Vector3(0f, 1.0f, 0f);
+            _nameLabel = labelGo.AddComponent<TextMesh>();
+            _nameLabel.text = character.Data?.id ?? "Player";
+            _nameLabel.fontSize = 32;
+            _nameLabel.characterSize = 0.06f;
+            _nameLabel.anchor = TextAnchor.MiddleCenter;
+            _nameLabel.alignment = TextAlignment.Center;
+            _nameLabel.color = Color.white;
+        }
+
+        private Sprite CreateBodySprite()
+        {
+            int size = 64;
+            var texture = new Texture2D(size, size);
+            var pixels = new Color[size * size];
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x - size / 2f;
+                    float dy = y - size / 2f;
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
+
+                    if (dist < size / 2f - 3)
+                        pixels[y * size + x] = Color.white;
+                    else if (dist < size / 2f)
+                        pixels[y * size + x] = new Color(0.2f, 0.2f, 0.2f, 1f);
+                    else
+                        pixels[y * size + x] = Color.clear;
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 64f);
         }
 
         private Color GetTeamColor(Team team, Role role)
@@ -72,8 +140,31 @@ namespace HillNGun.Characters
                 _weaponPivot.rotation = Quaternion.Euler(0f, 0f, angle);
             }
 
+            UpdateAimLine(character, worldPos);
             UpdateFlash();
             UpdateStateVisuals(character);
+        }
+
+        private void UpdateAimLine(CharacterStateMachine character, Vector3 worldPos)
+        {
+            if (_aimLine == null) return;
+
+            if (character.AimDirection.magnitude > 0.1f && character.OverallState == CharacterOverallState.Active)
+            {
+                _aimLine.enabled = true;
+                float range = character.Data?.weapon?.range ?? 5f;
+                Vector3 endPos = worldPos + (Vector3)(character.AimDirection.normalized * range * 0.3f);
+                _aimLine.SetPosition(0, worldPos);
+                _aimLine.SetPosition(1, endPos);
+
+                Color aimColor = character.ActionState == ActionState.Charging ? Color.yellow : Color.white;
+                _aimLine.startColor = aimColor;
+                _aimLine.endColor = new Color(aimColor.r, aimColor.g, aimColor.b, 0.3f);
+            }
+            else
+            {
+                _aimLine.enabled = false;
+            }
         }
 
         private void UpdateStateVisuals(CharacterStateMachine character)

@@ -44,6 +44,7 @@ namespace HillNGun.Core
         [SerializeField] private PlaceholderAudio _audio;
         [SerializeField] private ReviveSystem _reviveSystem;
         [SerializeField] private SettingsPanel _settingsPanel;
+        [SerializeField] private PlaceholderHUD _placeholderHUD;
 
         [Header("Prefabs")]
         [SerializeField] private GameObject _characterPrefab;
@@ -120,6 +121,8 @@ namespace HillNGun.Core
                 _hud.SetCharacter(_playerCharacter);
             }
 
+            _placeholderHUD?.SetCharacter(_playerCharacter);
+
             _logger?.LogCharacterSelect(_playerCharacter);
         }
 
@@ -176,7 +179,9 @@ namespace HillNGun.Core
         {
             var view = character.GetComponentInChildren<ICharacterView>();
             view?.PlayHitFlash(_feelData?.hitFlashDuration ?? 0.06f);
-            view?.PlayDamageNumber(damage, character.Position);
+
+            Feel.EffectsManager.Instance?.SpawnDamageNumber(character.Position, damage, damage >= 500);
+            Feel.EffectsManager.Instance?.SpawnImpact(character.Position, false);
 
             _audio?.PlayHit(damage);
 
@@ -218,6 +223,13 @@ namespace HillNGun.Core
 
             bool isShotgun = character.Data?.weapon?.projectilesPerShot > 1;
             bool isHeavy = character.Data?.weapon?.fireMode == FireMode.ChargeRelease;
+            
+            Feel.EffectsManager.Instance?.SpawnMuzzleFlash(character.Position, direction, isShotgun);
+            
+            float range = character.Data?.weapon?.range ?? 7f;
+            Vector2 endPos = character.Position + direction.normalized * range;
+            Feel.EffectsManager.Instance?.SpawnTracer(character.Position, endPos, character.Team);
+            
             _audio?.PlayShot(isHeavy, isShotgun);
 
             if (character.AmmoGauge?.IsEmpty == true)
@@ -350,13 +362,61 @@ namespace HillNGun.Core
             {
                 go = new GameObject($"Target_{target.Data.id}_{index}");
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = CreatePlaceholderSprite(1f);
-                sr.color = new Color(0.8f, 0.6f, 0.2f);
+                sr.sprite = CreateTargetSprite();
+                sr.color = new Color(1f, 0.8f, 0.3f);
+
+                var labelGo = new GameObject("Label");
+                labelGo.transform.SetParent(go.transform);
+                labelGo.transform.localPosition = new Vector3(0f, 1.0f, 0f);
+                var label = labelGo.AddComponent<TextMesh>();
+                string typeLabel = target.Data.shoots ? "사격" : (target.Data.moves ? "이동" : "고정");
+                label.text = $"과녁 ({typeLabel})";
+                label.fontSize = 32;
+                label.characterSize = 0.06f;
+                label.anchor = TextAnchor.MiddleCenter;
+                label.alignment = TextAlignment.Center;
+                label.color = Color.white;
             }
 
             Vector3 worldPos = _battlefieldSystem?.LogicToWorldPosition(target.Position) ?? 
                               new Vector3(target.Position.x, target.Position.y, 0f);
             go.transform.position = worldPos;
+        }
+
+        private Sprite CreateTargetSprite()
+        {
+            int size = 64;
+            var texture = new Texture2D(size, size);
+            var pixels = new Color[size * size];
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x - size / 2f;
+                    float dy = y - size / 2f;
+                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
+
+                    if (dist < 8)
+                        pixels[y * size + x] = Color.white;
+                    else if (dist < 12)
+                        pixels[y * size + x] = new Color(1f, 0.8f, 0.3f);
+                    else if (dist < 20)
+                        pixels[y * size + x] = Color.white;
+                    else if (dist < 24)
+                        pixels[y * size + x] = new Color(1f, 0.8f, 0.3f);
+                    else if (dist < size / 2f - 2)
+                        pixels[y * size + x] = Color.white;
+                    else if (dist < size / 2f)
+                        pixels[y * size + x] = new Color(0.3f, 0.3f, 0.3f);
+                    else
+                        pixels[y * size + x] = Color.clear;
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 64f);
         }
 
         private Sprite CreatePlaceholderSprite(float size)
@@ -424,6 +484,8 @@ namespace HillNGun.Core
                 _hud.SetCharacter(_playerCharacter);
             }
 
+            _placeholderHUD?.SetCharacter(_playerCharacter);
+
             _logger?.LogCharacterSelect(_playerCharacter);
         }
 
@@ -483,7 +545,18 @@ namespace HillNGun.Core
             {
                 if (ally != null)
                 {
-                    ally.ResetToDowned();
+                    ally.ResetToActive();
+                }
+            }
+        }
+
+        public void DownDummyAllies()
+        {
+            foreach (var ally in _dummyAllies)
+            {
+                if (ally != null && ally.State == CharacterOverallState.Active)
+                {
+                    ally.GoDown();
                 }
             }
         }
@@ -508,6 +581,10 @@ namespace HillNGun.Core
                 ResetTargets();
                 ResetCovers();
                 ResetDummyAllies();
+            }
+            if (UnityEngine.InputSystem.Keyboard.current.kKey.wasPressedThisFrame)
+            {
+                DownDummyAllies();
             }
         }
 

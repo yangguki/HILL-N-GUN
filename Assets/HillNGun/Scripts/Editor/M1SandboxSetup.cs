@@ -586,9 +586,9 @@ namespace HillNGun.Editor
             var cameraGO = new GameObject("Main Camera");
             var camera = cameraGO.AddComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 9f;
+            camera.orthographicSize = 10f;
             camera.transform.position = new Vector3(0f, 0f, -10f);
-            camera.backgroundColor = new Color(0.4f, 0.3f, 0.2f);
+            camera.backgroundColor = new Color(0.25f, 0.2f, 0.15f);
             camera.clearFlags = CameraClearFlags.SolidColor;
             cameraGO.tag = "MainCamera";
             cameraGO.AddComponent<AudioListener>();
@@ -597,6 +597,12 @@ namespace HillNGun.Editor
             var battlefieldSys = battlefieldGO.AddComponent<BattlefieldSystem>();
             var battlefieldData = AssetDatabase.LoadAssetAtPath<BattlefieldData>(DATA_PATH + "Battlefield/battlefield_main.asset");
             SetPrivateField(battlefieldSys, "_data", battlefieldData);
+
+            var rendererGO = new GameObject("BattlefieldRenderer");
+            rendererGO.AddComponent<BattlefieldRenderer>();
+
+            var hudGO = new GameObject("PlaceholderHUD");
+            var placeholderHUD = hudGO.AddComponent<PlaceholderHUD>();
 
             var combatGO = new GameObject("CombatSystem");
             var combatSys = combatGO.AddComponent<CombatSystem>();
@@ -619,6 +625,9 @@ namespace HillNGun.Editor
             var shakeGO = new GameObject("ScreenShake");
             var screenShake = shakeGO.AddComponent<ScreenShake>();
             SetPrivateField(screenShake, "_feelData", feelData);
+
+            var effectsGO = new GameObject("EffectsManager");
+            effectsGO.AddComponent<EffectsManager>();
 
             var localizationGO = new GameObject("LocalizationManager");
             localizationGO.AddComponent<LocalizationManager>();
@@ -664,6 +673,7 @@ namespace HillNGun.Editor
             SetPrivateField(gameManager, "_localization", localizationGO.GetComponent<LocalizationManager>());
             SetPrivateField(gameManager, "_audio", placeholderAudio);
             SetPrivateField(gameManager, "_reviveSystem", reviveSystem);
+            SetPrivateField(gameManager, "_placeholderHUD", placeholderHUD);
 
             EditorSceneManager.SaveScene(scene, SCENE_PATH);
             EditorSceneManager.OpenScene(SCENE_PATH);

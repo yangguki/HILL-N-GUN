@@ -11,11 +11,11 @@ namespace HillNGun.DebugTools
     public class DebugOverlay : MonoBehaviour
     {
         [Header("Display Options")]
-        [SerializeField] private bool _showHitCircles = true;
-        [SerializeField] private bool _showCoverColliders = true;
-        [SerializeField] private bool _showRanges = true;
-        [SerializeField] private bool _showProjectiles = true;
-        [SerializeField] private bool _showStats = true;
+        [SerializeField] private bool _showHitCircles = false;
+        [SerializeField] private bool _showCoverColliders = false;
+        [SerializeField] private bool _showRanges = false;
+        [SerializeField] private bool _showProjectiles = false;
+        [SerializeField] private bool _showStats = false;
         [SerializeField] private bool _showGrid = false;
 
         [Header("Debug Controls")]
@@ -110,36 +110,27 @@ namespace HillNGun.DebugTools
         {
             if (!_showStats) return;
 
-            GUILayout.BeginArea(new Rect(10, 10, 300, 500));
+            float panelWidth = 180;
+            float panelX = Screen.width - panelWidth - 10;
+
+            GUILayout.BeginArea(new Rect(panelX, 120, panelWidth, 400));
             GUILayout.BeginVertical("box");
 
-            GUILayout.Label($"<b>Debug Overlay</b> (F1-F8)");
-            GUILayout.Label($"Hit Circles (F1): {_showHitCircles}");
-            GUILayout.Label($"Cover Colliders (F2): {_showCoverColliders}");
-            GUILayout.Label($"Ranges (F3): {_showRanges}");
-            GUILayout.Label($"Projectiles (F4): {_showProjectiles}");
-            GUILayout.Label($"Stats (F5): {_showStats}");
-            GUILayout.Label($"Grid (F6): {_showGrid}");
-            GUILayout.Label($"Invincible (F7): {_invincible}");
-            GUILayout.Label($"Slow Motion (F8): {_timeScale:F2}x");
+            var smallStyle = new GUIStyle(GUI.skin.label);
+            smallStyle.fontSize = 10;
+            smallStyle.richText = true;
 
-            GUILayout.Space(10);
-            GUILayout.Label($"<b>Performance</b>");
-            GUILayout.Label($"FPS: {1f / Time.unscaledDeltaTime:F1}");
-            GUILayout.Label($"Active Projectiles: {_combatSystem?.ProjectilePool?.ActiveCount ?? 0}");
+            GUILayout.Label("<b>Debug (F5 off)</b>", smallStyle);
+            GUILayout.Label($"FPS: {1f / Time.unscaledDeltaTime:F0} | Proj: {_combatSystem?.ProjectilePool?.ActiveCount ?? 0}", smallStyle);
+            GUILayout.Label($"F1:Hit F2:Cover F3:Range F4:Proj", smallStyle);
+            GUILayout.Label($"F6:Grid F7:God F8:Slow({_timeScale:F2}x)", smallStyle);
 
-            GUILayout.Space(10);
             foreach (var character in _characters)
             {
                 if (character == null) continue;
-
-                GUILayout.Label($"<b>{character.Data?.id ?? "Unknown"}</b>");
-                GUILayout.Label($"  HP: {character.CurrentHp}/{character.MaxHp}");
-                GUILayout.Label($"  Pos: ({character.Position.x:F1}, {character.Position.y:F1}) Row: {character.CurrentRowIndex}");
-                GUILayout.Label($"  State: {character.MovementState}/{character.ActionState}");
-                GUILayout.Label($"  Gauge: {character.AmmoGauge?.CurrentCells ?? 0}/{character.AmmoGauge?.MaxCells ?? 0}");
-                GUILayout.Label($"  Roll CD: {character.RollCooldownRatio:P0}");
-                GUILayout.Label($"  Skill CD: {character.SkillCooldownRatio:P0}");
+                GUILayout.Label($"<b>{character.Data?.id}</b> HP:{character.CurrentHp}/{character.MaxHp}", smallStyle);
+                GUILayout.Label($"  Pos:({character.Position.x:F0},{character.Position.y:F0}) R{character.CurrentRowIndex}", smallStyle);
+                GUILayout.Label($"  Ammo:{character.AmmoGauge?.CurrentCells ?? 0}/{character.AmmoGauge?.MaxCells ?? 0}", smallStyle);
             }
 
             GUILayout.EndVertical();

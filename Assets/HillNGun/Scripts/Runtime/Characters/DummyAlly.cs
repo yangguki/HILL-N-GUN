@@ -11,10 +11,11 @@ namespace HillNGun.Characters
 
         private Vector2 _position;
         private int _currentRowIndex;
-        private CharacterOverallState _state = CharacterOverallState.Downed;
+        private CharacterOverallState _state = CharacterOverallState.Active;
         private float _downedTimer;
         private float _reviveProgress;
         private bool _isBeingRevived;
+        private TextMesh _nameLabel;
 
         private SpriteRenderer _renderer;
         private Transform _starsTransform;
@@ -29,13 +30,14 @@ namespace HillNGun.Characters
 
         public event System.Action<DummyAlly> OnRevived;
         public event System.Action<DummyAlly> OnEliminated;
+        public event System.Action<DummyAlly> OnDowned;
 
         public void Initialize(Vector2 position, int rowIndex, DownedData downedData)
         {
             _position = position;
             _currentRowIndex = rowIndex;
             _downedData = downedData;
-            _state = CharacterOverallState.Downed;
+            _state = CharacterOverallState.Active;
             _downedTimer = 0f;
             _reviveProgress = 0f;
 
@@ -52,13 +54,25 @@ namespace HillNGun.Characters
                 visualGo.transform.localPosition = Vector3.zero;
                 _renderer = visualGo.AddComponent<SpriteRenderer>();
                 _renderer.sprite = CreatePlaceholderSprite();
-                _renderer.color = new Color(0.5f, 0.5f, 0.8f, 0.7f);
+                _renderer.color = new Color(0.3f, 0.8f, 0.4f, 1f);
             }
+
+            var labelGo = new GameObject("NameLabel");
+            labelGo.transform.SetParent(transform);
+            labelGo.transform.localPosition = new Vector3(0f, 1.2f, 0f);
+            _nameLabel = labelGo.AddComponent<TextMesh>();
+            _nameLabel.text = "아군";
+            _nameLabel.fontSize = 32;
+            _nameLabel.characterSize = 0.08f;
+            _nameLabel.anchor = TextAnchor.MiddleCenter;
+            _nameLabel.alignment = TextAlignment.Center;
+            _nameLabel.color = Color.white;
 
             var starsGo = new GameObject("Stars");
             starsGo.transform.SetParent(transform);
             starsGo.transform.localPosition = new Vector3(0f, 0.8f, 0f);
             _starsTransform = starsGo.transform;
+            starsGo.SetActive(false);
 
             for (int i = 0; i < 3; i++)
             {
@@ -74,7 +88,7 @@ namespace HillNGun.Characters
                 starRenderer.sortingOrder = 10;
             }
 
-            transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+            transform.rotation = Quaternion.identity;
         }
 
         private Sprite CreatePlaceholderSprite()
@@ -141,7 +155,9 @@ namespace HillNGun.Characters
 
         private void Update()
         {
-            if (_state != CharacterOverallState.Downed) return;
+            if (_state == CharacterOverallState.Eliminated) return;
+
+            if (_state == CharacterOverallState.Active) return;
 
             float dt = GameTime.DeltaTime;
 
@@ -165,13 +181,45 @@ namespace HillNGun.Characters
             {
                 _downedTimer += dt;
 
-                if (_downedTimer >= (_downedData?.downedDuration ?? 10f))
+                float downedDuration = _downedData?.downedDuration ?? 10f;
+                if (_downedTimer >= downedDuration)
                 {
                     Eliminate();
                 }
             }
 
             UpdateVisuals();
+        }
+
+        public void GoDown()
+        {
+            if (_state != CharacterOverallState.Active) return;
+
+            _state = CharacterOverallState.Downed;
+            _downedTimer = 0f;
+            _reviveProgress = 0f;
+            _isBeingRevived = false;
+
+            transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+
+            if (_starsTransform != null)
+            {
+                _starsTransform.gameObject.SetActive(true);
+            }
+
+            if (_renderer != null)
+            {
+                _renderer.color = new Color(0.5f, 0.8f, 0.5f, 0.7f);
+            }
+
+            if (_nameLabel != null)
+            {
+                _nameLabel.text = "기절!";
+                _nameLabel.color = Color.yellow;
+            }
+
+            Feel.PlaceholderAudio.Instance?.PlayDowned();
+            OnDowned?.Invoke(this);
         }
 
         public void StartRevive()
@@ -202,7 +250,13 @@ namespace HillNGun.Characters
 
             if (_renderer != null)
             {
-                _renderer.color = new Color(0.5f, 0.8f, 0.5f, 1f);
+                _renderer.color = new Color(0.3f, 0.8f, 0.4f, 1f);
+            }
+
+            if (_nameLabel != null)
+            {
+                _nameLabel.text = "아군";
+                _nameLabel.color = Color.white;
             }
 
             Feel.PlaceholderAudio.Instance?.PlayRevive();
@@ -239,24 +293,35 @@ namespace HillNGun.Characters
             }
         }
 
-        public void ResetToDowned()
+        public void ResetToActive()
         {
-            _state = CharacterOverallState.Downed;
+            _state = CharacterOverallState.Active;
             _downedTimer = 0f;
             _reviveProgress = 0f;
             _isBeingRevived = false;
 
-            transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+            transform.rotation = Quaternion.identity;
 
             if (_starsTransform != null)
             {
-                _starsTransform.gameObject.SetActive(true);
+                _starsTransform.gameObject.SetActive(false);
             }
 
             if (_renderer != null)
             {
-                _renderer.color = new Color(0.5f, 0.5f, 0.8f, 0.7f);
+                _renderer.color = new Color(0.3f, 0.8f, 0.4f, 1f);
             }
+
+            if (_nameLabel != null)
+            {
+                _nameLabel.text = "아군";
+                _nameLabel.color = Color.white;
+            }
+        }
+
+        public void ResetToDowned()
+        {
+            ResetToActive();
         }
 
         public void SetPosition(Vector2 position)
