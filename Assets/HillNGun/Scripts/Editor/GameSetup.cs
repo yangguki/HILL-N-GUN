@@ -525,7 +525,14 @@ namespace HillNGun.Editor
             var stage3 = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_3.asset");
             var bossStage = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_boss.asset");
 
+            var charBuster = AssetDatabase.LoadAssetAtPath<CharacterData>(DATA_PATH + "Characters/char_buster.asset");
+            var charRaven = AssetDatabase.LoadAssetAtPath<CharacterData>(DATA_PATH + "Characters/char_raven.asset");
+            var charVolt = AssetDatabase.LoadAssetAtPath<CharacterData>(DATA_PATH + "Characters/char_volt.asset");
+            var botBehavior = AssetDatabase.LoadAssetAtPath<BotBehaviorData>(DATA_PATH + "AI/bot_behavior_default.asset");
+
             SetPrivateField(pveManager, "_stages", new StageData[] { stage1, stage2, stage3, bossStage });
+            SetPrivateField(pveManager, "_characterDatas", new CharacterData[] { charBuster, charRaven, charVolt });
+            SetPrivateField(pveManager, "_botBehavior", botBehavior);
 
             var pveHUDGO = new GameObject("PvEHUD");
             pveHUDGO.AddComponent<PvEHUD>();

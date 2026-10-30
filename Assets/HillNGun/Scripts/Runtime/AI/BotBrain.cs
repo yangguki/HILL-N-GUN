@@ -10,6 +10,7 @@ namespace HillNGun.AI
     {
         private CharacterStateMachine _character;
         private BotBehaviorData _behaviorData;
+        private CharacterStateMachine[] _allies;
 
         private float _decisionTimer;
         private float _aimTimer;
@@ -19,14 +20,22 @@ namespace HillNGun.AI
 
         private BotState _currentState = BotState.Idle;
         private CharacterStateMachine _currentTarget;
+        private CharacterStateMachine _reviveTarget;
         private Vector2 _aimDirection;
         private bool _isAiming;
         private float _aimStartTime;
+
+        public CharacterStateMachine Character => _character;
 
         public BotBrain(CharacterStateMachine character, BotBehaviorData behaviorData)
         {
             _character = character;
             _behaviorData = behaviorData ?? ScriptableObject.CreateInstance<BotBehaviorData>();
+        }
+
+        public void SetAllies(CharacterStateMachine[] allies)
+        {
+            _allies = allies;
         }
 
         public void Update(float deltaTime, CharacterStateMachine[] enemies)
@@ -50,6 +59,13 @@ namespace HillNGun.AI
 
         private void MakeDecision(CharacterStateMachine[] enemies)
         {
+            _reviveTarget = FindDownedAlly();
+            if (_reviveTarget != null && ShouldRevive(_reviveTarget))
+            {
+                _currentState = BotState.Reviving;
+                return;
+            }
+
             _currentTarget = FindBestTarget(enemies);
 
             if (_currentTarget == null)
@@ -268,8 +284,66 @@ namespace HillNGun.AI
             _currentState = BotState.Idle;
         }
 
-        private void ExecuteReviving(CharacterStateMachine[] allies)
+        private void ExecuteReviving(CharacterStateMachine[] enemies)
         {
+            if (_reviveTarget == null || _reviveTarget.OverallState != CharacterOverallState.Downed)
+            {
+                _currentState = BotState.Idle;
+                _reviveTarget = null;
+                return;
+            }
+
+            float distance = Vector2.Distance(_character.Position, _reviveTarget.Position);
+            var downedData = ServiceLocator.Get<DownedData>();
+            float reviveRange = downedData?.reviveRange ?? 1.5f;
+
+            if (distance <= reviveRange)
+            {
+                _character.OnMoveCommand(MoveCommand.Stop(Time.time));
+            }
+            else
+            {
+                Vector2 direction = (_reviveTarget.Position - _character.Position).normalized;
+                _character.OnMoveCommand(new MoveCommand(direction, 1f, Time.time));
+            }
+        }
+
+        private CharacterStateMachine FindDownedAlly()
+        {
+            if (_allies == null) return null;
+
+            CharacterStateMachine closest = null;
+            float closestDist = float.MaxValue;
+
+            foreach (var ally in _allies)
+            {
+                if (ally == null || ally == _character) continue;
+                if (ally.OverallState != CharacterOverallState.Downed) continue;
+
+                float dist = Vector2.Distance(_character.Position, ally.Position);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closest = ally;
+                }
+            }
+
+            return closest;
+        }
+
+        private bool ShouldRevive(CharacterStateMachine target)
+        {
+            if (target == null) return false;
+
+            float distance = Vector2.Distance(_character.Position, target.Position);
+            float seekDist = _behaviorData?.reviveSeekDistance ?? 5f;
+
+            if (distance <= seekDist)
+            {
+                return Random.value < (_behaviorData?.revivePriority ?? 0.6f);
+            }
+
+            return false;
         }
 
         private CharacterStateMachine FindBestTarget(CharacterStateMachine[] enemies)

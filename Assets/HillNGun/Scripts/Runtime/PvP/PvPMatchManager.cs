@@ -37,7 +37,9 @@ namespace HillNGun.PvP
 
         private List<CharacterStateMachine> _playerTeam = new List<CharacterStateMachine>();
         private List<CharacterStateMachine> _enemyTeam = new List<CharacterStateMachine>();
-        private List<BotBrain> _botBrains = new List<BotBrain>();
+        private List<BotBrain> _allyBotBrains = new List<BotBrain>();
+        private List<BotBrain> _enemyBotBrains = new List<BotBrain>();
+        private int _playerControlledIndex = 0;
 
         private int _currentRound = 0;
         private int _playerRoundsWon = 0;
@@ -101,7 +103,8 @@ namespace HillNGun.PvP
         {
             _playerTeam.Clear();
             _enemyTeam.Clear();
-            _botBrains.Clear();
+            _allyBotBrains.Clear();
+            _enemyBotBrains.Clear();
 
             var flowManager = GameFlowManager.Instance;
             string[] playerCharIds = flowManager?.CurrentSession?.selectedCharacterIds ?? 
@@ -111,7 +114,7 @@ namespace HillNGun.PvP
             {
                 string charId = playerCharIds.Length > i ? playerCharIds[i] : "buster";
                 CharacterData charData = GetCharacterById(charId);
-                if (charData == null && _characterDatas.Length > i)
+                if (charData == null && _characterDatas != null && _characterDatas.Length > i)
                 {
                     charData = _characterDatas[i];
                 }
@@ -120,6 +123,12 @@ namespace HillNGun.PvP
                 {
                     var playerChar = CreateCharacter(charData, Team.Player, i, _playerSpawnPoints[i], i);
                     _playerTeam.Add(playerChar);
+
+                    if (i != _playerControlledIndex)
+                    {
+                        var allyBot = new BotBrain(playerChar, _botBehavior);
+                        _allyBotBrains.Add(allyBot);
+                    }
                 }
             }
 
@@ -134,9 +143,26 @@ namespace HillNGun.PvP
                     var enemyChar = CreateCharacter(charData, Team.Enemy, i, _enemySpawnPoints[i], i);
                     _enemyTeam.Add(enemyChar);
 
-                    var botBrain = new BotBrain(enemyChar, _botBehavior);
-                    _botBrains.Add(botBrain);
+                    var enemyBot = new BotBrain(enemyChar, _botBehavior);
+                    _enemyBotBrains.Add(enemyBot);
                 }
+            }
+
+            SetBotAllies();
+        }
+
+        private void SetBotAllies()
+        {
+            CharacterStateMachine[] playerTeamArray = _playerTeam.ToArray();
+            CharacterStateMachine[] enemyTeamArray = _enemyTeam.ToArray();
+
+            foreach (var bot in _allyBotBrains)
+            {
+                bot.SetAllies(playerTeamArray);
+            }
+            foreach (var bot in _enemyBotBrains)
+            {
+                bot.SetAllies(enemyTeamArray);
             }
         }
 
@@ -253,8 +279,14 @@ namespace HillNGun.PvP
         private void UpdateBots()
         {
             CharacterStateMachine[] playerChars = _playerTeam.ToArray();
+            CharacterStateMachine[] enemyChars = _enemyTeam.ToArray();
 
-            foreach (var bot in _botBrains)
+            foreach (var bot in _allyBotBrains)
+            {
+                bot.Update(Time.deltaTime, enemyChars);
+            }
+
+            foreach (var bot in _enemyBotBrains)
             {
                 bot.Update(Time.deltaTime, playerChars);
             }

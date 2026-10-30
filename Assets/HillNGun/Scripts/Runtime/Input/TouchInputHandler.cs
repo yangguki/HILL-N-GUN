@@ -16,19 +16,28 @@ namespace HillNGun.Input
 
         private Vector2 _joystickCenter;
         private Vector2 _fireButtonCenter;
+        private Vector2 _rollButtonCenter;
+        private Vector2 _grenadeButtonCenter;
+        private Vector2 _skillButtonCenter;
+
         private bool _joystickActive;
         private bool _fireButtonActive;
+        private bool _grenadeButtonActive;
+
         private int _joystickFingerId = -1;
         private int _fireButtonFingerId = -1;
+        private int _grenadeButtonFingerId = -1;
 
         private Vector2 _joystickStartPos;
         private Vector2 _fireButtonStartPos;
+        private Vector2 _grenadeButtonStartPos;
         private Vector2 _lastAimDirection = Vector2.up;
         private bool _wasOutsideDeadzone;
         private float _rowChangeHoldTimer;
         private int _pendingRowDirection;
 
         private Vector2 _lastMoveInput;
+        private const float BUTTON_RADIUS = 60f;
 
         private void Awake()
         {
@@ -60,12 +69,17 @@ namespace HillNGun.Input
             float scale = _inputData?.CurrentButtonScale ?? 1f;
             float joystickRadius = (_inputData?.joystickRadiusPx ?? 120f) * scale;
             float fireButtonRadius = (_inputData?.fireButtonRadiusPx ?? 140f) * scale;
+            float smallButtonRadius = BUTTON_RADIUS * scale;
 
             float margin = 50f;
             float bottomMargin = 100f;
 
             _joystickCenter = new Vector2(margin + joystickRadius, bottomMargin + joystickRadius);
             _fireButtonCenter = new Vector2(screenWidth - margin - fireButtonRadius, bottomMargin + fireButtonRadius);
+
+            _rollButtonCenter = new Vector2(margin + joystickRadius * 2 + smallButtonRadius + 30f, bottomMargin + smallButtonRadius);
+            _grenadeButtonCenter = new Vector2(screenWidth - margin - fireButtonRadius * 2 - smallButtonRadius - 30f, bottomMargin + fireButtonRadius + smallButtonRadius + 20f);
+            _skillButtonCenter = new Vector2(screenWidth - margin - fireButtonRadius - smallButtonRadius - 30f, bottomMargin + fireButtonRadius * 2 + smallButtonRadius);
         }
 
         private void Update()
@@ -242,6 +256,8 @@ namespace HillNGun.Input
         {
             float joystickRadius = _inputData?.ScaledJoystickRadius ?? 120f;
             float fireButtonRadius = _inputData?.ScaledFireButtonRadius ?? 140f;
+            float scale = _inputData?.CurrentButtonScale ?? 1f;
+            float smallButtonRadius = BUTTON_RADIUS * scale;
 
             if (!_joystickActive && Vector2.Distance(position, _joystickCenter) < joystickRadius * 1.5f)
             {
@@ -257,6 +273,21 @@ namespace HillNGun.Input
                 _wasOutsideDeadzone = false;
                 _receiver?.OnAimStartCommand(new AimStartCommand(position, Time.time));
             }
+            else if (Vector2.Distance(position, _rollButtonCenter) < smallButtonRadius * 1.5f)
+            {
+                _receiver?.OnRollCommand(new RollCommand(_lastMoveInput.magnitude > 0.1f ? _lastMoveInput.normalized : Vector2.right, Time.time));
+            }
+            else if (!_grenadeButtonActive && Vector2.Distance(position, _grenadeButtonCenter) < smallButtonRadius * 1.5f)
+            {
+                _grenadeButtonActive = true;
+                _grenadeButtonFingerId = fingerId;
+                _grenadeButtonStartPos = position;
+                _receiver?.OnGrenadeAimStartCommand(new GrenadeAimStartCommand(position, Time.time));
+            }
+            else if (Vector2.Distance(position, _skillButtonCenter) < smallButtonRadius * 1.5f)
+            {
+                _receiver?.OnSkillStartCommand(new SkillStartCommand(position, Time.time));
+            }
         }
 
         private void HandleTouchMoved(int fingerId, Vector2 position)
@@ -268,6 +299,10 @@ namespace HillNGun.Input
             else if (fingerId == _fireButtonFingerId && _fireButtonActive)
             {
                 ProcessFireButtonInput(position);
+            }
+            else if (fingerId == _grenadeButtonFingerId && _grenadeButtonActive)
+            {
+                ProcessGrenadeInput(position);
             }
         }
 
@@ -287,6 +322,27 @@ namespace HillNGun.Input
                 _fireButtonFingerId = -1;
                 _receiver?.OnAimReleaseCommand(new AimReleaseCommand(_lastAimDirection, _wasOutsideDeadzone, Time.time));
             }
+            else if (fingerId == _grenadeButtonFingerId && _grenadeButtonActive)
+            {
+                _grenadeButtonActive = false;
+                _grenadeButtonFingerId = -1;
+                Vector2 targetWorld = ScreenToWorld(position);
+                _receiver?.OnGrenadeReleaseCommand(new GrenadeReleaseCommand(targetWorld, true, Time.time));
+            }
+        }
+
+        private void ProcessGrenadeInput(Vector2 position)
+        {
+            Vector2 delta = position - _grenadeButtonStartPos;
+            _receiver?.OnGrenadeAimDragCommand(new GrenadeAimDragCommand(delta.normalized, delta.magnitude / 100f, Time.time));
+        }
+
+        private Vector2 ScreenToWorld(Vector2 screenPos)
+        {
+            if (Camera.main == null) return Vector2.zero;
+            Vector3 pos = screenPos;
+            pos.z = -Camera.main.transform.position.z;
+            return Camera.main.ScreenToWorldPoint(pos);
         }
 
         private void ProcessJoystickInput(Vector2 position)
@@ -361,7 +417,21 @@ namespace HillNGun.Input
 
         public Vector2 GetJoystickCenter() => _joystickCenter;
         public Vector2 GetFireButtonCenter() => _fireButtonCenter;
+        public Vector2 GetRollButtonCenter() => _rollButtonCenter;
+        public Vector2 GetGrenadeButtonCenter() => _grenadeButtonCenter;
+        public Vector2 GetSkillButtonCenter() => _skillButtonCenter;
         public bool IsJoystickActive() => _joystickActive;
         public bool IsFireButtonActive() => _fireButtonActive;
+        public bool IsGrenadeButtonActive() => _grenadeButtonActive;
+        public float GetSmallButtonRadius() => BUTTON_RADIUS * (_inputData?.CurrentButtonScale ?? 1f);
+
+        public bool IsTouchDevice()
+        {
+#if UNITY_ANDROID || UNITY_IOS
+            return true;
+#else
+            return UnityEngine.InputSystem.Touchscreen.current != null;
+#endif
+        }
     }
 }

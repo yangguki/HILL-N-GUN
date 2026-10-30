@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using HillNGun.Data;
 using HillNGun.Core;
 using HillNGun.Characters;
+using HillNGun.AI;
+using HillNGun.Input;
 
 namespace HillNGun.PvE
 {
@@ -16,9 +18,22 @@ namespace HillNGun.PvE
         [SerializeField] private float _enemySpawnOffscreenY = 20f;
         [SerializeField] private float _maxEnemyY = 25f;
 
+        [Header("Player Team")]
+        [SerializeField] private CharacterData[] _characterDatas;
+        [SerializeField] private BotBehaviorData _botBehavior;
+        [SerializeField] private Vector2[] _playerSpawnPoints = new Vector2[]
+        {
+            new Vector2(6f, 2f),
+            new Vector2(12f, 4.5f),
+            new Vector2(18f, 2f)
+        };
+
         private StageData _currentStage;
         private List<EnemyInstance> _activeEnemies = new List<EnemyInstance>();
         private BossInstance _activeBoss;
+        private List<CharacterStateMachine> _playerTeam = new List<CharacterStateMachine>();
+        private List<BotBrain> _allyBots = new List<BotBrain>();
+        private int _playerControlledIndex = 0;
 
         private int _currentGauge;
         private int _currentWave;
@@ -50,12 +65,100 @@ namespace HillNGun.PvE
         public event System.Action<BossInstance> OnBossSpawned;
         public event System.Action<BossInstance> OnBossDefeated;
 
+        public IReadOnlyList<CharacterStateMachine> PlayerTeam => _playerTeam;
+
         private void Start()
         {
+            SpawnPlayerTeam();
             if (_stages != null && _stages.Length > 0)
             {
                 StartStage(_currentStageIndex);
             }
+        }
+
+        private void SpawnPlayerTeam()
+        {
+            _playerTeam.Clear();
+            _allyBots.Clear();
+
+            var flowManager = GameFlowManager.Instance;
+            string[] charIds = flowManager?.CurrentSession?.selectedCharacterIds ??
+                new string[] { "buster", "raven", "volt" };
+
+            for (int i = 0; i < 3; i++)
+            {
+                string charId = charIds.Length > i ? charIds[i] : "buster";
+                CharacterData charData = GetCharacterById(charId);
+                if (charData == null && _characterDatas != null && _characterDatas.Length > i)
+                {
+                    charData = _characterDatas[i];
+                }
+
+                if (charData != null)
+                {
+                    var character = CreatePlayerCharacter(charData, i, _playerSpawnPoints[i], i);
+                    _playerTeam.Add(character);
+
+                    if (i != _playerControlledIndex)
+                    {
+                        var bot = new BotBrain(character, _botBehavior);
+                        _allyBots.Add(bot);
+                    }
+                }
+            }
+
+            CharacterStateMachine[] teamArray = _playerTeam.ToArray();
+            foreach (var bot in _allyBots)
+            {
+                bot.SetAllies(teamArray);
+            }
+
+            var inputHandler = FindFirstObjectByType<TouchInputHandler>();
+            if (inputHandler != null && _playerTeam.Count > _playerControlledIndex)
+            {
+                inputHandler.SetReceiver(_playerTeam[_playerControlledIndex]);
+            }
+        }
+
+        private CharacterStateMachine CreatePlayerCharacter(CharacterData data, int index, Vector2 position, int rowIndex)
+        {
+            GameObject go = new GameObject($"Player_{data.id}_{index}");
+            var character = go.AddComponent<CharacterStateMachine>();
+
+            var viewGo = new GameObject("View");
+            viewGo.transform.SetParent(go.transform);
+            var view = viewGo.AddComponent<PlaceholderCharacterView>();
+
+            character.Initialize(data, Team.Player, index, position, rowIndex);
+            view.Initialize(character);
+            character.SetView(view);
+
+            character.OnDowned += HandlePlayerDowned;
+            character.OnEliminated += HandlePlayerEliminated;
+
+            return character;
+        }
+
+        private CharacterData GetCharacterById(string id)
+        {
+            if (_characterDatas == null) return null;
+            foreach (var data in _characterDatas)
+            {
+                if (data != null && data.id == id)
+                    return data;
+            }
+            return null;
+        }
+
+        private void HandlePlayerDowned(CharacterStateMachine character)
+        {
+            Debug.Log($"Player {character.Data?.id} downed");
+        }
+
+        private void HandlePlayerEliminated(CharacterStateMachine character)
+        {
+            Debug.Log($"Player {character.Data?.id} eliminated");
+            CheckTeamDefeat();
         }
 
         public void StartStage(int stageIndex)
@@ -79,6 +182,8 @@ namespace HillNGun.PvE
             _activeEnemies.Clear();
             _activeBoss = null;
 
+            ResetPlayerTeamForStage();
+
             if (_isBossStage && _currentStage.bossData != null)
             {
                 SpawnBoss();
@@ -92,6 +197,18 @@ namespace HillNGun.PvE
             if (flowManager != null)
             {
                 flowManager.SetPvEProgress(_currentGauge, GaugeMax, _currentWave + 1, TotalWaves);
+            }
+        }
+
+        private void ResetPlayerTeamForStage()
+        {
+            for (int i = 0; i < _playerTeam.Count; i++)
+            {
+                var character = _playerTeam[i];
+                if (character != null)
+                {
+                    character.ResetForRound(_playerSpawnPoints[i], i);
+                }
             }
         }
 
@@ -129,6 +246,8 @@ namespace HillNGun.PvE
 
             _stageTimer += Time.deltaTime;
 
+            UpdateAllyBots();
+
             if (_isBossStage)
             {
                 UpdateBossFight();
@@ -140,6 +259,14 @@ namespace HillNGun.PvE
 
             UpdateEnemies();
             CheckTeamDefeat();
+        }
+
+        private void UpdateAllyBots()
+        {
+            foreach (var bot in _allyBots)
+            {
+                bot.Update(Time.deltaTime, null);
+            }
         }
 
         private void UpdateWaveMode()
@@ -202,7 +329,26 @@ namespace HillNGun.PvE
 
         private Vector2 GetNearestPlayerPosition(Vector2 fromPosition)
         {
-            return new Vector2(12f, 4.5f);
+            if (_playerTeam == null || _playerTeam.Count == 0)
+                return new Vector2(12f, 4.5f);
+
+            Vector2 nearest = _playerTeam[0]?.Position ?? new Vector2(12f, 4.5f);
+            float nearestDist = float.MaxValue;
+
+            foreach (var character in _playerTeam)
+            {
+                if (character == null || character.OverallState != CharacterOverallState.Active)
+                    continue;
+
+                float dist = Vector2.Distance(fromPosition, character.Position);
+                if (dist < nearestDist)
+                {
+                    nearestDist = dist;
+                    nearest = character.Position;
+                }
+            }
+
+            return nearest;
         }
 
         private void SpawnEnemy(EnemySpawnEntry entry)
@@ -323,6 +469,22 @@ namespace HillNGun.PvE
 
         private void CheckTeamDefeat()
         {
+            if (_playerTeam == null || _playerTeam.Count == 0) return;
+
+            bool allEliminated = true;
+            foreach (var character in _playerTeam)
+            {
+                if (character != null && character.OverallState != CharacterOverallState.Eliminated)
+                {
+                    allEliminated = false;
+                    break;
+                }
+            }
+
+            if (allEliminated)
+            {
+                CompleteStage(PvERoundResult.StageFailed);
+            }
         }
 
         private void CompleteStage(PvERoundResult result)
