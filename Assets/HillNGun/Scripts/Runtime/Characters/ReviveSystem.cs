@@ -88,8 +88,6 @@ namespace HillNGun.Characters
                 if (downedChar == null) continue;
                 if (downedChar.OverallState != CharacterOverallState.Downed) continue;
 
-                bool hasNearbyReviver = false;
-
                 foreach (var reviver in _characters)
                 {
                     if (reviver == null || reviver == downedChar) continue;
@@ -99,7 +97,6 @@ namespace HillNGun.Characters
                     float distance = CoordinateHelper.Distance(reviver.Position, downedChar.Position);
                     if (distance <= reviveRange)
                     {
-                        hasNearbyReviver = true;
                         break;
                     }
                 }

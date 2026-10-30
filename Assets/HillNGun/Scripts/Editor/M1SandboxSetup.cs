@@ -60,6 +60,8 @@ namespace HillNGun.Editor
         private static void CreateDirectories()
         {
             string[] dirs = {
+                ASSET_ROOT,
+                DATA_PATH,
                 DATA_PATH + "Characters",
                 DATA_PATH + "Weapons",
                 DATA_PATH + "Grenades",
@@ -78,12 +80,35 @@ namespace HillNGun.Editor
 
             foreach (string dir in dirs)
             {
-                if (!AssetDatabase.IsValidFolder(dir))
+                CreateFolderRecursive(dir);
+            }
+        }
+
+        private static void CreateFolderRecursive(string path)
+        {
+            path = path.TrimEnd('/');
+            
+            if (AssetDatabase.IsValidFolder(path))
+                return;
+
+            string parent = Path.GetDirectoryName(path)?.Replace("\\", "/");
+            if (string.IsNullOrEmpty(parent) || parent == "Assets")
+            {
+                if (!AssetDatabase.IsValidFolder(path))
                 {
-                    string parent = Path.GetDirectoryName(dir).Replace("\\", "/");
-                    string folder = Path.GetFileName(dir);
-                    AssetDatabase.CreateFolder(parent, folder);
+                    string folderName = Path.GetFileName(path);
+                    string parentPath = string.IsNullOrEmpty(parent) ? "Assets" : parent;
+                    AssetDatabase.CreateFolder(parentPath, folderName);
                 }
+                return;
+            }
+
+            CreateFolderRecursive(parent);
+
+            if (!AssetDatabase.IsValidFolder(path))
+            {
+                string folderName = Path.GetFileName(path);
+                AssetDatabase.CreateFolder(parent, folderName);
             }
         }
 
@@ -641,6 +666,7 @@ namespace HillNGun.Editor
             SetPrivateField(gameManager, "_reviveSystem", reviveSystem);
 
             EditorSceneManager.SaveScene(scene, SCENE_PATH);
+            EditorSceneManager.OpenScene(SCENE_PATH);
         }
 
         private static T CreateOrLoad<T>(string path) where T : ScriptableObject
