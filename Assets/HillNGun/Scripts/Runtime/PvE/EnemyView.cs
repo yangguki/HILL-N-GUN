@@ -3,6 +3,7 @@ using HillNGun.Core;
 using HillNGun.Data;
 using HillNGun.Battlefield;
 using HillNGun.Feel;
+using HillNGun.View3D;
 
 namespace HillNGun.PvE
 {
@@ -21,6 +22,11 @@ namespace HillNGun.PvE
         private Vector2 _lastPos;
         private bool _hasLastPos;
         public SpriteRenderer BodyRenderer => _spriteRenderer;
+        private Actor3D _actor3D;
+        private Vector2 _aimDir = Vector2.down;
+        private float _aimTime = -99f;
+        private float _foot3D;
+        public Actor3D Actor3D => _actor3D;
         public EnemyInstance Enemy => _enemy;
 
         public void Initialize(EnemyInstance enemy)
@@ -87,6 +93,20 @@ namespace HillNGun.PvE
             _warningIndicator = warningGo;
             _warnRenderer = warnSr;
             _warningIndicator.SetActive(false);
+
+            _foot3D = foot;
+            if (_enemy.Data != null && Actor3DStage.Enabled)
+            {
+                _actor3D = Actor3DStage.Create(_enemy.Data.id, null, "Actor3D_" + _enemy.Data.id);
+                if (_actor3D != null)
+                {
+                    _spriteRenderer.enabled = false;
+                    var d = Actor3DStage.Data;
+                    float top = foot + _actor3D.Rig.Height * d.modelScale * d.enemyScaleMul * Mathf.Cos(d.viewTiltDeg * Mathf.Deg2Rad);
+                    labelGo.transform.localPosition = new Vector3(0f, top + 0.25f, 0f);
+                    warningGo.transform.localPosition = new Vector3(0f, top + 0.65f, 0f);
+                }
+            }
         }
 
         private Sprite CreatePlaceholderSprite()
@@ -150,6 +170,21 @@ namespace HillNGun.PvE
             _enemy.OnWarningStart += HandleWarningStart;
             _enemy.OnDamageTaken += HandleDamage;
             _enemy.OnDefeated += HandleDefeated;
+            _enemy.OnAttack += HandleAttack;
+            _enemy.OnExplosiveThrown += HandleThrow;
+        }
+
+        private void HandleAttack(EnemyInstance e, Vector2 dir, int dmg)
+        {
+            if (dir.sqrMagnitude > 0.01f) _aimDir = dir.normalized;
+            _aimTime = Time.time;
+            _actor3D?.Fire();
+        }
+
+        private void HandleThrow(EnemyInstance e, Vector2 dir, int dmg)
+        {
+            if (dir.sqrMagnitude > 0.01f) _aimDir = dir.normalized;
+            _actor3D?.Throw();
         }
 
         private void HandleWarningStart(EnemyInstance enemy)
@@ -160,10 +195,11 @@ namespace HillNGun.PvE
 
         private void HandleDamage(EnemyInstance enemy, int damage, Vector2 direction)
         {
-            if (_spriteRenderer != null)
+            if (_spriteRenderer != null && _actor3D == null)
             {
                 StartCoroutine(FlashWhite());
             }
+            _actor3D?.Hit();
         }
 
         private System.Collections.IEnumerator FlashWhite()
@@ -227,6 +263,29 @@ namespace HillNGun.PvE
             float maxSpeed = _enemy.Data != null ? Mathf.Max(0.5f, _enemy.Data.moveSpeed) : 2f;
             bool grounded = _enemy.IsAlive || _enemy.IsFleeing;
             _rig.Tick(dt, Mathf.Abs(v.x) > 0.05f ? signed : 0f, maxSpeed, grounded, md.enemyBobHeight, md.enemyLeanMaxDeg, 0f, 0f, true);
+            Update3D(dt, v, maxSpeed);
+        }
+
+        private void Update3D(float dt, Vector2 v, float maxSpeed)
+        {
+            if (_actor3D == null) return;
+            var d = Actor3DStage.Data;
+            if (_spriteRenderer.enabled) _spriteRenderer.enabled = false;
+            _actor3D.Place(_rig.FootWorld, Mathf.Abs(transform.lossyScale.y) * d.enemyScaleMul, _enemy.Position.y);
+            bool fleeing = _enemy.IsFleeing || _enemy.IsDefeated;
+            bool warn = _isShowingWarning && _enemy.IsAlive;
+            var pose = new ActorPose
+            {
+                velocity = v,
+                maxSpeed = maxSpeed,
+                aimDir = _aimDir,
+                aiming = _enemy.IsAlive && (warn || Time.time - _aimTime < 0.35f),
+                defaultYaw = d.enemyTeamYaw,
+                torsoFollowMove = fleeing || _enemy.IsEntering ? 1f : Actor3DStage.Anim.torsoFollowMove,
+                strideMul = fleeing ? Actor3DStage.Anim.fleeStrideMul : 1f,
+            };
+            _actor3D.SetTint(fleeing ? d.defeatedTint : Color.white);
+            _actor3D.Tick(dt, pose);
         }
 
         private void OnDestroy()
@@ -236,7 +295,11 @@ namespace HillNGun.PvE
                 _enemy.OnWarningStart -= HandleWarningStart;
                 _enemy.OnDamageTaken -= HandleDamage;
                 _enemy.OnDefeated -= HandleDefeated;
+                _enemy.OnAttack -= HandleAttack;
+                _enemy.OnExplosiveThrown -= HandleThrow;
             }
+            _actor3D?.Destroy();
+            _actor3D = null;
         }
     }
 }

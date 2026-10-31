@@ -368,6 +368,7 @@ namespace HillNGun.Editor
             CreateExternalServicesAsset();
             CreateTutorialAsset();
             CreateMotionFeelAssets();
+            CreateActor3DAssets();
             CreateTouchControlsAsset();
         }
 
@@ -825,6 +826,35 @@ namespace HillNGun.Editor
             EditorUtility.SetDirty(v);
         }
 
+        /// <summary>3D actor view (view only): toggle/look/models + procedural animation knobs + the toon material in Resources (so the shader ships).</summary>
+        private static void CreateActor3DAssets()
+        {
+            var a = CreateOrLoad<Actor3DData>(DATA_PATH + "Feel/actor3d.asset");
+            var fresh = ScriptableObject.CreateInstance<Actor3DData>();
+            EditorUtility.CopySerialized(fresh, a);
+            Object.DestroyImmediate(fresh);
+            a.models = Actor3DDefaults.Models();
+            EditorUtility.SetDirty(a);
+
+            var an = CreateOrLoad<Actor3DAnimData>(DATA_PATH + "Feel/actor3d_anim.asset");
+            var freshAn = ScriptableObject.CreateInstance<Actor3DAnimData>();
+            EditorUtility.CopySerialized(freshAn, an);
+            Object.DestroyImmediate(freshAn);
+            EditorUtility.SetDirty(an);
+
+            const string resDir = "Assets/HillNGun/Resources/Actor3D";
+            if (!AssetDatabase.IsValidFolder("Assets/HillNGun/Resources")) AssetDatabase.CreateFolder("Assets/HillNGun", "Resources");
+            if (!AssetDatabase.IsValidFolder(resDir)) AssetDatabase.CreateFolder("Assets/HillNGun/Resources", "Actor3D");
+            var shader = Shader.Find("HillNGun/Toon");
+            if (shader == null) { Debug.LogWarning("[GameSetup] HillNGun/Toon shader not found; 3D actors fall back to sprites"); return; }
+            string matPath = resDir + "/hng_toon.mat";
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            if (mat == null) { mat = new Material(shader); AssetDatabase.CreateAsset(mat, matPath); }
+            mat.shader = shader;
+            mat.enableInstancing = true;
+            EditorUtility.SetDirty(mat);
+        }
+
         private static void CreateBotBehaviorAsset()
         {
             var botBehavior = CreateOrLoad<BotBehaviorData>(DATA_PATH + "AI/bot_behavior_default.asset");
@@ -1063,6 +1093,8 @@ namespace HillNGun.Editor
             var tutorial = AssetDatabase.LoadAssetAtPath<TutorialData>(DATA_PATH + "Tutorial/tutorial_default.asset");
             var movementFeel = AssetDatabase.LoadAssetAtPath<MovementFeelData>(DATA_PATH + "Feel/movement_feel.asset");
             var motionView = AssetDatabase.LoadAssetAtPath<MotionViewData>(DATA_PATH + "Feel/motion_view.asset");
+            var actor3D = AssetDatabase.LoadAssetAtPath<Actor3DData>(DATA_PATH + "Feel/actor3d.asset");
+            var actor3DAnim = AssetDatabase.LoadAssetAtPath<Actor3DAnimData>(DATA_PATH + "Feel/actor3d_anim.asset");
             
             var assetManagerGO = new GameObject("RuntimeAssetManager");
             var assetManager = assetManagerGO.AddComponent<RuntimeAssetManager>();
@@ -1087,6 +1119,8 @@ namespace HillNGun.Editor
             SetPrivateField(assetManager, "_tutorial", tutorial);
             SetPrivateField(assetManager, "_movementFeel", movementFeel);
             SetPrivateField(assetManager, "_motionView", motionView);
+            SetPrivateField(assetManager, "_actor3D", actor3D);
+            SetPrivateField(assetManager, "_actor3DAnim", actor3DAnim);
         }
 
         private static void CreateBattlefieldAndSystems()

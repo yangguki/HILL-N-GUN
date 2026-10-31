@@ -29,6 +29,8 @@ namespace HillNGun.Core
         [SerializeField] private TutorialData _tutorial;
         [SerializeField] private MovementFeelData _movementFeel;
         [SerializeField] private MotionViewData _motionView;
+        [SerializeField] private Actor3DData _actor3D;
+        [SerializeField] private Actor3DAnimData _actor3DAnim;
 
         public SpriteLibrary SpriteLibrary => _spriteLibrary;
         public AudioLibrary AudioLibrary => _audioLibrary;
@@ -50,6 +52,8 @@ namespace HillNGun.Core
         public TutorialData Tutorial => _tutorial;
         public MovementFeelData MovementFeel => _movementFeel;
         public MotionViewData MotionView => _motionView;
+        public Actor3DData Actor3D => _actor3D;
+        public Actor3DAnimData Actor3DAnim => _actor3DAnim;
 
         private void Awake()
         {
@@ -96,6 +100,10 @@ namespace HillNGun.Core
                 ServiceLocator.Register(_movementFeel);
             if (_motionView != null)
                 ServiceLocator.Register(_motionView);
+            if (_actor3D != null)
+                ServiceLocator.Register(_actor3D);
+            if (_actor3DAnim != null)
+                ServiceLocator.Register(_actor3DAnim);
 
             ServiceLocator.Register(this);
             Debug.Log("[RuntimeAssetManager] Services registered");

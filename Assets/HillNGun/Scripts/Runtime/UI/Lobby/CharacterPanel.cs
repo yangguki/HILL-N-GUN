@@ -46,7 +46,15 @@ namespace HillNGun.UI
             var previewSkin = p.GetSkin(_previewSkinId ?? equippedId);
             Rect stage = new Rect(left.x + 20f, left.y + 16f, left.width - 40f, 230f);
             UIKit.Fill(stage, new Color(0.55f, 0.42f, 0.28f, 0.5f));
-            UIKit.Sprite(new Rect(stage.x + 10f, stage.y + 6f, stage.width - 20f, stage.height - 12f), LobbyUI.SkinPreview(cd.id, previewSkin));
+            var tex3D = HillNGun.View3D.Actor3DPreview.Get(cd.id, previewSkin);
+            if (tex3D != null)
+            {
+                // turning 3D model (code-built, same rig as in matches)
+                float side = stage.height - 8f;
+                GUI.DrawTexture(new Rect(stage.center.x - side * 0.5f, stage.y + 2f, side, side), tex3D, ScaleMode.ScaleToFit, true);
+            }
+            else
+                UIKit.Sprite(new Rect(stage.x + 10f, stage.y + 6f, stage.width - 20f, stage.height - 12f), LobbyUI.SkinPreview(cd.id, previewSkin));
             UIKit.Label(new Rect(stage.x, stage.yMax - 28f, stage.width, 26f), LobbyUI.SkinName(previewSkin) + (_previewSkinId != null && _previewSkinId != equippedId ? "  " + UIKit.T("char.preview", "(미리보기)") : ""), t.fontSmall, t.text, TextAnchor.MiddleCenter, true);
 
             float y = stage.yMax + 12f, x = left.x + 20f, w = left.width - 40f;

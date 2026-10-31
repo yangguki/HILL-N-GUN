@@ -3,6 +3,7 @@ using HillNGun.Core;
 using HillNGun.Data;
 using HillNGun.Battlefield;
 using HillNGun.Feel;
+using HillNGun.View3D;
 
 namespace HillNGun.Characters
 {
@@ -36,6 +37,11 @@ namespace HillNGun.Characters
         private float _footY = -0.85f;
         private float _facingHold;
 
+        // 3D actor view (Actor3DData.useActor3D); sprite body stays as hidden fallback
+        private Actor3D _actor3D;
+        private float _lastFireSeen = -1f;
+        public Actor3D Actor3D => _actor3D;
+
         public void Initialize(CharacterStateMachine character)
         {
             _character = character;
@@ -64,6 +70,8 @@ namespace HillNGun.Characters
                 _hitFlashOverlay.enabled = false;
             }
 
+            Setup3D(character);
+
             character.OnDamageTaken += HandleDamageTaken;
             character.OnRollStarted += HandleRollStarted;
             character.OnRollEnded += HandleRollEnded;
@@ -76,6 +84,59 @@ namespace HillNGun.Characters
         private void HandleDamageTaken(CharacterStateMachine c, int damage, Vector2 dir)
         {
             PlayHitFlash(0.08f);
+            _actor3D?.Hit();
+        }
+
+        private void Setup3D(CharacterStateMachine character)
+        {
+            if (character?.Data == null || !Actor3DStage.Enabled) return;
+            _actor3D = Actor3DStage.Create(character.Data.id, null, "Actor3D_" + character.Data.id, _skin);
+            if (_actor3D == null) return;
+            if (_bodyRenderer != null) _bodyRenderer.enabled = false;
+            _lastFireSeen = character.LastFireTime;
+            if (character.Team == Team.Enemy) _actor3D.SetTint(Actor3DStage.Data.pvpOpponentTint);
+            float lh = LabelHeight3D();
+            if (_nameLabel != null) _nameLabel.transform.localPosition = new Vector3(0f, lh, 0f);
+        }
+
+        /// <summary>Label height (local units) above the 3D model's head.</summary>
+        private float LabelHeight3D()
+        {
+            var d = Actor3DStage.Data;
+            return _footY + _actor3D.Rig.Height * d.modelScale * Mathf.Cos(d.viewTiltDeg * Mathf.Deg2Rad) + 0.3f;
+        }
+
+        private void Update3D(CharacterStateMachine c, bool shooting)
+        {
+            if (_actor3D == null) return;
+            var d = Actor3DStage.Data;
+            if (_bodyRenderer != null && _bodyRenderer.enabled) _bodyRenderer.enabled = false;
+            Vector3 feet = _rig != null ? _rig.FootWorld : transform.position;
+            _actor3D.Place(feet, Mathf.Abs(transform.lossyScale.y), c.Position.y);
+            if (c.LastFireTime != _lastFireSeen) { _actor3D.Fire(); _lastFireSeen = c.LastFireTime; }
+            bool rolling = c.MovementState == MovementState.Rolling;
+            bool active = c.OverallState == CharacterOverallState.Active;
+            var pose = new ActorPose
+            {
+                velocity = active ? c.Velocity : Vector2.zero,
+                maxSpeed = c.Data != null ? c.Data.moveSpeed : 3f,
+                aimDir = c.AimDirection,
+                aiming = active && shooting,
+                defaultYaw = c.Team == Team.Player ? d.playerTeamYaw : d.enemyTeamYaw,
+                torsoFollowMove = Actor3DStage.Anim.torsoFollowMove,
+                rolling = active && rolling,
+                rollProgress = c.RollProgress,
+                rollSpin01 = c.Feel != null ? c.Feel.RollEase(c.RollProgress) : c.RollProgress,
+                rollDir = c.RollDirection,
+                rowHop = active && c.MovementState == MovementState.RowChanging ? Mathf.Sin(Mathf.PI * c.RowChangeProgress) : 0f,
+                downed = c.OverallState == CharacterOverallState.Downed,
+                defeated = c.OverallState == CharacterOverallState.Eliminated,
+            };
+            Color tint = c.Team == Team.Enemy ? d.pvpOpponentTint : Color.white;
+            if (c.OverallState == CharacterOverallState.Eliminated) tint = d.defeatedTint;
+            _actor3D.SetTint(tint);
+            if (active && c.IsInvulnerable && !rolling) _actor3D.Flash(0.35f * Mathf.PingPong(Time.time * 8f, 1f));
+            _actor3D.Tick(GameTime.DeltaTime, pose);
         }
 
         private void HandleRollStarted(CharacterStateMachine c)
@@ -104,6 +165,8 @@ namespace HillNGun.Characters
                 _character.OnRollStarted -= HandleRollStarted;
                 _character.OnRollEnded -= HandleRollEnded;
             }
+            _actor3D?.Destroy();
+            _actor3D = null;
         }
 
         private void LoadSprites(CharacterStateMachine character)
@@ -308,6 +371,7 @@ namespace HillNGun.Characters
             if (c.OverallState != CharacterOverallState.Active)
             {
                 _rig.ResetPose();
+                Update3D(c, false);
                 return;
             }
 
@@ -339,7 +403,7 @@ namespace HillNGun.Characters
                 hop = c.IsRowRoll ? d.rowHopHeight * 1.3f * Mathf.Sin(Mathf.PI * p) : d.rowHopHeight * 0.35f * Mathf.Sin(Mathf.PI * p);
 
                 _afterimageTimer -= dt;
-                if (_afterimageTimer <= 0f && p < 0.92f)
+                if (_afterimageTimer <= 0f && p < 0.92f && _actor3D == null)
                 {
                     _afterimageTimer = d.afterimageInterval;
                     MotionFx.Instance.Afterimage(_bodyRenderer, d.afterimageTint, d.afterimageAlpha, d.afterimageLifetime);
@@ -358,6 +422,7 @@ namespace HillNGun.Characters
 
             bool grounded = !rolling && c.MovementState != MovementState.RowChanging;
             _rig.Tick(dt, rolling ? 0f : vx, maxSpeed, grounded, d.bobHeight, d.leanMaxDeg, hop, spin, true);
+            Update3D(c, shooting);
         }
 
         // Downed / revive bar + skill state marker tint (placeholder visuals, no external art)
@@ -561,6 +626,7 @@ namespace HillNGun.Characters
         public void SetVisible(bool visible)
         {
             gameObject.SetActive(visible);
+            _actor3D?.SetVisible(visible);
         }
 
         public void Cleanup()

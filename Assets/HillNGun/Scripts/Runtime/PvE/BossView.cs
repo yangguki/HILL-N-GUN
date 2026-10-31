@@ -3,6 +3,7 @@ using HillNGun.Core;
 using HillNGun.Data;
 using HillNGun.Battlefield;
 using HillNGun.Feel;
+using HillNGun.View3D;
 
 namespace HillNGun.PvE
 {
@@ -20,6 +21,10 @@ namespace HillNGun.PvE
         private bool _hasLastPos;
         private float _t;
         public SpriteRenderer BodyRenderer => _spriteRenderer;
+        private Actor3D _actor3D;
+        private Vector2 _aimDir = Vector2.down;
+        private float _aimTime = -99f;
+        public Actor3D Actor3D => _actor3D;
         public TailSweepTelegraphView Telegraph { get; private set; }
         public BossInstance Boss => _boss;
 
@@ -79,6 +84,19 @@ namespace HillNGun.PvE
             _nameLabel.color = new Color(1f, 0.3f, 0.3f);
 
             CreateHpBar();
+
+            if (_boss.Data != null && Actor3DStage.Enabled)
+            {
+                _actor3D = Actor3DStage.Create(_boss.Data.id, null, "Actor3D_" + _boss.Data.id);
+                if (_actor3D != null)
+                {
+                    _spriteRenderer.enabled = false;
+                    var d = Actor3DStage.Data;
+                    float top = foot + _actor3D.Rig.Height * d.modelScale * d.bossScaleMul * Mathf.Cos(d.viewTiltDeg * Mathf.Deg2Rad);
+                    labelGo.transform.localPosition = new Vector3(0f, top + 0.2f, 0f);
+                    if (_hpBarBg != null) _hpBarBg.transform.localPosition = new Vector3(0f, top + 0.5f, 0f);
+                }
+            }
         }
 
         private void CreateHpBar()
@@ -145,14 +163,30 @@ namespace HillNGun.PvE
         {
             _boss.OnDamageTaken += HandleDamage;
             _boss.OnDefeated += HandleDefeated;
+            _boss.OnFanShot += HandleFanShot;
+            _boss.OnTailSweep += HandleTailSweep;
+        }
+
+        private void HandleFanShot(BossInstance b, Vector2[] dirs, int dmg)
+        {
+            if (dirs != null && dirs.Length > 0) _aimDir = dirs[dirs.Length / 2].normalized;
+            _aimTime = Time.time;
+            _actor3D?.FanShot();
+        }
+
+        private void HandleTailSweep(BossInstance b, float width)
+        {
+            float side = b.TailSweepArea.center.x - b.Position.x;
+            _actor3D?.TailSweep(side >= 0f ? 1f : -1f);
         }
 
         private void HandleDamage(BossInstance boss, int damage, Vector2 direction)
         {
-            if (_spriteRenderer != null)
+            if (_spriteRenderer != null && _actor3D == null)
             {
                 StartCoroutine(FlashWhite());
             }
+            _actor3D?.Hit();
             UpdateHpBar();
         }
 
@@ -204,6 +238,30 @@ namespace HillNGun.PvE
             // slow idle breathe/sway (snake coil) + lean into horizontal moves; no flip (boss faces the players)
             float breathe = _boss.IsAlive ? Mathf.Sin(_t * 2.1f) * md.bossBreathe * 2f : 0f;
             _rig.Tick(dt, Mathf.Abs(v.x) > 0.05f ? v.x : 0f, 3f, _boss.IsAlive, md.enemyBobHeight * 0.5f, md.enemyLeanMaxDeg * 0.5f, breathe, 0f, false);
+            Update3D(dt, v);
+        }
+
+        private void Update3D(float dt, Vector2 v)
+        {
+            if (_actor3D == null) return;
+            var d = Actor3DStage.Data;
+            if (_spriteRenderer.enabled) _spriteRenderer.enabled = false;
+            _actor3D.Place(_rig.FootWorld, Mathf.Abs(transform.lossyScale.y) * d.bossScaleMul, _boss.Position.y);
+            bool warn = _boss.IsAlive && _boss.IsWarning;
+            var wt = warn ? _boss.CurrentWarning : BossInstance.WarningType.None;
+            _actor3D.Warn(wt == BossInstance.WarningType.TailSweep, wt == BossInstance.WarningType.FanShot);
+            var pose = new ActorPose
+            {
+                velocity = v,
+                maxSpeed = 3f,
+                aimDir = _aimDir,
+                aiming = _boss.IsAlive && Time.time - _aimTime < 0.5f,
+                defaultYaw = d.enemyTeamYaw,
+                torsoFollowMove = 0.2f,
+                defeated = !_boss.IsAlive,
+            };
+            _actor3D.SetTint(_boss.IsAlive ? Color.white : d.defeatedTint);
+            _actor3D.Tick(dt, pose);
         }
 
         private void UpdateHpBar()
@@ -222,7 +280,11 @@ namespace HillNGun.PvE
             {
                 _boss.OnDamageTaken -= HandleDamage;
                 _boss.OnDefeated -= HandleDefeated;
+                _boss.OnFanShot -= HandleFanShot;
+                _boss.OnTailSweep -= HandleTailSweep;
             }
+            _actor3D?.Destroy();
+            _actor3D = null;
         }
     }
 }
