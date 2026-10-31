@@ -21,6 +21,10 @@ namespace HillNGun.DebugTools
 {
     public class SmokeTestRunner : MonoBehaviour
     {
+        /// <summary>Perf attribution switch (-perf-nogui): skips HUD/damage-number IMGUI so its draw-call share can be measured.</summary>
+        private static readonly int SpikeThreshold = System.Array.Exists(Environment.GetCommandLineArgs(), a => a == "-perf-spike100") ? 100 : 150;
+        public static bool NoGui = System.Array.Exists(Environment.GetCommandLineArgs(), a => a == "-perf-nogui");
+
         private static SmokeTestRunner _instance;
         private static bool _isSmokeTest;
         
@@ -273,20 +277,104 @@ namespace HillNGun.DebugTools
             _fpsFrames++;
             _fpsTime += dt;
             if (dt > 1f / 45f) _fpsSlow++;
-            if (_drawRec.Valid && _drawRec.LastValue > 0)
+            // Frames around a screenshot re-render the scene for the capture: excluded so they don't masquerade as gameplay peaks.
+            bool shotFrame = Time.frameCount - _shotFrame <= 2;
+            if (shotFrame && _drawRec.Valid) _drawShotMax = System.Math.Max(_drawShotMax, _drawRec.LastValue);
+            if (_drawRec.Valid && _drawRec.LastValue > 0 && !shotFrame)
             {
+                _drawHist[(int)System.Math.Min(_drawRec.LastValue / 10, _drawHist.Length - 1)]++;
+                // Gameplay-only stats: match scenes while the simulation runs (menus / pause overlay excluded).
+                if (Time.timeScale > 0f && UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.EndsWith("_Match"))
+                {
+                    _playHist[(int)System.Math.Min(_drawRec.LastValue / 10, _playHist.Length - 1)]++;
+                    _playMax = System.Math.Max(_playMax, _drawRec.LastValue);
+                    _playSum += _drawRec.LastValue; _playSetPassSum += _setPassRec.Valid ? _setPassRec.LastValue : 0; _playN++;
+                }
+                if (_drawRec.LastValue > SpikeThreshold && Time.unscaledTime - _lastSpikeLog > 1f && _spikeLogs < 40)
+                {
+                    _lastSpikeLog = Time.unscaledTime; _spikeLogs++;
+                    Debug.Log($"[SmokeTest] PERF spike draws={_drawRec.LastValue} setPass={_setPassRec.LastValue} t={Time.timeSinceLevelLoad:F1}s {Census()}");
+                }
                 _drawSum += _drawRec.LastValue; _drawSamples++;
-                if (_drawRec.LastValue > _drawMax) _drawMax = _drawRec.LastValue;
+                string sc = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+                if (!_sceneMax.TryGetValue(sc, out long sm) || _drawRec.LastValue > sm) _sceneMax[sc] = _drawRec.LastValue;
+                if (_drawRec.LastValue > _drawMax)
+                {
+                    if (_fpsFrames > 300 && _drawRec.LastValue > _drawMax + 15) _peakCensus = Census();
+                    _drawMax = _drawRec.LastValue;
+                }
                 if (_setPassRec.Valid) _setPassSum += _setPassRec.LastValue;
             }
             if (_fpsFrames % 600 == 0) LogPerf("running");
         }
 
+        private string _peakCensus = "";
+        private static int _shotFrame = -100;
+        private float _lastSpikeLog; private int _spikeLogs;
+        private long _drawShotMax;
+        private readonly int[] _drawHist = new int[100];
+        private readonly int[] _playHist = new int[100];
+        private long _playMax, _playSum, _playSetPassSum, _playN;
+
+        private int DrawPercentile(double q) => Percentile(_drawHist, q);
+
+        private static int Percentile(int[] hist, double q)
+        {
+            long total = 0; foreach (var c in hist) total += c;
+            long need = (long)(total * q), acc = 0;
+            for (int i = 0; i < hist.Length; i++) { acc += hist[i]; if (acc >= need) return (i + 1) * 10; }
+            return hist.Length * 10;
+        }
+        private readonly System.Collections.Generic.Dictionary<string, long> _sceneMax = new System.Collections.Generic.Dictionary<string, long>();
+
+        /// <summary>What was on screen at a draw-call peak (active renderers by type, distinct materials).</summary>
+        private static string Census()
+        {
+            int sr = 0, mr = 0, smr = 0, lr = 0, tm = 0, other = 0;
+            var mats = new System.Collections.Generic.HashSet<int>();
+            var otherTypes = new System.Collections.Generic.HashSet<string>();
+            foreach (var r in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            {
+                if (!r.enabled || !r.gameObject.activeInHierarchy || !r.isVisible) continue;
+                if (r is SpriteRenderer) sr++;
+                else if (r is SkinnedMeshRenderer) smr++;
+                else if (r is LineRenderer) lr++;
+                else if (r is MeshRenderer) { if (r.GetComponent<TextMesh>() != null) tm++; else mr++; }
+                else { other++; otherTypes.Add(r.GetType().Name + ":" + r.name); }
+                if (r.sharedMaterial != null) mats.Add(r.sharedMaterial.GetInstanceID());
+            }
+            // Estimated 2D batches: transparent renderers in sort order, a new batch whenever material/texture changes.
+            var list = new System.Collections.Generic.List<Renderer>();
+            foreach (var r in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+                if (r.enabled && r.gameObject.activeInHierarchy && r.isVisible) list.Add(r);
+            list.Sort((a, b) => a.sortingLayerID != b.sortingLayerID ? SortingLayer.GetLayerValueFromID(a.sortingLayerID).CompareTo(SortingLayer.GetLayerValueFromID(b.sortingLayerID))
+                : a.sortingOrder != b.sortingOrder ? a.sortingOrder.CompareTo(b.sortingOrder) : b.transform.position.z.CompareTo(a.transform.position.z));
+            int batches = 0; string prevKey = null;
+            var keyCount = new System.Collections.Generic.Dictionary<string, int>();
+            foreach (var r in list)
+            {
+                string key = r.GetType().Name.Replace("Renderer", "") + ":" + (r.sharedMaterial != null ? r.sharedMaterial.name : "null") + "/" + (r is SpriteRenderer s2 && s2.sprite != null ? s2.sprite.texture.name + "#" + s2.sprite.texture.GetInstanceID() % 1000 : "-");
+                if (key != prevKey) { batches++; prevKey = key; }
+                keyCount[key] = keyCount.TryGetValue(key, out int kc) ? kc + 1 : 1;
+            }
+            var top = new System.Collections.Generic.List<string>();
+            foreach (var kv in keyCount) top.Add(kv.Key + "x" + kv.Value);
+            return $"est2Dbatches={batches} keys[{string.Join(" ", top)}] scene={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name} cams={Camera.allCamerasCount} sprites={sr} meshes={mr} skinned={smr} lines={lr} textMeshes={tm} other={other}({string.Join(",", otherTypes)}) materials={mats.Count} fx={HillNGun.Feel.EffectsManager.ActiveSummary}";
+        }
+
         private void LogPerf(string tag)
         {
             if (_fpsFrames == 0) return;
-            string draws = _drawSamples > 0 ? $"drawCalls avg={_drawSum / (double)_drawSamples:F0} max={_drawMax} setPass avg={_setPassSum / (double)_drawSamples:F0}" : "drawCalls n/a (release player)";
-            Debug.Log($"[SmokeTest] PERF {tag}: avgFPS={_fpsFrames / _fpsTime:F1} frames={_fpsFrames} slow(<45fps)={100.0 * _fpsSlow / _fpsFrames:F1}% {draws} actor3D={HillNGun.View3D.Actor3DStage.Enabled}");
+            string draws = _drawSamples > 0 ? $"drawCalls avg={_drawSum / (double)_drawSamples:F0} max={_drawMax} p95={DrawPercentile(0.95)} p99={DrawPercentile(0.99)} (screenshot frames max={_drawShotMax}) setPass avg={_setPassSum / (double)_drawSamples:F0}" : "drawCalls n/a (release player)";
+            Debug.Log($"[SmokeTest] PERF {tag}: avgFPS={_fpsFrames / _fpsTime:F1} frames={_fpsFrames} slow(<45fps)={100.0 * _fpsSlow / _fpsFrames:F1}% {draws} actor3D={HillNGun.View3D.Actor3DStage.Enabled} peak[{_peakCensus}]");
+            if (tag == "final")
+            {
+                var sb = new System.Text.StringBuilder();
+                foreach (var kv in _sceneMax) sb.Append(kv.Key).Append('=').Append(kv.Value).Append(' ');
+                Debug.Log($"[SmokeTest] PERF sceneMax: {sb}");
+                if (_playN > 0)
+                    Debug.Log($"[SmokeTest] PERF gameplay: drawCalls avg={_playSum / (double)_playN:F0} p95<={Percentile(_playHist, 0.95)} p99<={Percentile(_playHist, 0.99)} max={_playMax} setPass avg={_playSetPassSum / (double)_playN:F0} frames={_playN}");
+            }
         }
 
         private void Update()
@@ -647,6 +735,7 @@ namespace HillNGun.DebugTools
 
             float t = _captureFrame / 30f;
             if (me != null && me.OverallState == CharacterOverallState.Active) ScriptedMotion(me, t);
+            _shotFrame = Time.frameCount;
             ScreenCapture.CaptureScreenshot(Path.Combine(_framesFolder, $"frame_{_captureFrame:D4}.png"), 2); // 2x supersample for zoom crops
             if (_captureFrame % 15 == 0 && me != null)
                 Debug.Log($"[SmokeTest] CAPTURE f={_captureFrame} t={t:F2} state={me.MovementState} x={me.Position.x:F2} y={me.Position.y:F2} vx={me.Velocity.x:F2} inv={me.IsInvulnerable} rec={me.IsRecovering} rollCd={me.RollCooldownRatio:F2}");
@@ -1166,6 +1255,7 @@ namespace HillNGun.DebugTools
             string filename = $"smoketest_{_screenshotIndex:D3}_{name}.png";
             string fullPath = Path.Combine(_screenshotFolder, filename);
             
+            _shotFrame = Time.frameCount;
             ScreenCapture.CaptureScreenshot(fullPath);
             _screenshotIndex++;
             

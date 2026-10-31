@@ -15,6 +15,9 @@ namespace HillNGun.Battlefield
         public const int ActorBaseOrder = 100;     // actors/covers: ActorBaseOrder + depth
         public const int ProjectileOrder = 3000;
         public const int OverlayOrder = 3100;      // labels, hp bars, warnings
+        /// <summary>Ground decals (soft shadows, team rings): one constant band under every actor so they batch
+        /// (same texture, same order) instead of interleaving with bodies by depth.</summary>
+        public const int GroundDecalOrder = ActorBaseOrder - 4;
 
         private static BattlefieldSystem _cached;
 

@@ -51,12 +51,11 @@ namespace HillNGun.UI
             GUI.color = old;
         }
 
+        /// <summary>Rectangle outline in ONE draw call (IMGUI border-width mode) instead of four filled strips.</summary>
         public static void Border(Rect r, Color c, float t = 2f)
         {
-            Fill(new Rect(r.x, r.y, r.width, t), c);
-            Fill(new Rect(r.x, r.yMax - t, r.width, t), c);
-            Fill(new Rect(r.x, r.y, t, r.height), c);
-            Fill(new Rect(r.xMax - t, r.y, t, r.height), c);
+            if (Event.current.type != EventType.Repaint) return;
+            GUI.DrawTexture(r, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0f, c, new Vector4(t, t, t, t), Vector4.zero);
         }
 
         public static void Panel(Rect r, bool dark = false)

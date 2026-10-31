@@ -76,8 +76,12 @@ namespace HillNGun.View3D
             return t;
         }
 
+        private readonly List<(Transform bone, System.Action<ToonMeshBuilder> build)> _parts = new List<(Transform, System.Action<ToonMeshBuilder>)>();
+
+        /// <summary>Body parts are collected and merged into ONE rigidly skinned mesh (see FinalizeSkinned); list != null keeps a separate renderer (dizzy stars).</summary>
         private void Skin(Transform bone, string part, System.Action<ToonMeshBuilder> build, List<Renderer> list = null)
         {
+            if (list == null) { _parts.Add((bone, build)); return; }
             string key = _meshKey + "|" + part;
             if (!MeshCache.TryGetValue(key, out var mesh) || mesh == null)
             {
@@ -97,7 +101,54 @@ namespace HillNGun.View3D
             r.receiveShadows = false;
             r.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
             r.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
-            (list ?? Renderers).Add(r);
+            list.Add(r);
+        }
+
+        /// <summary>Merge all collected parts into one mesh skinned 100% to their bones (cached per model+skin): 2 draw calls per actor.</summary>
+        private void FinalizeSkinned()
+        {
+            var bones = new List<Transform>();
+            var index = new Dictionary<Transform, int>();
+            foreach (var p in _parts)
+                if (!index.ContainsKey(p.bone)) { index[p.bone] = bones.Count; bones.Add(p.bone); }
+
+            var go = new GameObject("BodyMesh");
+            go.layer = _layer;
+            go.transform.SetParent(Root, false);
+            string key = _meshKey + "|skinned";
+            if (!MeshCache.TryGetValue(key, out var mesh) || mesh == null)
+            {
+                var rootW2L = go.transform.worldToLocalMatrix;
+                var rootL2W = go.transform.localToWorldMatrix;
+                var bind = new Matrix4x4[bones.Count];
+                for (int i = 0; i < bones.Count; i++) bind[i] = bones[i].worldToLocalMatrix * rootL2W;
+                var b = new ToonMeshBuilder();
+                foreach (var p in _parts)
+                {
+                    b.SetTransform(rootW2L * p.bone.localToWorldMatrix, index[p.bone]);
+                    b.OutlineWeight = 1f;
+                    p.build(b);
+                }
+                mesh = b.BuildSkinned(key, bind);
+                MeshCache[key] = mesh;
+            }
+            var smr = go.AddComponent<SkinnedMeshRenderer>();
+            smr.sharedMesh = mesh;
+            smr.bones = bones.ToArray();
+            smr.rootBone = Root;
+            var bounds = mesh.bounds;
+            bounds.Expand(1.5f);
+            smr.localBounds = bounds;
+            smr.quality = SkinQuality.Bone1;
+            smr.updateWhenOffscreen = false;
+            smr.skinnedMotionVectors = false;
+            smr.sharedMaterial = _mat;
+            smr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            smr.receiveShadows = false;
+            smr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+            smr.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+            Renderers.Add(smr);
+            _parts.Clear();
         }
 
         // ---------- build ----------
@@ -232,7 +283,9 @@ namespace HillNGun.View3D
             // tail (boss)
             if (d.tail) BuildTail(dep);
 
-            // dizzy stars
+            FinalizeSkinned();
+
+            // dizzy stars (separate tiny renderers, only visible while downed)
             Stars = Node("Stars", Root, Vector3.zero);
             for (int i = 0; i < 3; i++)
             {

@@ -418,12 +418,7 @@ namespace HillNGun.UI
 
         private void DrawBorder(float x, float y, float width, float height, Color color, float thickness)
         {
-            GUI.color = color;
-            GUI.DrawTexture(new Rect(x, y, width, thickness), Texture2D.whiteTexture);
-            GUI.DrawTexture(new Rect(x, y + height - thickness, width, thickness), Texture2D.whiteTexture);
-            GUI.DrawTexture(new Rect(x, y, thickness, height), Texture2D.whiteTexture);
-            GUI.DrawTexture(new Rect(x + width - thickness, y, thickness, height), Texture2D.whiteTexture);
-            GUI.color = Color.white;
+            HillNGun.UI.UIKit.Border(new Rect(x, y, width, height), color, thickness); // one draw call instead of four
         }
 
         private void SelectCharacter(string charId)

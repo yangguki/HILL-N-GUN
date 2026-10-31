@@ -45,7 +45,9 @@ namespace HillNGun.Feel
                 _muzzleFlashPool.Add(new MuzzleFlash());
                 _tracerPool.Add(new Tracer());
                 _impactPool.Add(new ImpactEffect());
-                _damageNumberPool.Add(new DamageNumber());
+                var dn = new DamageNumber();
+                dn.Bind(transform, i);
+                _damageNumberPool.Add(dn);
                 _explosionPool.Add(new ExplosionRing());
             }
         }
@@ -114,17 +116,64 @@ namespace HillNGun.Feel
             foreach (var e in _explosionPool) e.Update(dt);
         }
 
+        private static Material _fxMat;
+
+        /// <summary>Active pooled effects (perf diagnostics).</summary>
+        public static string ActiveSummary
+        {
+            get
+            {
+                var m = FindAnyObjectByType<EffectsManager>();
+                if (m == null) return "-";
+                int f = 0, t = 0, i = 0, d = 0, e = 0;
+                foreach (var x in m._muzzleFlashPool) if (x.IsActive) f++;
+                foreach (var x in m._tracerPool) if (x.IsActive) t++;
+                foreach (var x in m._impactPool) if (x.IsActive) i++;
+                foreach (var x in m._damageNumberPool) if (x.IsActive) d++;
+                foreach (var x in m._explosionPool) if (x.IsActive) e++;
+                return $"flash{f}/tracer{t}/impact{i}/dmgNum{d}/ring{e}";
+            }
+        }
+
+        /// <summary>
+        /// Immediate-mode effects, drawn once per frame on the top-most field camera (the 3D actor overlay when present,
+        /// so flashes sit above the 3D models) and batched: one SetPass + one GL batch per primitive type.
+        /// </summary>
         private void OnRenderObject()
         {
-            foreach (var f in _muzzleFlashPool) f.Render();
-            foreach (var t in _tracerPool) t.Render();
-            foreach (var i in _impactPool) i.Render();
-            foreach (var e in _explosionPool) e.Render();
+            var cam = Camera.current;
+            var target = HillNGun.View3D.Actor3DStage.OverlayCamera != null ? HillNGun.View3D.Actor3DStage.OverlayCamera : Camera.main;
+            if (cam == null || cam != target) return;
+            bool any = false;
+            foreach (var f in _muzzleFlashPool) any |= f.IsActive;
+            foreach (var t in _tracerPool) any |= t.IsActive;
+            foreach (var i in _impactPool) any |= i.IsActive;
+            foreach (var e in _explosionPool) any |= e.IsActive;
+            if (!any) return;
+            if (_fxMat == null)
+            {
+                _fxMat = new Material(Shader.Find("Sprites/Default"));
+                _fxMat.SetInt("_ZWrite", 0);
+            }
+            _fxMat.SetPass(0);
+            GL.PushMatrix();
+            GL.Begin(GL.TRIANGLES);
+            foreach (var f in _muzzleFlashPool) f.Emit();
+            GL.End();
+            GL.Begin(GL.LINES);
+            foreach (var t in _tracerPool) t.Emit();
+            foreach (var e in _explosionPool) e.Emit();
+            GL.End();
+            GL.Begin(GL.QUADS);
+            foreach (var i in _impactPool) i.Emit();
+            GL.End();
+            GL.PopMatrix();
         }
 
         private void OnGUI()
         {
-            foreach (var d in _damageNumberPool) d.RenderGUI();
+            if (HillNGun.DebugTools.SmokeTestRunner.NoGui) return;
+            // Damage numbers / floating labels are world-space TextMeshes now (one shared font material, batched).
         }
     }
 
@@ -161,22 +210,14 @@ namespace HillNGun.Feel
             if (_timer <= 0) IsActive = false;
         }
 
-        public void Render()
+        public void Emit()
         {
             if (!IsActive) return;
-            if (_mat == null)
-            {
-                _mat = new Material(Shader.Find("Sprites/Default"));
-                _mat.SetInt("_ZWrite", 0);
-            }
 
-            _mat.SetPass(0);
-            GL.PushMatrix();
 
             float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
             float alpha = _timer / 0.08f;
 
-            GL.Begin(GL.TRIANGLES);
             GL.Color(new Color(1f, 0.9f, 0.3f, alpha));
 
             Vector3 forward = (Vector3)_direction * _size;
@@ -198,8 +239,6 @@ namespace HillNGun.Feel
                 GL.Vertex(_position + r2 * 0.7f - right * 0.3f);
             }
 
-            GL.End();
-            GL.PopMatrix();
         }
     }
 
@@ -230,17 +269,10 @@ namespace HillNGun.Feel
             if (_timer <= 0) IsActive = false;
         }
 
-        public void Render()
+        public void Emit()
         {
             if (!IsActive) return;
-            if (_mat == null)
-            {
-                _mat = new Material(Shader.Find("Sprites/Default"));
-            }
 
-            _mat.SetPass(0);
-            GL.PushMatrix();
-            GL.Begin(GL.LINES);
 
             float alpha = _timer / 0.15f;
             GL.Color(new Color(_color.r, _color.g, _color.b, alpha));
@@ -250,8 +282,6 @@ namespace HillNGun.Feel
             GL.Vertex(trailStart);
             GL.Vertex(_current);
 
-            GL.End();
-            GL.PopMatrix();
         }
     }
 
@@ -295,17 +325,10 @@ namespace HillNGun.Feel
             if (_timer <= 0) IsActive = false;
         }
 
-        public void Render()
+        public void Emit()
         {
             if (!IsActive) return;
-            if (_mat == null)
-            {
-                _mat = new Material(Shader.Find("Sprites/Default"));
-            }
 
-            _mat.SetPass(0);
-            GL.PushMatrix();
-            GL.Begin(GL.QUADS);
 
             float alpha = _timer / 0.4f;
             Color color = _isWood ? new Color(0.6f, 0.4f, 0.2f, alpha) : new Color(0.7f, 0.6f, 0.5f, alpha);
@@ -320,11 +343,14 @@ namespace HillNGun.Feel
                 GL.Vertex(p + new Vector3(-size, size, 0));
             }
 
-            GL.End();
-            GL.PopMatrix();
         }
     }
 
+    /// <summary>
+    /// Floating damage number / label. World-space TextMesh pair (text + drop shadow) sharing the built-in font
+    /// material, so all numbers batch instead of costing one IMGUI draw call each. Drawn on the 3D overlay layer
+    /// when 3D actors are on (so numbers stay above the models), otherwise on the default layer above all sprites.
+    /// </summary>
     public class DamageNumber : IPooledEffect
     {
         public bool IsActive { get; private set; }
@@ -333,6 +359,40 @@ namespace HillNGun.Feel
         private int _damage;
         private bool _isCrit;
         private float _yOffset;
+        private string _text;
+        private Color _color;
+
+        private GameObject _go;
+        private TextMesh _main, _shadow;
+        private MeshRenderer _mainR, _shadowR;
+        private const float CharSize = 0.11f;
+
+        public void Bind(Transform parent, int index)
+        {
+            _go = new GameObject("DamageNumber_" + index);
+            _go.transform.SetParent(parent, false);
+            _shadow = MakeText(_go.transform, "Shadow", new Vector3(0.04f, -0.04f, 0.01f), out _shadowR, 32000);
+            _main = MakeText(_go.transform, "Text", Vector3.zero, out _mainR, 32001);
+            _go.SetActive(false);
+        }
+
+        private static TextMesh MakeText(Transform parent, string name, Vector3 local, out MeshRenderer r, int order)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = local;
+            var tm = go.AddComponent<TextMesh>();
+            tm.fontSize = 48;
+            tm.characterSize = CharSize;
+            tm.fontStyle = FontStyle.Bold;
+            tm.anchor = TextAnchor.MiddleCenter;
+            tm.alignment = TextAlignment.Center;
+            r = go.GetComponent<MeshRenderer>();
+            r.sortingOrder = order;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            return tm;
+        }
 
         public void Spawn(Vector3 pos, int damage, bool isCrit)
         {
@@ -343,10 +403,8 @@ namespace HillNGun.Feel
             _yOffset = 0;
             _text = null;
             IsActive = true;
+            Show(damage.ToString(), false);
         }
-
-        private string _text;
-        private Color _color;
 
         public void SpawnText(Vector3 pos, string text, Color color)
         {
@@ -357,6 +415,19 @@ namespace HillNGun.Feel
             _isCrit = false;
             _yOffset = 0;
             IsActive = true;
+            Show(text, true);
+        }
+
+        private void Show(string text, bool shadow)
+        {
+            if (_go == null) return;
+            int layer = HillNGun.View3D.Actor3DStage.OverlayCamera != null ? HillNGun.View3D.Actor3DStage.Data.actorLayer : 0;
+            _go.layer = layer; _main.gameObject.layer = layer; _shadow.gameObject.layer = layer;
+            _main.text = text;
+            _shadow.text = shadow ? text : "";
+            _shadowR.enabled = shadow;
+            _go.SetActive(true);
+            Apply();
         }
 
         public void Update(float dt)
@@ -364,42 +435,23 @@ namespace HillNGun.Feel
             if (!IsActive) return;
             _timer -= dt;
             _yOffset += dt * (_text != null ? 0.8f : 2f);
-            if (_timer <= 0) IsActive = false;
+            if (_timer <= 0) { IsActive = false; if (_go != null) _go.SetActive(false); return; }
+            Apply();
         }
 
-        public void RenderGUI()
+        private void Apply()
         {
-            if (!IsActive) return;
-
-            Camera cam = Camera.main;
-            if (cam == null) return;
-
-            Vector3 screenPos = cam.WorldToScreenPoint(_position + Vector3.up * _yOffset);
-            if (screenPos.z < 0) return;
-
+            if (_go == null) return;
             float alpha = Mathf.Min(_timer / 0.3f, 1f);
             float scale = _isCrit ? 1.5f : 1f;
-            if (_timer > 0.6f) scale *= 1f + ((_timer - 0.6f) / 0.2f) * 0.5f;
-
-            GUIStyle style = new GUIStyle();
-            style.fontSize = Mathf.RoundToInt(24 * scale);
-            style.fontStyle = FontStyle.Bold;
-            style.alignment = TextAnchor.MiddleCenter;
-            
-            Color textColor = _isCrit ? new Color(1f, 0.8f, 0.2f, alpha) : new Color(1f, 1f, 1f, alpha);
-            if (_text != null) { textColor = new Color(_color.r, _color.g, _color.b, alpha); style.fontSize = 22; }
-            style.normal.textColor = textColor;
-
-            float y = Screen.height - screenPos.y;
-            if (_text != null)
-            {
-                var shadow = new GUIStyle(style);
-                shadow.normal.textColor = new Color(0f, 0f, 0f, alpha * 0.8f);
-                GUI.Label(new Rect(screenPos.x - 99, y - 34, 200, 30), _text, shadow);
-                GUI.Label(new Rect(screenPos.x - 100, y - 35, 200, 30), _text, style);
-                return;
-            }
-            GUI.Label(new Rect(screenPos.x - 50, y - 15, 100, 30), _damage.ToString(), style);
+            if (_text == null && _timer > 0.6f) scale *= 1f + ((_timer - 0.6f) / 0.2f) * 0.5f;
+            if (_text != null) scale = 0.92f;
+            _go.transform.position = new Vector3(_position.x, _position.y + _yOffset, 0f);
+            _go.transform.localScale = Vector3.one * scale;
+            Color c = _text != null ? new Color(_color.r, _color.g, _color.b, alpha)
+                    : _isCrit ? new Color(1f, 0.8f, 0.2f, alpha) : new Color(1f, 1f, 1f, alpha);
+            _main.color = c;
+            if (_text != null) _shadow.color = new Color(0f, 0f, 0f, alpha * 0.8f);
         }
     }
 
@@ -426,22 +478,15 @@ namespace HillNGun.Feel
             if (_timer <= 0) IsActive = false;
         }
 
-        public void Render()
+        public void Emit()
         {
             if (!IsActive) return;
-            if (_mat == null)
-            {
-                _mat = new Material(Shader.Find("Sprites/Default"));
-            }
 
-            _mat.SetPass(0);
-            GL.PushMatrix();
 
             float progress = 1f - (_timer / 0.5f);
             float radius = _maxRadius * Mathf.Sin(progress * Mathf.PI * 0.5f);
             float alpha = _timer / 0.5f;
 
-            GL.Begin(GL.LINES);
             GL.Color(new Color(1f, 0.6f, 0.2f, alpha));
 
             int segments = 32;
@@ -463,8 +508,6 @@ namespace HillNGun.Feel
                 GL.Vertex(_position + new Vector3(Mathf.Cos(a2), Mathf.Sin(a2), 0) * innerRadius);
             }
 
-            GL.End();
-            GL.PopMatrix();
         }
     }
 }

@@ -379,7 +379,7 @@ namespace HillNGun.Feel
             Shadow.transform.localScale = new Vector3(_shadowSize.x * k, _shadowSize.y * k, 1f);
             var c = d.shadowColor; c.a = _shadowAlpha * Mathf.Lerp(0.6f, 1f, k);
             Shadow.color = c;
-            Shadow.sortingOrder = SortingOrder - 2;
+            Shadow.sortingOrder = HillNGun.Battlefield.FieldView.GroundDecalOrder - 1;
         }
 
         /// <summary>Neutral pose (downed / eliminated).</summary>
@@ -394,7 +394,7 @@ namespace HillNGun.Feel
             Body.localPosition = new Vector3(0f, -_foot, 0f);
             Body.localRotation = Quaternion.identity;
             Shadow.transform.localScale = new Vector3(_shadowSize.x, _shadowSize.y, 1f);
-            Shadow.sortingOrder = SortingOrder - 2;
+            Shadow.sortingOrder = HillNGun.Battlefield.FieldView.GroundDecalOrder - 1;
         }
     }
 }

@@ -29,16 +29,21 @@ Shader "HillNGun/Toon"
             float4 _HNG_LightDir;      // xyz = direction towards the light (world)
             float4 _HNG_ToonParams;    // x = shadow brightness, y = rim strength, z = band softness, w = highlight
             float4 _HNG_ShadowColor;   // tint multiplied into the shadow band
-            fixed4 _Tint;
-            float _Flash;
+
+            // per-renderer values (MaterialPropertyBlock) stay instancing-friendly
+            UNITY_INSTANCING_BUFFER_START(Props)
+                UNITY_DEFINE_INSTANCED_PROP(fixed4, _Tint)
+                UNITY_DEFINE_INSTANCED_PROP(float, _Flash)
+            UNITY_INSTANCING_BUFFER_END(Props)
 
             struct appdata { float4 vertex : POSITION; float3 normal : NORMAL; fixed4 color : COLOR; UNITY_VERTEX_INPUT_INSTANCE_ID };
-            struct v2f { float4 pos : SV_POSITION; fixed4 color : COLOR; float3 n : TEXCOORD0; float3 v : TEXCOORD1; };
+            struct v2f { float4 pos : SV_POSITION; fixed4 color : COLOR; float3 n : TEXCOORD0; float3 v : TEXCOORD1; UNITY_VERTEX_INPUT_INSTANCE_ID };
 
             v2f vert (appdata i)
             {
                 v2f o;
                 UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_TRANSFER_INSTANCE_ID(i, o);
                 o.pos = UnityObjectToClipPos(i.vertex);
                 o.color = i.color;
                 o.n = UnityObjectToWorldNormal(i.normal);
@@ -49,6 +54,9 @@ Shader "HillNGun/Toon"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(i);
+                fixed4 tint = UNITY_ACCESS_INSTANCED_PROP(Props, _Tint);
+                float flash = UNITY_ACCESS_INSTANCED_PROP(Props, _Flash);
                 float3 n = normalize(i.n);
                 float3 l = normalize(_HNG_LightDir.xyz);
                 float ndl = dot(n, l);
@@ -59,8 +67,8 @@ Shader "HillNGun/Toon"
                 float3 col = i.color.rgb * shade * (1 + hi);
                 float rim = pow(1 - saturate(dot(n, normalize(i.v))), 3) * _HNG_ToonParams.y;
                 col += rim * (0.35 + 0.65 * lit);
-                col *= _Tint.rgb;
-                col = lerp(col, float3(1,1,1), _Flash);
+                col *= tint.rgb;
+                col = lerp(col, float3(1,1,1), flash);
                 return fixed4(col, 1);
             }
             ENDCG
@@ -80,15 +88,20 @@ Shader "HillNGun/Toon"
 
             float4 _HNG_OutlineColor;
             float _HNG_OutlineWidth;   // world units
-            float _Flash;
+
+            UNITY_INSTANCING_BUFFER_START(Props)
+                UNITY_DEFINE_INSTANCED_PROP(fixed4, _Tint)
+                UNITY_DEFINE_INSTANCED_PROP(float, _Flash)
+            UNITY_INSTANCING_BUFFER_END(Props)
 
             struct appdata { float4 vertex : POSITION; float4 tangent : TANGENT; fixed4 color : COLOR; UNITY_VERTEX_INPUT_INSTANCE_ID };
-            struct v2f { float4 pos : SV_POSITION; fixed4 color : COLOR; };
+            struct v2f { float4 pos : SV_POSITION; fixed4 color : COLOR; UNITY_VERTEX_INPUT_INSTANCE_ID };
 
             v2f vert (appdata i)
             {
                 v2f o;
                 UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_TRANSFER_INSTANCE_ID(i, o);
                 float3 wp = mul(unity_ObjectToWorld, i.vertex).xyz;
                 float3 wn = normalize(mul((float3x3)unity_ObjectToWorld, i.tangent.xyz));
                 // i.tangent.w scales the outline per part (0 = no outline for tiny details)
@@ -100,8 +113,10 @@ Shader "HillNGun/Toon"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(i);
+                float flash = UNITY_ACCESS_INSTANCED_PROP(Props, _Flash);
                 float3 c = lerp(_HNG_OutlineColor.rgb, _HNG_OutlineColor.rgb * i.color.rgb * 1.6, _HNG_OutlineColor.a);
-                c = lerp(c, float3(1,1,1), _Flash * 0.6);
+                c = lerp(c, float3(1,1,1), flash * 0.6);
                 return fixed4(c, 1);
             }
             ENDCG

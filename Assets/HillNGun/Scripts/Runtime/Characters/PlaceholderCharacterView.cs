@@ -213,7 +213,7 @@ namespace HillNGun.Characters
             _aimLine.startWidth = 0.05f;
             _aimLine.endWidth = 0.02f;
             _aimLine.positionCount = 2;
-            _aimLine.material = new Material(Shader.Find("Sprites/Default"));
+            _aimLine.sharedMaterial = AimLineMaterial; // shared: one material for every aim line (batchable)
             _aimLine.startColor = Color.white;
             _aimLine.endColor = new Color(1, 1, 1, 0.3f);
             _aimLine.sortingOrder = 5;
@@ -253,6 +253,9 @@ namespace HillNGun.Characters
                 _teamMarker.transform.localPosition = new Vector3(0f, _footY, 0f);
             }
         }
+
+        private static Material _aimLineMaterial;
+        private static Material AimLineMaterial => _aimLineMaterial != null ? _aimLineMaterial : (_aimLineMaterial = new Material(Shader.Find("Sprites/Default")) { name = "AimLine_shared" });
 
         private Color _originalTint = Color.white;
         private HillNGun.Data.SkinDefinition _skin;
@@ -343,7 +346,7 @@ namespace HillNGun.Characters
             FieldView.Place(transform, character.Position);
             Vector3 worldPos = transform.position;
             FieldView.ApplySorting(_bodyRenderer, character.Position.y);
-            FieldView.ApplySorting(_teamMarker, character.Position.y, -1);
+            if (_teamMarker != null) _teamMarker.sortingOrder = FieldView.GroundDecalOrder;
             UpdateMotion(character);
             if (_aimLine != null) _aimLine.sortingOrder = FieldView.OverlayOrder - 10;
             if (_labelRenderer != null) _labelRenderer.sortingOrder = FieldView.OverlayOrder;

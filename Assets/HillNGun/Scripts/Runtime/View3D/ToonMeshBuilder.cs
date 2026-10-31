@@ -15,6 +15,18 @@ namespace HillNGun.View3D
         private readonly List<Color> _c = new List<Color>(512);
         private readonly List<float> _w = new List<float>(512);
         private readonly List<int> _t = new List<int>(1536);
+        private readonly List<int> _bone = new List<int>(512);
+        private Matrix4x4 _xf = Matrix4x4.identity;
+        private bool _hasXf;
+        private int _boneIndex;
+
+        /// <summary>Parts added from now on are transformed by m (e.g. bone rest pose -> root space) and bound to boneIndex.</summary>
+        public void SetTransform(Matrix4x4 m, int boneIndex)
+        {
+            _xf = m;
+            _hasXf = !m.isIdentity;
+            _boneIndex = boneIndex;
+        }
 
         public int VertexCount => _v.Count;
         public bool IsEmpty => _v.Count == 0;
@@ -24,7 +36,8 @@ namespace HillNGun.View3D
 
         private int Add(Vector3 p, Vector3 n, Color c)
         {
-            _v.Add(p); _n.Add(n); _c.Add(c); _w.Add(OutlineWeight);
+            if (_hasXf) { p = _xf.MultiplyPoint3x4(p); n = _xf.MultiplyVector(n).normalized; }
+            _v.Add(p); _n.Add(n); _c.Add(c); _w.Add(OutlineWeight); _bone.Add(_boneIndex);
             return _v.Count - 1;
         }
 
@@ -160,6 +173,21 @@ namespace HillNGun.View3D
             mesh.SetTangents(SmoothNormals());
             mesh.RecalculateBounds();
             mesh.UploadMeshData(false);
+            return mesh;
+        }
+
+        /// <summary>
+        /// One mesh for a whole rig: rigid skinning (each vertex 100% on its bone) so a single SkinnedMeshRenderer
+        /// (2 draw calls: toon + outline) replaces one renderer per body part. bindposes = bone^-1 * root at rest.
+        /// </summary>
+        public Mesh BuildSkinned(string name, Matrix4x4[] bindposes)
+        {
+            var mesh = Build(name);
+            var bw = new BoneWeight[_v.Count];
+            for (int i = 0; i < bw.Length; i++) bw[i] = new BoneWeight { boneIndex0 = _bone[i], weight0 = 1f };
+            mesh.boneWeights = bw;
+            mesh.bindposes = bindposes;
+            mesh.RecalculateBounds();
             return mesh;
         }
 

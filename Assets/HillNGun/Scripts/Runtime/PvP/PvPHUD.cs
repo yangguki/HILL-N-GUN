@@ -158,6 +158,7 @@ namespace HillNGun.PvP
 
         private void OnGUI()
         {
+            if (HillNGun.DebugTools.SmokeTestRunner.NoGui) return;
             if (_matchManager == null) return;
 
             InitStyles();

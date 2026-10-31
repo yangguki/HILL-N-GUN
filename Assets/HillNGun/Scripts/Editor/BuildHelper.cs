@@ -94,6 +94,7 @@ namespace HillNGun.Editor
 
             Debug.Log($"Building {platformName}...");
 
+            EnsureBatching(target);
             BuildReport report = BuildPipeline.BuildPlayer(buildOptions);
             BuildSummary summary = report.summary;
 
@@ -106,6 +107,22 @@ namespace HillNGun.Editor
             {
                 Debug.LogError($"{platformName} build failed with {summary.totalErrors} errors");
             }
+        }
+
+        /// <summary>
+        /// Sprites, TextMeshes and small meshes only batch with dynamic batching on (built-in RP). Unity 6 defaults it
+        /// off, so every bullet / label / marker cost its own draw call. Enabled per build target (reflection: the
+        /// PlayerSettings accessors are not public on every 6000.x release).
+        /// </summary>
+        private static void EnsureBatching(BuildTarget target)
+        {
+            const System.Reflection.BindingFlags F = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
+            var get = typeof(PlayerSettings).GetMethod("GetDynamicBatchingForPlatform", F, null, new[] { typeof(BuildTarget) }, null);
+            var set = typeof(PlayerSettings).GetMethod("SetDynamicBatchingForPlatform", F, null, new[] { typeof(BuildTarget), typeof(bool) }, null);
+            if (get == null || set == null) { Debug.LogWarning("[BuildHelper] dynamic batching accessors not found; leaving project setting as-is"); return; }
+            bool before = (bool)get.Invoke(null, new object[] { target });
+            if (!before) set.Invoke(null, new object[] { target, true });
+            Debug.Log($"[BuildHelper] dynamic batching {target}: {before} -> {(bool)get.Invoke(null, new object[] { target })}");
         }
 
         private static string[] GetEnabledScenePaths()
@@ -265,6 +282,7 @@ namespace HillNGun.Editor
 
             Debug.Log($"[BuildHelper] Building {platformName}...");
 
+            EnsureBatching(target);
             BuildReport report = BuildPipeline.BuildPlayer(buildOptions);
             BuildSummary summary = report.summary;
 
