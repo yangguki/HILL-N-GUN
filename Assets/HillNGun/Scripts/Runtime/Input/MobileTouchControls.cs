@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
 using HillNGun.Core;
 using HillNGun.Data;
+using HillNGun.UI;
 
 namespace HillNGun.Input
 {
@@ -93,7 +94,7 @@ namespace HillNGun.Input
 
         private void ProcessTouches()
         {
-            var touches = Touch.activeTouches;
+            var touches = UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches;
 
             bool moveActive = false;
             bool aimActive = false;
@@ -158,7 +159,7 @@ namespace HillNGun.Input
                 _aimJoystickKnob = pos;
                 _aimStartTime = Time.time;
 
-                _receiver?.OnAimStartCommand(new AimStartCommand(_aimStartTime));
+                _receiver?.OnAimStartCommand(new AimStartCommand(pos, _aimStartTime));
             }
             else if (rollRect.Contains(pos))
             {
@@ -169,19 +170,22 @@ namespace HillNGun.Input
             else if (grenadeRect.Contains(pos))
             {
                 _grenadeButtonPressed = true;
-                _receiver?.OnGrenadeAimStartCommand(new GrenadeAimStartCommand(Time.time));
+                _receiver?.OnGrenadeAimStartCommand(new GrenadeAimStartCommand(pos, Time.time));
             }
             else if (skillRect.Contains(pos))
             {
                 _skillButtonPressed = true;
-                _receiver?.OnSkillStartCommand(new SkillStartCommand(Time.time));
+                _receiver?.OnSkillStartCommand(new SkillStartCommand(pos, Time.time));
             }
             else if (pauseRect.Contains(pos))
             {
-                var flowManager = GameFlowManager.Instance;
-                if (flowManager != null)
+                var pauseMenu = Object.FindFirstObjectByType<PauseMenuController>();
+                if (pauseMenu != null)
                 {
-                    flowManager.TogglePause();
+                    if (pauseMenu.IsPaused)
+                        pauseMenu.Resume();
+                    else
+                        pauseMenu.Pause();
                 }
             }
         }
@@ -226,7 +230,7 @@ namespace HillNGun.Input
                 dir.y = -dir.y;
                 bool outsideDeadzone = delta.magnitude > _controlsData.aimDeadzone * _controlsData.aimJoystickSize;
 
-                _receiver?.OnAimDragCommand(new AimDragCommand(dir, outsideDeadzone, Time.time));
+                _receiver?.OnAimDragCommand(new AimDragCommand(dir, delta.magnitude, outsideDeadzone, Time.time));
             }
         }
 

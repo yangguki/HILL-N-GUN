@@ -433,5 +433,17 @@ namespace HillNGun.Input
             return UnityEngine.InputSystem.Touchscreen.current != null;
 #endif
         }
+
+        public void InjectMoveCommand(Vector2 direction, float magnitude)
+        {
+            _receiver?.OnMoveCommand(new MoveCommand(direction.normalized, magnitude, Time.time));
+        }
+
+        public void InjectFireCommand(Vector2 aimDirection)
+        {
+            _receiver?.OnAimStartCommand(new AimStartCommand(Vector2.zero, Time.time));
+            _receiver?.OnAimDragCommand(new AimDragCommand(aimDirection.normalized, 100f, true, Time.time));
+            _receiver?.OnAimReleaseCommand(new AimReleaseCommand(aimDirection.normalized, true, Time.time));
+        }
     }
 }
