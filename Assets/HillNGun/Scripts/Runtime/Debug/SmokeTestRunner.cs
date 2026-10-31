@@ -41,6 +41,12 @@ namespace HillNGun.DebugTools
         private static bool _fullPvE;
         // -smoketest-fullpvp: play a full best-of-3 PvP match (squad autopilot on both sides) until Result
         private static bool _fullPvP;
+        // -smoketest-capture: after the PvE match warms up, record a 30fps PNG frame sequence of scripted
+        // moves / rolls / row change / shooting (Time.captureFramerate keeps the game clock exact), then quit.
+        private static bool _capture;
+        private static float _captureSeconds = 7.0f;
+        private int _captureFrame = -1;
+        private string _framesFolder;
         private PvPMatchManager _hookedPvp;
         private bool _crateShot;
         private bool _crateOpenShot;
@@ -93,6 +99,11 @@ namespace HillNGun.DebugTools
                     _isSmokeTest = true;
                     _fullPvE = true;
                 }
+                else if (arg.Equals("-smoketest-capture", StringComparison.OrdinalIgnoreCase))
+                {
+                    _isSmokeTest = true;
+                    _capture = true;
+                }
                 else if (arg.Equals("-smoketest-fullpvp", StringComparison.OrdinalIgnoreCase))
                 {
                     _isSmokeTest = true;
@@ -106,15 +117,20 @@ namespace HillNGun.DebugTools
                 {
                     _timeScale = Mathf.Clamp(ts, 0.25f, 8f);
                 }
+                if (args[i].Equals("-smoketest-capture-seconds", StringComparison.OrdinalIgnoreCase) &&
+                    float.TryParse(args[i + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float cs))
+                {
+                    _captureSeconds = Mathf.Clamp(cs, 1f, 20f);
+                }
             }
 
             if (_isSmokeTest)
             {
                 // Never touch the player's real save during automated runs.
                 ProgressionService.SaveFileOverride = "smoketest_save.json";
-                SettingsService.SaveFileOverride = "smoketest_settings.json";
+                SettingsService.SaveFileOverride = _capture ? "smoketest_capture_settings.json" : "smoketest_settings.json";
                 ExternalServices.AnalyticsFileOverride = "smoketest_analytics.csv";
-                if (!_fullPvE && !_fullPvP)
+                if (!_fullPvE && !_fullPvP && !_capture)
                 {
                     // regular smoke: start with fresh settings so the first-PvE tutorial shows
                     try { File.Delete(Path.Combine(Application.persistentDataPath, "smoketest_settings.json")); } catch { }
@@ -148,6 +164,14 @@ namespace HillNGun.DebugTools
             }
             
             Debug.Log($"[SmokeTest] Screenshots will be saved to: {_screenshotFolder}");
+            if (_capture)
+            {
+                _framesFolder = Path.Combine(_screenshotFolder, "frames");
+                if (Directory.Exists(_framesFolder)) foreach (var f in Directory.GetFiles(_framesFolder, "*.png")) File.Delete(f);
+                else Directory.CreateDirectory(_framesFolder);
+                SettingsService.Instance.Data.tutorialDone = true; // clean frames: no tutorial overlay
+                Debug.Log($"[SmokeTest] CAPTURE mode: {_captureSeconds:F1}s @30fps -> {_framesFolder}");
+            }
             Application.logMessageReceived += OnLogMessage;
         }
 
@@ -511,6 +535,11 @@ namespace HillNGun.DebugTools
                 UpdateFullPvE();
                 return;
             }
+            if (_capture)
+            {
+                UpdateCapture();
+                return;
+            }
 
             _matchTimer += Time.deltaTime;
             _autopilotTimer += Time.deltaTime;
@@ -543,6 +572,108 @@ namespace HillNGun.DebugTools
                 _pveCompleted = true;
                 GameFlowManager.Instance?.GoToModeSelect();
                 SetPhase(SmokeTestPhase.PvPModeSelect);
+            }
+        }
+
+        private CharacterStateMachine CaptureSubject()
+        {
+            var pve = FindFirstObjectByType<PvEMatchManager>();
+            if (pve == null || pve.PlayerTeam == null || pve.PlayerTeam.Count == 0) return null;
+            return pve.PlayerTeam[Mathf.Clamp(pve.PlayerControlledIndex, 0, pve.PlayerTeam.Count - 1)];
+        }
+
+        private void UpdateCapture()
+        {
+            _matchTimer += Time.deltaTime;
+            _autopilotTimer += Time.deltaTime;
+            var me = CaptureSubject();
+            if (_captureFrame < 0)
+            {
+                // warm-up: let enemies enter and the squad settle (regular autopilot), then start recording
+                RunAutopilot();
+                if (_matchTimer >= 3.5f && me != null && me.OverallState == CharacterOverallState.Active &&
+                    me.MovementState != MovementState.Rolling && me.MovementState != MovementState.RowChanging)
+                {
+                    me.OnMoveCommand(MoveCommand.Stop(Time.time));
+                    me.OnAimReleaseCommand(new AimReleaseCommand(me.AimDirection, false, Time.time)); // warm-up gunner off
+                    _gunner = null; _gunnerOwner = null;
+                    _captureCenterDir = me.Position.x < 12f ? 1f : -1f;
+                    _captureFrame = 0;
+                    _captureRolls = 0;
+                    Time.timeScale = 1f;
+                    Time.captureFramerate = 30;
+                    Debug.Log($"[SmokeTest] CAPTURE start at match t={_matchTimer:F1}s subject={me.Data?.id} row={me.CurrentRowIndex} x={me.Position.x:F2}");
+                }
+                return;
+            }
+
+            float t = _captureFrame / 30f;
+            if (me != null && me.OverallState == CharacterOverallState.Active) ScriptedMotion(me, t);
+            ScreenCapture.CaptureScreenshot(Path.Combine(_framesFolder, $"frame_{_captureFrame:D4}.png"), 2); // 2x supersample for zoom crops
+            if (_captureFrame % 15 == 0 && me != null)
+                Debug.Log($"[SmokeTest] CAPTURE f={_captureFrame} t={t:F2} state={me.MovementState} x={me.Position.x:F2} y={me.Position.y:F2} vx={me.Velocity.x:F2} inv={me.IsInvulnerable} rec={me.IsRecovering} rollCd={me.RollCooldownRatio:F2}");
+            _captureFrame++;
+            if (t >= _captureSeconds)
+            {
+                Time.captureFramerate = 0;
+                Debug.Log($"[SmokeTest] CAPTURE done: {_captureFrame} frames, rolls={_captureRolls}");
+                _captureFrame = int.MinValue / 2;
+                SetPhase(SmokeTestPhase.Complete);
+                CompleteTest();
+            }
+        }
+
+        private int _captureRolls;
+        private float _captureCenterDir = 1f;
+        private float _lastScriptRoll = -10f;
+        private int _scriptStage = -1;
+
+        /// <summary>Deterministic demo: run, stop, roll, slow analog walk, row change, strafe-shoot, row roll, run.</summary>
+        private void ScriptedMotion(CharacterStateMachine me, float t)
+        {
+            float now = Time.time;
+            float centerDir = _captureCenterDir;
+            int stage = t < 0.9f ? 0 : t < 1.35f ? 1 : t < 1.9f ? 2 : t < 2.7f ? 3 : t < 3.3f ? 4 : t < 4.6f ? 5 : t < 5.45f ? 6 : 7;
+            bool enter = stage != _scriptStage;
+            _scriptStage = stage;
+            if (enter) Debug.Log($"[SmokeTest] CAPTURE stage {stage} at t={t:F2}");
+            switch (stage)
+            {
+                case 0: me.OnMoveCommand(new MoveCommand(new Vector2(centerDir, 0f), 1f, now)); break;          // accel + run
+                case 1: me.OnMoveCommand(MoveCommand.Stop(now)); break;                                          // decel stop
+                case 2:
+                    if (enter) { me.OnRollCommand(new RollCommand(new Vector2(-centerDir, 0f), now)); _captureRolls++; } // eased roll
+                    break;
+                case 3: me.OnMoveCommand(new MoveCommand(new Vector2(centerDir, 0f), 0.3f, now)); break;          // analog slow walk
+                case 4:
+                    if (enter) { me.OnMoveCommand(MoveCommand.Stop(now)); me.OnRowChangeCommand(new RowChangeCommand(me.CurrentRowIndex > 0 ? -1 : 1, now)); }
+                    break;                                                                                          // eased row change
+                case 5:
+                    me.OnMoveCommand(new MoveCommand(new Vector2(-centerDir, 0f), 1f, now));                        // strafe while shooting (aim facing)
+                    if (_gunner == null || _gunnerOwner != me) { _gunnerOwner = me; _gunner = new AutoGunner(me, 0.3f); }
+                    var pve = FindFirstObjectByType<PvEMatchManager>();
+                    _gunner.Tick(Time.deltaTime, pve != null ? pve.FindTargetFor(me.Position, 40f) : (Vector2?)null);
+                    break;
+                case 6:
+                    if (enter)
+                    {
+                        me.OnAimReleaseCommand(new AimReleaseCommand(me.AimDirection, false, now));
+                        me.OnMoveCommand(MoveCommand.Stop(now));
+                    }
+                    break;
+                default:
+                    // row roll forward (or a side roll if no row that way), then run
+                    if (enter || (_captureRolls < 2 && me.RollCooldownRatio <= 0f))
+                    {
+                        if (me.RollCooldownRatio <= 0f && me.MovementState != MovementState.Rolling)
+                        {
+                            int dir = me.CurrentRowIndex < 2 ? 1 : -1;
+                            me.OnRollCommand(new RollCommand(new Vector2(0f, dir), now));
+                            _captureRolls++;
+                        }
+                    }
+                    if (t > 6.0f) me.OnMoveCommand(new MoveCommand(new Vector2(centerDir, 0f), 1f, now));
+                    break;
             }
         }
 
@@ -948,7 +1079,7 @@ namespace HillNGun.DebugTools
             foreach (var v in FindObjectsByType<PlaceholderCharacterView>(FindObjectsSortMode.None))
             {
                 var c = v.GetComponentInParent<CharacterStateMachine>();
-                Check("Character", v.transform.parent != null ? v.transform.parent.name : v.name, v.GetComponent<SpriteRenderer>(), c != null ? c.Position : Vector2.zero);
+                Check("Character", v.transform.parent != null ? v.transform.parent.name : v.name, v.BodyRenderer, c != null ? c.Position : Vector2.zero);
             }
             foreach (var v in FindObjectsByType<EnemyView>(FindObjectsSortMode.None))
             {

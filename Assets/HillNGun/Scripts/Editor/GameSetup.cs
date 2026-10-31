@@ -367,6 +367,7 @@ namespace HillNGun.Editor
             CreateUIThemeAsset();
             CreateExternalServicesAsset();
             CreateTutorialAsset();
+            CreateMotionFeelAssets();
             CreateTouchControlsAsset();
         }
 
@@ -797,6 +798,33 @@ namespace HillNGun.Editor
             EditorUtility.SetDirty(t);
         }
 
+        /// <summary>Movement / roll feel (logic) + motion view feel (view). Design values (speeds, row time, roll distance/i-frames/cooldown) stay in CharacterData/RollData.</summary>
+        private static void CreateMotionFeelAssets()
+        {
+            var m = CreateOrLoad<MovementFeelData>(DATA_PATH + "Feel/movement_feel.asset");
+            m.accelTime = 0.09f;
+            m.decelTime = 0.07f;
+            m.turnDecelMul = 1.8f;
+            m.accelCurve = new AnimationCurve(new Keyframe(0f, 1.6f), new Keyframe(0.7f, 1f), new Keyframe(1f, 0.6f));
+            m.analogDeadzone = 0.12f;
+            m.analogFullSpeedAt = 0.55f;
+            m.analogMinSpeedFactor = 0.4f;
+            m.rowChangeEase = 1f;
+            m.rollEasePower = 2.2f;
+            m.rollRecoveryTime = 0.08f;
+            m.rollRecoveryMoveMul = 0.45f;
+            m.recoveryBlocksActions = true;
+            m.rollExitCarry = 0.35f;
+            m.horizontalRollOnly = true;
+            m.inputBufferWindow = -1f; // use RollData.inputBuffer (0.1s, 01 §9)
+            EditorUtility.SetDirty(m);
+
+            var v = CreateOrLoad<MotionViewData>(DATA_PATH + "Feel/motion_view.asset");
+            v.heroArtFacesRight = false; // deck hero art faces left
+            v.enemyArtFacesRight = false;
+            EditorUtility.SetDirty(v);
+        }
+
         private static void CreateBotBehaviorAsset()
         {
             var botBehavior = CreateOrLoad<BotBehaviorData>(DATA_PATH + "AI/bot_behavior_default.asset");
@@ -1033,6 +1061,8 @@ namespace HillNGun.Editor
             var uiTheme = AssetDatabase.LoadAssetAtPath<UIThemeData>(DATA_PATH + "UI/ui_theme_default.asset");
             var externalServices = AssetDatabase.LoadAssetAtPath<ExternalServicesData>(DATA_PATH + "External/external_services.asset");
             var tutorial = AssetDatabase.LoadAssetAtPath<TutorialData>(DATA_PATH + "Tutorial/tutorial_default.asset");
+            var movementFeel = AssetDatabase.LoadAssetAtPath<MovementFeelData>(DATA_PATH + "Feel/movement_feel.asset");
+            var motionView = AssetDatabase.LoadAssetAtPath<MotionViewData>(DATA_PATH + "Feel/motion_view.asset");
             
             var assetManagerGO = new GameObject("RuntimeAssetManager");
             var assetManager = assetManagerGO.AddComponent<RuntimeAssetManager>();
@@ -1055,6 +1085,8 @@ namespace HillNGun.Editor
             SetPrivateField(assetManager, "_uiTheme", uiTheme);
             SetPrivateField(assetManager, "_externalServices", externalServices);
             SetPrivateField(assetManager, "_tutorial", tutorial);
+            SetPrivateField(assetManager, "_movementFeel", movementFeel);
+            SetPrivateField(assetManager, "_motionView", motionView);
         }
 
         private static void CreateBattlefieldAndSystems()

@@ -114,7 +114,7 @@ namespace HillNGun.Input
 
                 if (Keyboard.current.spaceKey.wasPressedThisFrame)
                 {
-                    _receiver.OnRollCommand(new RollCommand(_lastMoveInput.normalized, Time.time));
+                    _receiver.OnRollCommand(new RollCommand(_lastMoveInput.magnitude > 0.1f ? _lastMoveInput.normalized : Vector2.zero, Time.time));
                 }
 
                 if (Keyboard.current.qKey.wasPressedThisFrame)
@@ -134,7 +134,16 @@ namespace HillNGun.Input
                 }
             }
 
-            if (moveInput != _lastMoveInput)
+            // Gamepad: analog left stick (speed follows deflection) + south/left-shoulder roll
+            if (Gamepad.current != null)
+            {
+                Vector2 stick = Gamepad.current.leftStick.ReadValue();
+                if (moveInput == Vector2.zero && stick.magnitude > 0.12f) moveInput = Vector2.ClampMagnitude(stick, 1f);
+                if (Gamepad.current.buttonSouth.wasPressedThisFrame || Gamepad.current.leftShoulder.wasPressedThisFrame)
+                    _receiver.OnRollCommand(new RollCommand(moveInput.magnitude > 0.1f ? moveInput.normalized : Vector2.zero, Time.time));
+            }
+
+            if ((moveInput - _lastMoveInput).sqrMagnitude > 0.0004f || (moveInput == Vector2.zero && _lastMoveInput != Vector2.zero))
             {
                 _lastMoveInput = moveInput;
 
@@ -277,7 +286,7 @@ namespace HillNGun.Input
             }
             else if (Vector2.Distance(position, _rollButtonCenter) < smallButtonRadius * 1.5f)
             {
-                _receiver?.OnRollCommand(new RollCommand(_lastMoveInput.magnitude > 0.1f ? _lastMoveInput.normalized : Vector2.right, Time.time));
+                _receiver?.OnRollCommand(new RollCommand(_lastMoveInput.magnitude > 0.1f ? _lastMoveInput.normalized : Vector2.zero, Time.time));
             }
             else if (!_grenadeButtonActive && Vector2.Distance(position, _grenadeButtonCenter) < smallButtonRadius * 1.5f)
             {

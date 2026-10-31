@@ -2,6 +2,7 @@ using UnityEngine;
 using HillNGun.Core;
 using HillNGun.Data;
 using HillNGun.Battlefield;
+using HillNGun.Feel;
 
 namespace HillNGun.Characters
 {
@@ -26,6 +27,14 @@ namespace HillNGun.Characters
         private Sprite _shootSprite;
         private Sprite _rollSprite;
         private Sprite _downedSprite;
+
+        // Motion feel (view only; MotionViewData)
+        private MotionRig _rig;
+        private float _afterimageTimer;
+        private float _rollDustTimer;
+        public SpriteRenderer BodyRenderer => _bodyRenderer;
+        private float _footY = -0.85f;
+        private float _facingHold;
 
         public void Initialize(CharacterStateMachine character)
         {
@@ -56,6 +65,8 @@ namespace HillNGun.Characters
             }
 
             character.OnDamageTaken += HandleDamageTaken;
+            character.OnRollStarted += HandleRollStarted;
+            character.OnRollEnded += HandleRollEnded;
 
             UpdateView(character);
         }
@@ -67,9 +78,32 @@ namespace HillNGun.Characters
             PlayHitFlash(0.08f);
         }
 
+        private void HandleRollStarted(CharacterStateMachine c)
+        {
+            if (_rig == null) return;
+            var d = MotionFx.Data;
+            _rig.Impulse(-d.rollSquash);
+            _rig.Dust(new Vector2(-c.RollDirection.x, 0f), d.rollDustCount);
+            _afterimageTimer = 0f;
+            _rollDustTimer = d.rollDustInterval;
+        }
+
+        private void HandleRollEnded(CharacterStateMachine c)
+        {
+            if (_rig == null) return;
+            var d = MotionFx.Data;
+            _rig.Impulse(-d.landSquash);
+            _rig.Dust(new Vector2(c.RollDirection.x, 0f), d.rollDustCount);
+        }
+
         private void OnDestroy()
         {
-            if (_character != null) _character.OnDamageTaken -= HandleDamageTaken;
+            if (_character != null)
+            {
+                _character.OnDamageTaken -= HandleDamageTaken;
+                _character.OnRollStarted -= HandleRollStarted;
+                _character.OnRollEnded -= HandleRollEnded;
+            }
         }
 
         private void LoadSprites(CharacterStateMachine character)
@@ -91,11 +125,13 @@ namespace HillNGun.Characters
         {
             if (_bodyRenderer == null)
             {
-                _bodyRenderer = GetComponent<SpriteRenderer>();
-                if (_bodyRenderer == null)
-                {
-                    _bodyRenderer = gameObject.AddComponent<SpriteRenderer>();
-                }
+                // Shadow + feet pivot + body child so bounce/lean/squash/flip never move labels or bars
+                var md = MotionFx.Data;
+                MotionFx.MeasureFeet(_idleSprite, md.heroFootOffset, md.fallbackShadowSize.x / Mathf.Max(0.01f, md.heroShadowWidth), out float foot, out float width);
+                _footY = foot;
+                float sw = width * md.heroShadowWidth;
+                _rig = new MotionRig(transform, foot, new Vector2(sw, sw * md.shadowAspect), md.heroArtFacesRight);
+                _bodyRenderer = _rig.Renderer;
             }
             
             if (_idleSprite != null)
@@ -144,9 +180,14 @@ namespace HillNGun.Characters
 
             if (character.Team == Team.Enemy && _bodyRenderer != null)
             {
-                // PvP opponents: face the player and get a warm tint so teams read at a glance
+                // PvP opponents: warm tint so teams read at a glance
                 _bodyRenderer.flipY = false;
                 _originalTint = new Color(1f, 0.82f, 0.75f);
+            }
+            if (_teamMarker != null && _rig != null)
+            {
+                // marker ring sits on the soft shadow at the feet
+                _teamMarker.transform.localPosition = new Vector3(0f, _footY, 0f);
             }
         }
 
@@ -240,6 +281,7 @@ namespace HillNGun.Characters
             Vector3 worldPos = transform.position;
             FieldView.ApplySorting(_bodyRenderer, character.Position.y);
             FieldView.ApplySorting(_teamMarker, character.Position.y, -1);
+            UpdateMotion(character);
             if (_aimLine != null) _aimLine.sortingOrder = FieldView.OverlayOrder - 10;
             if (_labelRenderer != null) _labelRenderer.sortingOrder = FieldView.OverlayOrder;
 
@@ -253,6 +295,69 @@ namespace HillNGun.Characters
             UpdateFlash();
             UpdateStateVisuals(character);
             UpdateStatusBar(character);
+        }
+
+        /// <summary>View-only motion: facing (aim priority while shooting), walk bounce, lean, squash, hop, roll tumble, afterimages, dust.</summary>
+        private void UpdateMotion(CharacterStateMachine c)
+        {
+            if (_rig == null) return;
+            var d = MotionFx.Data;
+            float dt = GameTime.DeltaTime;
+            _rig.SortingOrder = FieldView.DepthOrder(c.Position.y);
+
+            if (c.OverallState != CharacterOverallState.Active)
+            {
+                _rig.ResetPose();
+                return;
+            }
+
+            bool rolling = c.MovementState == MovementState.Rolling;
+            float maxSpeed = c.Data != null ? c.Data.moveSpeed : 3f;
+            float vx = c.Velocity.x;
+
+            // facing: roll direction > aim (while shooting) > stick > velocity
+            bool shooting = c.ActionState == ActionState.Firing || c.ActionState == ActionState.Charging ||
+                            (c.IsAimingWeapon && c.ActionState != ActionState.Aiming) ||
+                            Time.time - c.LastFireTime < d.aimFacingHold;
+            float want = 0f; bool deliberate = false;
+            if (rolling && !c.IsRowRoll && Mathf.Abs(c.RollDirection.x) > 0.05f) { want = Mathf.Sign(c.RollDirection.x); deliberate = true; }
+            else if (shooting && Mathf.Abs(c.AimDirection.x) > d.aimFacingMinX) want = Mathf.Sign(c.AimDirection.x);
+            else if (!shooting && Mathf.Abs(c.MoveInputX) > 0.1f) { want = Mathf.Sign(c.MoveInputX); deliberate = true; }
+            else if (!shooting && Mathf.Abs(vx) > 0.3f) want = Mathf.Sign(vx);
+            if (want != 0f && want != _rig.FacingSign)
+            {
+                _facingHold += dt;
+                if (deliberate || _facingHold >= d.facingHoldTime) { _rig.SetFacing(want); _facingHold = 0f; }
+            }
+            else _facingHold = 0f;
+
+            float hop = 0f, spin = 0f;
+            if (rolling)
+            {
+                float p = c.RollProgress;
+                spin = d.rollSpinDeg * c.Feel.RollEase(p);
+                hop = c.IsRowRoll ? d.rowHopHeight * 1.3f * Mathf.Sin(Mathf.PI * p) : d.rowHopHeight * 0.35f * Mathf.Sin(Mathf.PI * p);
+
+                _afterimageTimer -= dt;
+                if (_afterimageTimer <= 0f && p < 0.92f)
+                {
+                    _afterimageTimer = d.afterimageInterval;
+                    MotionFx.Instance.Afterimage(_bodyRenderer, d.afterimageTint, d.afterimageAlpha, d.afterimageLifetime);
+                }
+                _rollDustTimer -= dt;
+                if (_rollDustTimer <= 0f)
+                {
+                    _rollDustTimer = d.rollDustInterval;
+                    _rig.Dust(new Vector2(-c.RollDirection.x, 0f), 1);
+                }
+            }
+            else if (c.MovementState == MovementState.RowChanging)
+            {
+                hop = d.rowHopHeight * Mathf.Sin(Mathf.PI * c.RowChangeProgress);
+            }
+
+            bool grounded = !rolling && c.MovementState != MovementState.RowChanging;
+            _rig.Tick(dt, rolling ? 0f : vx, maxSpeed, grounded, d.bobHeight, d.leanMaxDeg, hop, spin, true);
         }
 
         // Downed / revive bar + skill state marker tint (placeholder visuals, no external art)

@@ -29,6 +29,14 @@ namespace HillNGun.Input
         private bool _aimJoystickActive;
         private float _aimStartTime;
 
+        // Free-area swipe -> directional roll; move-stick vertical hold -> row change
+        private int _swipeFinger = -1;
+        private Vector2 _swipeStart;
+        private float _swipeStartTime;
+        private int _rowPendingDir;
+        private float _rowHoldTimer;
+        private bool _rowSent;
+
         private bool _rollButtonPressed;
         private bool _grenadeButtonPressed;
         private bool _skillButtonPressed;
@@ -77,6 +85,33 @@ namespace HillNGun.Input
 
             UpdateSafeArea();
             ProcessTouches();
+            ProcessRowHold();
+        }
+
+        private void ProcessRowHold()
+        {
+            if (_rowPendingDir == 0 || _rowSent) return;
+            var input = ServiceLocator.Get<InputData>();
+            float hold = input != null ? input.rowChangeHoldTime : _controlsData.rowChangeHoldTime;
+            _rowHoldTimer += Time.deltaTime;
+            if (_rowHoldTimer >= hold)
+            {
+                _receiver?.OnRowChangeCommand(new RowChangeCommand(_rowPendingDir, Time.time));
+                _rowSent = true; // one row per push; release below the threshold to go again
+            }
+        }
+
+        private void UpdateRowIntent(Vector2 stick)
+        {
+            var input = ServiceLocator.Get<InputData>();
+            float threshold = input != null ? input.rowChangeThreshold : _controlsData.rowChangeThreshold;
+            int dir = stick.y >= threshold ? 1 : (stick.y <= -threshold ? -1 : 0);
+            if (dir != _rowPendingDir)
+            {
+                _rowPendingDir = dir;
+                _rowHoldTimer = 0f;
+                _rowSent = false;
+            }
         }
 
         private void UpdateSafeArea()
@@ -188,6 +223,12 @@ namespace HillNGun.Input
                         pauseMenu.Pause();
                 }
             }
+            else if (_controlsData.rollSwipeEnabled && _swipeFinger == -1)
+            {
+                _swipeFinger = fingerId;
+                _swipeStart = pos;
+                _swipeStartTime = Time.unscaledTime;
+            }
         }
 
         private void HandleTouchMoved(int fingerId, Vector2 pos)
@@ -214,6 +255,7 @@ namespace HillNGun.Input
 
                 dir.y = -dir.y;
                 _receiver?.OnMoveCommand(new MoveCommand(dir.normalized, magnitude, Time.time));
+                UpdateRowIntent(dir.normalized * magnitude);
             }
             else if (fingerId == _aimJoystickFinger)
             {
@@ -244,6 +286,18 @@ namespace HillNGun.Input
             {
                 EndAimJoystick();
             }
+            else if (fingerId == _swipeFinger)
+            {
+                _swipeFinger = -1;
+                Vector2 delta = pos - _swipeStart;
+                float minPx = _controlsData.rollSwipeMinDistance * Screen.height / 720f;
+                if (delta.magnitude >= minPx && Time.unscaledTime - _swipeStartTime <= _controlsData.rollSwipeMaxTime)
+                {
+                    Vector2 dir = delta.normalized;
+                    dir.y = -dir.y; // GUI space -> logic up
+                    _receiver?.OnRollCommand(new RollCommand(dir, Time.time));
+                }
+            }
 
             _rollButtonPressed = false;
             _grenadeButtonPressed = false;
@@ -254,6 +308,7 @@ namespace HillNGun.Input
         {
             _moveJoystickFinger = -1;
             _moveJoystickActive = false;
+            _rowPendingDir = 0; _rowHoldTimer = 0f; _rowSent = false;
             _receiver?.OnMoveCommand(new MoveCommand(Vector2.zero, 0f, Time.time));
         }
 
@@ -280,7 +335,7 @@ namespace HillNGun.Input
                 dir.y = -dir.y;
                 return dir;
             }
-            return Vector2.right;
+            return Vector2.zero; // no stick: the character rolls toward its last move direction (01 §9)
         }
 
         private void OnGUI()

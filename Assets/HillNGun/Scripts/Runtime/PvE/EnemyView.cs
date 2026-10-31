@@ -2,6 +2,7 @@ using UnityEngine;
 using HillNGun.Core;
 using HillNGun.Data;
 using HillNGun.Battlefield;
+using HillNGun.Feel;
 
 namespace HillNGun.PvE
 {
@@ -16,6 +17,9 @@ namespace HillNGun.PvE
         private bool _isShowingWarning;
         private MeshRenderer _labelRenderer;
         private SpriteRenderer _warnRenderer;
+        private MotionRig _rig;
+        private Vector2 _lastPos;
+        private bool _hasLastPos;
         public SpriteRenderer BodyRenderer => _spriteRenderer;
         public EnemyInstance Enemy => _enemy;
 
@@ -32,12 +36,6 @@ namespace HillNGun.PvE
 
         private void SetupVisuals()
         {
-            _spriteRenderer = GetComponent<SpriteRenderer>();
-            if (_spriteRenderer == null)
-            {
-                _spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-            }
-
             Sprite enemySprite = null;
             if (_spriteLibrary != null && _enemy.Data != null)
             {
@@ -47,6 +45,14 @@ namespace HillNGun.PvE
                     enemySprite = sprites.idle;
                 }
             }
+
+            // Body on a child rig (soft shadow + feet pivot) so bounce/lean never move the label/warning
+            var md = MotionFx.Data;
+            MotionFx.MeasureFeet(enemySprite, -0.5f, 0.9f, out float foot, out float width);
+            float sw = width * md.enemyShadowWidth;
+            _rig = new MotionRig(transform, foot, new Vector2(sw, sw * md.shadowAspect), md.enemyArtFacesRight);
+            _rig.FxScale = 0.8f;
+            _spriteRenderer = _rig.Renderer;
 
             if (enemySprite != null)
             {
@@ -201,8 +207,26 @@ namespace HillNGun.PvE
         {
             FieldView.Place(transform, _enemy.Position, _enemy.Data != null ? _enemy.Data.scale : 1f);
             FieldView.ApplySorting(_spriteRenderer, _enemy.Position.y);
+            UpdateMotion();
             if (_labelRenderer != null) _labelRenderer.sortingOrder = FieldView.OverlayOrder;
             if (_warnRenderer != null) _warnRenderer.sortingOrder = FieldView.OverlayOrder + 1;
+        }
+
+        private void UpdateMotion()
+        {
+            if (_rig == null) return;
+            float dt = GameTime.DeltaTime;
+            Vector2 p = _enemy.Position;
+            Vector2 v = (_hasLastPos && dt > 0f) ? (p - _lastPos) / dt : Vector2.zero;
+            if (v.magnitude > 30f) v = Vector2.zero; // teleport / spawn
+            _lastPos = p; _hasLastPos = true;
+            _rig.SortingOrder = FieldView.DepthOrder(p.y);
+            if (Mathf.Abs(v.x) > 0.25f) _rig.SetFacing(v.x);
+            var md = MotionFx.Data;
+            float signed = v.magnitude * (v.x >= 0f ? 1f : -1f);
+            float maxSpeed = _enemy.Data != null ? Mathf.Max(0.5f, _enemy.Data.moveSpeed) : 2f;
+            bool grounded = _enemy.IsAlive || _enemy.IsFleeing;
+            _rig.Tick(dt, Mathf.Abs(v.x) > 0.05f ? signed : 0f, maxSpeed, grounded, md.enemyBobHeight, md.enemyLeanMaxDeg, 0f, 0f, true);
         }
 
         private void OnDestroy()

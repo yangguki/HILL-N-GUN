@@ -2,6 +2,7 @@ using UnityEngine;
 using HillNGun.Core;
 using HillNGun.Data;
 using HillNGun.Battlefield;
+using HillNGun.Feel;
 
 namespace HillNGun.PvE
 {
@@ -14,6 +15,10 @@ namespace HillNGun.PvE
         private TextMesh _nameLabel;
         private BattlefieldSystem _battlefield;
         private SpriteLibrary _spriteLibrary;
+        private MotionRig _rig;
+        private Vector2 _lastPos;
+        private bool _hasLastPos;
+        private float _t;
         public SpriteRenderer BodyRenderer => _spriteRenderer;
         public TailSweepTelegraphView Telegraph { get; private set; }
         public BossInstance Boss => _boss;
@@ -36,17 +41,18 @@ namespace HillNGun.PvE
 
         private void SetupVisuals()
         {
-            _spriteRenderer = GetComponent<SpriteRenderer>();
-            if (_spriteRenderer == null)
-            {
-                _spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-            }
-
             Sprite bossSprite = null;
             if (_spriteLibrary != null && _spriteLibrary.boss != null)
             {
                 bossSprite = _spriteLibrary.boss.idle;
             }
+
+            var md = MotionFx.Data;
+            MotionFx.MeasureFeet(bossSprite, -0.9f, 2f, out float foot, out float width);
+            float sw = width * md.bossShadowWidth;
+            _rig = new MotionRig(transform, foot, new Vector2(sw, sw * md.shadowAspect), md.enemyArtFacesRight);
+            _rig.FxScale = 1.6f;
+            _spriteRenderer = _rig.Renderer;
 
             if (bossSprite != null)
             {
@@ -177,10 +183,27 @@ namespace HillNGun.PvE
         {
             FieldView.Place(transform, _boss.Position, 2f);
             FieldView.ApplySorting(_spriteRenderer, _boss.Position.y);
+            UpdateMotion();
             if (_hpBarBg != null) _hpBarBg.sortingOrder = FieldView.OverlayOrder;
             if (_hpBarFill != null) _hpBarFill.sortingOrder = FieldView.OverlayOrder + 1;
             var lr = _nameLabel != null ? _nameLabel.GetComponent<MeshRenderer>() : null;
             if (lr != null) lr.sortingOrder = FieldView.OverlayOrder;
+        }
+
+        private void UpdateMotion()
+        {
+            if (_rig == null) return;
+            float dt = GameTime.DeltaTime;
+            _t += dt;
+            Vector2 p = _boss.Position;
+            Vector2 v = (_hasLastPos && dt > 0f) ? (p - _lastPos) / dt : Vector2.zero;
+            if (v.magnitude > 30f) v = Vector2.zero;
+            _lastPos = p; _hasLastPos = true;
+            _rig.SortingOrder = FieldView.DepthOrder(p.y);
+            var md = MotionFx.Data;
+            // slow idle breathe/sway (snake coil) + lean into horizontal moves; no flip (boss faces the players)
+            float breathe = _boss.IsAlive ? Mathf.Sin(_t * 2.1f) * md.bossBreathe * 2f : 0f;
+            _rig.Tick(dt, Mathf.Abs(v.x) > 0.05f ? v.x : 0f, 3f, _boss.IsAlive, md.enemyBobHeight * 0.5f, md.enemyLeanMaxDeg * 0.5f, breathe, 0f, false);
         }
 
         private void UpdateHpBar()

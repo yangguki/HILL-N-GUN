@@ -48,6 +48,20 @@ namespace HillNGun.Characters
         private AmmoGauge _ammoGauge;
         private GrenadeSystem _grenadeSystem;
 
+        // Movement feel (MovementFeelData): continuous accel/decel, analog input, eased row/roll, recovery, input buffer
+        private MovementFeelData _feel;
+        private float _velX;
+        private float _moveInputMag;
+        private float _lastMoveDirX = 1f;
+        private Vector2 _velocity;
+        private float _recoveryTimer;
+        private float _clock;
+        private float _lastFireTime = -10f;
+        private bool _bufRoll; private Vector2 _bufRollDir; private float _bufRollTime;
+        private bool _bufAim; private float _bufAimTime; private bool _bufAimHeld;
+        private bool _bufGrenade; private float _bufGrenadeTime;
+        private int _bufRowDir; private float _bufRowTime;
+
         private ICharacterView _view;
 
         public CharacterData Data => _data;
@@ -66,6 +80,41 @@ namespace HillNGun.Characters
         public bool IsCharging => _actionState == ActionState.Charging;
         public Vector2 AimDirection => _lastAimDirection;
         public AmmoGauge AmmoGauge => _ammoGauge;
+
+        public MovementFeelData Feel
+        {
+            get
+            {
+                if (_feel == null) _feel = ServiceLocator.Get<MovementFeelData>() ?? MovementFeelData.Fallback;
+                return _feel;
+            }
+        }
+        /// <summary>Actual logic velocity (tiles/s) measured this frame (moves, row changes, rolls, crawl).</summary>
+        public Vector2 Velocity => _velocity;
+        /// <summary>Signed horizontal input (-1..1) after analog magnitude.</summary>
+        public float MoveInputX => _moveDirection.x * _moveInputMag;
+        public float FacingX => _lastMoveDirX;
+        public float RollProgress => _movementState == MovementState.Rolling && _data?.roll != null ? Mathf.Clamp01(_rollTimer / _data.roll.duration) : 0f;
+        public Vector2 RollDirection => _rollDirection;
+        public bool IsRowRoll => _movementState == MovementState.Rolling && _rollTargetRow >= 0;
+        public bool IsRecovering => _recoveryTimer > 0f;
+        public float RowChangeProgress => _movementState == MovementState.RowChanging && _data != null ? Mathf.Clamp01(_rowChangeTimer / (2.5f / _data.RowChangeSpeed)) : 0f;
+        /// <summary>Time.time of the last shot (view: aim-facing priority).</summary>
+        public float LastFireTime => _lastFireTime;
+        public bool IsAimingWeapon => _isAiming;
+        private float BufferWindow => Feel.inputBufferWindow >= 0f ? Feel.inputBufferWindow : (_data?.roll != null ? _data.roll.inputBuffer : 0.1f);
+        private bool RollBlocksActions => _movementState == MovementState.Rolling && _data?.roll != null && !_data.roll.canFireDuring;
+        private bool RecoveryBlocksActions => _recoveryTimer > 0f && Feel.recoveryBlocksActions;
+        /// <summary>Seconds until roll/recovery stop blocking actions.</summary>
+        private float TimeUntilActionsFree()
+        {
+            float t = 0f;
+            if (_movementState == MovementState.Rolling && _data?.roll != null)
+                t = Mathf.Max(0f, _data.roll.duration - _rollTimer) + (Feel.recoveryBlocksActions ? Feel.rollRecoveryTime : 0f);
+            else if (RecoveryBlocksActions)
+                t = _recoveryTimer;
+            return t;
+        }
         public GrenadeSystem GrenadeSystem => _grenadeSystem;
 
         public event System.Action<CharacterStateMachine, int, Vector2> OnDamageTaken;
@@ -153,12 +202,17 @@ namespace HillNGun.Characters
             if (_overallState == CharacterOverallState.Eliminated) return;
 
             float dt = GameTime.DeltaTime;
+            _clock += dt;
+            Vector2 before = _position;
 
             UpdateCooldowns(dt);
             UpdateMovement(dt);
             UpdateAmmoRecharge(dt);
             UpdateDowned(dt);
             UpdatePassive(dt);
+            UpdateInputBuffer();
+
+            if (dt > 0f) _velocity = (_position - before) / dt;
 
             _view?.UpdateView(this);
         }
@@ -173,16 +227,21 @@ namespace HillNGun.Characters
 
             if (_skillActiveTimer > 0f)
                 _skillActiveTimer -= dt;
+
+            if (_recoveryTimer > 0f)
+                _recoveryTimer = Mathf.Max(0f, _recoveryTimer - dt);
         }
 
         private void UpdateMovement(float dt)
         {
             switch (_movementState)
             {
+                case MovementState.Idle:
                 case MovementState.Moving:
-                    float speed = _data.GetMoveSpeed(IsCharging);
-                    _position += _moveDirection * speed * dt;
-                    ClampPosition();
+                    if (_overallState != CharacterOverallState.Active) { _velX = 0f; break; }
+                    UpdateHorizontal(dt, _data.GetMoveSpeed(IsCharging));
+                    _movementState = (Feel.AnalogSpeedFactor(Mathf.Abs(MoveInputX)) > 0f || Mathf.Abs(_velX) > 0.02f)
+                        ? MovementState.Moving : MovementState.Idle;
                     break;
 
                 case MovementState.RowChanging:
@@ -202,19 +261,17 @@ namespace HillNGun.Characters
 
             float t = Mathf.Clamp01(_rowChangeTimer / duration);
             float targetY = ServiceLocator.Get<Battlefield.BattlefieldSystem>()?.GetRowY(_targetRowIndex, _team) ?? _rowChangeStartY;
-            _position.y = Mathf.Lerp(_rowChangeStartY, targetY, t);
+            // Same duration as the design (2.5 tiles / speed×1.5); only the curve is eased. Never stops mid-way.
+            _position.y = Mathf.Lerp(_rowChangeStartY, targetY, Feel.RowEase(t));
 
-            if (_moveDirection.x != 0f)
-            {
-                _position.x += _moveDirection.x * _data.moveSpeed * dt;
-                ClampPosition();
-            }
+            // Diagonal input keeps strafing during the row change (01 §3)
+            UpdateHorizontal(dt, _data.moveSpeed);
 
             if (t >= 1f)
             {
                 _currentRowIndex = _targetRowIndex;
                 _position.y = targetY;
-                _movementState = _moveDirection.magnitude > 0.1f ? MovementState.Moving : MovementState.Idle;
+                _movementState = (Mathf.Abs(_velX) > 0.02f || _moveInputMag > 0.1f) ? MovementState.Moving : MovementState.Idle;
             }
         }
 
@@ -223,12 +280,14 @@ namespace HillNGun.Characters
             _rollTimer += dt;
 
             float t = Mathf.Clamp01(_rollTimer / _data.roll.duration);
-            float distance = _data.roll.distance * t;
+            // Eased: fast start -> decel. Same total distance / duration / i-frames as RollData.
+            float e = Feel.RollEase(t);
+            float distance = _data.roll.distance * e;
 
             if (_rollTargetRow >= 0)
             {
                 float targetY = ServiceLocator.Get<Battlefield.BattlefieldSystem>()?.GetRowY(_rollTargetRow, _team) ?? _position.y;
-                _position = Vector2.Lerp(_rollStartPos, new Vector2(_rollStartPos.x, targetY), t);
+                _position = Vector2.Lerp(_rollStartPos, new Vector2(_rollStartPos.x, targetY), e);
             }
             else
             {
@@ -243,9 +302,14 @@ namespace HillNGun.Characters
                 {
                     _currentRowIndex = _rollTargetRow;
                     _rollTargetRow = -1;
+                    _rollTargetRowWasSet = true;
                 }
 
                 _movementState = MovementState.Idle;
+                _velX = _rollTargetRowWasSet ? 0f : _rollDirection.x * _data.moveSpeed * Feel.rollExitCarry;
+                _rollTargetRowWasSet = false;
+                _recoveryTimer = Feel.rollRecoveryTime;
+                OnRollEnded?.Invoke(this);
 
                 if (_data.passive?.passiveType == PassiveType.RollShot)
                 {
@@ -295,6 +359,39 @@ namespace HillNGun.Characters
             }
         }
 
+        /// <summary>Continuous horizontal movement: accel/decel toward the analog target speed.</summary>
+        private void UpdateHorizontal(float dt, float maxSpeed)
+        {
+            var f = Feel;
+            float inX = MoveInputX;
+            float factor = f.AnalogSpeedFactor(Mathf.Abs(inX));
+            float target = factor > 0f ? Mathf.Sign(inX) * factor * maxSpeed : 0f;
+            if (_recoveryTimer > 0f) target *= f.rollRecoveryMoveMul;
+
+            bool accelerating = Mathf.Abs(target) > 0.0001f &&
+                                (Mathf.Abs(_velX) < 0.0001f || Mathf.Sign(target) == Mathf.Sign(_velX)) &&
+                                Mathf.Abs(target) >= Mathf.Abs(_velX);
+            float rate;
+            if (accelerating)
+            {
+                rate = f.accelTime <= 0f ? float.MaxValue
+                    : maxSpeed / f.accelTime * Mathf.Max(0.05f, f.accelCurve != null && f.accelCurve.length > 0 ? f.accelCurve.Evaluate(Mathf.Abs(_velX) / Mathf.Max(0.01f, maxSpeed)) : 1f);
+            }
+            else
+            {
+                rate = f.decelTime <= 0f ? float.MaxValue : maxSpeed / f.decelTime;
+                if (Mathf.Abs(target) > 0.0001f && Mathf.Abs(_velX) > 0.0001f && Mathf.Sign(target) != Mathf.Sign(_velX))
+                    rate *= f.turnDecelMul;
+            }
+            _velX = rate >= float.MaxValue * 0.5f ? target : Mathf.MoveTowards(_velX, target, rate * dt);
+            if (Mathf.Abs(_velX) < 0.0001f) return;
+
+            float prevX = _position.x;
+            _position.x += _velX * dt;
+            ClampPosition();
+            if (Mathf.Abs(_position.x - (prevX + _velX * dt)) > 0.0001f) _velX = 0f; // hit the field edge
+        }
+
         private void ClampPosition()
         {
             var battlefield = ServiceLocator.Get<Battlefield.BattlefieldSystem>();
@@ -307,24 +404,30 @@ namespace HillNGun.Characters
         public void OnMoveCommand(MoveCommand cmd)
         {
             if (_overallState != CharacterOverallState.Active) return;
+
+            // Always remember the latest stick (also during roll / row change) so a held direction
+            // continues smoothly after the roll instead of stopping until the input changes.
+            _moveDirection = cmd.Direction;
+            _moveInputMag = cmd.Direction.sqrMagnitude > 0.0001f ? Mathf.Clamp01(cmd.Magnitude) : 0f;
+            if (_moveInputMag > 0.1f && Mathf.Abs(cmd.Direction.x) > 0.2f) _lastMoveDirX = Mathf.Sign(cmd.Direction.x);
+
             if (_movementState == MovementState.Rolling || _movementState == MovementState.RowChanging) return;
 
-            _moveDirection = cmd.Direction;
-
-            if (cmd.Magnitude > 0.1f)
-            {
-                _movementState = MovementState.Moving;
-            }
-            else
-            {
-                _movementState = MovementState.Idle;
-            }
+            _movementState = (Feel.AnalogSpeedFactor(Mathf.Abs(MoveInputX)) > 0f || Mathf.Abs(_velX) > 0.02f)
+                ? MovementState.Moving : MovementState.Idle;
         }
 
         public void OnRowChangeCommand(RowChangeCommand cmd)
         {
             if (_overallState != CharacterOverallState.Active) return;
-            if (_movementState == MovementState.Rolling || _movementState == MovementState.RowChanging) return;
+            if (_movementState == MovementState.Rolling || _movementState == MovementState.RowChanging)
+            {
+                float wait = _movementState == MovementState.Rolling
+                    ? _data.roll.duration - _rollTimer
+                    : (2.5f / _data.RowChangeSpeed) - _rowChangeTimer;
+                if (wait <= BufferWindow) { _bufRowDir = cmd.Direction; _bufRowTime = _clock; }
+                return;
+            }
 
             var battlefield = ServiceLocator.Get<Battlefield.BattlefieldSystem>();
             if (battlefield == null) return;
@@ -341,7 +444,14 @@ namespace HillNGun.Characters
         public void OnAimStartCommand(AimStartCommand cmd)
         {
             if (_overallState != CharacterOverallState.Active) return;
-            if (!CanPerformAction()) return;
+            if (!CanPerformAction())
+            {
+                // Pressed during roll / landing: queue it (design 01 §9: 0.1s buffer, then fire when the roll ends)
+                if ((RollBlocksActions || RecoveryBlocksActions) && TimeUntilActionsFree() <= BufferWindow &&
+                    (_actionState == ActionState.None || _actionState == ActionState.Aiming))
+                { _bufAim = true; _bufAimTime = _clock; }
+                return;
+            }
 
             _isAiming = true;
             _aimStartTime = cmd.Timestamp;
@@ -353,6 +463,7 @@ namespace HillNGun.Characters
             if (!_isAiming) return;
 
             _lastAimDirection = cmd.Direction;
+            if (RollBlocksActions || RecoveryBlocksActions) return; // no shots while rolling (01 §9)
 
             if (cmd.IsOutsideDeadzone && _actionState == ActionState.Aiming)
             {
@@ -373,6 +484,8 @@ namespace HillNGun.Characters
 
         public void OnAimReleaseCommand(AimReleaseCommand cmd)
         {
+            _bufAim = false;
+            _bufAimHeld = false;
             if (!_isAiming) return;
 
             _isAiming = false;
@@ -399,6 +512,7 @@ namespace HillNGun.Characters
 
             _ammoGauge.ConsumeShot();
             _actionState = ActionState.Firing;
+            _lastFireTime = Time.time;
 
             int damage = _data.weapon.damagePerProjectile;
 
@@ -418,6 +532,7 @@ namespace HillNGun.Characters
 
             _ammoGauge.ConsumeShot();
 
+            _lastFireTime = Time.time;
             int damage = _data.weapon.GetChargeDamage(chargeTime);
             OnFired?.Invoke(this, _lastAimDirection, damage);
         }
@@ -425,15 +540,30 @@ namespace HillNGun.Characters
         public void OnRollCommand(RollCommand cmd)
         {
             if (_overallState != CharacterOverallState.Active) return;
-            if (_movementState == MovementState.Rolling) return;
-            if (_rollCooldownTimer > 0f) return;
+            bool rolling = _movementState == MovementState.Rolling;
+            if (rolling || _recoveryTimer > 0f || _rollCooldownTimer > 0f)
+            {
+                float wait = Mathf.Max(rolling ? (_data.roll.duration - _rollTimer) + Feel.rollRecoveryTime : _recoveryTimer, _rollCooldownTimer);
+                if (wait <= BufferWindow) { _bufRoll = true; _bufRollDir = cmd.Direction; _bufRollTime = _clock; }
+                return;
+            }
+            StartRoll(cmd.Direction);
+        }
 
-            Vector2 rollDir = cmd.Direction;
+        private bool _rollTargetRowWasSet;
+        public event System.Action<CharacterStateMachine> OnRollEnded;
+
+        private void StartRoll(Vector2 rollDir)
+        {
             if (rollDir.magnitude < 0.1f)
             {
-                rollDir = _moveDirection.magnitude > 0.1f ? _moveDirection : Vector2.right;
+                // 01 §9: stick direction, or the last move direction when there is no input
+                rollDir = (_moveInputMag > 0.1f && _moveDirection.magnitude > 0.1f) ? _moveDirection : new Vector2(_lastMoveDirX, 0f);
             }
 
+            _rollTargetRow = -1;
+            _rollTargetRowWasSet = false;
+            bool rowRoll = false;
             if (_data.roll.allowRowRoll && Mathf.Abs(rollDir.y) > 0.7f)
             {
                 var battlefield = ServiceLocator.Get<Battlefield.BattlefieldSystem>();
@@ -444,37 +574,96 @@ namespace HillNGun.Characters
                 {
                     _rollTargetRow = newRow;
                     rollDir = new Vector2(0f, direction);
-                }
-                else
-                {
-                    _rollTargetRow = -1;
+                    rowRoll = true;
                 }
             }
-            else
+
+            if (!rowRoll && Feel.horizontalRollOnly)
             {
-                _rollTargetRow = -1;
+                // Stay on the row: diagonal / blocked-vertical rolls become left-right rolls
+                float x = Mathf.Abs(rollDir.x) > 0.05f ? Mathf.Sign(rollDir.x) : _lastMoveDirX;
+                rollDir = new Vector2(x, 0f);
             }
+            if (Mathf.Abs(rollDir.x) > 0.05f) _lastMoveDirX = Mathf.Sign(rollDir.x);
 
             _rollDirection = rollDir.normalized;
             _rollStartPos = _position;
             _rollTimer = 0f;
             _rollCooldownTimer = _data.roll.cooldown;
             _movementState = MovementState.Rolling;
+            _recoveryTimer = 0f;
 
             if (_actionState == ActionState.Charging)
             {
+                // 01 §9: Raven charge is cancelled; if the button is still held the aim resumes after the roll
                 _actionState = ActionState.None;
                 _isAiming = false;
+                _bufAimHeld = true;
             }
 
             OnRollStarted?.Invoke(this);
         }
 
+        /// <summary>Runs queued roll / shot / grenade / row inputs as soon as they become legal.</summary>
+        private void UpdateInputBuffer()
+        {
+            if (!_bufRoll && !_bufAim && !_bufAimHeld && !_bufGrenade && _bufRowDir == 0) return;
+            if (_overallState != CharacterOverallState.Active) { ClearInputBuffer(); return; }
+            float expire = BufferWindow + 0.05f;
+
+            if (_bufRowDir != 0)
+            {
+                if (_clock - _bufRowTime > expire) _bufRowDir = 0;
+                else if (_movementState != MovementState.Rolling && _movementState != MovementState.RowChanging)
+                {
+                    int d = _bufRowDir; _bufRowDir = 0;
+                    OnRowChangeCommand(new RowChangeCommand(d, Time.time));
+                }
+            }
+            if (_bufRoll)
+            {
+                if (_clock - _bufRollTime > expire) _bufRoll = false;
+                else if (_movementState != MovementState.Rolling && _recoveryTimer <= 0f && _rollCooldownTimer <= 0f)
+                {
+                    _bufRoll = false;
+                    StartRoll(_bufRollDir);
+                }
+            }
+            if ((_bufAim || _bufAimHeld) && !_bufAimHeld && _clock - _bufAimTime > expire) _bufAim = false;
+            if ((_bufAim || _bufAimHeld) && CanPerformAction() && !_isAiming)
+            {
+                _bufAim = false; _bufAimHeld = false;
+                _isAiming = true;
+                _aimStartTime = Time.time;
+                _actionState = ActionState.Aiming;
+            }
+            if (_bufGrenade)
+            {
+                if (_clock - _bufGrenadeTime > expire) _bufGrenade = false;
+                else if (CanPerformAction())
+                {
+                    _bufGrenade = false;
+                    if (_grenadeSystem.HasGrenade()) _actionState = ActionState.GrenadeAiming;
+                }
+            }
+        }
+
+        private void ClearInputBuffer()
+        {
+            _bufRoll = false; _bufAim = false; _bufAimHeld = false; _bufGrenade = false; _bufRowDir = 0;
+        }
+
         public void OnGrenadeAimStartCommand(GrenadeAimStartCommand cmd)
         {
             if (_overallState != CharacterOverallState.Active) return;
-            if (!CanPerformAction()) return;
             if (!_grenadeSystem.HasGrenade()) return;
+            if (!CanPerformAction())
+            {
+                if ((RollBlocksActions || RecoveryBlocksActions) && TimeUntilActionsFree() <= BufferWindow &&
+                    (_actionState == ActionState.None || _actionState == ActionState.Aiming))
+                { _bufGrenade = true; _bufGrenadeTime = _clock; }
+                return;
+            }
 
             _actionState = ActionState.GrenadeAiming;
         }
@@ -487,6 +676,7 @@ namespace HillNGun.Characters
 
         public void OnGrenadeReleaseCommand(GrenadeReleaseCommand cmd)
         {
+            _bufGrenade = false;
             if (_actionState != ActionState.GrenadeAiming)
             {
                 _actionState = ActionState.None;
@@ -587,6 +777,8 @@ namespace HillNGun.Characters
         {
             if (_movementState == MovementState.Rolling && !_data.roll.canFireDuring)
                 return false;
+            if (RecoveryBlocksActions)
+                return false;
 
             return _actionState == ActionState.None || _actionState == ActionState.Aiming;
         }
@@ -628,6 +820,10 @@ namespace HillNGun.Characters
             IsBeingRevived = false;
             _pierceArmed = false;
             _skillActiveTimer = 0f;
+            _velX = 0f;
+            _recoveryTimer = 0f;
+            _rollTargetRow = -1;
+            ClearInputBuffer();
 
             var downedData = ServiceLocator.Get<DownedData>();
             _downedHp = downedData?.downedHp ?? 600;
@@ -662,6 +858,7 @@ namespace HillNGun.Characters
         public void SetPosition(Vector2 position)
         {
             _position = position;
+            _velX = 0f;
         }
 
         public void SetRowIndex(int rowIndex)
@@ -688,6 +885,12 @@ namespace HillNGun.Characters
             _rollShotBonusActive = false;
             _pierceArmed = false;
             IsBeingRevived = false;
+            _velX = 0f;
+            _velocity = Vector2.zero;
+            _recoveryTimer = 0f;
+            _rollTargetRow = -1;
+            _moveInputMag = 0f;
+            ClearInputBuffer();
 
             _ammoGauge?.Reset();
             _grenadeSystem?.Reset();

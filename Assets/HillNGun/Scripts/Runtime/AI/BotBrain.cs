@@ -185,17 +185,39 @@ namespace HillNGun.AI
                 CancelAim();
             }
 
-            Vector2 direction = (_currentTarget.Position - _character.Position).normalized;
-
-            if (Random.value < _behaviorData.rowChangeChance)
+            // Row-based approach (01 §3: always stand on a row). Out of range -> step to the row nearer the
+            // target, otherwise strafe along the row toward the target's X at full stick.
+            if (_character.MovementState == MovementState.RowChanging || _character.MovementState == MovementState.Rolling) return;
+            Vector2 delta = _currentTarget.Position - _character.Position;
+            int towardRow = TowardTargetRowDirection(delta.y);
+            if (towardRow != 0 && Random.value < _behaviorData.rowChangeChance)
             {
-                int rowDir = _currentTarget.CurrentRowIndex > _character.CurrentRowIndex ? 1 : -1;
-                _character.OnRowChangeCommand(new RowChangeCommand(rowDir, Time.time));
+                _character.OnRowChangeCommand(new RowChangeCommand(towardRow, Time.time));
+            }
+            else if (Mathf.Abs(delta.x) > 0.3f)
+            {
+                _character.OnMoveCommand(new MoveCommand(new Vector2(Mathf.Sign(delta.x), 0f), 1f, Time.time));
             }
             else
             {
-                _character.OnMoveCommand(new MoveCommand(direction, 1f, Time.time));
+                _character.OnMoveCommand(MoveCommand.Stop(Time.time));
             }
+        }
+
+        /// <summary>+1/-1 row step that reduces the vertical gap to the target, 0 if already on the closest row.</summary>
+        private int TowardTargetRowDirection(float dy)
+        {
+            var bf = ServiceLocator.Get<HillNGun.Battlefield.BattlefieldSystem>();
+            if (bf == null || Mathf.Abs(dy) < 0.5f) return 0;
+            int cur = _character.CurrentRowIndex;
+            float y = bf.GetRowY(cur, _character.Team);
+            for (int d = -1; d <= 1; d += 2)
+            {
+                if (!bf.CanMoveToRow(cur, d, _character.Team)) continue;
+                float ny = bf.GetRowY(cur + d, _character.Team);
+                if ((ny - y) * dy > 0f) return d;
+            }
+            return 0;
         }
 
         private void ExecuteAttacking(float deltaTime)

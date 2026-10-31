@@ -46,6 +46,18 @@ namespace HillNGun.Data
         [Header("Safe Area")]
         public float safeAreaPadding = 20f;
 
+        [Header("Roll swipe (빈 화면을 빠르게 쓸면 그 방향으로 구르기)")]
+        public bool rollSwipeEnabled = true;
+        [Tooltip("최소 쓸기 거리 (720 높이 기준 픽셀)")]
+        public float rollSwipeMinDistance = 60f;
+        [Tooltip("최대 쓸기 시간 (초)")]
+        public float rollSwipeMaxTime = 0.25f;
+
+        [Header("Row change from the move stick (01 §3: 위·아래 0.6 이상 0.15초)")]
+        [Tooltip("InputData 값이 없을 때 쓰는 기본값")]
+        public float rowChangeThreshold = 0.6f;
+        public float rowChangeHoldTime = 0.15f;
+
         public Rect GetControlRect(Vector2 anchor, float size, Rect safeArea)
         {
             float x = safeArea.x + anchor.x * safeArea.width - size / 2f;
