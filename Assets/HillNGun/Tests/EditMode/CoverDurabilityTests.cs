@@ -78,12 +78,17 @@ namespace HillNGun.Tests.EditMode
             var data = CreateTestCoverData(1500);
             var cover = new CoverInstance();
             cover.Initialize(data, Vector2.zero, 0, Team.Player);
-            cover.TakeDamage(1000);
+            cover.TakeDamage(1200);                       // 300 / 1500 = 20% -> Damaged
+            Assert.AreEqual(CoverStage.Damaged, cover.Stage);
 
-            cover.Repair(0.4f);
+            cover.Repair(0.4f);                           // +40% of max (Volt 긴급 보수, 01 §6) -> 900 = 60%
 
-            Assert.AreEqual(1100, cover.CurrentHp);
+            Assert.AreEqual(900, cover.CurrentHp);
             Assert.AreEqual(CoverStage.Cracked, cover.Stage);
+
+            cover.Repair(0.4f);                           // 1500 cap -> back to Intact
+            Assert.AreEqual(1500, cover.CurrentHp);
+            Assert.AreEqual(CoverStage.Intact, cover.Stage);
         }
 
         [Test]
