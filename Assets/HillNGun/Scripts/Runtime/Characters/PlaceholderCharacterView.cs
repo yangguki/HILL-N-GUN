@@ -253,7 +253,10 @@ namespace HillNGun.Characters
             {
                 _aimLine.enabled = true;
                 float range = character.Data?.weapon?.range ?? 5f;
-                Vector3 endPos = worldPos + (Vector3)(character.AimDirection.normalized * range * 0.3f);
+                // Aim line shows the real weapon reach (tile space -> world) so short-range assault sees it must advance
+                Vector2 tileEnd = character.Position + character.AimDirection.normalized * range;
+                Vector3 endPos = FieldView.ToWorld(tileEnd);
+                endPos.z = worldPos.z;
                 _aimLine.SetPosition(0, worldPos);
                 _aimLine.SetPosition(1, endPos);
 

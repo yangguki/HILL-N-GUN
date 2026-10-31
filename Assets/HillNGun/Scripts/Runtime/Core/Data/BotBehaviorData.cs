@@ -56,5 +56,11 @@ namespace HillNGun.Data
 
         [Tooltip("Distance at which bot will move to revive")]
         public float reviveSeekDistance = 5f;
+
+        [Header("Positioning (PvE)")]
+        [Tooltip("사거리 안에 적이 없으면 앞 줄로 전진 (근거리 돌격형이 적에게 닿게 함)")]
+        public bool advanceWhenOutOfRange = true;
+        [Tooltip("보스 꼬리 휩쓸기 바닥 경고 안에 있으면 옆으로 피함")]
+        public bool dodgeTailSweep = true;
     }
 }
