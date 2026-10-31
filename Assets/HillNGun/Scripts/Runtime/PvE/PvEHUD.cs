@@ -88,8 +88,12 @@ namespace HillNGun.PvE
 
             InitStyles();
 
-            DrawGaugeBar();
-            DrawWaveInfo();
+            bool bossStage = _matchManager.ActiveBoss != null || _matchManager.GaugeMax <= 0;
+            if (!bossStage)
+            {
+                DrawGaugeBar();
+                DrawWaveInfo();
+            }
             DrawTimer();
 
             if (_matchManager.ActiveBoss != null)

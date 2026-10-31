@@ -519,7 +519,7 @@ namespace HillNGun.Editor
             var bossRex = CreateOrLoad<BossData>(DATA_PATH + "Bosses/boss_rattlesnake_rex.asset");
             bossRex.id = "rattlesnake_rex";
             bossRex.nameKey = "pve.boss.rattlesnake_rex";
-            bossRex.maxHp = 18000;
+            bossRex.maxHp = 24000; // 03_balance_data.md: 렉스 HP 24,000
             bossRex.hitRadius = 1.5f;
             bossRex.moveSpeed = 1.5f;
             bossRex.baseColor = new Color(0.5f, 0.3f, 0.2f);
@@ -539,15 +539,12 @@ namespace HillNGun.Editor
                     usesFanShot = true,
                     fanShotCount = 5,
                     fanShotAngle = 60f,
-                    fanShotDamage = 200,
+                    fanShotDamage = 150,
                     fanShotInterval = 3f,
                     fanShotWarning = 0.8f,
-                    fanShotBulletSpeed = 12f,
-                    usesTailSweep = true,
-                    tailSweepDamage = 400,
-                    tailSweepInterval = 8f,
-                    tailSweepWarning = 1.2f,
-                    tailSweepWidth = 6f,
+                    fanShotBulletSpeed = 9f,
+                    fanShotBulletRadius = 0.2f,
+                    usesTailSweep = false, // 1페이즈: 부채꼴만
                     summonsMooks = false,
                     enrageSpeedMultiplier = 1f,
                     enrageAttackSpeedMultiplier = 1f,
@@ -562,15 +559,18 @@ namespace HillNGun.Editor
                     usesFanShot = true,
                     fanShotCount = 7,
                     fanShotAngle = 80f,
-                    fanShotDamage = 250,
+                    fanShotDamage = 150,
                     fanShotInterval = 2.5f,
-                    fanShotWarning = 0.7f,
-                    fanShotBulletSpeed = 14f,
+                    fanShotWarning = 0.6f,
+                    fanShotBulletSpeed = 9f,
+                    fanShotBulletRadius = 0.2f,
                     usesTailSweep = true,
-                    tailSweepDamage = 500,
+                    tailSweepDamage = 400,   // 2페이즈: 꼬리 휩쓸기 400, 바닥 경고 1.0s
                     tailSweepInterval = 6f,
                     tailSweepWarning = 1.0f,
-                    tailSweepWidth = 8f,
+                    tailSweepWidth = 6f,
+                    tailSweepYMin = 0f,
+                    tailSweepYMax = 8.5f,
                     summonsMooks = true,
                     mookToSummon = pistolMook,
                     mookSummonCount = 2,
@@ -584,23 +584,17 @@ namespace HillNGun.Editor
                 new BossPhaseData
                 {
                     phase = BossPhase.Phase3,
-                    hpThresholdPercent = 0.3f,
+                    hpThresholdPercent = 0.25f,
                     usesFanShot = true,
-                    fanShotCount = 9,
+                    fanShotCount = 7,
                     fanShotAngle = 100f,
-                    fanShotDamage = 300,
+                    fanShotDamage = 150,
                     fanShotInterval = 2f,
-                    fanShotWarning = 0.6f,
-                    fanShotBulletSpeed = 16f,
-                    usesTailSweep = true,
-                    tailSweepDamage = 600,
-                    tailSweepInterval = 5f,
-                    tailSweepWarning = 0.8f,
-                    tailSweepWidth = 10f,
-                    summonsMooks = true,
-                    mookToSummon = pistolMook,
-                    mookSummonCount = 3,
-                    summonInterval = 12f,
+                    fanShotWarning = 0.5f,
+                    fanShotBulletSpeed = 9f,
+                    fanShotBulletRadius = 0.2f,
+                    usesTailSweep = false, // 3페이즈: 지면 부채꼴 난사 (꼬리 휩쓸기 없음)
+                    summonsMooks = false,
                     enrageSpeedMultiplier = 1.5f,
                     enrageAttackSpeedMultiplier = 1.5f,
                     movesHorizontally = true,
@@ -666,7 +660,7 @@ namespace HillNGun.Editor
             titleUIGO.AddComponent<TitleScreenUI>();
 
             var localizationGO = new GameObject("LocalizationManager");
-            localizationGO.AddComponent<LocalizationManager>();
+            AssignStringsFile(localizationGO.AddComponent<LocalizationManager>());
 
             EditorSceneManager.SaveScene(scene, SCENE_PATH + "Title.unity");
         }
@@ -681,7 +675,7 @@ namespace HillNGun.Editor
             modeSelectGO.AddComponent<ModeSelectUI>();
 
             var localizationGO = new GameObject("LocalizationManager");
-            localizationGO.AddComponent<LocalizationManager>();
+            AssignStringsFile(localizationGO.AddComponent<LocalizationManager>());
 
             EditorSceneManager.SaveScene(scene, SCENE_PATH + "ModeSelect.unity");
         }
@@ -707,7 +701,7 @@ namespace HillNGun.Editor
             }
 
             var localizationGO = new GameObject("LocalizationManager");
-            localizationGO.AddComponent<LocalizationManager>();
+            AssignStringsFile(localizationGO.AddComponent<LocalizationManager>());
 
             EditorSceneManager.SaveScene(scene, SCENE_PATH + "CharacterSelect.unity");
         }
@@ -782,7 +776,7 @@ namespace HillNGun.Editor
             resultUIGO.AddComponent<ResultUI>();
 
             var localizationGO = new GameObject("LocalizationManager");
-            localizationGO.AddComponent<LocalizationManager>();
+            AssignStringsFile(localizationGO.AddComponent<LocalizationManager>());
 
             EditorSceneManager.SaveScene(scene, SCENE_PATH + "Result.unity");
         }
@@ -889,7 +883,7 @@ namespace HillNGun.Editor
             effectsGO.AddComponent<EffectsManager>();
 
             var localizationGO = new GameObject("LocalizationManager");
-            localizationGO.AddComponent<LocalizationManager>();
+            AssignStringsFile(localizationGO.AddComponent<LocalizationManager>());
 
             var audioGO = new GameObject("PlaceholderAudio");
             audioGO.AddComponent<PlaceholderAudio>();
@@ -926,6 +920,14 @@ namespace HillNGun.Editor
 
             AssetDatabase.CreateAsset(asset, path);
             AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>Points the LocalizationManager at Assets/HillNGun/Localization/strings_ko.csv (otherwise only built-in defaults load).</summary>
+        private static void AssignStringsFile(LocalizationManager loc)
+        {
+            var csv = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/HillNGun/Localization/strings_ko.csv");
+            if (loc != null && csv != null) SetPrivateField(loc, "_defaultStringsFile", csv);
+            else Debug.LogWarning("[GameSetup] strings_ko.csv not found - localization uses built-in defaults");
         }
 
         private static void SetPrivateField(object obj, string fieldName, object value)

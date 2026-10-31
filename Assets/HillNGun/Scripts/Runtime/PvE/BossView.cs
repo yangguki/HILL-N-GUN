@@ -15,6 +15,8 @@ namespace HillNGun.PvE
         private BattlefieldSystem _battlefield;
         private SpriteLibrary _spriteLibrary;
         public SpriteRenderer BodyRenderer => _spriteRenderer;
+        public TailSweepTelegraphView Telegraph { get; private set; }
+        public BossInstance Boss => _boss;
 
         public void Initialize(BossInstance boss)
         {
@@ -24,6 +26,11 @@ namespace HillNGun.PvE
 
             SetupVisuals();
             SubscribeEvents();
+
+            var telegraphGo = new GameObject("TailSweepTelegraph");
+            // Root object (world-space mesh); destroyed together with this view
+            Telegraph = telegraphGo.AddComponent<TailSweepTelegraphView>();
+            Telegraph.Initialize(boss);
             UpdatePosition();
         }
 
@@ -56,7 +63,9 @@ namespace HillNGun.PvE
             labelGo.transform.SetParent(transform);
             labelGo.transform.localPosition = new Vector3(0f, 2f, 0f);
             _nameLabel = labelGo.AddComponent<TextMesh>();
-            _nameLabel.text = _boss.Data?.nameKey ?? "BOSS";
+            var loc = ServiceLocator.Get<HillNGun.UI.LocalizationManager>();
+            string key = _boss.Data?.nameKey;
+            _nameLabel.text = (loc != null && !string.IsNullOrEmpty(key) && loc.HasString(key)) ? loc.GetString(key) : (_boss.Data?.id ?? "BOSS");
             _nameLabel.fontSize = 48;
             _nameLabel.characterSize = 0.06f;
             _nameLabel.anchor = TextAnchor.MiddleCenter;
@@ -185,6 +194,7 @@ namespace HillNGun.PvE
 
         private void OnDestroy()
         {
+            if (Telegraph != null) Destroy(Telegraph.gameObject);
             if (_boss != null)
             {
                 _boss.OnDamageTaken -= HandleDamage;

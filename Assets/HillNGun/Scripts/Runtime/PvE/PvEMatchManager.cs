@@ -38,11 +38,14 @@ namespace HillNGun.PvE
         private List<BotBrain> _allyBots = new List<BotBrain>();
         private int _playerControlledIndex = 0;
         private List<AutoGunner> _allyGunners = new List<AutoGunner>();
+        private readonly List<GameObject> _stageViews = new List<GameObject>();
         private CombatSystem _combat;
 
         public int TotalEnemyDamage { get; private set; }
         public int EnemiesDefeated { get; private set; }
         public int PlayerDamageTaken { get; private set; }
+        public int PlayerEliminations { get; private set; }
+        public float MatchElapsed { get; private set; }
         public int PlayerControlledIndex => _playerControlledIndex;
 
         private int _currentGauge;
@@ -57,6 +60,9 @@ namespace HillNGun.PvE
 
         private PvERoundResult _roundResult = PvERoundResult.InProgress;
 
+        public int CurrentStageIndex => _currentStageIndex;
+        public int StageCount => _stages?.Length ?? 0;
+        public string CurrentStageId => _currentStage?.id;
         public int CurrentGauge => _currentGauge;
         public int GaugeMax => _currentStage?.gaugeMax ?? 20;
         public int CurrentWave => _currentWave;
@@ -145,7 +151,8 @@ namespace HillNGun.PvE
 
                 if (charData != null)
                 {
-                    var character = CreatePlayerCharacter(charData, i, _playerSpawnPoints[i], i);
+                    Vector2 spawn = GetSpawnPoint(i, charData);
+                    var character = CreatePlayerCharacter(charData, i, spawn, GetRowFor(spawn.y));
                     _playerTeam.Add(character);
 
                     if (i != _playerControlledIndex)
@@ -168,6 +175,26 @@ namespace HillNGun.PvE
             {
                 inputHandler.SetReceiver(_playerTeam[_playerControlledIndex]);
             }
+        }
+
+        private BattlefieldData Field => ServiceLocator.Get<Battlefield.BattlefieldSystem>()?.Data;
+
+        /// <summary>Spawn point; assault role starts on the front row when the data toggle is on.</summary>
+        private Vector2 GetSpawnPoint(int index, CharacterData data)
+        {
+            Vector2 p = _playerSpawnPoints[Mathf.Clamp(index, 0, _playerSpawnPoints.Length - 1)];
+            var field = Field;
+            if (field != null && field.assaultStartsFrontRow && data != null && data.role == Role.Assault)
+            {
+                p.y = field.GetOurRowY(field.OurRowCount - 1);
+            }
+            return p;
+        }
+
+        private int GetRowFor(float y)
+        {
+            var bf = ServiceLocator.Get<Battlefield.BattlefieldSystem>();
+            return bf != null ? bf.GetNearestRowIndex(y, Team.Player) : 0;
         }
 
         private CharacterStateMachine CreatePlayerCharacter(CharacterData data, int index, Vector2 position, int rowIndex)
@@ -224,6 +251,7 @@ namespace HillNGun.PvE
         private void HandlePlayerEliminated(CharacterStateMachine character)
         {
             Debug.Log($"Player {character.Data?.id} eliminated");
+            PlayerEliminations++;
             CheckTeamDefeat();
         }
 
@@ -245,9 +273,7 @@ namespace HillNGun.PvE
             _roundResult = PvERoundResult.InProgress;
             _isMatchActive = true;
 
-            _combat?.ClearCombatTargets();
-            _activeEnemies.Clear();
-            _activeBoss = null;
+            CleanupStageActors(true);
 
             ResetPlayerTeamForStage();
 
@@ -274,7 +300,8 @@ namespace HillNGun.PvE
                 var character = _playerTeam[i];
                 if (character != null)
                 {
-                    character.ResetForRound(_playerSpawnPoints[i], i);
+                    Vector2 spawn = GetSpawnPoint(i, character.Data);
+                    character.ResetForRound(spawn, GetRowFor(spawn.y));
                 }
             }
         }
@@ -314,6 +341,7 @@ namespace HillNGun.PvE
             var go = new GameObject($"Boss_{boss.Data?.id}");
             var view = go.AddComponent<BossView>();
             view.Initialize(boss);
+            _stageViews.Add(go);
         }
 
         private void Update()
@@ -321,6 +349,7 @@ namespace HillNGun.PvE
             if (!_isMatchActive) return;
 
             _stageTimer += Time.deltaTime;
+            MatchElapsed += Time.deltaTime;
 
             UpdateAllyBots();
 
@@ -344,8 +373,11 @@ namespace HillNGun.PvE
             foreach (var gunner in _allyGunners)
             {
                 var c = gunner.Character;
-                if (c == null) continue;
-                gunner.Tick(dt, FindTargetFor(c.Position, (c.Data?.weapon?.range ?? 7f) * 1.5f));
+                if (c == null || c.OverallState != CharacterOverallState.Active) continue;
+                float range = c.Data?.weapon?.range ?? 7f;
+                Vector2? inRange = FindTargetFor(c.Position, range * 1.1f);
+                DriveAllyMovement(c, inRange);
+                gunner.Tick(dt, inRange);
             }
         }
 
@@ -376,6 +408,10 @@ namespace HillNGun.PvE
         {
             if (_activeBoss != null)
             {
+                if (!_activeBoss.IsWarning)
+                {
+                    _activeBoss.SweepTargetX = GetNearestPlayerPosition(_activeBoss.Position).x;
+                }
                 _activeBoss.Update(Time.deltaTime);
             }
         }
@@ -405,6 +441,58 @@ namespace HillNGun.PvE
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// PvE ally positioning: dodge a telegraphed tail sweep, otherwise advance a row when nothing is
+        /// in weapon range (lets short-range assault reach the enemy line), and strafe toward the nearest enemy X.
+        /// </summary>
+        public void DriveAllyMovement(CharacterStateMachine c, Vector2? inRangeTarget)
+        {
+            if (c.MovementState == MovementState.RowChanging || c.MovementState == MovementState.Rolling) return;
+
+            bool dodge = _botBehavior == null || _botBehavior.dodgeTailSweep;
+            if (dodge && TryGetTailSweepDodge(c.Position, out float dodgeDir))
+            {
+                c.OnMoveCommand(new MoveCommand(new Vector2(dodgeDir, 0f), 1f, Time.time));
+                return;
+            }
+
+            if (!inRangeTarget.HasValue)
+            {
+                var bf = ServiceLocator.Get<Battlefield.BattlefieldSystem>();
+                bool advance = _botBehavior == null || _botBehavior.advanceWhenOutOfRange;
+                if (advance && bf != null && bf.CanMoveToRow(c.CurrentRowIndex, 1, Team.Player))
+                {
+                    c.OnRowChangeCommand(new RowChangeCommand(1, Time.time));
+                    return;
+                }
+                Vector2? any = FindTargetFor(c.Position, 100f);
+                if (any.HasValue && Mathf.Abs(any.Value.x - c.Position.x) > 0.6f)
+                {
+                    c.OnMoveCommand(new MoveCommand(new Vector2(Mathf.Sign(any.Value.x - c.Position.x), 0f), 0.8f, Time.time));
+                    return;
+                }
+            }
+            c.OnMoveCommand(MoveCommand.Stop(Time.time));
+        }
+
+        /// <summary>True if pos is inside a telegraphed tail sweep; dodgeDir = -1/+1 toward the nearest edge.</summary>
+        public bool TryGetTailSweepDodge(Vector2 pos, out float dodgeDir)
+        {
+            dodgeDir = 0f;
+            if (_activeBoss == null || _activeBoss.CurrentWarning != BossInstance.WarningType.TailSweep) return false;
+            Rect a = _activeBoss.TailSweepArea;
+            Rect padded = new Rect(a.xMin - 0.6f, a.yMin, a.width + 1.2f, a.height);
+            if (!padded.Contains(pos)) return false;
+            var field = Field;
+            float minX = field != null ? field.boundaryMinX : 0.5f;
+            float maxX = field != null ? field.boundaryMaxX : 23.5f;
+            bool leftOk = a.xMin - 1f > minX;
+            bool rightOk = a.xMax + 1f < maxX;
+            if (leftOk && (!rightOk || pos.x - a.xMin < a.xMax - pos.x)) dodgeDir = -1f;
+            else dodgeDir = 1f;
+            return true;
         }
 
         /// <summary>Nearest hittable enemy/boss position within range, or null.</summary>
@@ -482,6 +570,7 @@ namespace HillNGun.PvE
             var go = new GameObject($"Enemy_{enemy.Data?.id}");
             var view = go.AddComponent<EnemyView>();
             view.Initialize(enemy);
+            _stageViews.Add(go);
         }
 
         private void HandleEnemyDefeated(EnemyInstance enemy)
@@ -523,9 +612,18 @@ namespace HillNGun.PvE
                 }
             }
 
-            if (allEnemiesGone && _currentWave < _currentStage.waveCount - 1)
+            if (!allEnemiesGone) return;
+
+            int lastWave = Mathf.Min(_currentStage.waveCount, _currentStage.waves?.Length ?? 0) - 1;
+            if (_currentWave < lastWave)
             {
                 StartWave(_currentWave + 1);
+            }
+            else if (_currentGauge < GaugeMax && lastWave >= 0)
+            {
+                // Clear condition is the enemy gauge: keep sending the final wave until it is full
+                Debug.Log($"[PvE] All waves spent with gauge {_currentGauge}/{GaugeMax} - repeating final wave");
+                StartWave(lastWave);
             }
         }
 
@@ -577,12 +675,35 @@ namespace HillNGun.PvE
             if (boss.Data?.phases != null)
                 foreach (var ph in boss.Data.phases)
                     if (ph.phase == boss.CurrentPhase) { speed = ph.fanShotBulletSpeed; break; }
+            float radius = boss.CurrentPhaseData?.fanShotBulletRadius ?? 0.2f;
             foreach (var dir in directions)
-                _combat.SpawnEnemyProjectile(boss.Position + dir * 1.2f, dir, speed, 0.25f, damage, 20f, Team.Enemy);
+                _combat.SpawnEnemyProjectile(boss.Position + dir * 1.2f, dir, speed, radius, damage, 20f, Team.Enemy);
         }
 
+        public event System.Action<BossInstance, Rect, int> OnTailSweepResolved;
+        public int TailSweepCount { get; private set; }
+        public int TailSweepHits { get; private set; }
+
+        /// <summary>Tail sweep: hits every active, non-invulnerable player inside the locked floor area (ignores cover).</summary>
         private void HandleBossTailSweep(BossInstance boss, float width)
         {
+            Rect area = boss.TailSweepArea;
+            int damage = boss.CurrentPhaseData?.tailSweepDamage ?? 400;
+            int hits = 0;
+            foreach (var c in _playerTeam)
+            {
+                if (c == null || c.OverallState != CharacterOverallState.Active || c.IsInvulnerable) continue;
+                if (!area.Contains(c.Position)) continue;
+                Vector2 dir = new Vector2(Mathf.Sign(c.Position.x - area.center.x), 0f);
+                c.TakeDamage(damage, dir);
+                hits++;
+            }
+            TailSweepCount++;
+            TailSweepHits += hits;
+            EffectsManager.Instance?.SpawnImpact(new Vector2(area.center.x, area.center.y), true);
+            FindFirstObjectByType<ScreenShake>()?.ShakeHeavyHit();
+            Debug.Log($"[PvE] Tail sweep area={area} damage={damage} hits={hits}");
+            OnTailSweepResolved?.Invoke(boss, area, hits);
         }
 
         private void HandleBossSummon(BossInstance boss)
@@ -625,10 +746,49 @@ namespace HillNGun.PvE
             }
         }
 
+        /// <summary>Removes enemies/boss (logic + views) and in-flight bullets. resetCovers: restore covers for a new stage.</summary>
+        public void CleanupStageActors(bool resetCovers)
+        {
+            foreach (var e in _activeEnemies)
+            {
+                if (e == null) continue;
+                e.OnDefeated -= HandleEnemyDefeated;
+                e.OnDamageTaken -= HandleEnemyDamaged;
+                e.OnAttack -= HandleEnemyAttack;
+                e.OnExplosiveThrown -= HandleEnemyExplosive;
+            }
+            if (_activeBoss != null)
+            {
+                _activeBoss.OnDefeated -= HandleBossDefeated;
+                _activeBoss.OnDamageTaken -= HandleBossDamaged;
+                _activeBoss.OnFanShot -= HandleBossFanShot;
+                _activeBoss.OnTailSweep -= HandleBossTailSweep;
+                _activeBoss.OnSummonMooks -= HandleBossSummon;
+            }
+            _activeEnemies.Clear();
+            _activeBoss = null;
+
+            foreach (var go in _stageViews)
+            {
+                if (go != null) Destroy(go);
+            }
+            _stageViews.Clear();
+
+            if (_combat != null)
+            {
+                _combat.ClearCombatTargets();
+                if (resetCovers) _combat.Clear();
+                else _combat.ProjectilePool.Clear();
+            }
+        }
+
         private void CompleteStage(PvERoundResult result)
         {
+            if (!_isMatchActive) return;
             _roundResult = result;
             _isMatchActive = false;
+            Debug.Log($"[PvE] Stage {_currentStageIndex + 1}/{_stages.Length} ({_currentStage?.id}) complete: {result} at {_stageTimer:F1}s");
+            CleanupStageActors(false);
 
             OnStageComplete?.Invoke(result);
 
@@ -645,6 +805,15 @@ namespace HillNGun.PvE
                 }
                 else
                 {
+                    var session = flowManager.CurrentSession;
+                    if (session != null)
+                    {
+                        session.matchTime = MatchElapsed;
+                        session.damageDealt = TotalEnemyDamage;
+                        session.damageTaken = PlayerDamageTaken;
+                        session.playerDeaths = PlayerEliminations;
+                        session.currentStageIndex = _currentStageIndex;
+                    }
                     flowManager.EndMatch(matchResult);
                 }
             }

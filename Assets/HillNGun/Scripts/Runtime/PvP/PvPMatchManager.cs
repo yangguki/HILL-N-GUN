@@ -246,6 +246,8 @@ namespace HillNGun.PvP
 
             ResetCharactersForRound();
             ResetCoversForRound();
+            // No bullets carry over between rounds
+            ServiceLocator.Get<CombatSystem>()?.ProjectilePool?.Clear();
 
             OnRoundStarted?.Invoke(_currentRound + 1);
         }
@@ -391,6 +393,7 @@ namespace HillNGun.PvP
         private void EndRound(PvPRoundResult result)
         {
             _isRoundActive = false;
+            ServiceLocator.Get<CombatSystem>()?.ProjectilePool?.Clear();
             _lastRoundResult = result;
             _currentPhase = PvPPhase.RoundEnd;
             _delayTimer = _roundEndDelay;

@@ -43,6 +43,7 @@ namespace HillNGun.Data
         public float fanShotInterval = 3f;
         public float fanShotWarning = 0.8f;
         public float fanShotBulletSpeed = 12f;
+        public float fanShotBulletRadius = 0.2f;
 
         [Header("Secondary Attack - Tail Sweep")]
         public bool usesTailSweep = true;
@@ -50,6 +51,9 @@ namespace HillNGun.Data
         public float tailSweepInterval = 8f;
         public float tailSweepWarning = 1.2f;
         public float tailSweepWidth = 6f;
+        [Tooltip("휩쓸기 판정 영역의 Y 범위 (타일, 평면 좌표). 기본: 우리 진영 전체")]
+        public float tailSweepYMin = 0f;
+        public float tailSweepYMax = 8.5f;
 
         [Header("Special Attack - Summon")]
         public bool summonsMooks = false;

@@ -17,6 +17,15 @@ namespace HillNGun.PvE
         public bool CanBeHit => IsAlive && !IsInEntryPhase();
         public void ReceiveHit(int damage, Vector2 direction) => TakeDamage(damage, direction);
         public BossPhase CurrentPhase { get; private set; }
+        public BossPhaseData CurrentPhaseData => _currentPhaseData;
+
+        /// <summary>X (tiles) the tail sweep will be centred on; set by the match manager (e.g. nearest player).</summary>
+        public float SweepTargetX { get; set; } = 12f;
+        /// <summary>Locked hit area (logic tiles) of the pending/last tail sweep.</summary>
+        public Rect TailSweepArea { get; private set; }
+        public bool IsWarning => _isWarning;
+        public WarningType CurrentWarning => _isWarning ? _currentWarningType : WarningType.None;
+        public float WarningRemaining => _isWarning ? _warningTimer : 0f;
 
         private BossPhaseData _currentPhaseData;
         private float _fanShotTimer;
@@ -47,6 +56,7 @@ namespace HillNGun.PvE
         {
             Data = data;
             Position = data.entryStartPosition;
+            SweepTargetX = data.battlePosition.x;
             CurrentHp = data.maxHp;
             CurrentPhase = BossPhase.Phase1;
             _currentPhaseData = GetPhaseData(CurrentPhase);
@@ -158,6 +168,14 @@ namespace HillNGun.PvE
         {
             _isWarning = true;
             _currentWarningType = type;
+
+            if (type == WarningType.TailSweep && _currentPhaseData != null)
+            {
+                float w = _currentPhaseData.tailSweepWidth;
+                float yMin = _currentPhaseData.tailSweepYMin;
+                float yMax = Mathf.Max(yMin + 0.5f, _currentPhaseData.tailSweepYMax);
+                TailSweepArea = new Rect(SweepTargetX - w * 0.5f, yMin, w, yMax - yMin);
+            }
 
             _warningTimer = type switch
             {
