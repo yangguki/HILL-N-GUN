@@ -95,6 +95,13 @@ namespace HillNGun.Characters
         public bool IsPierceArmed => _pierceArmed;
         public bool IsSkillReady => _data?.skill != null && _skillCooldownTimer <= 0f;
         public bool IsHoldingSkill => _actionState == ActionState.UsingSkill;
+        /// <summary>Heal an active character by a ratio of max HP (supply crate).</summary>
+        public void Heal(float ratio)
+        {
+            if (_overallState != CharacterOverallState.Active || ratio <= 0f) return;
+            _currentHp = Mathf.Min(MaxHp, _currentHp + Mathf.RoundToInt(MaxHp * ratio));
+        }
+
         public bool HasGrenadeReady => _grenadeSystem != null && _grenadeSystem.HasGrenade();
         public bool IsBusy => !CanPerformAction();
 

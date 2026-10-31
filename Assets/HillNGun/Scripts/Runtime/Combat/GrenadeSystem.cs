@@ -50,6 +50,12 @@ namespace HillNGun.Combat
             return true;
         }
 
+        public void Refill()
+        {
+            _currentGrenades = _maxGrenades;
+            _rechargeTimer = 0f;
+        }
+
         public void Reset()
         {
             _currentGrenades = _maxGrenades;

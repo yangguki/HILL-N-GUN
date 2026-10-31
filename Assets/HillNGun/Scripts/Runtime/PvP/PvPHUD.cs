@@ -29,7 +29,44 @@ namespace HillNGun.PvP
             {
                 _matchManager.OnRoundStarted += OnRoundStarted;
                 _matchManager.OnRoundEnded += OnRoundEnded;
+                _matchManager.OnRoundFight += OnRoundFight;
+                _matchManager.OnMatchEnded += OnMatchEnded;
+                _matchManager.OnSupplyCrateDropped += OnCrateDropped;
+                _matchManager.OnSupplyCrateOpened += OnCrateOpened;
             }
+        }
+
+        private string _subMessage;
+        private string _toast;
+        private float _toastTimer;
+
+        private void OnRoundFight(int round)
+        {
+            _roundMessage = GetLocalizedString("pvp.ui.fight", "싸워라!");
+            _subMessage = null;
+            _roundMessageTimer = 1.2f;
+        }
+
+        private void OnMatchEnded(MatchResult result)
+        {
+            _roundMessage = result == MatchResult.Victory ? GetLocalizedString("pvp.ui.match_win", "매치 승리!")
+                          : result == MatchResult.Defeat ? GetLocalizedString("pvp.ui.match_lose", "매치 패배")
+                          : GetLocalizedString("pvp.ui.match_draw", "매치 무승부");
+            _subMessage = $"{_matchManager.PlayerRoundsWon} - {_matchManager.EnemyRoundsWon}";
+            _roundMessageTimer = 3f;
+        }
+
+        private void OnCrateDropped(SupplyCrate c)
+        {
+            _toast = GetLocalizedString("pvp.ui.crate_drop", "보급 상자 투하!");
+            _toastTimer = 2.5f;
+        }
+
+        private void OnCrateOpened(SupplyCrate c, Team team)
+        {
+            _toast = team == Team.Player ? GetLocalizedString("pvp.ui.crate_open_us", "우리 팀이 보급 상자 획득")
+                                         : GetLocalizedString("pvp.ui.crate_open_them", "상대 팀이 보급 상자 획득");
+            _toastTimer = 2.5f;
         }
 
         private void OnDestroy()
@@ -38,6 +75,10 @@ namespace HillNGun.PvP
             {
                 _matchManager.OnRoundStarted -= OnRoundStarted;
                 _matchManager.OnRoundEnded -= OnRoundEnded;
+                _matchManager.OnRoundFight -= OnRoundFight;
+                _matchManager.OnMatchEnded -= OnMatchEnded;
+                _matchManager.OnSupplyCrateDropped -= OnCrateDropped;
+                _matchManager.OnSupplyCrateOpened -= OnCrateOpened;
             }
         }
 
@@ -45,7 +86,10 @@ namespace HillNGun.PvP
         {
             string roundLabel = GetLocalizedString("pvp.ui.round", "라운드");
             _roundMessage = $"{roundLabel} {round}";
-            _roundMessageTimer = 2f;
+            int need = _matchManager.RoundsToWin - 1;
+            bool matchPoint = _matchManager.PlayerRoundsWon == need || _matchManager.EnemyRoundsWon == need;
+            _subMessage = matchPoint && round > 1 ? GetLocalizedString("pvp.ui.match_point", "매치 포인트") : null;
+            _roundMessageTimer = -1f; // countdown phase drives the banner
         }
 
         private void OnRoundEnded(PvPRoundResult result)
@@ -57,7 +101,15 @@ namespace HillNGun.PvP
                 PvPRoundResult.Draw => GetLocalizedString("pvp.ui.round_draw", "무승부"),
                 _ => ""
             };
-            _roundMessageTimer = 2f;
+            _subMessage = _matchManager.LastRoundReason switch
+            {
+                RoundEndReason.TeamWiped => GetLocalizedString("pvp.ui.reason_wiped", "전멸"),
+                RoundEndReason.TimeoutAlive => GetLocalizedString("pvp.ui.reason_alive", "시간 초과 - 생존 인원"),
+                RoundEndReason.TimeoutHp => GetLocalizedString("pvp.ui.reason_hp", "시간 초과 - 남은 체력"),
+                RoundEndReason.TimeoutDraw => GetLocalizedString("pvp.ui.reason_draw", "시간 초과 - 동점"),
+                _ => null
+            };
+            _roundMessageTimer = 2.8f;
         }
 
         private void Update()
@@ -66,6 +118,7 @@ namespace HillNGun.PvP
             {
                 _roundMessageTimer -= Time.deltaTime;
             }
+            if (_toastTimer > 0f) _toastTimer -= Time.deltaTime;
         }
 
         private void InitStyles()
@@ -113,10 +166,15 @@ namespace HillNGun.PvP
             DrawTimer();
             DrawTeamStatus();
 
-            if (_roundMessageTimer > 0f)
+            if (_matchManager.CurrentPhase == PvPMatchManager.PvPPhase.RoundStart)
+            {
+                DrawCountdown();
+            }
+            else if (_roundMessageTimer > 0f)
             {
                 DrawRoundMessage();
             }
+            if (_toastTimer > 0f) DrawToast();
         }
 
         private void DrawScoreboard()
@@ -218,6 +276,40 @@ namespace HillNGun.PvP
             }
         }
 
+        private void DrawCountdown()
+        {
+            float cx = Screen.width / 2f, cy = Screen.height / 2f;
+            GUI.color = new Color(0f, 0f, 0f, 0.45f);
+            GUI.DrawTexture(new Rect(0, cy - 90f, Screen.width, 180f), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+            var style = new GUIStyle(_roundStyle) { fontSize = 40 };
+            style.normal.textColor = new Color(1f, 0.9f, 0.6f);
+            string title = $"{GetLocalizedString("pvp.ui.round", "라운드")} {_matchManager.CurrentRound} / {_matchManager.MaxRounds}";
+            GUI.Label(new Rect(cx - 300f, cy - 80f, 600f, 60f), title, style);
+            int n = Mathf.CeilToInt(Mathf.Max(0f, _matchManager.PhaseTimer));
+            var big = new GUIStyle(_roundStyle) { fontSize = 64 };
+            big.normal.textColor = Color.white;
+            GUI.Label(new Rect(cx - 100f, cy - 25f, 200f, 80f), n.ToString(), big);
+            if (!string.IsNullOrEmpty(_subMessage))
+            {
+                var sub = new GUIStyle(_roundStyle) { fontSize = 22 };
+                sub.normal.textColor = new Color(1f, 0.5f, 0.35f);
+                GUI.Label(new Rect(cx - 300f, cy + 50f, 600f, 34f), _subMessage, sub);
+            }
+        }
+
+        private void DrawToast()
+        {
+            var style = new GUIStyle(_roundStyle) { fontSize = 24 };
+            style.normal.textColor = new Color(1f, 0.85f, 0.35f, Mathf.Clamp01(_toastTimer));
+            // Bottom banner so it never overlaps the crate / floating texts near the top lane.
+            Rect r = new Rect(Screen.width / 2f - 260f, Screen.height - 64f, 520f, 40f);
+            GUI.color = new Color(0f, 0f, 0f, 0.55f * Mathf.Clamp01(_toastTimer));
+            GUI.DrawTexture(r, Texture2D.whiteTexture);
+            GUI.color = Color.white;
+            GUI.Label(r, _toast, style);
+        }
+
         private void DrawRoundMessage()
         {
             float centerX = Screen.width / 2f;
@@ -232,7 +324,13 @@ namespace HillNGun.PvP
             float scale = 1f + (1f - alpha) * 0.5f;
             style.fontSize = Mathf.RoundToInt(36f * scale);
 
-            GUI.Label(new Rect(centerX - 200f, centerY - 50f, 400f, 100f), _roundMessage, style);
+            GUI.Label(new Rect(centerX - 300f, centerY - 50f, 600f, 100f), _roundMessage, style);
+            if (!string.IsNullOrEmpty(_subMessage))
+            {
+                var sub = new GUIStyle(_roundStyle) { fontSize = 22 };
+                sub.normal.textColor = new Color(1f, 1f, 1f, alpha);
+                GUI.Label(new Rect(centerX - 300f, centerY + 40f, 600f, 34f), _subMessage, sub);
+            }
         }
 
         private string GetLocalizedString(string key, string fallback)

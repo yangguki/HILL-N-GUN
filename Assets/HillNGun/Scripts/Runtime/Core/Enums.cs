@@ -101,7 +101,18 @@ namespace HillNGun.Core
     {
         None,
         Victory,
-        Defeat
+        Defeat,
+        Draw
+    }
+
+    /// <summary>Why a PvP round ended (for HUD / result).</summary>
+    public enum RoundEndReason
+    {
+        None,
+        TeamWiped,
+        TimeoutAlive,
+        TimeoutHp,
+        TimeoutDraw
     }
 
     public enum PvERoundResult

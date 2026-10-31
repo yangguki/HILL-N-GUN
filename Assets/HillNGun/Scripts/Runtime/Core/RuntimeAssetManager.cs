@@ -23,6 +23,7 @@ namespace HillNGun.Core
         [SerializeField] private MatchRulesData _matchRules;
         [SerializeField] private InputData _inputData;
         [SerializeField] private TouchControlsData _touchControlsData;
+        [SerializeField] private ProgressionData _progression;
 
         public SpriteLibrary SpriteLibrary => _spriteLibrary;
         public AudioLibrary AudioLibrary => _audioLibrary;
@@ -38,6 +39,7 @@ namespace HillNGun.Core
         public MatchRulesData MatchRules => _matchRules;
         public InputData InputData => _inputData;
         public TouchControlsData TouchControlsData => _touchControlsData;
+        public ProgressionData Progression => _progression;
 
         private void Awake()
         {
@@ -72,6 +74,8 @@ namespace HillNGun.Core
                 ServiceLocator.Register(_battlefieldData);
             if (_botBehavior != null)
                 ServiceLocator.Register(_botBehavior);
+            if (_progression != null)
+                ServiceLocator.Register(_progression);
 
             ServiceLocator.Register(this);
             Debug.Log("[RuntimeAssetManager] Services registered");

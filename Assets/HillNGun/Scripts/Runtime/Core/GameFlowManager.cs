@@ -75,6 +75,8 @@ namespace HillNGun.Core
 
         public void StartMatch()
         {
+            if (_currentSession.rewardsGranted || _currentSession.result != MatchResult.None)
+                _currentSession.ResetMatchProgress();
             string sceneName = _currentSession.mode switch
             {
                 GameMode.PvE => SCENE_PVE_MATCH,
@@ -85,24 +87,24 @@ namespace HillNGun.Core
             LoadScene(sceneName, GamePhase.Match);
         }
 
+        /// <summary>Hook for granting rewards before the Result scene (set by the progression layer).</summary>
+        public static Func<GameSession, object> RewardGranter;
+
         public void EndMatch(MatchResult result)
         {
             _currentSession.result = result;
+            if (!_currentSession.rewardsGranted && RewardGranter != null)
+            {
+                try { _currentSession.rewards = RewardGranter(_currentSession); }
+                catch (Exception e) { Debug.LogError($"[GameFlow] Reward grant failed: {e}"); }
+                _currentSession.rewardsGranted = true;
+            }
             LoadScene(SCENE_RESULT, GamePhase.Result);
         }
 
         public void RestartMatch()
         {
-            _currentSession.playerKills = 0;
-            _currentSession.playerDeaths = 0;
-            _currentSession.damageDealt = 0;
-            _currentSession.damageTaken = 0;
-            _currentSession.matchTime = 0f;
-            _currentSession.playerRoundsWon = 0;
-            _currentSession.enemyRoundsWon = 0;
-            _currentSession.currentRound = 0;
-            _currentSession.pveGauge = 0;
-            _currentSession.currentWave = 0;
+            _currentSession.ResetMatchProgress();
             StartMatch();
         }
 

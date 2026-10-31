@@ -1,5 +1,6 @@
 using UnityEngine;
 using HillNGun.Core;
+using HillNGun.Progression;
 
 namespace HillNGun.UI
 {
@@ -75,6 +76,7 @@ namespace HillNGun.UI
             DrawBackground();
             DrawResultTitle();
             DrawStats();
+            DrawRewards();
             DrawButtons();
         }
 
@@ -97,6 +99,11 @@ namespace HillNGun.UI
             {
                 titleText = GetLocalizedString("result.victory", "승리!");
                 titleColor = new Color(1f, 0.85f, 0.3f);
+            }
+            else if (_session.result == MatchResult.Draw)
+            {
+                titleText = GetLocalizedString("result.draw", "무승부");
+                titleColor = new Color(0.85f, 0.8f, 0.65f);
             }
             else
             {
@@ -130,9 +137,9 @@ namespace HillNGun.UI
         {
             if (_session == null) return;
 
-            float boxWidth = 500f;
-            float boxHeight = 350f;
-            float x = (Screen.width - boxWidth) / 2f;
+            float boxWidth = 460f;
+            float boxHeight = 380f;
+            float x = Screen.width / 2f - boxWidth - 15f;
             float y = Screen.height * 0.28f;
 
             GUI.color = new Color(0.18f, 0.15f, 0.12f);
@@ -182,10 +189,106 @@ namespace HillNGun.UI
                 DrawStatLine(labelX, lineY, labelWidth, valueX - labelWidth, valueWidth,
                     GetLocalizedString("stats.rounds", "라운드"), roundsText);
                 lineY += lineHeight;
+
+                if (_session.roundHistory != null && _session.roundHistory.Count > 0)
+                {
+                    var sb = new System.Text.StringBuilder();
+                    for (int i = 0; i < _session.roundHistory.Count; i++)
+                    {
+                        if (i > 0) sb.Append("  ");
+                        var rr = (PvPRoundResult)_session.roundHistory[i];
+                        string k = rr == PvPRoundResult.PlayerWins ? GetLocalizedString("result.round_w", "승")
+                                 : rr == PvPRoundResult.EnemyWins ? GetLocalizedString("result.round_l", "패")
+                                 : GetLocalizedString("result.round_d", "무");
+                        sb.Append($"{i + 1}R {k}");
+                    }
+                    DrawStatLine(labelX, lineY, labelWidth, valueX - labelWidth - 80f, valueWidth + 80f,
+                        GetLocalizedString("stats.round_history", "라운드 기록"), sb.ToString());
+                    lineY += lineHeight;
+                }
             }
 
             DrawStatLine(labelX, lineY, labelWidth, valueX - labelWidth, valueWidth,
                 GetLocalizedString("stats.covers_destroyed", "파괴된 엄폐물"), _session.coversDestroyed.ToString());
+        }
+
+        private void DrawRewards()
+        {
+            if (_session == null) return;
+            var r = _session.rewards as RewardSummary;
+
+            float boxWidth = 460f;
+            float boxHeight = 380f;
+            float x = Screen.width / 2f + 15f;
+            float y = Screen.height * 0.28f;
+
+            GUI.color = new Color(0.2f, 0.16f, 0.1f);
+            GUI.DrawTexture(new Rect(x, y, boxWidth, boxHeight), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+            DrawBorder(x, y, boxWidth, boxHeight, new Color(0.75f, 0.6f, 0.3f), 2f);
+
+            var header = new GUIStyle(_statsValueStyle) { alignment = TextAnchor.MiddleCenter, fontSize = 24 };
+            header.normal.textColor = new Color(1f, 0.85f, 0.4f);
+            GUI.Label(new Rect(x, y + 10f, boxWidth, 34f), GetLocalizedString("reward.title", "보상"), header);
+
+            float lx = x + 30f, w = boxWidth - 60f, ly = y + 52f, lh = 34f;
+            if (r == null)
+            {
+                GUI.Label(new Rect(lx, ly, w, 30f), GetLocalizedString("reward.none", "보상 없음"), _statsLabelStyle);
+                return;
+            }
+
+            DrawStatLine(lx, ly, w * 0.55f, lx + w * 0.45f, w * 0.55f, GetLocalizedString("reward.bounty", "현상금"), $"+${r.bountyGained:N0}");
+            ly += lh;
+            DrawStatLine(lx, ly, w * 0.55f, lx + w * 0.45f, w * 0.55f, GetLocalizedString("reward.xp", "배지 경험치"), $"+{r.xpGained}");
+            ly += lh;
+
+            // sheriff badge bar
+            string badge = string.Format(GetLocalizedString("reward.badge", "보안관 배지 Lv.{0}"), r.badgeLevelAfter);
+            GUI.Label(new Rect(lx, ly, w, 28f), badge, _statsLabelStyle);
+            ly += 30f;
+            float ratio = r.badgeXpToNext > 0 ? Mathf.Clamp01((float)r.badgeXp / r.badgeXpToNext) : 1f;
+            GUI.color = new Color(0f, 0f, 0f, 0.5f);
+            GUI.DrawTexture(new Rect(lx, ly, w, 14f), Texture2D.whiteTexture);
+            GUI.color = new Color(1f, 0.78f, 0.3f);
+            GUI.DrawTexture(new Rect(lx, ly, w * ratio, 14f), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+            var small = new GUIStyle(_statsLabelStyle) { fontSize = 16, alignment = TextAnchor.MiddleRight };
+            GUI.Label(new Rect(lx, ly + 14f, w, 22f), $"{r.badgeXp} / {r.badgeXpToNext}", small);
+            ly += 40f;
+
+            var lineStyle = new GUIStyle(_statsLabelStyle) { fontSize = 19 };
+            lineStyle.normal.textColor = new Color(0.6f, 1f, 0.7f);
+            int shown = 0;
+            foreach (var line in r.lines)
+            {
+                if (shown >= 4) break;
+                GUI.Label(new Rect(lx, ly, w, 26f), "★ " + FormatRewardLine(line), lineStyle);
+                ly += 27f;
+                shown++;
+            }
+            if (r.lines.Count > shown)
+            {
+                GUI.Label(new Rect(lx, ly, w, 26f), $"+{r.lines.Count - shown}…", lineStyle);
+            }
+
+            DrawStatLine(lx, y + boxHeight - 44f, w * 0.55f, lx + w * 0.45f, w * 0.55f,
+                GetLocalizedString("reward.bounty_total", "보유 현상금"), $"${r.bountyTotal:N0}");
+        }
+
+        private string FormatRewardLine(RewardLine line)
+        {
+            string fmt = GetLocalizedString(line.key, line.key + " {0}");
+            string arg = line.arg ?? "";
+            if (line.key == "reward.mastery_level")
+            {
+                var parts = arg.Split('|');
+                string charName = parts.Length > 0 ? GetLocalizedString($"char.{parts[0]}.name", parts[0]) : "";
+                return string.Format(fmt, charName, parts.Length > 1 ? parts[1] : "");
+            }
+            // args that are localization keys (stage / region / skin names)
+            if (_localization != null && _localization.HasString(arg)) arg = _localization.GetString(arg);
+            return string.Format(fmt, arg);
         }
 
         private void DrawStatLine(float labelX, float y, float labelWidth, float valueX, float valueWidth, string label, string value)

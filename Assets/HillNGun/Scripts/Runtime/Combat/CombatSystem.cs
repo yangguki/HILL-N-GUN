@@ -77,11 +77,16 @@ namespace HillNGun.Combat
             }
         }
 
+        /// <summary>Extra cover damage multiplier for every hit (PvP late-round decay; 1 = off).</summary>
+        public float GlobalCoverDamageMul { get; set; } = 1f;
+        public event System.Action<CoverInstance> OnCoverDestroyed;
+
         public void RegisterCover(CoverInstance cover)
         {
             if (!_covers.Contains(cover))
             {
                 _covers.Add(cover);
+                cover.OnDestroyed += c => OnCoverDestroyed?.Invoke(c);
             }
         }
 
@@ -285,7 +290,7 @@ namespace HillNGun.Combat
             {
                 if (i >= _combatTargets.Count) continue; // list may be cleared by a stage ending mid-loop
                 var ct = _combatTargets[i];
-                if (ct == null || !ct.CanBeHit || ct.Team == grenade.OwnerTeam) continue;
+                if (ct == null || !ct.CanBeHit || (ct.Team == grenade.OwnerTeam && !(ct is INeutralTarget))) continue;
                 float dist = Mathf.Max(0f, CoordinateHelper.Distance(ct.Position, explosionPos) - ct.HitRadius * 0.5f);
                 if (dist <= data.radius)
                 {
@@ -307,7 +312,7 @@ namespace HillNGun.Combat
                 if (dist <= data.radius)
                 {
                     int damage = data.GetDamageAtDistance(dist);
-                    cover.TakeDamage(damage, data.coverDamageMul);
+                    cover.TakeDamage(damage, data.coverDamageMul * GlobalCoverDamageMul);
                 }
             }
 
@@ -396,7 +401,7 @@ namespace HillNGun.Combat
             {
                 var ct = _combatTargets[i];
                 if (ct == null || !ct.CanBeHit) continue;
-                if (ct.Team == projectile.OwnerTeam) continue;
+                if (ct.Team == projectile.OwnerTeam && !(ct is INeutralTarget)) continue;
 
                 if (projectile.CheckHit(ct.Position, ct.HitRadius, out float t))
                 {
@@ -413,7 +418,7 @@ namespace HillNGun.Combat
 
             if (hitCover != null)
             {
-                hitCover.TakeDamage(projectile.Damage, projectile.CoverDamageMul);
+                hitCover.TakeDamage(projectile.Damage, projectile.CoverDamageMul * GlobalCoverDamageMul);
                 OnCoverHit?.Invoke(projectile, hitCover, projectile.Damage);
                 projectile.OnHitCover();
                 ApplyHitFeel(projectile.Damage, false);

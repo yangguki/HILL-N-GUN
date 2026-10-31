@@ -43,6 +43,12 @@ namespace HillNGun.Characters
             if (_bodyRenderer != null)
             {
                 _originalColor = _originalTint;
+                // Equipped skin (offline progression): player team only, placeholder tint
+                if (character.Team == Team.Player && character.Data != null)
+                {
+                    Color? skin = HillNGun.Progression.ProgressionService.Instance.GetEquippedTint(character.Data.id);
+                    if (skin.HasValue) _originalColor = skin.Value;
+                }
                 _bodyRenderer.color = _originalColor;
             }
 

@@ -27,6 +27,11 @@ namespace HillNGun.AI
 
         public CharacterStateMachine Character => _character;
 
+        /// <summary>Optional shootable objective (PvP supply crate). Bots shoot it when it is in range.</summary>
+        public System.Func<Vector2?> ObjectiveProvider { get; set; }
+        private bool _shootObjective;
+        private Vector2 _objectivePos;
+
         public BotBrain(CharacterStateMachine character, BotBehaviorData behaviorData)
         {
             _character = character;
@@ -85,6 +90,22 @@ namespace HillNGun.AI
             }
 
             _currentTarget = FindBestTarget(enemies);
+            _shootObjective = false;
+
+            Vector2? objective = ObjectiveProvider?.Invoke();
+            if (objective.HasValue)
+            {
+                float range = _character.Data?.weapon?.range ?? 7f;
+                float d = Vector2.Distance(_character.Position, objective.Value);
+                bool targetInRange = _currentTarget != null && Vector2.Distance(_character.Position, _currentTarget.Position) <= range;
+                if (d <= range && (!targetInRange || Random.value < 0.35f))
+                {
+                    _shootObjective = true;
+                    _objectivePos = objective.Value;
+                    _currentState = BotState.Attacking;
+                    return;
+                }
+            }
 
             if (_currentTarget == null)
             {
@@ -179,9 +200,10 @@ namespace HillNGun.AI
 
         private void ExecuteAttacking(float deltaTime)
         {
-            if (_currentTarget == null) return;
+            if (_currentTarget == null && !_shootObjective) return;
 
-            Vector2 dirToTarget = (_currentTarget.Position - _character.Position).normalized;
+            Vector2 aimAt = _shootObjective ? _objectivePos : _currentTarget.Position;
+            Vector2 dirToTarget = (aimAt - _character.Position).normalized;
             float jitter = _behaviorData.aimJitter * Mathf.Deg2Rad;
             float randomAngle = Random.Range(-jitter, jitter);
             _aimDirection = RotateVector(dirToTarget, randomAngle);

@@ -586,6 +586,22 @@ namespace HillNGun.Editor
             rules.roundMaxTime = 80f;
             rules.roundsToWin = 2;
             rules.maxRounds = 3;
+            rules.roundStartDelay = 3f;
+            rules.roundEndDelay = 3f;
+            rules.pvpSpawnX = new float[] { 6f, 12f, 18f }; // 기획: 양 팀 가운데 줄 x 6·12·18
+            rules.pvpSpawnRowIndex = 1;
+            rules.downedCountsAsAlive = true;   // D10
+            rules.timeoutUseHpSum = true;       // FP 256
+            rules.matchTiebreakByDamage = true; // D11
+            rules.supplyCrateEnabled = false;   // D12: 04 B-4 미정 → 기본 꺼짐
+            rules.supplyCrateTime = 50f;
+            rules.supplyCrateHp = 300;
+            rules.supplyCrateRadius = 0.6f;
+            rules.supplyCratePosition = new Vector2(12f, 9f);
+            rules.supplyCrateRefillsGrenades = true;
+            rules.supplyCrateHealRatio = 0f;
+            rules.lateCoverDecayEnabled = false;
+            rules.lateCoverDamageMul = 1.5f;
             // PvE enemy HP by squad size (03 doc: 2인 협동 적 HP x1.5; 3-person squad x3.4 tuned toward 60~120s stages, decision D15)
             rules.pveEnemyHpMultipliers = new float[] { 1f, 1.5f, 3.4f };
             EditorUtility.SetDirty(rules);

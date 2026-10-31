@@ -9,6 +9,7 @@ using HillNGun.AI;
 using HillNGun.Battlefield;
 using HillNGun.Combat;
 using HillNGun.Cover;
+using HillNGun.Progression;
 using System;
 using System.IO;
 using System.Collections;
@@ -35,6 +36,11 @@ namespace HillNGun.DebugTools
 
         // -smoketest-fullpve: play PvE through every stage + boss until the Result scene
         private static bool _fullPvE;
+        // -smoketest-fullpvp: play a full best-of-3 PvP match (squad autopilot on both sides) until Result
+        private static bool _fullPvP;
+        private PvPMatchManager _hookedPvp;
+        private bool _crateShot;
+        private bool _crateOpenShot;
         private static float _timeScale = 2f;
         private float _realTimer;
         private int _lastStageIndex = -1;
@@ -84,6 +90,11 @@ namespace HillNGun.DebugTools
                     _isSmokeTest = true;
                     _fullPvE = true;
                 }
+                else if (arg.Equals("-smoketest-fullpvp", StringComparison.OrdinalIgnoreCase))
+                {
+                    _isSmokeTest = true;
+                    _fullPvP = true;
+                }
             }
             for (int i = 0; i < args.Length - 1; i++)
             {
@@ -96,6 +107,8 @@ namespace HillNGun.DebugTools
 
             if (_isSmokeTest)
             {
+                // Never touch the player's real save during automated runs.
+                ProgressionService.SaveFileOverride = "smoketest_save.json";
                 var go = new GameObject("[SmokeTestRunner]");
                 _instance = go.AddComponent<SmokeTestRunner>();
                 DontDestroyOnLoad(go);
@@ -280,6 +293,13 @@ namespace HillNGun.DebugTools
             
             if (_autopilotTimer > 2f)
             {
+                if (_fullPvP)
+                {
+                    Debug.Log("[SmokeTest] Selecting PvP mode (full PvP run)");
+                    GameFlowManager.Instance?.GoToCharacterSelect(GameMode.PvP);
+                    SetPhase(SmokeTestPhase.PvPCharacterSelect);
+                    return;
+                }
                 Debug.Log("[SmokeTest] Selecting PvE mode");
                 GameFlowManager.Instance?.GoToCharacterSelect(GameMode.PvE);
                 SetPhase(SmokeTestPhase.CharacterSelect);
@@ -345,6 +365,8 @@ namespace HillNGun.DebugTools
                     Time.timeScale = 1f;
                     var session = GameFlowManager.Instance?.CurrentSession;
                     Timeline($"RESULT scene loaded (result={session?.result})");
+                    LogProgression("after PvE");
+                    TryProgressionPurchases();
                 }
                 _resultTimer += Time.unscaledDeltaTime;
                 if (_resultTimer > 1.5f)
@@ -493,20 +515,145 @@ namespace HillNGun.DebugTools
                 if (flowManager != null)
                 {
                     flowManager.SetAllCharacters("buster", "raven", "volt");
+                    if (_fullPvP)
+                    {
+                        var rules = RuntimeAssetManager.Instance?.MatchRules;
+                        if (rules != null)
+                        {
+                            // TEST: proposals (04 B-4) default off; force on so the run verifies them.
+                            rules.supplyCrateEnabled = true;
+                            rules.lateCoverDecayEnabled = true;
+                            rules.supplyCrateTime = 20f;
+                            Debug.Log("[SmokeTest] TEST: forcing supplyCrateEnabled/lateCoverDecayEnabled on, crate at 20s (runtime only)");
+                        }
+                    }
                     flowManager.StartMatch();
                 }
                 SetPhase(SmokeTestPhase.PvPMatch);
                 _matchTimer = 0f;
                 _lastScreenshotTime = -5f;
+                if (_fullPvP)
+                {
+                    Time.timeScale = _timeScale;
+                    _realTimer = 0f;
+                    Debug.Log($"[SmokeTest] FULL PvP run started (timeScale={_timeScale})");
+                }
+            }
+        }
+
+        private void HookPvP(PvPMatchManager pvp)
+        {
+            if (pvp == null || _hookedPvp == pvp) return;
+            if (pvp.PlayerTeam == null || pvp.PlayerTeam.Count == 0) return;
+            _hookedPvp = pvp;
+            // Player squad leader is driven by the same BotBrain + abilities as the enemy squad (not a pistol-only gunner).
+            pvp.SetPlayerAutopilot(true);
+            Timeline("PvP player autopilot ON (BotBrain + abilities)");
+            pvp.OnRoundStarted += r =>
+            {
+                Timeline($"PvP ROUND {r} countdown (score {pvp.PlayerRoundsWon}-{pvp.EnemyRoundsWon})");
+                if (_fullPvP) StartCoroutine(ShotAfterAny($"pvp_round{r}_countdown", 1.2f));
+            };
+            pvp.OnRoundEnded += res =>
+            {
+                Timeline($"PvP ROUND {pvp.CurrentRound} END {res} reason={pvp.LastRoundReason} score {pvp.PlayerRoundsWon}-{pvp.EnemyRoundsWon} kills={pvp.PlayerKills} deaths={pvp.PlayerDeaths}");
+                if (_fullPvP) StartCoroutine(ShotAfterAny($"pvp_round{pvp.CurrentRound}_result", 0.8f));
+            };
+            pvp.OnSupplyCrateDropped += c =>
+            {
+                Timeline("PvP SUPPLY CRATE dropped");
+                if (!_crateShot) { _crateShot = true; StartCoroutine(ShotAfterAny("pvp_supply_crate", 0.25f)); }
+            };
+            pvp.OnSupplyCrateOpened += (c, team) =>
+            {
+                Timeline($"PvP SUPPLY CRATE opened by {team}");
+                if (!_crateOpenShot) { _crateOpenShot = true; StartCoroutine(ShotAfterAny("pvp_supply_crate_opened", 0.3f)); }
+            };
+            pvp.OnMatchEnded += m => Timeline($"PvP MATCH END {m} rounds {pvp.PlayerRoundsWon}-{pvp.EnemyRoundsWon}");
+        }
+
+        private IEnumerator ShotAfterAny(string name, float gameSeconds)
+        {
+            yield return new WaitForSeconds(gameSeconds);
+            if (SceneManager.GetActiveScene().name.Contains("Result")) yield break;
+            yield return TakeScreenshotDelayed(name);
+        }
+
+        private void LogProgression(string when)
+        {
+            var ps = ProgressionService.Instance;
+            var d = ps?.Data;
+            if (d == null) { Debug.Log($"[SmokeTest] Progression ({when}): none"); return; }
+            string chars = "";
+            foreach (var c in d.characters) chars += $" {c.id}:Lv{c.masteryLevel}/{c.masteryXp}xp skin={c.equippedSkin}";
+            Debug.Log($"[SmokeTest] Progression ({when}): bounty={d.bounty} badge=Lv{d.badgeLevel} ({d.badgeXp}xp) cleared=[{string.Join(",", d.clearedStages)}] regions=[{string.Join(",", d.unlockedRegions)}] skins=[{string.Join(",", d.ownedSkins)}] pve={d.pveRuns} boss={d.bossKills} pvp W{d.pvpWins}/L{d.pvpLosses}/D{d.pvpDraws}{chars}");
+        }
+
+        private void TryProgressionPurchases()
+        {
+            var ps = ProgressionService.Instance;
+            if (ps?.Data == null) return;
+            if (!ps.OwnsSkin("buster_gold"))
+            {
+                bool bought = ps.TryPurchaseSkin("buster_gold");
+                Debug.Log($"[SmokeTest] TEST purchase buster_gold -> {bought} (bounty now {ps.Data.bounty})");
+            }
+            if (ps.OwnsSkin("buster_gold")) Debug.Log($"[SmokeTest] TEST equip buster_gold -> {ps.EquipSkin("buster", "buster_gold")}");
+            if (ps.OwnsSkin("raven_dusty")) Debug.Log($"[SmokeTest] TEST equip raven_dusty -> {ps.EquipSkin("raven", "raven_dusty")}");
+            LogProgression("after purchases");
+        }
+
+        private void UpdateFullPvP()
+        {
+            _matchTimer += Time.deltaTime;
+            _realTimer += Time.unscaledDeltaTime;
+            if (_realTimer > FullRunRealTimeout)
+            {
+                Timeline("TIMEOUT - full PvP run did not reach Result");
+                Time.timeScale = 1f;
+                SetPhase(SmokeTestPhase.Complete);
+                return;
+            }
+            if (SceneManager.GetActiveScene().name.Contains("Result"))
+            {
+                if (_resultTimer < 0f)
+                {
+                    _resultTimer = 0f;
+                    Time.timeScale = 1f;
+                    var s = GameFlowManager.Instance?.CurrentSession;
+                    Timeline($"PvP RESULT scene loaded (result={s?.result} rounds={s?.playerRoundsWon}-{s?.enemyRoundsWon} kills={s?.playerKills} dealt={s?.damageDealt} taken={s?.damageTaken})");
+                    LogProgression("after PvP");
+                }
+                _resultTimer += Time.unscaledDeltaTime;
+                if (_resultTimer > 1.5f)
+                {
+                    _pvpCompleted = true;
+                    StartCoroutine(TakeScreenshotDelayed("pvp_result_screen"));
+                    SetPhase(SmokeTestPhase.Complete);
+                }
+                return;
+            }
+            var pvp = FindFirstObjectByType<PvPMatchManager>();
+            HookPvP(pvp);
+            if (_matchTimer - _lastScreenshotTime >= 20f)
+            {
+                _lastScreenshotTime = _matchTimer;
+                LogMatchState("PvP");
             }
         }
 
         private void UpdatePvPMatch()
         {
+            if (_fullPvP)
+            {
+                UpdateFullPvP();
+                return;
+            }
             _matchTimer += Time.deltaTime;
             _autopilotTimer += Time.deltaTime;
             
-            RunAutopilot();
+            HookPvP(FindFirstObjectByType<PvPMatchManager>());
+            if (_hookedPvp == null) RunAutopilot();
             
             if (_matchTimer - _lastScreenshotTime >= 5f)
             {

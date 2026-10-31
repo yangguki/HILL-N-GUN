@@ -113,8 +113,21 @@ namespace HillNGun.PvE
             ProjectileView.Ensure();
             CombatFeedback.Ensure();
             SpawnPlayerTeam();
+            if (_combat != null)
+            {
+                _combat.OnCombatTargetHit += HandleCombatTargetHitForStats;
+                _combat.OnCoverDestroyed += HandleCoverDestroyedForStats;
+            }
             if (_stages != null && _stages.Length > 0)
             {
+                // stage select: start where the session asks, only if that stage is unlocked (offline progression)
+                var session = GameFlowManager.Instance?.CurrentSession;
+                if (session != null && session.startStageIndex > 0)
+                {
+                    var prog = HillNGun.Progression.ProgressionService.Instance;
+                    _currentStageIndex = prog.IsStageUnlocked(_stages, session.startStageIndex)
+                        ? session.startStageIndex : prog.HighestUnlockedStageIndex(_stages);
+                }
                 StartStage(_currentStageIndex);
             }
             else
@@ -268,6 +281,31 @@ namespace HillNGun.PvE
         {
             PlayerDamageTaken += damage;
             EffectsManager.Instance?.SpawnDamageNumber(character.Position, damage, damage >= 400);
+        }
+
+        public int PlayerKills { get; private set; }
+        public int CoversDestroyed { get; private set; }
+
+        private void HandleCombatTargetHitForStats(Projectile p, HillNGun.Combat.ICombatTarget ct, int dmg)
+        {
+            if (p == null || p.Owner == null || _playerTeam.Count <= _playerControlledIndex) return;
+            if (p.Owner != _playerTeam[_playerControlledIndex]) return;
+            bool dead = ct is EnemyInstance e ? !e.IsAlive : ct is BossInstance b && !b.IsAlive;
+            if (dead) PlayerKills++;
+        }
+
+        private void HandleCoverDestroyedForStats(HillNGun.Cover.CoverInstance c)
+        {
+            if (_isMatchActive) CoversDestroyed++;
+        }
+
+        private void OnDestroy()
+        {
+            if (_combat != null)
+            {
+                _combat.OnCombatTargetHit -= HandleCombatTargetHitForStats;
+                _combat.OnCoverDestroyed -= HandleCoverDestroyedForStats;
+            }
         }
 
         private void HandleSkillActivated(CharacterStateMachine c, SkillEffect effect, Vector2? target)
@@ -856,6 +894,11 @@ namespace HillNGun.PvE
             OnStageComplete?.Invoke(result);
 
             var flowManager = GameFlowManager.Instance;
+            if (flowManager?.CurrentSession != null && result != PvERoundResult.StageFailed && _currentStage != null)
+            {
+                flowManager.CurrentSession.clearedStageIds.Add(_currentStage.id);
+                if (result == PvERoundResult.BossDefeated) flowManager.CurrentSession.bossDefeated = true;
+            }
             if (flowManager != null)
             {
                 MatchResult matchResult = result == PvERoundResult.StageFailed 
@@ -875,6 +918,8 @@ namespace HillNGun.PvE
                         session.damageDealt = TotalEnemyDamage;
                         session.damageTaken = PlayerDamageTaken;
                         session.playerDeaths = PlayerEliminations;
+                        session.playerKills = PlayerKills;
+                        session.coversDestroyed = CoversDestroyed;
                         session.currentStageIndex = _currentStageIndex;
                     }
                     flowManager.EndMatch(matchResult);

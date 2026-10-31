@@ -97,3 +97,48 @@ fx.repair,보수
 fx.weakpoint,약점!
 fx.reviving,소생 중...
 fx.revived,소생!
+result.draw,무승부
+result.round_w,승
+result.round_l,패
+result.round_d,무
+stats.round_history,라운드 기록
+reward.title,보상
+reward.none,보상 없음
+reward.bounty,현상금
+reward.xp,배지 경험치
+reward.badge,보안관 배지 Lv.{0}
+reward.bounty_total,보유 현상금
+reward.stage_unlocked,새 스테이지 해금: {0}
+reward.region_unlocked,새 지역 해금: {0}
+reward.skin_unlocked,새 스킨: {0}
+reward.badge_level,보안관 배지 Lv.{0} 달성
+reward.mastery_level,{0} 숙련도 Lv.{1}
+mastery.title.1,풋내기
+mastery.title.2,떠돌이 총잡이
+mastery.title.3,보안관 대리
+mastery.title.4,현상금 사냥꾼
+mastery.title.5,전설의 총잡이
+mastery.title.6,서부의 별
+region.dusty_town,먼지 마을
+region.railroad_canyon,철도 협곡
+skin.buster.dusty,버스터 - 먼지바람
+skin.buster.gold,버스터 - 황금 박차
+skin.buster.veteran,버스터 - 노련한 사냥꾼
+skin.raven.dusty,레이븐 - 먼지바람
+skin.raven.gold,레이븐 - 황금 박차
+skin.raven.veteran,레이븐 - 노련한 사냥꾼
+skin.volt.dusty,볼트 - 먼지바람
+skin.volt.gold,볼트 - 황금 박차
+skin.volt.veteran,볼트 - 노련한 사냥꾼
+pvp.ui.fight,싸워라!
+pvp.ui.reason_wiped,전멸
+pvp.ui.reason_alive,시간 초과 - 생존 인원
+pvp.ui.reason_hp,시간 초과 - 남은 체력
+pvp.ui.reason_draw,시간 초과 - 동점
+pvp.ui.match_win,매치 승리!
+pvp.ui.match_lose,매치 패배
+pvp.ui.match_draw,매치 무승부
+pvp.ui.crate_drop,보급 상자 투하!
+pvp.ui.crate_open_us,우리 팀이 보급 상자 획득
+pvp.ui.crate_open_them,상대 팀이 보급 상자 획득
+pvp.ui.match_point,매치 포인트

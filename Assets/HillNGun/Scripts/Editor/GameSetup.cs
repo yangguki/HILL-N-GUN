@@ -259,6 +259,7 @@ namespace HillNGun.Editor
                 DATA_PATH + "Stages",
                 DATA_PATH + "Bosses",
                 DATA_PATH + "AI",
+                DATA_PATH + "Progression",
                 SCENE_PATH
             };
 
@@ -303,6 +304,7 @@ namespace HillNGun.Editor
             CreateStageAssets();
             CreateBossAsset();
             CreateBotBehaviorAsset();
+            CreateProgressionAsset();
             CreateTouchControlsAsset();
         }
 
@@ -626,6 +628,55 @@ namespace HillNGun.Editor
             EditorUtility.SetDirty(bossStage);
         }
 
+        /// <summary>Offline progression numbers (FP 522-529). Amounts not in the docs are proposals (decision D19).</summary>
+        private static void CreateProgressionAsset()
+        {
+            var p = CreateOrLoad<ProgressionData>(DATA_PATH + "Progression/progression_default.asset");
+            p.startingBounty = 0;
+            p.bountyPerStageClear = 100;
+            p.bountyPerBossDefeat = 1000; // FP 220: 렉스 현상금 $1,000
+            p.bountyPvPWin = 150;
+            p.bountyPvPDraw = 50;
+            p.bountyPvPLoss = 0;          // FP 526: PvP는 승리 시 현상금
+            p.stageBountyEveryClear = true;
+            p.xpPerStageClear = 30;
+            p.xpBossDefeat = 120;
+            p.xpPvEFailedRun = 15;
+            p.xpPvPWin = 80;
+            p.xpPvPDraw = 50;
+            p.xpPvPLoss = 40;             // FP 525: 판마다 경험치
+            p.badgeXpBase = 200;
+            p.badgeXpPerLevel = 100;
+            p.maxBadgeLevel = 50;
+            p.bountyPerBadgeLevel = 200;  // FP 525: 레벨마다 현상금
+            p.masteryXpPerMatch = 20;
+            p.masteryXpWinBonus = 15;
+            p.masteryLevelXp = new int[] { 0, 100, 250, 500, 900, 1500 };
+            p.masteryTitleKeys = new string[] { "mastery.title.1", "mastery.title.2", "mastery.title.3", "mastery.title.4", "mastery.title.5", "mastery.title.6" };
+            p.startingCharacterIds = new string[] { "buster", "raven", "volt" };
+            p.regions = new RegionDefinition[]
+            {
+                new RegionDefinition { id = "dusty_town", nameKey = "region.dusty_town",
+                    stageIds = new[] { "dusty_town_1_1", "dusty_town_1_2", "dusty_town_1_3", "dusty_town_boss" },
+                    bossStageId = "dusty_town_boss", nextRegionId = "railroad_canyon" },
+                // FP 220 다음 지역 (스테이지는 프로토타입 범위 밖, 해금 표시만)
+                new RegionDefinition { id = "railroad_canyon", nameKey = "region.railroad_canyon", stageIds = new string[0] },
+            };
+            var skins = new System.Collections.Generic.List<SkinDefinition>();
+            foreach (var c in new[] { "buster", "raven", "volt" })
+            {
+                skins.Add(new SkinDefinition { id = c + "_default", characterId = c, nameKey = "char." + c + ".name", unlock = SkinUnlockType.Default, tint = Color.white });
+                // FP 528: 보스를 잡으면 지역 스킨 해금
+                skins.Add(new SkinDefinition { id = c + "_dusty", characterId = c, nameKey = "skin." + c + ".dusty", unlock = SkinUnlockType.BossReward, requirementId = "dusty_town", tint = new Color(0.86f, 0.72f, 0.52f) });
+                // FP 526: 일부 스킨은 현상금으로 구매
+                skins.Add(new SkinDefinition { id = c + "_gold", characterId = c, nameKey = "skin." + c + ".gold", unlock = SkinUnlockType.Purchase, cost = 1500, tint = new Color(1f, 0.85f, 0.35f) });
+                // FP 527: 숙련도 보상은 능력치 대신 스킨·칭호
+                skins.Add(new SkinDefinition { id = c + "_veteran", characterId = c, nameKey = "skin." + c + ".veteran", unlock = SkinUnlockType.Mastery, masteryLevel = 3, tint = new Color(0.6f, 0.75f, 0.95f) });
+            }
+            p.skins = skins.ToArray();
+            EditorUtility.SetDirty(p);
+        }
+
         private static void CreateBotBehaviorAsset()
         {
             var botBehavior = CreateOrLoad<BotBehaviorData>(DATA_PATH + "AI/bot_behavior_default.asset");
@@ -840,6 +891,7 @@ namespace HillNGun.Editor
             var matchRules = AssetDatabase.LoadAssetAtPath<MatchRulesData>(DATA_PATH + "Match/match_rules_default.asset");
             var inputData = AssetDatabase.LoadAssetAtPath<InputData>(DATA_PATH + "Input/input_default.asset");
             var touchControls = AssetDatabase.LoadAssetAtPath<TouchControlsData>(DATA_PATH + "Input/touch_controls.asset");
+            var progression = AssetDatabase.LoadAssetAtPath<ProgressionData>(DATA_PATH + "Progression/progression_default.asset");
             
             var assetManagerGO = new GameObject("RuntimeAssetManager");
             var assetManager = assetManagerGO.AddComponent<RuntimeAssetManager>();
@@ -858,6 +910,7 @@ namespace HillNGun.Editor
             SetPrivateField(assetManager, "_matchRules", matchRules);
             SetPrivateField(assetManager, "_inputData", inputData);
             SetPrivateField(assetManager, "_touchControlsData", touchControls);
+            SetPrivateField(assetManager, "_progression", progression);
         }
 
         private static void CreateBattlefieldAndSystems()

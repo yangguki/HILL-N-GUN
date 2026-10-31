@@ -12,4 +12,7 @@ namespace HillNGun.Combat
         bool CanBeHit { get; }
         void ReceiveHit(int damage, Vector2 direction);
     }
+
+    /// <summary>Target either team can shoot (e.g. PvP supply crate). Team is ignored for hit filtering.</summary>
+    public interface INeutralTarget : ICombatTarget { }
 }
