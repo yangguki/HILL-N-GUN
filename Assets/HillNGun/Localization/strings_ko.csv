@@ -142,3 +142,121 @@ pvp.ui.crate_drop,보급 상자 투하!
 pvp.ui.crate_open_us,우리 팀이 보급 상자 획득
 pvp.ui.crate_open_them,상대 팀이 보급 상자 획득
 pvp.ui.match_point,매치 포인트
+ui.quit_to_lobby,로비로 나가기
+ui.to_lobby,로비
+lobby.tab.home,홈
+lobby.tab.stages,스테이지
+lobby.tab.characters,캐릭터
+lobby.tab.shop,상점
+lobby.tab.settings,설정
+lobby.pve_go,스테이지 선택
+lobby.pvp_go,대전 시작
+lobby.practice_go,연습하기
+lobby.pvp_offline,오프라인 프로토타입: 봇과 3대3 대전
+lobby.profile,내 기록
+lobby.stat.pve_runs,PvE 출격
+lobby.stat.boss_kills,보스 처치
+lobby.stat.pvp,PvP 승/패/무
+lobby.region_progress,지역 진행
+lobby.locked,잠김
+lobby.locked_paren,(잠김)
+lobby.coming_soon,준비 중
+lobby.no_stats_note,능력치 성장 없음: 보상은 스킨·칭호
+stub.online,온라인 매칭·랭크: 서버 필요 (스텁)
+stub.iap,외부 결제(IAP) 필요 · 오프라인 스텁
+stub.ads,광고 SDK 없음 · 스텁
+stage.regions,지역
+stage.wanted,"현상수배: {0}  ${1:N0}"
+stage.region_locked,이전 지역 보스를 잡으면 열립니다
+stage.region_soon,해금 완료! 이 지역 스테이지는 프로토타입 범위 밖입니다
+stage.chain_note,출격하면 고른 스테이지부터 보스까지 이어서 진행합니다
+stage.target_time,목표 {0:0}~{1:0}초
+stage.cleared,★ 클리어
+stage.open,도전 가능
+stage.locked,잠김: 이전 스테이지 클리어 필요
+stage.go,출격
+char.preview,(미리보기)
+char.mastery,숙련도 Lv.{0}  「{1}」
+char.mastery_max,최고 숙련도
+char.mastery_xp,{0} / {1} XP
+char.record,{0}판 · {1}승
+char.kit,스킬 {0} · 패시브 {1}
+char.skins,스킨
+char.skins_note,능력치 변화 없음 · 임시 색 변경 (실제 아트는 외부 작업)
+skin.default,기본
+skin.req.purchase,"현상금 ${0:N0}로 구매"
+skin.req.boss,{0} 보스 처치 보상
+skin.req.mastery,숙련도 Lv.{0} 달성
+skin.req.default,기본 지급
+skin.owned,보유 중
+skin.equipped,장착 중
+skin.equip,장착
+skin.equipped_toast,{0} 장착
+skin.to_shop,상점에서 구매
+skin.locked,잠김
+shop.bounty_title,현상금 상점
+shop.bounty_note,꾸미기 전용 · 능력치 변화 없음
+shop.premium_title,프리미엄
+shop.price_tbd,가격 미정
+shop.iap_ok,구매 완료
+shop.iap_offline,오프라인 프로토타입: 실제 결제는 지원하지 않습니다 (스텁)
+shop.buy,구매
+shop.not_enough,현상금 부족
+shop.bought,{0} 구매 완료!
+shop.product.season_pass,시즌 패스 (유료 단계)
+shop.product.season_pass.desc,한 달 시즌 · 서부풍 스킨·현상금·이모트 보상
+shop.product.skin_bundle,신규 캐릭터 스킨 묶음
+shop.product.skin_bundle.desc,출시 첫 주 한정 · 캐릭터 빠른 획득 + 스킨 (능력치 없음)
+shop.product.rank_pass,랭크 패스 (나중에 도입)
+shop.product.rank_pass.desc,랭크전 참여 보상형 프리미엄 패스
+settings.sound,소리
+settings.sound_on,소리 켜기
+settings.master,전체 볼륨
+settings.music,배경음
+settings.sfx,효과음
+settings.feel,화면·진동 (접근성)
+settings.vibration,진동
+settings.shake,화면 흔들림
+settings.controls,조작
+settings.button_size,버튼 크기
+settings.size_s,작게
+settings.size_m,보통
+settings.size_l,크게
+settings.language,언어
+settings.language_note,번역은 출시 전 (영어는 일부 화면만)
+settings.misc,기타
+settings.tutorial_replay,튜토리얼 다시 보기
+settings.tutorial_pending,튜토리얼: 다음 PvE 1-1에서 표시
+settings.tutorial_reset_done,다음 PvE 1-1에서 튜토리얼을 다시 보여줍니다
+settings.reset_progress,진행 초기화
+settings.reset_confirm,한 번 더 누르면 진행이 모두 지워집니다
+settings.reset_done,진행을 초기화했습니다
+result.ad_playing,광고 재생 중... (오프라인 스텁)
+result.ad_unavailable,지금은 광고를 볼 수 없습니다
+result.continue_ad,광고 보고 이어하기
+result.to_stages,스테이지 선택
+result.to_characters,캐릭터·스킨
+tutorial.header,조작 익히기 {0}/{1}
+tutorial.good,좋아요!
+tutorial.skip,건너뛰기
+tutorial.move,왼쪽 아래 조이스틱을 좌우로 밀어 움직이세요
+tutorial.move.pc,A · D 키로 좌우로 움직이세요
+tutorial.row,조이스틱을 위·아래로 밀어 엄폐 줄을 바꾸세요
+tutorial.row.pc,W · S 키로 엄폐 줄을 바꾸세요
+tutorial.shoot,오른쪽 사격 버튼을 누른 채 끌어 조준하고 떼면 발사!
+tutorial.shoot.pc,마우스 왼쪽 버튼을 누른 채 끌어 조준하고 떼면 발사!
+tutorial.gauge,탄약 게이지가 비면 잠시 장전합니다. 엄폐물 뒤에서 버티세요
+tutorial.roll,구르기 버튼으로 총알을 피하세요 (구르는 동안 무적)
+tutorial.roll.pc,스페이스바로 구르기 (구르는 동안 무적)
+tutorial.grenade,수류탄 버튼을 끌어 던지세요. 엄폐물에 강합니다
+tutorial.grenade.pc,Q 키 또는 마우스 오른쪽 버튼으로 수류탄을 던지세요
+tutorial.skill,스킬 버튼으로 캐릭터 고유 스킬을 쓰세요
+tutorial.skill.pc,E 키로 캐릭터 고유 스킬을 쓰세요
+tutorial.revive,동료가 쓰러지면 곁에 서서 소생하세요. 적 게이지를 채우면 클리어!
+region.silver_mine,은광산
+region.border_fort,국경 요새
+region.ghost_town,유령 마을
+boss.baron,기관사 바론
+boss.may,다이너마이트 메이
+boss.grimshaw,교수형 판사 그림쇼
+boss.nameless,이름 없는 총잡이

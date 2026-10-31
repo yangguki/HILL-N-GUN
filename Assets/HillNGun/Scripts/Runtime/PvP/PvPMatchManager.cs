@@ -232,6 +232,8 @@ namespace HillNGun.PvP
             var inputHandler = FindFirstObjectByType<TouchInputHandler>();
             if (inputHandler != null && _playerTeam.Count > _playerControlledIndex)
                 inputHandler.SetReceiver(_playerTeam[_playerControlledIndex]);
+            if (_playerTeam.Count > _playerControlledIndex)
+                ServiceLocator.Get<MobileTouchControls>()?.SetReceiver(_playerTeam[_playerControlledIndex]);
         }
 
         private Vector2? CrateObjective() => _crate.CanBeHit ? _crate.Position : (Vector2?)null;
@@ -262,7 +264,7 @@ namespace HillNGun.PvP
 
             var viewGo = new GameObject("View");
             viewGo.transform.SetParent(go.transform);
-            var view = viewGo.AddComponent<PlaceholderCharacterView>();
+            var view = CharacterViewFactory.Create(viewGo);
 
             character.Initialize(data, team, index, position, rowIndex);
             view.Initialize(character);

@@ -212,6 +212,9 @@ namespace HillNGun.PvE
             {
                 inputHandler.SetReceiver(_playerTeam[_playerControlledIndex]);
             }
+            // On-screen joysticks/buttons (touch devices only; hidden on desktop)
+            if (_playerTeam.Count > _playerControlledIndex)
+                ServiceLocator.Get<MobileTouchControls>()?.SetReceiver(_playerTeam[_playerControlledIndex]);
         }
 
         private BattlefieldData Field => ServiceLocator.Get<Battlefield.BattlefieldSystem>()?.Data;
@@ -241,7 +244,7 @@ namespace HillNGun.PvE
 
             var viewGo = new GameObject("View");
             viewGo.transform.SetParent(go.transform);
-            var view = viewGo.AddComponent<PlaceholderCharacterView>();
+            var view = CharacterViewFactory.Create(viewGo);
 
             character.Initialize(data, Team.Player, index, position, rowIndex);
             view.Initialize(character);

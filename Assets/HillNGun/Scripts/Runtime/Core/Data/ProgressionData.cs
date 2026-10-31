@@ -19,6 +19,8 @@ namespace HillNGun.Data
         public string nameKey;
         [Tooltip("Placeholder skin = body tint (no external art)")]
         public Color tint = Color.white;
+        [Tooltip("How strongly the placeholder sprite is recolored toward tint (0 = untouched)")]
+        [Range(0f, 1f)] public float recolorStrength = 0.7f;
         public SkinUnlockType unlock = SkinUnlockType.Default;
         public int cost;
         public string requirementId;
@@ -35,6 +37,9 @@ namespace HillNGun.Data
         public string bossStageId;
         [Tooltip("Region unlocked by beating this region's boss (FP 528)")]
         public string nextRegionId;
+        [Tooltip("Display only: wanted boss of the region and bounty (FP 220-228)")]
+        public string bossNameKey;
+        public int bossBounty;
     }
 
     /// <summary>

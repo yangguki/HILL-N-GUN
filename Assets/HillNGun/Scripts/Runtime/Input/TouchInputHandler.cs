@@ -91,7 +91,9 @@ namespace HillNGun.Input
                 HandleKeyboardMouseInput();
             }
 
-            HandleTouchInput();
+            // Visible on-screen controls own the touches when present (avoid double commands)
+            var mobile = ServiceLocator.Get<MobileTouchControls>();
+            if (mobile == null || !mobile.IsActive) HandleTouchInput();
             ProcessRowChangeHold();
         }
 

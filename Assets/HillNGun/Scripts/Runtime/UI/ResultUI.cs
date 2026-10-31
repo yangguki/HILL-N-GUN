@@ -297,32 +297,96 @@ namespace HillNGun.UI
             GUI.Label(new Rect(valueX, y, valueWidth, 30f), value, _statsValueStyle);
         }
 
+        private bool _adPending;
+        private string _note;
+
+        /// <summary>PvE defeat → rewarded-ad continue (FP 518). Ad SDK is an external stub (ExternalServices.Ads).</summary>
+        public bool CanContinueWithAd
+        {
+            get
+            {
+                if (_session == null || _session.mode != GameMode.PvE || _session.result != MatchResult.Defeat) return false;
+                var cfg = HillNGun.External.ExternalServices.Config;
+                int max = cfg != null ? cfg.maxContinuesPerRun : 1;
+                return _session.continuesUsed < max && HillNGun.External.ExternalServices.Ads.IsRewardedReady("pve_continue");
+            }
+        }
+
+        public void ContinueWithAd()
+        {
+            if (_adPending || !CanContinueWithAd) return;
+            _adPending = true;
+            _note = GetLocalizedString("result.ad_playing", "광고 재생 중... (오프라인 스텁)");
+            HillNGun.External.ExternalServices.Ads.ShowRewarded("pve_continue", ok =>
+            {
+                _adPending = false;
+                if (!ok) { _note = GetLocalizedString("result.ad_unavailable", "지금은 광고를 볼 수 없습니다"); return; }
+                _session.continuesUsed++;
+                _session.startStageIndex = _session.currentStageIndex; // retry the failed stage; earlier clears were already paid
+                HillNGun.External.ExternalServices.Log("pve_continue", new System.Collections.Generic.Dictionary<string, object> { { "stage_index", _session.currentStageIndex } });
+                GameFlowManager.Instance?.StartMatch();
+            });
+        }
+
+        public void GoToLobby(LobbyTab tab)
+        {
+            LobbyUI.RequestedTab = tab;
+            GameFlowManager.Instance?.GoToModeSelect();
+        }
+
         private void DrawButtons()
         {
-            float buttonWidth = 200f;
-            float buttonHeight = 50f;
-            float spacing = 30f;
-            float totalWidth = buttonWidth * 3 + spacing * 2;
+            bool canContinue = CanContinueWithAd;
+            int count = canContinue ? 4 : 3;
+            float buttonWidth = 220f;
+            float buttonHeight = 54f;
+            float spacing = 24f;
+            float totalWidth = buttonWidth * count + spacing * (count - 1);
             float startX = (Screen.width - totalWidth) / 2f;
-            float y = Screen.height - buttonHeight - 60f;
+            float y = Screen.height - buttonHeight - 50f;
+            int i = 0;
 
-            string retryText = GetLocalizedString("ui.retry", "재도전");
-            if (GUI.Button(new Rect(startX, y, buttonWidth, buttonHeight), retryText, _buttonStyle))
+            if (canContinue)
             {
+                if (ResultButton(new Rect(startX, y, buttonWidth, buttonHeight), GetLocalizedString("result.continue_ad", "광고 보고 이어하기") , _buttonStyle))
+                    ContinueWithAd();
+                GUI.color = new Color(0.55f, 0.6f, 0.8f);
+                GUI.DrawTexture(new Rect(startX, y - 26f, buttonWidth, 22f), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+                var tag = new GUIStyle(_statsLabelStyle) { fontSize = 14, alignment = TextAnchor.MiddleCenter };
+                tag.normal.textColor = Color.white;
+                GUI.Label(new Rect(startX, y - 26f, buttonWidth, 22f), GetLocalizedString("stub.ads", "광고 SDK 없음 · 스텁"), tag);
+                i++;
+            }
+
+            if (ResultButton(new Rect(startX + (buttonWidth + spacing) * i++, y, buttonWidth, buttonHeight), GetLocalizedString("ui.retry", "재도전"), _buttonStyle))
                 GameFlowManager.Instance?.RestartMatch();
-            }
 
-            string selectText = GetLocalizedString("ui.select_mode", "모드 선택");
-            if (GUI.Button(new Rect(startX + buttonWidth + spacing, y, buttonWidth, buttonHeight), selectText, _buttonStyle))
-            {
-                GameFlowManager.Instance?.GoToModeSelect();
-            }
+            bool pve = _session != null && _session.mode == GameMode.PvE;
+            string nextText = pve ? GetLocalizedString("result.to_stages", "스테이지 선택") : GetLocalizedString("result.to_characters", "캐릭터·스킨");
+            if (ResultButton(new Rect(startX + (buttonWidth + spacing) * i++, y, buttonWidth, buttonHeight), nextText, _buttonStyle))
+                GoToLobby(pve ? LobbyTab.Stages : LobbyTab.Characters);
 
-            string titleText = GetLocalizedString("ui.to_title", "타이틀");
-            if (GUI.Button(new Rect(startX + (buttonWidth + spacing) * 2, y, buttonWidth, buttonHeight), titleText, _buttonStyle))
+            if (ResultButton(new Rect(startX + (buttonWidth + spacing) * i++, y, buttonWidth, buttonHeight), GetLocalizedString("ui.to_lobby", "로비"), _buttonStyle))
+                GoToLobby(LobbyTab.Home);
+
+            if (!string.IsNullOrEmpty(_note))
             {
-                GameFlowManager.Instance?.GoToTitle();
+                var st = new GUIStyle(_statsLabelStyle) { alignment = TextAnchor.MiddleCenter };
+                GUI.Label(new Rect(0, y - 60f, Screen.width, 30f), _note, st);
             }
+        }
+
+        // Draws an explicit plate behind result buttons (style backgrounds can be lost after domain/scene reloads).
+        private bool ResultButton(Rect r, string label, GUIStyle style)
+        {
+            bool hover = r.Contains(Event.current.mousePosition);
+            GUI.color = new Color(0.85f, 0.62f, 0.28f);
+            GUI.DrawTexture(new Rect(r.x - 2f, r.y - 2f, r.width + 4f, r.height + 4f), Texture2D.whiteTexture);
+            GUI.color = hover ? new Color(0.62f, 0.45f, 0.24f) : new Color(0.45f, 0.32f, 0.2f);
+            GUI.DrawTexture(r, Texture2D.whiteTexture);
+            GUI.color = Color.white;
+            return GUI.Button(r, label, style);
         }
 
         private void DrawBorder(float x, float y, float width, float height, Color color, float thickness)

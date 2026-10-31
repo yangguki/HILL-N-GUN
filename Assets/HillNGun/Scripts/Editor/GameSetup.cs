@@ -260,6 +260,9 @@ namespace HillNGun.Editor
                 DATA_PATH + "Bosses",
                 DATA_PATH + "AI",
                 DATA_PATH + "Progression",
+                DATA_PATH + "UI",
+                DATA_PATH + "External",
+                DATA_PATH + "Tutorial",
                 SCENE_PATH
             };
 
@@ -305,6 +308,9 @@ namespace HillNGun.Editor
             CreateBossAsset();
             CreateBotBehaviorAsset();
             CreateProgressionAsset();
+            CreateUIThemeAsset();
+            CreateExternalServicesAsset();
+            CreateTutorialAsset();
             CreateTouchControlsAsset();
         }
 
@@ -658,9 +664,12 @@ namespace HillNGun.Editor
             {
                 new RegionDefinition { id = "dusty_town", nameKey = "region.dusty_town",
                     stageIds = new[] { "dusty_town_1_1", "dusty_town_1_2", "dusty_town_1_3", "dusty_town_boss" },
-                    bossStageId = "dusty_town_boss", nextRegionId = "railroad_canyon" },
-                // FP 220 다음 지역 (스테이지는 프로토타입 범위 밖, 해금 표시만)
-                new RegionDefinition { id = "railroad_canyon", nameKey = "region.railroad_canyon", stageIds = new string[0] },
+                    bossStageId = "dusty_town_boss", nextRegionId = "railroad_canyon", bossNameKey = "pve.boss.rattlesnake_rex", bossBounty = 1000 },
+                // FP 220-228 지역·보스·현상금 표 (철도 협곡부터는 스테이지가 프로토타입 범위 밖, 해금 표시만)
+                new RegionDefinition { id = "railroad_canyon", nameKey = "region.railroad_canyon", stageIds = new string[0], nextRegionId = "silver_mine", bossNameKey = "boss.baron", bossBounty = 2500 },
+                new RegionDefinition { id = "silver_mine", nameKey = "region.silver_mine", stageIds = new string[0], nextRegionId = "border_fort", bossNameKey = "boss.may", bossBounty = 4000 },
+                new RegionDefinition { id = "border_fort", nameKey = "region.border_fort", stageIds = new string[0], nextRegionId = "ghost_town", bossNameKey = "boss.grimshaw", bossBounty = 6000 },
+                new RegionDefinition { id = "ghost_town", nameKey = "region.ghost_town", stageIds = new string[0], bossNameKey = "boss.nameless", bossBounty = 10000 },
             };
             var skins = new System.Collections.Generic.List<SkinDefinition>();
             foreach (var c in new[] { "buster", "raven", "volt" })
@@ -675,6 +684,61 @@ namespace HillNGun.Editor
             }
             p.skins = skins.ToArray();
             EditorUtility.SetDirty(p);
+        }
+
+        /// <summary>Menu theme tokens (05 §5.1).</summary>
+        private static void CreateUIThemeAsset()
+        {
+            var t = CreateOrLoad<UIThemeData>(DATA_PATH + "UI/ui_theme_default.asset");
+            t.referenceHeight = 720f;
+            t.mobileRenderHeight = 720;
+            EditorUtility.SetDirty(t);
+        }
+
+        /// <summary>External-service toggles; everything here is an offline stub (D14).</summary>
+        private static void CreateExternalServicesAsset()
+        {
+            var e = CreateOrLoad<ExternalServicesData>(DATA_PATH + "External/external_services.asset");
+            e.rewardedAdsEnabled = true;
+            e.simulateAdSuccess = true;   // prototype: lets the PvE continue flow be tested without an ad SDK
+            e.simulatedAdSeconds = 1.5f;
+            e.maxContinuesPerRun = 1;
+            e.iapEnabled = false;
+            e.products = new IapProductDefinition[]
+            {
+                // FP 513-517 수익 모델 (결정). 가격은 스토어 SDK가 줌 → 미정
+                new IapProductDefinition { id = "season_pass_premium", nameKey = "shop.product.season_pass", descKey = "shop.product.season_pass.desc", kind = IapProductKind.SeasonPass },
+                new IapProductDefinition { id = "skin_bundle_launch", nameKey = "shop.product.skin_bundle", descKey = "shop.product.skin_bundle.desc", kind = IapProductKind.SkinBundle },
+                new IapProductDefinition { id = "rank_pass", nameKey = "shop.product.rank_pass", descKey = "shop.product.rank_pass.desc", kind = IapProductKind.RankPass },
+            };
+            e.analyticsLocalCsv = true;
+            e.analyticsFileName = "analytics_local.csv";
+            e.onlineMatchmakingEnabled = false;
+            e.useSpineCharacterViews = false;
+            EditorUtility.SetDirty(e);
+        }
+
+        /// <summary>First PvE onboarding steps (FP 202, D13). Each step waits for the action or times out.</summary>
+        private static void CreateTutorialAsset()
+        {
+            var t = CreateOrLoad<TutorialData>(DATA_PATH + "Tutorial/tutorial_default.asset");
+            t.enabled = true;
+            t.stageIndex = 0;
+            t.startDelay = 1.0f;
+            TutorialStep S(string key, TutorialTrigger trig, float min, float max, bool pc = true) =>
+                new TutorialStep { textKey = "tutorial." + key, textKeyDesktop = pc ? "tutorial." + key + ".pc" : null, trigger = trig, minSeconds = min, maxSeconds = max };
+            t.steps = new[]
+            {
+                S("move", TutorialTrigger.Move, 1.5f, 10f),
+                S("row", TutorialTrigger.RowChange, 1.5f, 10f),
+                S("shoot", TutorialTrigger.Shoot, 1.5f, 12f),
+                S("gauge", TutorialTrigger.Timer, 4f, 0f, false),
+                S("roll", TutorialTrigger.Roll, 1.5f, 10f),
+                S("grenade", TutorialTrigger.Grenade, 1.5f, 12f),
+                S("skill", TutorialTrigger.Skill, 1.5f, 12f),
+                S("revive", TutorialTrigger.Timer, 5f, 0f, false),
+            };
+            EditorUtility.SetDirty(t);
         }
 
         private static void CreateBotBehaviorAsset()
@@ -734,8 +798,9 @@ namespace HillNGun.Editor
 
             CreateBasicSceneObjects();
 
-            var modeSelectGO = new GameObject("ModeSelectUI");
-            modeSelectGO.AddComponent<ModeSelectUI>();
+            // Lobby / home hub (홈·스테이지·캐릭터·상점·설정). Scene keeps the ModeSelect name for the flow manager.
+            var lobbyGO = new GameObject("LobbyUI");
+            lobbyGO.AddComponent<LobbyUI>();
 
             var localizationGO = new GameObject("LocalizationManager");
             AssignStringsFile(localizationGO.AddComponent<LocalizationManager>());
@@ -796,6 +861,11 @@ namespace HillNGun.Editor
             var pveHUDGO = new GameObject("PvEHUD");
             pveHUDGO.AddComponent<PvEHUD>();
 
+            var tutorialGO = new GameObject("TutorialOverlay");
+            tutorialGO.AddComponent<TutorialOverlay>();
+
+            CreateMobileTouchControls();
+
             var pauseGO = new GameObject("PauseMenuController");
             pauseGO.AddComponent<PauseMenuController>();
 
@@ -823,10 +893,22 @@ namespace HillNGun.Editor
             var pvpHUDGO = new GameObject("PvPHUD");
             pvpHUDGO.AddComponent<PvPHUD>();
 
+            CreateMobileTouchControls();
+
             var pauseGO = new GameObject("PauseMenuController");
             pauseGO.AddComponent<PauseMenuController>();
 
             EditorSceneManager.SaveScene(scene, SCENE_PATH + "PvP_Match.unity");
+        }
+
+        /// <summary>On-screen joysticks / buttons for touch devices (hidden on desktop). Receiver is set by the match manager.</summary>
+        private static void CreateMobileTouchControls()
+        {
+            var touchControls = AssetDatabase.LoadAssetAtPath<TouchControlsData>(DATA_PATH + "Input/touch_controls.asset");
+            var go = new GameObject("MobileTouchControls");
+            var mtc = go.AddComponent<MobileTouchControls>();
+            if (touchControls != null) SetPrivateField(mtc, "_controlsData", touchControls);
+            else Debug.LogWarning("[GameSetup] touch_controls.asset not found - on-screen controls disabled");
         }
 
         private static void CreateResultScene()
@@ -892,6 +974,9 @@ namespace HillNGun.Editor
             var inputData = AssetDatabase.LoadAssetAtPath<InputData>(DATA_PATH + "Input/input_default.asset");
             var touchControls = AssetDatabase.LoadAssetAtPath<TouchControlsData>(DATA_PATH + "Input/touch_controls.asset");
             var progression = AssetDatabase.LoadAssetAtPath<ProgressionData>(DATA_PATH + "Progression/progression_default.asset");
+            var uiTheme = AssetDatabase.LoadAssetAtPath<UIThemeData>(DATA_PATH + "UI/ui_theme_default.asset");
+            var externalServices = AssetDatabase.LoadAssetAtPath<ExternalServicesData>(DATA_PATH + "External/external_services.asset");
+            var tutorial = AssetDatabase.LoadAssetAtPath<TutorialData>(DATA_PATH + "Tutorial/tutorial_default.asset");
             
             var assetManagerGO = new GameObject("RuntimeAssetManager");
             var assetManager = assetManagerGO.AddComponent<RuntimeAssetManager>();
@@ -911,6 +996,9 @@ namespace HillNGun.Editor
             SetPrivateField(assetManager, "_inputData", inputData);
             SetPrivateField(assetManager, "_touchControlsData", touchControls);
             SetPrivateField(assetManager, "_progression", progression);
+            SetPrivateField(assetManager, "_uiTheme", uiTheme);
+            SetPrivateField(assetManager, "_externalServices", externalServices);
+            SetPrivateField(assetManager, "_tutorial", tutorial);
         }
 
         private static void CreateBattlefieldAndSystems()
@@ -992,6 +1080,8 @@ namespace HillNGun.Editor
         {
             var csv = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/HillNGun/Localization/strings_ko.csv");
             if (loc != null && csv != null) SetPrivateField(loc, "_defaultStringsFile", csv);
+            var en = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/HillNGun/Localization/strings_en.csv");
+            if (loc != null && en != null) SetPrivateField(loc, "_languageFiles", new TextAsset[] { en });
             else Debug.LogWarning("[GameSetup] strings_ko.csv not found - localization uses built-in defaults");
         }
 

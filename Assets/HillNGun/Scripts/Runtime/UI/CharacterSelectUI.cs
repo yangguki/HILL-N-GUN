@@ -410,6 +410,7 @@ namespace HillNGun.UI
             string backText = GetLocalizedString("ui.back", "뒤로");
             if (GUI.Button(new Rect(x, y, buttonWidth, buttonHeight), backText, _backButtonStyle))
             {
+                if (GameFlowManager.Instance?.CurrentSession?.mode == GameMode.PvE) LobbyUI.RequestedTab = LobbyTab.Stages;
                 GameFlowManager.Instance?.GoToModeSelect();
             }
         }

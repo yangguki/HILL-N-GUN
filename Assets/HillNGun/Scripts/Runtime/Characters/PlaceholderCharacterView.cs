@@ -43,12 +43,10 @@ namespace HillNGun.Characters
             if (_bodyRenderer != null)
             {
                 _originalColor = _originalTint;
-                // Equipped skin (offline progression): player team only, placeholder tint
+                // Equipped skin (offline progression): player team only. Placeholder = sprite recolor (SkinRecolor).
                 if (character.Team == Team.Player && character.Data != null)
-                {
-                    Color? skin = HillNGun.Progression.ProgressionService.Instance.GetEquippedTint(character.Data.id);
-                    if (skin.HasValue) _originalColor = skin.Value;
-                }
+                    _skin = HillNGun.Progression.ProgressionService.Instance.GetEquippedSkin(character.Data.id);
+                _bodyRenderer.sprite = Skinned(_bodyRenderer.sprite);
                 _bodyRenderer.color = _originalColor;
             }
 
@@ -102,7 +100,7 @@ namespace HillNGun.Characters
             
             if (_idleSprite != null)
             {
-                _bodyRenderer.sprite = _idleSprite;
+                _bodyRenderer.sprite = Skinned(_idleSprite);
             }
             else
             {
@@ -153,6 +151,9 @@ namespace HillNGun.Characters
         }
 
         private Color _originalTint = Color.white;
+        private HillNGun.Data.SkinDefinition _skin;
+
+        private Sprite Skinned(Sprite s) => _skin != null ? SkinRecolor.Get(s, _skin.tint, _skin.recolorStrength) : s;
         private SpriteRenderer _teamMarker;
 
         private static Sprite _markerSprite;
@@ -368,7 +369,7 @@ namespace HillNGun.Characters
                 case CharacterOverallState.Downed:
                     if (_downedSprite != null)
                     {
-                        _bodyRenderer.sprite = _downedSprite;
+                        _bodyRenderer.sprite = Skinned(_downedSprite);
                         transform.rotation = Quaternion.identity;
                     }
                     else
@@ -387,15 +388,15 @@ namespace HillNGun.Characters
                     
                     if (character.MovementState == MovementState.Rolling && _rollSprite != null)
                     {
-                        _bodyRenderer.sprite = _rollSprite;
+                        _bodyRenderer.sprite = Skinned(_rollSprite);
                     }
                     else if (character.ActionState == ActionState.Firing && _shootSprite != null)
                     {
-                        _bodyRenderer.sprite = _shootSprite;
+                        _bodyRenderer.sprite = Skinned(_shootSprite);
                     }
                     else if (_idleSprite != null)
                     {
-                        _bodyRenderer.sprite = _idleSprite;
+                        _bodyRenderer.sprite = Skinned(_idleSprite);
                     }
                     
                     if (!_isFlashing)

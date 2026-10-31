@@ -152,6 +152,21 @@ namespace HillNGun.Progression
             return list;
         }
 
+        /// <summary>Equipped non-default skin (null = default look).</summary>
+        public SkinDefinition GetEquippedSkin(string characterId)
+        {
+            var c = Data.GetCharacter(characterId, false);
+            if (c == null || string.IsNullOrEmpty(c.equippedSkin)) return null;
+            var s = GetSkin(c.equippedSkin);
+            return s == null || s.unlock == SkinUnlockType.Default ? null : s;
+        }
+
+        public string GetEquippedSkinId(string characterId)
+        {
+            var c = Data.GetCharacter(characterId, false);
+            return c != null && !string.IsNullOrEmpty(c.equippedSkin) ? c.equippedSkin : characterId + "_default";
+        }
+
         /// <summary>Equipped skin tint for a character (null = default look).</summary>
         public Color? GetEquippedTint(string characterId)
         {

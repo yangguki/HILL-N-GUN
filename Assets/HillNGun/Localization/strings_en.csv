@@ -1,0 +1,178 @@
+key,en
+game.subtitle,Wild West squad shooter
+ui.start_game,Start
+ui.select_mode,Lobby
+ui.select_team,Squad
+ui.start_match,Start match
+ui.back,Back
+ui.paused,Paused
+ui.resume,Resume
+ui.restart,Restart
+ui.quit_to_menu,Back to lobby
+ui.quit_to_lobby,Back to lobby
+ui.quit_to_title,Quit to title
+ui.retry,Retry
+ui.to_title,Title
+ui.to_lobby,Lobby
+mode.pve.title,PvE Story
+mode.pve.desc,"Defend Dusty Town!
+3 stages + boss"
+mode.pvp.title,PvP Battle
+mode.pvp.desc,"3v3 elimination vs bots
+Best of 3"
+mode.practice.title,Practice
+mode.practice.desc,"Controls practice
+Targets and cover"
+role.assault,Assault
+role.sniper,Sniper
+role.support,Support
+result.victory,Victory!
+result.defeat,Defeat
+result.draw,Draw
+char.buster.name,Buster
+char.raven.name,Raven
+char.volt.name,Volt
+reward.title,Rewards
+reward.bounty,Bounty
+reward.xp,Badge XP
+reward.badge,Sheriff badge Lv.{0}
+reward.bounty_total,Bounty
+region.dusty_town,Dusty Town
+region.railroad_canyon,Railroad Canyon
+region.silver_mine,Silver Mine
+region.border_fort,Border Fort
+region.ghost_town,Ghost Town
+pve.stage.dusty_town_1,Dusty Town 1-1
+pve.stage.dusty_town_2,Dusty Town 1-2
+pve.stage.dusty_town_3,Dusty Town 1-3
+pve.boss.rattlesnake_rex,Rattlesnake Rex
+boss.baron,Engineer Baron
+boss.may,Dynamite May
+boss.grimshaw,Hanging Judge Grimshaw
+boss.nameless,The Nameless Gunslinger
+lobby.tab.home,Home
+lobby.tab.stages,Stages
+lobby.tab.characters,Characters
+lobby.tab.shop,Shop
+lobby.tab.settings,Settings
+lobby.pve_go,Select stage
+lobby.pvp_go,Battle
+lobby.practice_go,Practice
+lobby.pvp_offline,Offline prototype: 3v3 against bots
+lobby.profile,My record
+lobby.stat.pve_runs,PvE runs
+lobby.stat.boss_kills,Bosses defeated
+lobby.stat.pvp,PvP W/L/D
+lobby.region_progress,Regions
+lobby.locked,Locked
+lobby.locked_paren,(locked)
+lobby.coming_soon,Coming soon
+lobby.no_stats_note,No stat growth: rewards are skins and titles
+stub.online,Online matchmaking / ranks: server needed (stub)
+stub.iap,Real-money store needs IAP SDK (offline stub)
+stub.ads,No ad SDK (stub)
+stage.regions,Regions
+stage.wanted,"Wanted: {0}  ${1:N0}"
+stage.region_locked,Defeat the previous region's boss to unlock
+stage.region_soon,Unlocked! Stages here are outside the prototype scope
+stage.chain_note,A run plays from the chosen stage through the boss
+stage.target_time,Target {0:0}-{1:0}s
+stage.cleared,★ Cleared
+stage.open,Available
+stage.locked,Locked: clear the previous stage
+stage.go,Go
+char.preview,(preview)
+char.mastery,"Mastery Lv.{0}  ""{1}"""
+char.mastery_max,Max mastery
+char.record,{0} matches · {1} wins
+char.kit,Skill {0} · Passive {1}
+char.skins,Skins
+char.skins_note,Cosmetic only · placeholder recolor (final art is external)
+skin.default,Default
+skin.req.purchase,"Buy for ${0:N0} bounty"
+skin.req.boss,Reward for beating the {0} boss
+skin.req.mastery,Reach mastery Lv.{0}
+skin.req.default,Starter
+skin.owned,Owned
+skin.equipped,Equipped
+skin.equip,Equip
+skin.equipped_toast,{0} equipped
+skin.to_shop,Buy in shop
+skin.locked,Locked
+skin.buster.gold,Buster - Golden Spurs
+skin.raven.gold,Raven - Golden Spurs
+skin.volt.gold,Volt - Golden Spurs
+skin.buster.dusty,Buster - Dust Devil
+skin.raven.dusty,Raven - Dust Devil
+skin.volt.dusty,Volt - Dust Devil
+skin.buster.veteran,Buster - Veteran Hunter
+skin.raven.veteran,Raven - Veteran Hunter
+skin.volt.veteran,Volt - Veteran Hunter
+shop.bounty_title,Bounty shop
+shop.bounty_note,Cosmetic only · no stats
+shop.premium_title,Premium
+shop.price_tbd,Price TBD
+shop.iap_ok,Purchased
+shop.iap_offline,Offline prototype: real payments are not supported (stub)
+shop.buy,Buy
+shop.not_enough,Not enough bounty
+shop.bought,{0} purchased!
+shop.product.season_pass,Season pass (premium track)
+shop.product.season_pass.desc,One-month season · western skins, bounty and emotes
+shop.product.skin_bundle,New character skin bundle
+shop.product.skin_bundle.desc,Launch week only · early character + skin (no stats)
+shop.product.rank_pass,Rank pass (later)
+shop.product.rank_pass.desc,Premium pass for ranked play
+settings.sound,Sound
+settings.sound_on,Sound on
+settings.master,Master volume
+settings.music,Music
+settings.sfx,Effects
+settings.feel,Screen & vibration (accessibility)
+settings.vibration,Vibration
+settings.shake,Screen shake
+settings.controls,Controls
+settings.button_size,Button size
+settings.size_s,Small
+settings.size_m,Medium
+settings.size_l,Large
+settings.language,Language
+settings.language_note,Full translation before launch (English is partial)
+settings.misc,Other
+settings.tutorial_replay,Replay tutorial
+settings.tutorial_pending,Tutorial: shows on next PvE 1-1
+settings.tutorial_reset_done,The tutorial will show again on PvE 1-1
+settings.reset_progress,Reset progress
+settings.reset_confirm,Press again to erase all progress
+settings.reset_done,Progress reset
+result.ad_playing,Playing ad... (offline stub)
+result.ad_unavailable,No ad available right now
+result.continue_ad,Watch ad to continue
+result.to_stages,Stages
+result.to_characters,Characters & skins
+stats.match_time,Match time
+stats.kills,Kills
+stats.deaths,Deaths
+stats.damage_dealt,Damage dealt
+stats.damage_taken,Damage taken
+stats.enemies_defeated,Enemies defeated
+stats.rounds,Rounds
+stats.covers_destroyed,Cover destroyed
+stats.round_history,Round history
+tutorial.header,Basics {0}/{1}
+tutorial.good,Nice!
+tutorial.skip,Skip
+tutorial.move,Drag the left joystick sideways to move
+tutorial.move.pc,Move left and right with A / D
+tutorial.row,Push the joystick up or down to change cover row
+tutorial.row.pc,Change cover row with W / S
+tutorial.shoot,Hold the fire button and drag to aim; release to shoot!
+tutorial.shoot.pc,Hold the left mouse button and drag to aim; release to shoot!
+tutorial.gauge,When the ammo gauge empties you reload. Stay behind cover
+tutorial.roll,Roll to dodge bullets (invulnerable while rolling)
+tutorial.roll.pc,Space to roll (invulnerable while rolling)
+tutorial.grenade,Drag the grenade button to throw. Great against cover
+tutorial.grenade.pc,Q or right mouse button throws a grenade
+tutorial.skill,Use your character's skill button
+tutorial.skill.pc,E uses your character's skill
+tutorial.revive,Stand next to a downed ally to revive. Fill the enemy gauge to clear!

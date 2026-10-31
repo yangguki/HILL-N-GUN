@@ -10,10 +10,6 @@ namespace HillNGun.UI
         public bool IsPaused => _isPaused;
 
         private bool _showMenu;
-        private GUIStyle _boxStyle;
-        private GUIStyle _buttonStyle;
-        private GUIStyle _labelStyle;
-        private bool _stylesInitialized;
 
         private LocalizationManager _localization;
 
@@ -52,6 +48,7 @@ namespace HillNGun.UI
         public void Resume()
         {
             if (!_isPaused) return;
+            if (_showSettings) { _settingsView.Flush(); _showSettings = false; }
             _isPaused = false;
             _showMenu = false;
             Time.timeScale = 1f;
@@ -82,91 +79,62 @@ namespace HillNGun.UI
             GameFlowManager.Instance?.GoToModeSelect();
         }
 
-        private void InitStyles()
+        private readonly SettingsView _settingsView = new SettingsView();
+        private bool _showSettings;
+        public bool SettingsOpen => _showSettings;
+
+        public void OpenSettings()
         {
-            if (_stylesInitialized) return;
-
-            _boxStyle = new GUIStyle(GUI.skin.box);
-            _boxStyle.normal.background = MakeTexture(1, 1, new Color(0.1f, 0.1f, 0.1f, 0.9f));
-            _boxStyle.alignment = TextAnchor.MiddleCenter;
-            _boxStyle.padding = new RectOffset(20, 20, 20, 20);
-
-            _buttonStyle = new GUIStyle(GUI.skin.button);
-            _buttonStyle.fontSize = 24;
-            _buttonStyle.fontStyle = FontStyle.Bold;
-            _buttonStyle.normal.textColor = Color.white;
-            _buttonStyle.hover.textColor = new Color(1f, 0.8f, 0.4f);
-            _buttonStyle.normal.background = MakeTexture(1, 1, new Color(0.3f, 0.25f, 0.2f));
-            _buttonStyle.hover.background = MakeTexture(1, 1, new Color(0.5f, 0.4f, 0.3f));
-            _buttonStyle.padding = new RectOffset(20, 20, 15, 15);
-
-            _labelStyle = new GUIStyle(GUI.skin.label);
-            _labelStyle.fontSize = 32;
-            _labelStyle.fontStyle = FontStyle.Bold;
-            _labelStyle.normal.textColor = new Color(1f, 0.9f, 0.7f);
-            _labelStyle.alignment = TextAnchor.MiddleCenter;
-
-            _stylesInitialized = true;
-        }
-
-        private Texture2D MakeTexture(int width, int height, Color color)
-        {
-            Color[] pixels = new Color[width * height];
-            for (int i = 0; i < pixels.Length; i++)
-            {
-                pixels[i] = color;
-            }
-            Texture2D tex = new Texture2D(width, height);
-            tex.SetPixels(pixels);
-            tex.Apply();
-            return tex;
+            if (!_isPaused) Pause();
+            _showSettings = true;
         }
 
         private void OnGUI()
         {
-            if (!_showMenu) return;
-
-            InitStyles();
-
-            float boxWidth = 400f;
-            float boxHeight = 320f;
-            float x = (Screen.width - boxWidth) / 2f;
-            float y = (Screen.height - boxHeight) / 2f;
-
-            GUI.Box(new Rect(x, y, boxWidth, boxHeight), "", _boxStyle);
-
-            string titleText = GetLocalizedString("ui.paused", "일시정지");
-            GUI.Label(new Rect(x, y + 20f, boxWidth, 50f), titleText, _labelStyle);
-
-            float buttonWidth = 280f;
-            float buttonHeight = 50f;
-            float buttonX = x + (boxWidth - buttonWidth) / 2f;
-            float buttonStartY = y + 90f;
-            float buttonSpacing = 60f;
-
-            string resumeText = GetLocalizedString("ui.resume", "재개");
-            if (GUI.Button(new Rect(buttonX, buttonStartY, buttonWidth, buttonHeight), resumeText, _buttonStyle))
+            Vector2 size = UIKit.Begin();
+            GUI.depth = -50;
+            if (!_showMenu)
             {
-                Resume();
+                // Desktop pause button (touch devices use the on-screen "||" of MobileTouchControls)
+                var mobile = ServiceLocator.Get<HillNGun.Input.MobileTouchControls>();
+                if ((mobile == null || !mobile.IsActive) && UIKit.Button(new Rect(size.x - 64f, 56f, 52f, 44f), "II", true, UIKit.ButtonKind.Normal, 22))
+                    Pause();
+                UIKit.End();
+                return;
             }
 
-            string restartText = GetLocalizedString("ui.restart", "재시작");
-            if (GUI.Button(new Rect(buttonX, buttonStartY + buttonSpacing, buttonWidth, buttonHeight), restartText, _buttonStyle))
+            UIKit.Fill(new Rect(0, 0, size.x, size.y), UIKit.Theme.overlay);
+            if (_showSettings)
             {
-                RestartMatch();
+                Rect area = new Rect(size.x / 2f - 520f, 40f, 1040f, size.y - 80f);
+                UIKit.Panel(area);
+                UIKit.Header(new Rect(area.x + 20f, area.y + 8f, 400f, 40f), GetLocalizedString("lobby.tab.settings", "설정"));
+                _settingsView.Draw(new Rect(area.x + 10f, area.y + 52f, area.width - 20f, area.height - 120f));
+                if (Time.unscaledTime < _settingsView.ToastUntil)
+                    UIKit.Label(new Rect(area.x, area.yMax - 108f, area.width, 30f), _settingsView.Toast, UIKit.Theme.fontBody, UIKit.Theme.accent, TextAnchor.MiddleCenter, true);
+                if (UIKit.Button(new Rect(area.x + area.width / 2f - 120f, area.yMax - 62f, 240f, 48f), GetLocalizedString("ui.back", "뒤로"), true, UIKit.ButtonKind.Primary))
+                {
+                    _settingsView.Flush();
+                    _showSettings = false;
+                }
+                UIKit.End();
+                return;
             }
 
-            string quitText = GetLocalizedString("ui.quit_to_menu", "메뉴로 나가기");
-            if (GUI.Button(new Rect(buttonX, buttonStartY + buttonSpacing * 2, buttonWidth, buttonHeight), quitText, _buttonStyle))
-            {
-                QuitToModeSelect();
-            }
+            float boxWidth = 420f;
+            float boxHeight = 420f;
+            float x = (size.x - boxWidth) / 2f;
+            float y = (size.y - boxHeight) / 2f;
+            UIKit.Panel(new Rect(x, y, boxWidth, boxHeight));
+            UIKit.Title(new Rect(x, y + 14f, boxWidth, 50f), GetLocalizedString("ui.paused", "일시정지"));
 
-            string titleQuitText = GetLocalizedString("ui.quit_to_title", "타이틀로 나가기");
-            if (GUI.Button(new Rect(buttonX, buttonStartY + buttonSpacing * 3, buttonWidth, buttonHeight), titleQuitText, _buttonStyle))
-            {
-                QuitToTitle();
-            }
+            float bw = 300f, bh = 52f, bx = x + (boxWidth - bw) / 2f, by = y + 84f, sp = 64f;
+            if (UIKit.Button(new Rect(bx, by, bw, bh), GetLocalizedString("ui.resume", "재개"), true, UIKit.ButtonKind.Primary)) Resume();
+            if (UIKit.Button(new Rect(bx, by + sp, bw, bh), GetLocalizedString("ui.restart", "재시작"))) RestartMatch();
+            if (UIKit.Button(new Rect(bx, by + sp * 2, bw, bh), GetLocalizedString("lobby.tab.settings", "설정"))) _showSettings = true;
+            if (UIKit.Button(new Rect(bx, by + sp * 3, bw, bh), GetLocalizedString("ui.quit_to_lobby", "로비로 나가기"))) QuitToModeSelect();
+            if (UIKit.Button(new Rect(bx, by + sp * 4, bw, bh), GetLocalizedString("ui.quit_to_title", "타이틀로 나가기"))) QuitToTitle();
+            UIKit.End();
         }
 
         private string GetLocalizedString(string key, string fallback)

@@ -10,6 +10,9 @@ using HillNGun.Battlefield;
 using HillNGun.Combat;
 using HillNGun.Cover;
 using HillNGun.Progression;
+using HillNGun.Settings;
+using HillNGun.External;
+using HillNGun.UI;
 using System;
 using System.IO;
 using System.Collections;
@@ -109,6 +112,13 @@ namespace HillNGun.DebugTools
             {
                 // Never touch the player's real save during automated runs.
                 ProgressionService.SaveFileOverride = "smoketest_save.json";
+                SettingsService.SaveFileOverride = "smoketest_settings.json";
+                ExternalServices.AnalyticsFileOverride = "smoketest_analytics.csv";
+                if (!_fullPvE && !_fullPvP)
+                {
+                    // regular smoke: start with fresh settings so the first-PvE tutorial shows
+                    try { File.Delete(Path.Combine(Application.persistentDataPath, "smoketest_settings.json")); } catch { }
+                }
                 var go = new GameObject("[SmokeTestRunner]");
                 _instance = go.AddComponent<SmokeTestRunner>();
                 DontDestroyOnLoad(go);
@@ -281,29 +291,72 @@ namespace HillNGun.DebugTools
             }
         }
 
+        private int _lobbyStep;
+        private float _lobbyStepTime;
+
         private void UpdateModeSelect()
         {
             _autopilotTimer += Time.deltaTime;
-            
-            if (!_phaseScreenshotTaken && _autopilotTimer > 0.5f)
+            var lobby = FindFirstObjectByType<LobbyUI>();
+            if (lobby == null) return;
+
+            if (_fullPvE || _fullPvP)
             {
-                _phaseScreenshotTaken = true;
-                StartCoroutine(TakeScreenshotDelayed("mode_select"));
-            }
-            
-            if (_autopilotTimer > 2f)
-            {
+                if (_autopilotTimer < 1.5f) return;
                 if (_fullPvP)
                 {
-                    Debug.Log("[SmokeTest] Selecting PvP mode (full PvP run)");
-                    GameFlowManager.Instance?.GoToCharacterSelect(GameMode.PvP);
+                    Debug.Log("[SmokeTest] Lobby -> PvP (full PvP run)");
+                    lobby.StartPvP();
                     SetPhase(SmokeTestPhase.PvPCharacterSelect);
-                    return;
                 }
-                Debug.Log("[SmokeTest] Selecting PvE mode");
-                GameFlowManager.Instance?.GoToCharacterSelect(GameMode.PvE);
-                SetPhase(SmokeTestPhase.CharacterSelect);
+                else
+                {
+                    Debug.Log("[SmokeTest] Lobby -> stage 1-1");
+                    lobby.StartPvE(0);
+                    SetPhase(SmokeTestPhase.CharacterSelect);
+                }
+                return;
             }
+
+            // Regular smoke: tour the lobby tabs with a screenshot each, then start PvE from the stage tab.
+            if (_autopilotTimer - _lobbyStepTime < 1.0f) return;
+            _lobbyStepTime = _autopilotTimer;
+            switch (_lobbyStep++)
+            {
+                case 0: lobby.SetTab(LobbyTab.Home); break;
+                case 1: StartCoroutine(TakeScreenshotDelayed("lobby_home")); break;
+                case 2: lobby.SetTab(LobbyTab.Stages); break;
+                case 3: StartCoroutine(TakeScreenshotDelayed("lobby_stages")); break;
+                case 4: lobby.SetTab(LobbyTab.Characters); break;
+                case 5: StartCoroutine(TakeScreenshotDelayed("lobby_characters")); break;
+                case 6: lobby.SetTab(LobbyTab.Shop); break;
+                case 7: StartCoroutine(TakeScreenshotDelayed("lobby_shop")); break;
+                case 8: lobby.SetTab(LobbyTab.Settings); break;
+                case 9: StartCoroutine(TakeScreenshotDelayed("lobby_settings")); break;
+                case 10:
+                    var d = ProgressionService.Instance.Data;
+                    Debug.Log($"[SmokeTest] Lobby tour done (bounty={d.bounty} badge={d.badgeLevel} regions={string.Join(",", d.unlockedRegions)}) -> stage 1-1");
+                    lobby.StartPvE(0);
+                    SetPhase(SmokeTestPhase.CharacterSelect);
+                    break;
+            }
+        }
+
+        private bool _tutorialShot;
+        private bool _pauseShot;
+
+        private IEnumerator PauseSettingsShot()
+        {
+            var pause = FindFirstObjectByType<PauseMenuController>();
+            if (pause == null) yield break;
+            pause.Pause();
+            yield return new WaitForSecondsRealtime(0.4f);
+            yield return TakeScreenshotDelayed("pause_menu");
+            pause.OpenSettings();
+            yield return new WaitForSecondsRealtime(0.4f);
+            yield return TakeScreenshotDelayed("pause_settings");
+            pause.Resume();
+            Debug.Log("[SmokeTest] Pause menu + settings opened and resumed");
         }
 
         private void UpdateCharacterSelect()
@@ -463,6 +516,19 @@ namespace HillNGun.DebugTools
             _autopilotTimer += Time.deltaTime;
             
             RunAutopilot();
+
+            var tut = FindFirstObjectByType<TutorialOverlay>();
+            if (!_tutorialShot && tut != null && tut.IsActive && tut.StepIndex >= 0)
+            {
+                _tutorialShot = true;
+                Debug.Log($"[SmokeTest] Tutorial active step {tut.StepIndex + 1}/{tut.StepCount}");
+                StartCoroutine(TakeScreenshotDelayed("tutorial_overlay"));
+            }
+            if (!_pauseShot && _matchTimer > 12f)
+            {
+                _pauseShot = true;
+                StartCoroutine(PauseSettingsShot());
+            }
             
             if (_matchTimer - _lastScreenshotTime >= 5f)
             {

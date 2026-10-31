@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -84,6 +85,8 @@ namespace HillNGun.Core
                 GameMode.Practice => SCENE_PRACTICE,
                 _ => SCENE_PRACTICE
             };
+            HillNGun.External.ExternalServices.Log("match_start", new Dictionary<string, object>
+                { { "mode", _currentSession.mode }, { "start_stage", _currentSession.startStageIndex }, { "chars", string.Join("|", _currentSession.selectedCharacterIds ?? new string[0]) } });
             LoadScene(sceneName, GamePhase.Match);
         }
 
@@ -93,6 +96,8 @@ namespace HillNGun.Core
         public void EndMatch(MatchResult result)
         {
             _currentSession.result = result;
+            HillNGun.External.ExternalServices.Log("match_end", new Dictionary<string, object>
+                { { "mode", _currentSession.mode }, { "result", result }, { "time", _currentSession.matchTime.ToString("F1") }, { "kills", _currentSession.playerKills } });
             if (!_currentSession.rewardsGranted && RewardGranter != null)
             {
                 try { _currentSession.rewards = RewardGranter(_currentSession); }

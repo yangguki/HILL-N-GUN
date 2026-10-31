@@ -14,6 +14,7 @@ namespace HillNGun.UI
 
         private void Awake()
         {
+            _currentLanguage = HillNGun.Settings.SettingsService.Instance.Data.language ?? "ko";
             LoadStrings();
             ServiceLocator.Register(this);
         }
@@ -22,6 +23,11 @@ namespace HillNGun.UI
         {
             ServiceLocator.Unregister<LocalizationManager>();
         }
+
+        [Tooltip("Extra language tables named strings_<code>.csv. Missing keys fall back to Korean (base).")]
+        [SerializeField] private TextAsset[] _languageFiles;
+
+        public string CurrentLanguage => _currentLanguage;
 
         public void LoadStrings()
         {
@@ -44,33 +50,50 @@ namespace HillNGun.UI
                     LoadDefaultStrings();
                 }
             }
+
+            if (_currentLanguage != "ko" && _languageFiles != null)
+            {
+                foreach (var f in _languageFiles)
+                    if (f != null && f.name == "strings_" + _currentLanguage) ParseCsv(f.text);
+            }
         }
 
+        /// <summary>RFC-4180-ish CSV: key,value with quoted values that may contain commas, "" and newlines.</summary>
         private void ParseCsv(string csvContent)
         {
-            string[] lines = csvContent.Split('\n');
-            
-            for (int i = 1; i < lines.Length; i++)
+            var rows = new List<List<string>>();
+            var row = new List<string>();
+            var field = new System.Text.StringBuilder();
+            bool inQuotes = false;
+            for (int i = 0; i < csvContent.Length; i++)
             {
-                string line = lines[i].Trim();
-                if (string.IsNullOrEmpty(line)) continue;
-
-                int firstComma = line.IndexOf(',');
-                if (firstComma < 0) continue;
-
-                string key = line.Substring(0, firstComma).Trim();
-                string value = line.Substring(firstComma + 1).Trim();
-
-                if (value.StartsWith("\"") && value.EndsWith("\""))
+                char ch = csvContent[i];
+                if (inQuotes)
                 {
-                    value = value.Substring(1, value.Length - 2);
-                    value = value.Replace("\"\"", "\"");
+                    if (ch == '"')
+                    {
+                        if (i + 1 < csvContent.Length && csvContent[i + 1] == '"') { field.Append('"'); i++; }
+                        else inQuotes = false;
+                    }
+                    else field.Append(ch);
                 }
+                else if (ch == '"') inQuotes = true;
+                else if (ch == ',') { row.Add(field.ToString()); field.Clear(); }
+                else if (ch == '\r') { }
+                else if (ch == '\n') { row.Add(field.ToString()); field.Clear(); rows.Add(row); row = new List<string>(); }
+                else field.Append(ch);
+            }
+            if (field.Length > 0 || row.Count > 0) { row.Add(field.ToString()); rows.Add(row); }
 
-                if (!string.IsNullOrEmpty(key))
-                {
-                    _strings[key] = value;
-                }
+            for (int r = 1; r < rows.Count; r++) // row 0 = header
+            {
+                var cols = rows[r];
+                if (cols.Count < 2) continue;
+                string key = cols[0].Trim();
+                if (string.IsNullOrEmpty(key) || key.StartsWith("#")) continue;
+                string value = cols[1];
+                for (int c = 2; c < cols.Count; c++) value += "," + cols[c]; // unquoted commas
+                _strings[key] = value.Trim().Replace("\\n", "\n");
             }
         }
 
@@ -112,6 +135,7 @@ namespace HillNGun.UI
 
         public void SetLanguage(string languageCode)
         {
+            if (string.IsNullOrEmpty(languageCode) || languageCode == _currentLanguage) return;
             _currentLanguage = languageCode;
             LoadStrings();
         }

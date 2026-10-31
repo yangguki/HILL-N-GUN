@@ -24,6 +24,9 @@ namespace HillNGun.Core
         [SerializeField] private InputData _inputData;
         [SerializeField] private TouchControlsData _touchControlsData;
         [SerializeField] private ProgressionData _progression;
+        [SerializeField] private UIThemeData _uiTheme;
+        [SerializeField] private ExternalServicesData _externalServices;
+        [SerializeField] private TutorialData _tutorial;
 
         public SpriteLibrary SpriteLibrary => _spriteLibrary;
         public AudioLibrary AudioLibrary => _audioLibrary;
@@ -40,6 +43,9 @@ namespace HillNGun.Core
         public InputData InputData => _inputData;
         public TouchControlsData TouchControlsData => _touchControlsData;
         public ProgressionData Progression => _progression;
+        public UIThemeData UITheme => _uiTheme;
+        public ExternalServicesData ExternalServices => _externalServices;
+        public TutorialData Tutorial => _tutorial;
 
         private void Awake()
         {
@@ -76,6 +82,12 @@ namespace HillNGun.Core
                 ServiceLocator.Register(_botBehavior);
             if (_progression != null)
                 ServiceLocator.Register(_progression);
+            if (_uiTheme != null)
+                ServiceLocator.Register(_uiTheme);
+            if (_externalServices != null)
+                ServiceLocator.Register(_externalServices);
+            if (_tutorial != null)
+                ServiceLocator.Register(_tutorial);
 
             ServiceLocator.Register(this);
             Debug.Log("[RuntimeAssetManager] Services registered");

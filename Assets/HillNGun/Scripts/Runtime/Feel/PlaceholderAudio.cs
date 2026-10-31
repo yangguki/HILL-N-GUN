@@ -26,6 +26,23 @@ namespace HillNGun.Feel
             set => _soundEnabled = value;
         }
 
+        private float _musicVolume = 1f;
+        private float _sfxVolume = 1f;
+
+        /// <summary>Player setting (SettingsService). Multiplies BGM on top of master.</summary>
+        public float MusicVolume
+        {
+            get => _musicVolume;
+            set { _musicVolume = Mathf.Clamp01(value); UpdateBGMVolume(); }
+        }
+
+        /// <summary>Player setting (SettingsService). Multiplies effects on top of master.</summary>
+        public float SfxVolume
+        {
+            get => _sfxVolume;
+            set => _sfxVolume = Mathf.Clamp01(value);
+        }
+
         public float MasterVolume
         {
             get => _masterVolume;
@@ -477,9 +494,9 @@ namespace HillNGun.Feel
         {
             if (_useLibrary)
             {
-                return _masterVolume * _audioLibrary.bgmVolume;
+                return _masterVolume * _musicVolume * _audioLibrary.bgmVolume;
             }
-            return _masterVolume * 0.5f;
+            return _masterVolume * _musicVolume * 0.5f;
         }
 
         private void UpdateBGMVolume()
@@ -494,7 +511,7 @@ namespace HillNGun.Feel
         {
             if (!_soundEnabled || clip == null) return;
 
-            float vol = _useLibrary ? _masterVolume * _audioLibrary.sfxVolume : _masterVolume;
+            float vol = (_useLibrary ? _masterVolume * _audioLibrary.sfxVolume : _masterVolume) * _sfxVolume;
             _sfxSource.PlayOneShot(clip, vol * volumeMultiplier);
         }
 
@@ -503,7 +520,7 @@ namespace HillNGun.Feel
             if (!_soundEnabled) return;
             if (!_clipCache.TryGetValue(clipName, out AudioClip clip)) return;
 
-            _sfxSource.PlayOneShot(clip, _masterVolume * volumeMultiplier);
+            _sfxSource.PlayOneShot(clip, _masterVolume * _sfxVolume * volumeMultiplier);
         }
     }
 }
