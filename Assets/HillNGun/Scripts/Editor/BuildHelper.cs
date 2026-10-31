@@ -118,6 +118,10 @@ namespace HillNGun.Editor
 
         private static void ConfigureAndroidSettings()
         {
+            PlayerSettings.companyName = "yangguki";
+            PlayerSettings.productName = "HillNGun";
+            PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android, "com.yangguki.hillngun");
+
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
             PlayerSettings.allowedAutorotateToPortrait = false;
             PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
@@ -127,7 +131,27 @@ namespace HillNGun.Editor
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel24;
             PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevelAuto;
 
+            PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+
+            PlayerSettings.Android.useCustomKeystore = false;
+
+            Application.targetFrameRate = 60;
+
             EditorUserBuildSettings.buildAppBundle = false;
+        }
+
+        [MenuItem("HillNGun/Build/Configure Android Settings", false, 115)]
+        public static void ConfigureAndroidSettingsMenu()
+        {
+            ConfigureAndroidSettings();
+            Debug.Log("[BuildHelper] Android settings configured:");
+            Debug.Log($"  Company: {PlayerSettings.companyName}");
+            Debug.Log($"  Product: {PlayerSettings.productName}");
+            Debug.Log($"  Bundle ID: {PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android)}");
+            Debug.Log($"  Min SDK: API {(int)PlayerSettings.Android.minSdkVersion}");
+            Debug.Log($"  Scripting: IL2CPP, ARM64");
+            EditorUtility.DisplayDialog("Android 설정", "Android 빌드 설정이 완료되었습니다.", "확인");
         }
 
         public static void BuildFromCommandLine()

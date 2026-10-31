@@ -285,6 +285,31 @@ namespace HillNGun.Editor
             CreateStageAssets();
             CreateBossAsset();
             CreateBotBehaviorAsset();
+            CreateTouchControlsAsset();
+        }
+
+        private static void CreateTouchControlsAsset()
+        {
+            var touchControls = CreateOrLoad<TouchControlsData>(DATA_PATH + "Input/touch_controls.asset");
+            touchControls.moveJoystickAnchor = new Vector2(0.15f, 0.25f);
+            touchControls.moveJoystickSize = 150f;
+            touchControls.moveKnobSize = 60f;
+            touchControls.moveDeadzone = 0.1f;
+            touchControls.aimJoystickAnchor = new Vector2(0.85f, 0.25f);
+            touchControls.aimJoystickSize = 150f;
+            touchControls.aimKnobSize = 60f;
+            touchControls.aimDeadzone = 0.15f;
+            touchControls.rollButtonAnchor = new Vector2(0.25f, 0.55f);
+            touchControls.rollButtonSize = 70f;
+            touchControls.grenadeButtonAnchor = new Vector2(0.35f, 0.45f);
+            touchControls.grenadeButtonSize = 70f;
+            touchControls.skillButtonAnchor = new Vector2(0.75f, 0.55f);
+            touchControls.skillButtonSize = 80f;
+            touchControls.pauseButtonAnchor = new Vector2(0.5f, 0.95f);
+            touchControls.pauseButtonSize = 50f;
+            touchControls.opacity = 0.6f;
+            touchControls.safeAreaPadding = 20f;
+            EditorUtility.SetDirty(touchControls);
         }
 
         private static void CreateEnemyAssets()
@@ -811,6 +836,24 @@ namespace HillNGun.Editor
                 AssetDatabase.CreateAsset(asset, path);
             }
             return asset;
+        }
+
+        private static void CreateOrReplaceAsset(Object asset, string path)
+        {
+            string directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                CreateFolderRecursive(directory);
+            }
+
+            Object existing = AssetDatabase.LoadAssetAtPath<Object>(path);
+            if (existing != null)
+            {
+                AssetDatabase.DeleteAsset(path);
+            }
+
+            AssetDatabase.CreateAsset(asset, path);
+            AssetDatabase.SaveAssets();
         }
 
         private static void SetPrivateField(object obj, string fieldName, object value)

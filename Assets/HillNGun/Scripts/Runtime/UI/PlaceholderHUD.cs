@@ -2,6 +2,7 @@ using UnityEngine;
 using HillNGun.Core;
 using HillNGun.Characters;
 using HillNGun.Combat;
+using HillNGun.Input;
 
 namespace HillNGun.UI
 {
@@ -16,6 +17,8 @@ namespace HillNGun.UI
         private int _hitCount;
         private int _totalDamage;
         private float _reloadFlash;
+        private Rect _safeArea;
+        private bool _isTouchDevice;
 
         public int HitCount => _hitCount;
         public int TotalDamage => _totalDamage;
@@ -112,10 +115,21 @@ namespace HillNGun.UI
             return tex;
         }
 
+        private void Start()
+        {
+#if UNITY_ANDROID || UNITY_IOS
+            _isTouchDevice = true;
+#else
+            _isTouchDevice = UnityEngine.InputSystem.Touchscreen.current != null;
+#endif
+        }
+
         private void Update()
         {
             if (_character?.AmmoGauge?.IsEmpty == true)
                 _reloadFlash += Time.deltaTime * 6f;
+
+            _safeArea = Screen.safeArea;
         }
 
         private void OnGUI()
@@ -126,17 +140,22 @@ namespace HillNGun.UI
             DrawTopBar();
             DrawAmmoGauge();
             DrawAbilities();
-            DrawVirtualControls();
+            
+            if (!_isTouchDevice)
+            {
+                DrawVirtualControls();
+                DrawHints();
+            }
+            
             DrawScore();
-            DrawHints();
         }
 
         private void DrawTopBar()
         {
             float panelW = 280;
             float panelH = 70;
-            float x = (Screen.width - panelW) / 2;
-            float y = 8;
+            float x = _safeArea.x + (_safeArea.width - panelW) / 2;
+            float y = _safeArea.y + 8;
 
             GUI.DrawTexture(new Rect(x, y, panelW, panelH), _roundedBox, ScaleMode.StretchToFill);
 
