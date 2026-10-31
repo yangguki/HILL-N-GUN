@@ -16,11 +16,16 @@ namespace HillNGun.View3D
         private static Material _material;
         private Camera _main, _overlay;
 
+        /// <summary>The overlay camera drawing the 3D layer (null when 3D is off / no match scene).</summary>
+        public static Camera OverlayCamera => _instance != null ? _instance._overlay : null;
+
         public static Actor3DData Data => ServiceLocator.Get<Actor3DData>() ?? Actor3DData.Fallback;
         public static Actor3DAnimData Anim => ServiceLocator.Get<Actor3DAnimData>() ?? Actor3DAnimData.Fallback;
 
         /// <summary>True when the 3D actor view is switched on and the toon shader is available.</summary>
-        public static bool Enabled => Data.useActor3D && Material != null;
+        /// <summary>Command-line override (-no3d) forcing the 2D sprite fallback (perf A/B and fallback checks).</summary>
+        public static readonly bool ForceOff = System.Array.Exists(System.Environment.GetCommandLineArgs(), a => a == "-no3d");
+        public static bool Enabled => !ForceOff && Data.useActor3D && Material != null;
 
         public static Material Material
         {

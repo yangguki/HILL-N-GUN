@@ -117,6 +117,15 @@ namespace HillNGun.Data
         public Color pvpOpponentTint = new Color(1f, 0.88f, 0.84f);
         public Color defeatedTint = new Color(0.62f, 0.62f, 0.62f);
 
+        [Header("Cover props")]
+        [Tooltip("엄폐물을 3D 소품으로 표시 (끄면 2D 스프라이트)")]
+        public bool useCover3D = true;
+        [Tooltip("엄폐물 3D 크기 배율 (1 = 로직 폭과 같음)")]
+        public float coverScale = 1.0f;
+        [Tooltip("엄폐물 바닥 위치 (로직 위치 기준 아래로, 타일)")]
+        public float coverFootOffset = 0.35f;
+        public CoverPalette coverPalette = new CoverPalette();
+
         [Header("Labels")]
         [Tooltip("이름표/경고 높이 (발 기준, 모델 단위)")]
         public float labelHeight = 2.25f;
@@ -148,5 +157,20 @@ namespace HillNGun.Data
                 return _fallback;
             }
         }
+    }
+
+    /// <summary>Cover prop colours (data).</summary>
+    [System.Serializable]
+    public class CoverPalette
+    {
+        public Color wood = new Color(0.66f, 0.45f, 0.25f);
+        public Color woodDark = new Color(0.43f, 0.27f, 0.15f);
+        public Color door = new Color(0.74f, 0.52f, 0.30f);
+        public Color metal = new Color(0.38f, 0.38f, 0.42f);
+        public Color water = new Color(0.32f, 0.58f, 0.78f);
+        public Color sack = new Color(0.86f, 0.78f, 0.60f);
+        public Color crack = new Color(0.16f, 0.10f, 0.07f);
+        public Color dust = new Color(0.62f, 0.50f, 0.36f);
+        public static readonly CoverPalette Default = new CoverPalette();
     }
 }

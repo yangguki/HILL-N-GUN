@@ -68,7 +68,7 @@ namespace HillNGun.View3D
 
         public void SetVisible(bool v)
         {
-            if (Visible == v) return;
+            if (Visible == v || Rig.Root == null) return;
             Visible = v;
             Rig.Root.gameObject.SetActive(v);
         }

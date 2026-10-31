@@ -2,6 +2,8 @@ using UnityEngine;
 using HillNGun.Core;
 using HillNGun.Data;
 using HillNGun.Battlefield;
+using HillNGun.View3D;
+using HillNGun.Feel;
 
 namespace HillNGun.Cover
 {
@@ -12,6 +14,9 @@ namespace HillNGun.Cover
         private SpriteRenderer _renderer;
         private CoverSprites _sprites;
         private float _baseScale = 1f;
+        private CoverProp3D _prop3D;
+        private CoverStage _lastStage;
+        public CoverProp3D Prop3D => _prop3D;
 
         public CoverInstance Cover => _cover;
         public SpriteRenderer Renderer => _renderer;
@@ -36,6 +41,16 @@ namespace HillNGun.Cover
             FieldView.Place(transform, cover.Position, _baseScale);
             FieldView.ApplySorting(_renderer, cover.Position.y);
 
+            if (Actor3DStage.Enabled && Actor3DStage.Data.useCover3D)
+            {
+                Actor3DStage.Ensure();
+                _prop3D = new CoverProp3D(cover.Data.id, cover.Data.width, Actor3DStage.Data.actorLayer, Actor3DStage.Material);
+                _prop3D.SetStage(cover.Stage);
+                _lastStage = cover.Stage;
+                _renderer.enabled = false;
+                Place3D(0f);
+            }
+
             cover.OnStageChanged += HandleStageChanged;
             cover.OnDamaged += HandleDamaged;
         }
@@ -43,10 +58,31 @@ namespace HillNGun.Cover
         private void HandleStageChanged(CoverInstance c, CoverStage stage)
         {
             Refresh();
+            if (_prop3D != null)
+            {
+                _prop3D.Hit(0.5f, 1f);
+                var fx = MotionFx.Instance;
+                if (fx != null && stage > _lastStage) fx.Dust(Base3D(), Vector2.up, stage == CoverStage.Destroyed ? 8 : 4, 1.2f, FieldView.DepthOrder(c.Position.y) + 1);
+                _lastStage = stage;
+            }
+        }
+
+        private Vector3 Base3D()
+        {
+            var w = FieldView.ToWorld(_cover.Position);
+            float s = FieldView.PerspectiveScale(_cover.Position.y);
+            return new Vector3(w.x, w.y - Actor3DStage.Data.coverFootOffset * s, 0f);
+        }
+
+        private void Place3D(float dt)
+        {
+            float s = FieldView.PerspectiveScale(_cover.Position.y) * Actor3DStage.Data.coverScale;
+            _prop3D.Place(Base3D(), s, _cover.Position.y, dt);
         }
 
         private void HandleDamaged(CoverInstance c, int dmg)
         {
+            if (_prop3D != null) { _prop3D.Hit(0.45f, 0.35f); return; }
             if (_renderer != null) StartCoroutine(Flash());
         }
 
@@ -61,6 +97,12 @@ namespace HillNGun.Cover
         {
             // Covers can be reset between rounds; keep visuals in sync cheaply
             if (_cover != null && Time.frameCount % 15 == 0) Refresh();
+            if (_prop3D != null && _cover != null)
+            {
+                _prop3D.SetStage(_cover.Stage);
+                if (_cover.Stage < _lastStage) _lastStage = _cover.Stage; // round reset / repair
+                Place3D(Time.deltaTime);
+            }
         }
 
         private void Refresh()
@@ -69,6 +111,7 @@ namespace HillNGun.Cover
             Sprite s = _sprites?.GetSpriteForStage(_cover.Stage);
             if (s != null) _renderer.sprite = s;
             _renderer.color = _cover.IsDestroyed ? new Color(1f, 1f, 1f, 0.45f) : Color.white;
+            if (_prop3D != null) { _renderer.enabled = false; _prop3D.SetStage(_cover.Stage); }
         }
 
         private Sprite CreateFallbackSprite()
@@ -85,8 +128,13 @@ namespace HillNGun.Cover
             return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 32f);
         }
 
+        private void OnEnable() { _prop3D?.SetVisible(true); }
+        private void OnDisable() { _prop3D?.SetVisible(false); }
+
         private void OnDestroy()
         {
+            _prop3D?.Destroy();
+            _prop3D = null;
             if (_cover != null)
             {
                 _cover.OnStageChanged -= HandleStageChanged;
