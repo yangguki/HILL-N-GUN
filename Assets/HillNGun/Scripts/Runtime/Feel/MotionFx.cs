@@ -281,8 +281,10 @@ namespace HillNGun.Feel
             shadowGo.transform.localScale = new Vector3(shadowSize.x, shadowSize.y, 1f);
             Shadow = shadowGo.AddComponent<SpriteRenderer>();
             Shadow.sprite = MotionFx.ShadowSprite;
-            Shadow.color = d.shadowColor;
-            _shadowAlpha = d.shadowColor.a;
+            // one shadow tone per stage theme for characters, props and decor
+            var sc = HillNGun.Scenery.ThemeContext.GroundShadowOr(d.shadowColor);
+            Shadow.color = sc;
+            _shadowAlpha = sc.a;
 
             Pivot = new GameObject("BodyPivot").transform;
             Pivot.SetParent(root, false);
@@ -377,7 +379,7 @@ namespace HillNGun.Feel
             float lift = bob + hop;
             float k = Mathf.Clamp(1f - d.shadowShrinkPerUnit * lift, 0.5f, 1f);
             Shadow.transform.localScale = new Vector3(_shadowSize.x * k, _shadowSize.y * k, 1f);
-            var c = d.shadowColor; c.a = _shadowAlpha * Mathf.Lerp(0.6f, 1f, k);
+            var c = HillNGun.Scenery.ThemeContext.GroundShadowOr(d.shadowColor); c.a = c.a * Mathf.Lerp(0.6f, 1f, k);
             Shadow.color = c;
             Shadow.sortingOrder = HillNGun.Battlefield.FieldView.GroundDecalOrder - 1;
         }

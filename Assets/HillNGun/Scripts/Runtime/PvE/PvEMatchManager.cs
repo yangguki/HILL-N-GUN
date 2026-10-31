@@ -85,6 +85,7 @@ namespace HillNGun.PvE
         public int CurrentStageIndex => _currentStageIndex;
         public int StageCount => _stages?.Length ?? 0;
         public string CurrentStageId => _currentStage?.id;
+        public StageData CurrentStage => _currentStage;
         public int CurrentGauge => _currentGauge;
         public int GaugeMax => _currentStage?.gaugeMax ?? 20;
         public int CurrentWave => _currentWave;

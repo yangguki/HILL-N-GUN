@@ -50,7 +50,7 @@ namespace HillNGun.View3D
             var d = Data;
             Shader.SetGlobalVector("_HNG_LightDir", d.lightDirection.normalized);
             Shader.SetGlobalVector("_HNG_ToonParams", new Vector4(d.shadowBrightness, d.rimStrength, d.bandSoftness, d.highlight));
-            Shader.SetGlobalColor("_HNG_ShadowColor", d.shadowColor);
+            Shader.SetGlobalColor("_HNG_ShadowColor", HillNGun.Scenery.ThemeContext.ToonShadeOr(d.shadowColor));
             Shader.SetGlobalColor("_HNG_OutlineColor", d.outlineColor);
             Shader.SetGlobalFloat("_HNG_OutlineWidth", outlineWidth);
         }

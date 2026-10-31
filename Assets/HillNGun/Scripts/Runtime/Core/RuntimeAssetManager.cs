@@ -31,6 +31,7 @@ namespace HillNGun.Core
         [SerializeField] private MotionViewData _motionView;
         [SerializeField] private Actor3DData _actor3D;
         [SerializeField] private Actor3DAnimData _actor3DAnim;
+        [SerializeField] private StageThemeLibrary _stageThemes;
 
         public SpriteLibrary SpriteLibrary => _spriteLibrary;
         public AudioLibrary AudioLibrary => _audioLibrary;
@@ -54,6 +55,7 @@ namespace HillNGun.Core
         public MotionViewData MotionView => _motionView;
         public Actor3DData Actor3D => _actor3D;
         public Actor3DAnimData Actor3DAnim => _actor3DAnim;
+        public StageThemeLibrary StageThemes => _stageThemes;
 
         private void Awake()
         {

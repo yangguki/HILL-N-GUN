@@ -66,6 +66,8 @@ namespace HillNGun.UI
 
         public static void Background()
         {
+            // baked Western panorama (dusk frontier town) under a light dim so panels stay readable
+            if (HillNGun.Scenery.MenuBackdrop.Draw(new Rect(0, 0, Width, Height), null, 0.22f)) return;
             Fill(new Rect(0, 0, Width, Height), Theme.background);
             // subtle plank stripes (placeholder wood texture, self-made)
             for (float y = 0; y < Height; y += 48f) Fill(new Rect(0, y, Width, 2f), Theme.backgroundStripe);

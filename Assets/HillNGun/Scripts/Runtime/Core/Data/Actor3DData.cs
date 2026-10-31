@@ -171,6 +171,11 @@ namespace HillNGun.Data
         public Color sack = new Color(0.86f, 0.78f, 0.60f);
         public Color crack = new Color(0.16f, 0.10f, 0.07f);
         public Color dust = new Color(0.62f, 0.50f, 0.36f);
+        public Color hay = new Color(0.93f, 0.74f, 0.32f);
+        public Color hayDark = new Color(0.66f, 0.46f, 0.18f);
+        public Color twine = new Color(0.42f, 0.30f, 0.18f);
+        public Color stone = new Color(0.74f, 0.52f, 0.38f);
+        public Color stoneDark = new Color(0.50f, 0.34f, 0.25f);
         public static readonly CoverPalette Default = new CoverPalette();
     }
 }

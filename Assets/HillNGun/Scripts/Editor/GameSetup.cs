@@ -362,6 +362,7 @@ namespace HillNGun.Editor
             CreateEnemyAssets();
             CreateStageAssets();
             CreateBossAsset();
+            StageThemeSetup.CreateThemes();
             CreateBotBehaviorAsset();
             CreateProgressionAsset();
             CreateUIThemeAsset();
@@ -1121,6 +1122,7 @@ namespace HillNGun.Editor
             SetPrivateField(assetManager, "_motionView", motionView);
             SetPrivateField(assetManager, "_actor3D", actor3D);
             SetPrivateField(assetManager, "_actor3DAnim", actor3DAnim);
+            SetPrivateField(assetManager, "_stageThemes", AssetDatabase.LoadAssetAtPath<StageThemeLibrary>(StageThemeSetup.LIBRARY_PATH));
         }
 
         private static void CreateBattlefieldAndSystems()

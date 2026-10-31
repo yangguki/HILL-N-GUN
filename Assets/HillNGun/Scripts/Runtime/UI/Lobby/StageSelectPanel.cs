@@ -89,6 +89,16 @@ namespace HillNGun.UI
             bool unlocked = sd != null && p.IsStageUnlocked(stages, globalIndex);
             UIKit.Fill(r, unlocked ? (isBoss ? new Color(0.42f, 0.2f, 0.16f) : t.panelDark) : t.locked);
             UIKit.Border(r, cleared ? t.good : unlocked ? t.accent : new Color(0, 0, 0, 0.4f), 2f);
+            var theme = HillNGun.Scenery.MenuBackdrop.ThemeFor(sd);
+            var thumb = HillNGun.Scenery.MenuBackdrop.Thumb(theme);
+            if (isBoss && thumb != null && Event.current.type == EventType.Repaint)
+            {
+                // boss card: the sunset showdown backdrop behind the card content
+                var inner = new Rect(r.x + 2f, r.y + 2f, r.width - 4f, r.height - 4f);
+                GUI.color = new Color(1f, 1f, 1f, unlocked ? 0.45f : 0.2f);
+                GUI.DrawTexture(inner, thumb, ScaleMode.ScaleAndCrop, false);
+                GUI.color = Color.white;
+            }
 
             string num = sd == null ? "?" : isBoss ? "BOSS" : $"{sd.stageNumber}-{sd.subStageNumber}";
             UIKit.Label(new Rect(r.x, r.y + 12f, r.width, 44f), num, t.fontTitle - 4, unlocked ? t.accent : t.textDim, TextAnchor.MiddleCenter, true);
@@ -111,6 +121,21 @@ namespace HillNGun.UI
                 if (isBoss)
                     UIKit.Label(new Rect(r.x + 8f, r.y + 116f, r.width - 16f, 26f), "$" + reg.bossBounty.ToString("N0"), t.fontHeader, t.accent, TextAnchor.MiddleCenter, true);
                 UIKit.Label(new Rect(r.x + 8f, r.y + 150f, r.width - 16f, 48f), status, t.fontBody, cleared ? t.good : unlocked ? t.text : t.textDim, TextAnchor.MiddleCenter, true, true);
+                // stage theme preview (the real baked field backdrop) + theme name
+                Rect tr = new Rect(r.x + 10f, r.y + 202f, r.width - 20f, r.yMax - 72f - (r.y + 202f));
+                if (!isBoss && theme != null && tr.height > 40f)
+                {
+                    if (thumb != null && Event.current.type == EventType.Repaint)
+                    {
+                        GUI.color = unlocked ? Color.white : new Color(0.45f, 0.45f, 0.45f, 1f);
+                        GUI.DrawTexture(tr, thumb, ScaleMode.ScaleAndCrop, false);
+                        GUI.color = Color.white;
+                    }
+                    UIKit.Border(tr, new Color(0f, 0f, 0f, 0.5f), 2f);
+                    Rect cap = new Rect(tr.x, tr.yMax - 30f, tr.width, 30f);
+                    UIKit.Fill(cap, new Color(0.08f, 0.05f, 0.03f, 0.62f));
+                    UIKit.Label(cap, UIKit.T(theme.nameKey, theme.nameFallback), t.fontSmall, unlocked ? t.text : t.textDim, TextAnchor.MiddleCenter, true);
+                }
             }
 
             if (UIKit.Button(new Rect(r.x + 12f, r.yMax - 62f, r.width - 24f, 50f), UIKit.T("stage.go", "출격"), unlocked, UIKit.ButtonKind.Primary))

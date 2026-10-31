@@ -25,6 +25,8 @@ namespace HillNGun.Data
 
         [Header("Map")]
         public BattlefieldData battlefieldOverride;
+        [Tooltip("StageThemeData.id (background, ambient, cover props look). View only.")]
+        public string themeId = "town_street";
         public Vector2[] enemySpawnPoints;
         public float[] enemyRowsY;
 

@@ -90,6 +90,7 @@ namespace HillNGun.UI
 
         private void DrawBackground()
         {
+            if (HillNGun.Scenery.MenuBackdrop.Draw(new Rect(0, 0, Screen.width, Screen.height), null, 0f)) return;
             Color bgColor = new Color(0.2f, 0.15f, 0.1f);
             GUI.color = bgColor;
             GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);

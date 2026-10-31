@@ -176,3 +176,8 @@ tutorial.grenade.pc,Q or right mouse button throws a grenade
 tutorial.skill,Use your character's skill button
 tutorial.skill.pc,E uses your character's skill
 tutorial.revive,Stand next to a downed ally to revive. Fill the enemy gauge to clear!
+theme.town_street,Main Street
+theme.canyon_pass,Canyon Pass
+theme.rail_station,Rail Station
+theme.sunset_showdown,Sunset Showdown
+theme.frontier_dusk,Frontier Dusk

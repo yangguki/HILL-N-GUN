@@ -16,6 +16,10 @@ namespace HillNGun.Cover
         private float _baseScale = 1f;
         private CoverProp3D _prop3D;
         private CoverStage _lastStage;
+        private bool _shadowRegistered;
+        private CoverShadowLayer.Entry _shadowEntry;
+        private int _themeVersion = -1;
+        private static readonly Color DefaultShadow = new Color(0.05f, 0.03f, 0.02f, 0.38f);
         public CoverProp3D Prop3D => _prop3D;
 
         public CoverInstance Cover => _cover;
@@ -50,6 +54,8 @@ namespace HillNGun.Cover
                 _renderer.enabled = false;
                 Place3D(0f);
             }
+
+            ApplyTheme();
 
             cover.OnStageChanged += HandleStageChanged;
             cover.OnDamaged += HandleDamaged;
@@ -93,8 +99,56 @@ namespace HillNGun.Cover
             Refresh();
         }
 
+        /// <summary>
+        /// Stage theme (view only): picks the Western prop look for this cover (barrel / crate / hay bale / rock /
+        /// fence ...) and the shared ground-shadow tone. The cover's width, hit box and HP are untouched.
+        /// </summary>
+        private void ApplyTheme()
+        {
+            _themeVersion = HillNGun.Scenery.ThemeContext.Version;
+            var theme = HillNGun.Scenery.ThemeContext.Current;
+            if (_prop3D != null)
+            {
+                var v = HillNGun.Scenery.ThemeContext.CoverVisualFor(_cover.Data.id, _cover.Position);
+                _prop3D.SetVisual(CoverProp3D.VisualKey(_cover.Data.id, v), v == CoverVisual.Rock && theme != null ? theme.rockTint : Color.white);
+            }
+            if (!_shadowRegistered && !HillNGun.Scenery.ThemeContext.ForceOff)
+            {
+                CoverShadowLayer.Register(this);
+                _shadowRegistered = true;
+            }
+            PlaceShadow();
+        }
+
+        /// <summary>This cover's ground shadow (drawn by CoverShadowLayer as one mesh for all covers).</summary>
+        public CoverShadowLayer.Entry ShadowEntry => _shadowEntry;
+
+        private void PlaceShadow()
+        {
+            if (!_shadowRegistered || _cover == null) return;
+            float s = FieldView.PerspectiveScale(_cover.Position.y);
+            Vector3 basePos;
+            if (_prop3D != null) basePos = Base3D();
+            else
+            {
+                var w = FieldView.ToWorld(_cover.Position);
+                float half = _renderer != null && _renderer.sprite != null ? _renderer.sprite.bounds.extents.y * _baseScale * s : 0.4f * s;
+                basePos = new Vector3(w.x, w.y - half + 0.05f * s, 0f);
+            }
+            var c = HillNGun.Scenery.ThemeContext.GroundShadowOr(DefaultShadow);
+            if (_cover.IsDestroyed) c.a *= 0.45f;
+            _shadowEntry = new CoverShadowLayer.Entry
+            {
+                center = basePos + new Vector3(0.1f * s, 0.03f * s, 0f),
+                size = new Vector2(_cover.Data.width * s * 1.12f, 0.42f * s),
+                color = c,
+                visible = true
+            };
+        }
+
         private void Update()
         {
+            if (_cover != null && _themeVersion != HillNGun.Scenery.ThemeContext.Version) ApplyTheme();
             // Covers can be reset between rounds; keep visuals in sync cheaply
             if (_cover != null && Time.frameCount % 15 == 0) Refresh();
             if (_prop3D != null && _cover != null)
@@ -111,6 +165,7 @@ namespace HillNGun.Cover
             Sprite s = _sprites?.GetSpriteForStage(_cover.Stage);
             if (s != null) _renderer.sprite = s;
             _renderer.color = _cover.IsDestroyed ? new Color(1f, 1f, 1f, 0.45f) : Color.white;
+            PlaceShadow();
             if (_prop3D != null) { _renderer.enabled = false; _prop3D.SetStage(_cover.Stage); }
         }
 
@@ -135,6 +190,7 @@ namespace HillNGun.Cover
         {
             _prop3D?.Destroy();
             _prop3D = null;
+            if (_shadowRegistered) CoverShadowLayer.Unregister(this);
             if (_cover != null)
             {
                 _cover.OnStageChanged -= HandleStageChanged;

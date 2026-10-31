@@ -22,12 +22,15 @@ namespace HillNGun.View3D
         private readonly MaterialPropertyBlock _mpb = new MaterialPropertyBlock();
         private readonly string _id;
         private readonly float _width;
+        private string _visualKey;
+        private Color _tint = Color.white;
         private CoverStage _stage = (CoverStage)(-1);
         private float _flash, _shake, _lastFlash = -1f;
 
         public CoverProp3D(string id, float width, int layer, Material mat)
         {
             _id = id;
+            _visualKey = id;
             _width = width;
             var go = new GameObject("Cover3D_" + id) { layer = layer };
             Root = go.transform;
@@ -44,7 +47,22 @@ namespace HillNGun.View3D
         {
             if (stage == _stage) return;
             _stage = stage;
-            _filter.sharedMesh = GetMesh(_id, _width, stage);
+            _filter.sharedMesh = GetMesh(_visualKey, _width, stage, _tint);
+        }
+
+        /// <summary>Mesh key for a cover look: the cover id itself (Default) or "v_&lt;Visual&gt;" (stage theme).</summary>
+        public static string VisualKey(string coverId, CoverVisual v) => v == CoverVisual.Default ? coverId : "v_" + v;
+
+        public string VisualKeyCurrent => _visualKey;
+
+        /// <summary>Swap the look (stage theme) without touching the cover's footprint: meshes always fill _width.</summary>
+        public void SetVisual(string key, Color tint)
+        {
+            if (string.IsNullOrEmpty(key)) key = _id;
+            if (key == _visualKey && tint == _tint) return;
+            _visualKey = key;
+            _tint = tint;
+            if ((int)_stage >= 0) _filter.sharedMesh = GetMesh(_visualKey, _width, _stage, _tint);
         }
 
         public void Hit(float flash, float shake) { _flash = Mathf.Max(_flash, flash); _shake = Mathf.Max(_shake, shake); }
@@ -73,9 +91,12 @@ namespace HillNGun.View3D
 
         // ------------------------------------------------------------------ meshes
 
-        public static Mesh GetMesh(string id, float width, CoverStage stage)
+        public static Mesh GetMesh(string id, float width, CoverStage stage) => GetMesh(id, width, stage, Color.white);
+
+        public static Mesh GetMesh(string id, float width, CoverStage stage, Color tint)
         {
-            string key = id + "|" + width.ToString("F2") + "|" + stage;
+            bool tinted = id == "v_Rock";
+            string key = id + "|" + width.ToString("F2") + "|" + stage + (tinted ? "|" + ColorUtility.ToHtmlStringRGB(tint) : "");
             if (Cache.TryGetValue(key, out var m) && m != null) return m;
             var b = new ToonMeshBuilder();
             var rnd = new System.Random(key.GetHashCode());
@@ -86,6 +107,14 @@ namespace HillNGun.View3D
                 case "cover_trough": Trough(b, width, s, rnd); break;
                 case "cover_swing_door": SwingDoor(b, width, s, rnd); break;
                 case "cover_wagon": Wagon(b, width, s, rnd); break;
+                case "v_Barrel": Barrel(b, width, s, rnd); break;
+                case "v_Trough": Trough(b, width, s, rnd); break;
+                case "v_SwingDoor": SwingDoor(b, width, s, rnd); break;
+                case "v_Wagon": Wagon(b, width, s, rnd); break;
+                case "v_HayBale": HayBale(b, width, s, rnd); break;
+                case "v_Rock": Rock(b, width, s, rnd, tint); break;
+                case "v_Fence": Fence(b, width, s, rnd); break;
+                case "v_CrateStack": CrateStack(b, width, s, rnd); break;
                 default: Crate(b, width, s, rnd); break;
             }
             m = b.Build("cover_" + key);
@@ -330,11 +359,177 @@ namespace HillNGun.View3D
             if (s >= 3) { Rubble(b, width, r, p.wood, 7); return; }
             float h = s == 2 ? 0.7f : 1.0f;
             b.Box(new Vector3(0f, h * 0.5f, 0f), new Vector3(width * 0.95f, h, 0.8f), p.wood);
+            // lid rim + corner posts so the crate reads as a box, not a flat panel
+            if (s < 2) b.Box(new Vector3(0f, h + 0.03f, 0f), new Vector3(width * 0.97f, 0.07f, 0.82f), Shade(p.wood, 1.15f));
             b.OutlineWeight = 0f;
-            b.Box(new Vector3(0f, h * 0.5f, -0.401f), new Vector3(width * 1.05f, 0.07f, 0.01f), p.woodDark, Quaternion.Euler(0f, 0f, 35f));
-            b.Box(new Vector3(0f, h * 0.5f, -0.401f), new Vector3(width * 1.05f, 0.07f, 0.01f), p.woodDark, Quaternion.Euler(0f, 0f, -35f));
+            b.Box(new Vector3(-width * 0.455f, h * 0.5f, -0.402f), new Vector3(0.08f, h, 0.01f), p.woodDark);
+            b.Box(new Vector3(width * 0.455f, h * 0.5f, -0.402f), new Vector3(0.08f, h, 0.01f), p.woodDark);
+            b.Box(new Vector3(0f, h - 0.05f, -0.402f), new Vector3(width * 0.95f, 0.07f, 0.01f), p.woodDark);
+            b.Box(new Vector3(0f, 0.05f, -0.402f), new Vector3(width * 0.95f, 0.07f, 0.01f), p.woodDark);
+            // X brace corner to corner (stays inside the crate face at every height)
+            float bw = width * 0.86f, bh = h * 0.84f, blen = Mathf.Sqrt(bw * bw + bh * bh), bang = Mathf.Atan2(bh, bw) * Mathf.Rad2Deg;
+            b.Box(new Vector3(0f, h * 0.5f, -0.401f), new Vector3(blen, 0.07f, 0.01f), p.woodDark, Quaternion.Euler(0f, 0f, bang));
+            b.Box(new Vector3(0f, h * 0.5f, -0.401f), new Vector3(blen, 0.07f, 0.01f), p.woodDark, Quaternion.Euler(0f, 0f, -bang));
             b.OutlineWeight = 1f;
             if (s >= 1) Crack(b, new Vector3(0.1f, h * 0.9f, 0f), h * 0.7f, -0.41f, r);
+        }
+    
+        // ------------------------------------------------------------------ stage-theme looks (same footprint)
+
+        private static void HayBale(ToonMeshBuilder b, float width, int s, System.Random r)
+        {
+            var p = P;
+            if (s >= 3)
+            {
+                for (int i = 0; i < 9; i++)
+                    b.Ellipsoid(new Vector3(R(r, -width * 0.4f, width * 0.4f), 0.03f, R(r, -0.3f, 0.3f)), new Vector3(R(r, 0.1f, 0.22f), 0.05f, R(r, 0.08f, 0.16f)), i % 3 == 0 ? p.hayDark : p.hay, null, 7, 4);
+                b.Box(new Vector3(0f, 0.14f, 0f), new Vector3(width * 0.45f, 0.28f, 0.5f), p.hay, Quaternion.Euler(0f, 12f, 5f));
+                return;
+            }
+            int n = width > 1.5f ? 2 : 1;
+            float L = width * 0.92f / n - (n > 1 ? 0.04f : 0f), D = 0.7f;
+            for (int k = 0; k < n; k++)
+            {
+                float cx = n == 1 ? 0f : (k == 0 ? -1f : 1f) * (L * 0.5f + 0.02f);
+                // bottom bale + a smaller bale stacked on top (intact / cracked); damaged loses the top one
+                Bale(b, r, new Vector3(cx, 0f, 0f), L, 0.62f, D, Quaternion.identity, s);
+                if (s < 2) Bale(b, r, new Vector3(cx + (k == 0 ? 0.04f : -0.04f), 0.62f, 0.04f), L * 0.78f, 0.52f, D * 0.85f, Quaternion.Euler(0f, k == 0 ? 7f : -6f, 0f), s);
+                else
+                    for (int i = 0; i < 5; i++)
+                        b.Ellipsoid(new Vector3(cx + R(r, -L * 0.4f, L * 0.4f), 0.66f + R(r, 0f, 0.05f), R(r, -D * 0.3f, D * 0.2f)), new Vector3(R(r, 0.08f, 0.16f), 0.05f, 0.1f), Shade(p.hay, 1.05f), null, 7, 4);
+            }
+            if (s == 2)
+                for (int i = 0; i < 5; i++)
+                    b.Ellipsoid(new Vector3(R(r, -width * 0.4f, width * 0.4f), 0.02f, R(r, -0.45f, -0.25f)), new Vector3(R(r, 0.08f, 0.16f), 0.03f, 0.08f), p.hay, null, 7, 4);
+        }
+
+        private static void Bale(ToonMeshBuilder b, System.Random r, Vector3 o, float L, float H, float D, Quaternion q, int s)
+        {
+            var p = P;
+            Vector3 O(float x, float y, float z) => o + q * new Vector3(x, y, z);
+            b.Box(O(0f, H * 0.5f, 0f), new Vector3(L, H, D), p.hay, q);
+            // rounded top edge + darker cut ends
+            b.Frustum(O(-L * 0.5f + 0.02f, H - 0.06f, -D * 0.5f + 0.06f), O(L * 0.5f - 0.02f, H - 0.06f, -D * 0.5f + 0.06f), 0.09f, 0.09f, Shade(p.hay, 1.06f), 8, false);
+            b.OutlineWeight = 0f;
+            b.Box(O(-L * 0.5f - 0.004f, H * 0.5f, 0f), new Vector3(0.01f, H * 0.94f, D * 0.94f), p.hayDark, q);
+            b.Box(O(L * 0.5f + 0.004f, H * 0.5f, 0f), new Vector3(0.01f, H * 0.94f, D * 0.94f), p.hayDark, q);
+            for (int i = 0; i < 9; i++)
+            {
+                float y = R(r, 0.06f, H - 0.08f);
+                b.Box(O(R(r, -L * 0.25f, L * 0.25f), y, -D * 0.5f - 0.004f), new Vector3(L * R(r, 0.25f, 0.6f), 0.022f, 0.01f), i % 3 == 0 ? Shade(p.hayDark, 0.85f) : p.hayDark, q);
+            }
+            foreach (float f in new[] { -0.28f, 0.28f })
+            {
+                b.Box(O(L * f, H * 0.5f, -D * 0.5f - 0.008f), new Vector3(0.04f, H * 0.98f, 0.012f), p.twine, q);
+                b.Box(O(L * f, H + 0.008f, 0f), new Vector3(0.04f, 0.012f, D * 0.98f), p.twine, q);
+            }
+            b.OutlineWeight = 1f;
+            int tufts = 2 + s * 3;
+            for (int i = 0; i < tufts; i++)
+            {
+                var basePt = O(R(r, -L * 0.42f, L * 0.42f), H - 0.02f, R(r, -D * 0.4f, 0f));
+                b.Cone(basePt, basePt + new Vector3(R(r, -0.06f, 0.06f), R(r, 0.06f, 0.12f + s * 0.05f), R(r, -0.05f, 0.02f)), 0.025f, Shade(p.hay, 1.1f), 3);
+            }
+            if (s >= 1) Crack(b, O(R(r, -L * 0.2f, L * 0.2f), H * 0.9f, 0f), H * 0.6f, (o + q * new Vector3(0f, 0f, -D * 0.5f - 0.012f)).z, r, 2);
+        }
+
+        private static void Rock(ToonMeshBuilder b, float width, int s, System.Random r, Color tint)
+        {
+            var p = P;
+            var stone = tint == Color.white ? p.stone : new Color(tint.r, tint.g, tint.b, 1f);
+            var dark = Shade(stone, 0.72f);
+            float hw = width * 0.46f;
+            if (s >= 3)
+            {
+                for (int i = 0; i < 7; i++)
+                {
+                    float ry = R(r, 0.06f, 0.12f);
+                    b.Ellipsoid(new Vector3(R(r, -hw * 0.85f, hw * 0.85f), ry * 0.9f, R(r, -0.3f, 0.3f)), new Vector3(R(r, 0.1f, 0.2f), ry, R(r, 0.08f, 0.16f)), i % 2 == 0 ? stone : dark, Quaternion.Euler(0f, R(r, 0f, 180f), 0f), 6, 4);
+                }
+                return;
+            }
+            float H = s == 2 ? 0.72f : 1.05f;
+            // main boulder + side boulder (faceted, low poly)
+            b.Ellipsoid(new Vector3(-hw * 0.18f, H * 0.5f, 0f), new Vector3(hw * 0.78f, H * 0.5f, 0.42f), stone, Quaternion.Euler(0f, 18f, R(r, -6f, 6f)), 7, 5);
+            b.Ellipsoid(new Vector3(hw * 0.52f, H * 0.31f, -0.06f), new Vector3(hw * 0.46f, H * 0.3f, 0.36f), Shade(stone, 0.9f), Quaternion.Euler(0f, -24f, 8f), 6, 4);
+            b.Ellipsoid(new Vector3(-hw * 0.22f, H * 0.82f, -0.04f), new Vector3(hw * 0.42f, H * 0.14f, 0.26f), Mix(stone, Color.white, 0.14f), Quaternion.Euler(0f, 10f, 0f), 6, 4);
+            if (width > 1.5f) b.Ellipsoid(new Vector3(-hw * 0.82f, H * 0.18f, -0.1f), new Vector3(hw * 0.2f, H * 0.18f, 0.24f), dark, Quaternion.Euler(0f, 30f, 0f), 6, 4);
+            b.OutlineWeight = 0f;
+            for (int i = 0; i < 3; i++)
+                b.Box(new Vector3(-hw * 0.18f + R(r, -hw * 0.4f, hw * 0.4f), H * R(r, 0.25f, 0.65f), -0.41f), new Vector3(hw * R(r, 0.25f, 0.5f), 0.02f, 0.01f), dark, Quaternion.Euler(0f, 0f, R(r, -12f, 12f)));
+            b.OutlineWeight = 1f;
+            if (s >= 1) Crack(b, new Vector3(-hw * 0.1f, H * 0.85f, 0f), H * 0.65f, -0.43f, r, 3);
+            if (s >= 2)
+            {
+                Crack(b, new Vector3(hw * 0.3f, H * 0.7f, 0f), H * 0.5f, -0.43f, r, 2);
+                for (int i = 0; i < 4; i++)
+                    b.Ellipsoid(new Vector3(R(r, -hw * 0.8f, hw * 0.8f), 0.05f, R(r, -0.5f, -0.3f)), new Vector3(R(r, 0.06f, 0.12f), 0.05f, 0.07f), dark, null, 6, 4);
+            }
+        }
+
+        private static Color Mix(Color a, Color b, float t) => Color.Lerp(a, b, t);
+
+        private static void Fence(ToonMeshBuilder b, float width, int s, System.Random r)
+        {
+            var p = P;
+            float W = width * 0.92f, H = 1.15f;
+            if (s >= 3)
+            {
+                b.Box(new Vector3(-W * 0.5f + 0.06f, 0.15f, 0f), new Vector3(0.12f, 0.3f, 0.12f), p.woodDark);
+                b.Box(new Vector3(W * 0.5f - 0.06f, 0.1f, 0f), new Vector3(0.12f, 0.2f, 0.12f), p.woodDark);
+                Rubble(b, width * 0.8f, r, p.wood, 6);
+                return;
+            }
+            float[] postX = { -W * 0.5f + 0.06f, 0f, W * 0.5f - 0.06f };
+            for (int i = 0; i < 3; i++)
+            {
+                float ph = s == 2 && i == 1 ? H * 0.55f : H * (0.96f + 0.04f * i % 2);
+                b.Box(new Vector3(postX[i], ph * 0.5f, 0f), new Vector3(0.12f, ph, 0.12f), p.woodDark, Quaternion.Euler(0f, 0f, R(r, -2f, 2f)));
+                b.Cone(new Vector3(postX[i], ph, 0f), new Vector3(postX[i], ph + 0.08f, 0f), 0.07f, p.woodDark, 4);
+            }
+            foreach (float y in new[] { 0.38f, 0.78f })
+            {
+                if (s == 2 && y > 0.5f)
+                {
+                    // top rail snapped: two halves hanging
+                    b.Box(new Vector3(-W * 0.26f, H * y - 0.06f, -0.08f), new Vector3(W * 0.5f, 0.1f, 0.05f), p.wood, Quaternion.Euler(0f, 0f, -10f));
+                    b.Box(new Vector3(W * 0.3f, H * y - 0.14f, -0.08f), new Vector3(W * 0.42f, 0.1f, 0.05f), p.wood, Quaternion.Euler(0f, 0f, 16f));
+                    continue;
+                }
+                b.Box(new Vector3(0f, H * y, -0.08f), new Vector3(W, 0.11f, 0.05f), p.wood, Quaternion.Euler(0f, 0f, R(r, -1.5f, 1.5f)));
+            }
+            // cross brace in the bays
+            b.Box(new Vector3(-W * 0.25f, H * 0.58f, -0.11f), new Vector3(W * 0.5f, 0.07f, 0.03f), Shade(p.wood, 0.9f), Quaternion.Euler(0f, 0f, 28f));
+            if (s >= 1) Crack(b, new Vector3(W * 0.2f, H * 0.82f, 0f), 0.2f, -0.11f, r, 2);
+            if (s == 2) Rubble(b, width * 0.5f, r, p.wood, 2);
+        }
+
+        private static void CrateStack(ToonMeshBuilder b, float width, int s, System.Random r)
+        {
+            var p = P;
+            if (s >= 3) { Rubble(b, width, r, p.wood, 9); return; }
+            float cw = width * 0.46f, h = s == 2 ? 0.62f : 0.78f;
+            for (int k = -1; k <= 1; k += 2)
+            {
+                float cx = k * (cw * 0.5f + 0.02f);
+                var q = Quaternion.Euler(0f, k * 3f, 0f);
+                b.Box(new Vector3(cx, h * 0.5f, 0f), new Vector3(cw * 0.96f, h, 0.75f), k < 0 ? p.wood : Shade(p.wood, 1.06f), q);
+                b.OutlineWeight = 0f;
+                b.Box(new Vector3(cx, h * 0.5f, -0.38f), new Vector3(cw * 1.02f, 0.06f, 0.01f), p.woodDark, Quaternion.Euler(0f, 0f, k * 30f));
+                b.Box(new Vector3(cx, h - 0.04f, -0.38f), new Vector3(cw * 0.96f, 0.06f, 0.01f), p.woodDark);
+                b.Box(new Vector3(cx, 0.04f, -0.38f), new Vector3(cw * 0.96f, 0.06f, 0.01f), p.woodDark);
+                b.OutlineWeight = 1f;
+                if (s >= 1) Crack(b, new Vector3(cx + 0.05f, h * 0.9f, 0f), h * 0.6f, -0.39f, r, 2);
+            }
+            if (s < 2)
+            {
+                float tw = width * 0.38f, th = 0.62f;
+                b.Box(new Vector3(-width * 0.06f, h + th * 0.5f, 0.04f), new Vector3(tw, th, 0.62f), Shade(p.wood, 1.1f), Quaternion.Euler(0f, 8f, 0f));
+                b.OutlineWeight = 0f;
+                b.Box(new Vector3(-width * 0.06f, h + th * 0.5f, -0.28f), new Vector3(tw * 1.02f, 0.06f, 0.01f), p.woodDark, Quaternion.Euler(0f, 8f, -32f));
+                b.OutlineWeight = 1f;
+            }
+            else Rubble(b, width * 0.7f, r, p.wood, 3);
         }
     }
 }
