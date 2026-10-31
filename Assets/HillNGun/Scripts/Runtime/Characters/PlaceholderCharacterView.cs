@@ -42,7 +42,7 @@ namespace HillNGun.Characters
             
             if (_bodyRenderer != null)
             {
-                _originalColor = Color.white;
+                _originalColor = _originalTint;
                 _bodyRenderer.color = _originalColor;
             }
 
@@ -51,7 +51,21 @@ namespace HillNGun.Characters
                 _hitFlashOverlay.enabled = false;
             }
 
+            character.OnDamageTaken += HandleDamageTaken;
+
             UpdateView(character);
+        }
+
+        private MeshRenderer _labelRenderer;
+
+        private void HandleDamageTaken(CharacterStateMachine c, int damage, Vector2 dir)
+        {
+            PlayHitFlash(0.08f);
+        }
+
+        private void OnDestroy()
+        {
+            if (_character != null) _character.OnDamageTaken -= HandleDamageTaken;
         }
 
         private void LoadSprites(CharacterStateMachine character)
@@ -110,7 +124,47 @@ namespace HillNGun.Characters
             _nameLabel.characterSize = 0.06f;
             _nameLabel.anchor = TextAnchor.MiddleCenter;
             _nameLabel.alignment = TextAlignment.Center;
-            _nameLabel.color = Color.white;
+            _nameLabel.color = character.Team == Team.Player ? new Color(0.85f, 1f, 0.85f) : new Color(1f, 0.75f, 0.7f);
+            _labelRenderer = labelGo.GetComponent<MeshRenderer>();
+
+            // Team marker under the feet (blue = our team, red = opponents)
+            var markerGo = new GameObject("TeamMarker");
+            markerGo.transform.SetParent(transform, false);
+            markerGo.transform.localPosition = new Vector3(0f, -0.85f, 0f);
+            markerGo.transform.localScale = new Vector3(1.3f, 0.45f, 1f);
+            _teamMarker = markerGo.AddComponent<SpriteRenderer>();
+            _teamMarker.sprite = CreateMarkerSprite();
+            _teamMarker.color = character.Team == Team.Player ? new Color(0.3f, 0.6f, 1f, 0.75f) : new Color(1f, 0.3f, 0.25f, 0.75f);
+
+            if (character.Team == Team.Enemy && _bodyRenderer != null)
+            {
+                // PvP opponents: face the player and get a warm tint so teams read at a glance
+                _bodyRenderer.flipY = false;
+                _originalTint = new Color(1f, 0.82f, 0.75f);
+            }
+        }
+
+        private Color _originalTint = Color.white;
+        private SpriteRenderer _teamMarker;
+
+        private static Sprite _markerSprite;
+        private static Sprite CreateMarkerSprite()
+        {
+            if (_markerSprite != null) return _markerSprite;
+            const int n = 32;
+            var tex = new Texture2D(n, n) { filterMode = FilterMode.Bilinear };
+            var px = new Color[n * n];
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    float dx = (x + 0.5f) / n * 2f - 1f, dy = (y + 0.5f) / n * 2f - 1f;
+                    float d = Mathf.Sqrt(dx * dx + dy * dy);
+                    px[y * n + x] = d <= 1f ? new Color(1f, 1f, 1f, d > 0.7f ? 1f : 0.45f) : Color.clear;
+                }
+            tex.SetPixels(px);
+            tex.Apply();
+            _markerSprite = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), n);
+            return _markerSprite;
         }
 
         private Sprite CreateBodySprite(CharacterStateMachine character)
@@ -173,12 +227,12 @@ namespace HillNGun.Characters
         {
             if (character == null) return;
 
-            Vector3 worldPos = _battlefield?.LogicToWorldPosition(character.Position) ?? 
-                               new Vector3(character.Position.x, character.Position.y, 0f);
-            transform.position = worldPos;
-
-            float scale = _battlefield?.GetPerspectiveScale(character.Position.y) ?? 1f;
-            transform.localScale = Vector3.one * scale;
+            FieldView.Place(transform, character.Position);
+            Vector3 worldPos = transform.position;
+            FieldView.ApplySorting(_bodyRenderer, character.Position.y);
+            FieldView.ApplySorting(_teamMarker, character.Position.y, -1);
+            if (_aimLine != null) _aimLine.sortingOrder = FieldView.OverlayOrder - 10;
+            if (_labelRenderer != null) _labelRenderer.sortingOrder = FieldView.OverlayOrder;
 
             if (_weaponPivot != null && character.AimDirection.magnitude > 0.1f)
             {

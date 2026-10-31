@@ -59,6 +59,12 @@ namespace HillNGun.Data
         [Header("Cover Layout")]
         public CoverPlacement[] covers;
 
+        [Tooltip("PvE에서 아군 쪽 엄폐물 생성 여부")]
+        public bool spawnCoversInPvE = true;
+
+        [Tooltip("PvP에서 엄폐물 배치를 상대 진영에 대칭 복제할지 여부")]
+        public bool mirrorCoversToEnemySideInPvP = true;
+
         public int OurRowCount => ourRowsY?.Length ?? 0;
         public int EnemyRowCount => enemyRowsY?.Length ?? 0;
 

@@ -14,6 +14,7 @@ namespace HillNGun.PvE
         private TextMesh _nameLabel;
         private BattlefieldSystem _battlefield;
         private SpriteLibrary _spriteLibrary;
+        public SpriteRenderer BodyRenderer => _spriteRenderer;
 
         public void Initialize(BossInstance boss)
         {
@@ -165,12 +166,12 @@ namespace HillNGun.PvE
 
         private void UpdatePosition()
         {
-            Vector3 worldPos = _battlefield?.LogicToWorldPosition(_boss.Position) ??
-                               new Vector3(_boss.Position.x, _boss.Position.y, 0f);
-            transform.position = worldPos;
-
-            float scale = _battlefield?.GetPerspectiveScale(_boss.Position.y) ?? 1f;
-            transform.localScale = Vector3.one * scale * 2f;
+            FieldView.Place(transform, _boss.Position, 2f);
+            FieldView.ApplySorting(_spriteRenderer, _boss.Position.y);
+            if (_hpBarBg != null) _hpBarBg.sortingOrder = FieldView.OverlayOrder;
+            if (_hpBarFill != null) _hpBarFill.sortingOrder = FieldView.OverlayOrder + 1;
+            var lr = _nameLabel != null ? _nameLabel.GetComponent<MeshRenderer>() : null;
+            if (lr != null) lr.sortingOrder = FieldView.OverlayOrder;
         }
 
         private void UpdateHpBar()

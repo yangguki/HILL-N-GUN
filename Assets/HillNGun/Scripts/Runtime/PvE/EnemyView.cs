@@ -14,6 +14,10 @@ namespace HillNGun.PvE
         private SpriteLibrary _spriteLibrary;
         private GameObject _warningIndicator;
         private bool _isShowingWarning;
+        private MeshRenderer _labelRenderer;
+        private SpriteRenderer _warnRenderer;
+        public SpriteRenderer BodyRenderer => _spriteRenderer;
+        public EnemyInstance Enemy => _enemy;
 
         public void Initialize(EnemyInstance enemy)
         {
@@ -53,8 +57,7 @@ namespace HillNGun.PvE
                 _spriteRenderer.sprite = CreatePlaceholderSprite();
             }
 
-            _spriteRenderer.sortingOrder = 10;
-            _spriteRenderer.color = _enemy.Data?.baseColor ?? new Color(0.7f, 0.5f, 0.3f);
+            _spriteRenderer.color = enemySprite != null ? Color.white : (_enemy.Data?.baseColor ?? new Color(0.7f, 0.5f, 0.3f));
 
             var labelGo = new GameObject("Label");
             labelGo.transform.SetParent(transform);
@@ -65,7 +68,8 @@ namespace HillNGun.PvE
             _nameLabel.characterSize = 0.05f;
             _nameLabel.anchor = TextAnchor.MiddleCenter;
             _nameLabel.alignment = TextAlignment.Center;
-            _nameLabel.color = Color.red;
+            _nameLabel.color = new Color(1f, 0.55f, 0.45f);
+            _labelRenderer = labelGo.GetComponent<MeshRenderer>();
 
             var warningGo = new GameObject("Warning");
             warningGo.transform.SetParent(transform);
@@ -75,6 +79,7 @@ namespace HillNGun.PvE
             warnSr.sortingOrder = 15;
             warnSr.color = Color.yellow;
             _warningIndicator = warningGo;
+            _warnRenderer = warnSr;
             _warningIndicator.SetActive(false);
         }
 
@@ -194,12 +199,10 @@ namespace HillNGun.PvE
 
         private void UpdatePosition()
         {
-            Vector3 worldPos = _battlefield?.LogicToWorldPosition(_enemy.Position) ??
-                               new Vector3(_enemy.Position.x, _enemy.Position.y, 0f);
-            transform.position = worldPos;
-
-            float scale = _battlefield?.GetPerspectiveScale(_enemy.Position.y) ?? 1f;
-            transform.localScale = Vector3.one * scale;
+            FieldView.Place(transform, _enemy.Position, _enemy.Data != null ? _enemy.Data.scale : 1f);
+            FieldView.ApplySorting(_spriteRenderer, _enemy.Position.y);
+            if (_labelRenderer != null) _labelRenderer.sortingOrder = FieldView.OverlayOrder;
+            if (_warnRenderer != null) _warnRenderer.sortingOrder = FieldView.OverlayOrder + 1;
         }
 
         private void OnDestroy()

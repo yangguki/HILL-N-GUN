@@ -1,18 +1,31 @@
+using System.Collections.Generic;
 using UnityEngine;
 using HillNGun.Core;
 using HillNGun.Data;
 
 namespace HillNGun.Battlefield
 {
+    /// <summary>
+    /// Draws the field background as a static vertex-coloured mesh rendered in the sprite
+    /// sorting pipeline (sortingOrder = FieldView.BackgroundOrder), so every actor sprite
+    /// draws on top of it. (Previously GL in OnRenderObject painted over all sprites.)
+    /// </summary>
     public class BattlefieldRenderer : MonoBehaviour
     {
         private BattlefieldSystem _battlefield;
         private BattlefieldData _data;
         private Material _mat;
+        private MeshFilter _meshFilter;
+        private MeshRenderer _meshRenderer;
+
+        private readonly List<Vector3> _verts = new List<Vector3>();
+        private readonly List<Color> _colors = new List<Color>();
+        private readonly List<int> _tris = new List<int>();
 
         private Color _skyTop = new Color(0.4f, 0.6f, 0.85f);
         private Color _skyBottom = new Color(0.9f, 0.75f, 0.5f);
         private Color _hillColor = new Color(0.45f, 0.35f, 0.25f);
+        private Color _outerGround = new Color(0.42f, 0.32f, 0.22f);
         private Color _groundColor = new Color(0.7f, 0.55f, 0.35f);
         private Color _groundDark = new Color(0.55f, 0.4f, 0.25f);
         private Color _playerLane = new Color(0.5f, 0.65f, 0.45f, 0.25f);
@@ -24,257 +37,126 @@ namespace HillNGun.Battlefield
         {
             _battlefield = ServiceLocator.Get<BattlefieldSystem>();
             _data = _battlefield?.Data;
-            CreateMaterial();
+            Build();
         }
 
-        private void CreateMaterial()
-        {
-            var shader = Shader.Find("Hidden/Internal-Colored");
-            if (shader == null) shader = Shader.Find("Sprites/Default");
-            
-            _mat = new Material(shader);
-            _mat.hideFlags = HideFlags.HideAndDontSave;
-            _mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            _mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            _mat.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
-            _mat.SetInt("_ZWrite", 0);
-        }
-
-        private void OnRenderObject()
+        private void Build()
         {
             if (_battlefield == null || _data == null) return;
-            if (_mat == null) CreateMaterial();
 
-            _mat.SetPass(0);
-            GL.PushMatrix();
+            var shader = Shader.Find("Sprites/Default");
+            if (shader == null) shader = Shader.Find("Hidden/Internal-Colored");
+            _mat = new Material(shader);
 
-            DrawSky();
-            DrawHills();
-            DrawGround();
-            DrawLanes();
-            DrawGroundTexture();
-            DrawFences();
+            _meshFilter = gameObject.GetComponent<MeshFilter>();
+            if (_meshFilter == null) _meshFilter = gameObject.AddComponent<MeshFilter>();
+            _meshRenderer = gameObject.GetComponent<MeshRenderer>();
+            if (_meshRenderer == null) _meshRenderer = gameObject.AddComponent<MeshRenderer>();
+            _meshRenderer.sharedMaterial = _mat;
+            _meshRenderer.sortingOrder = FieldView.BackgroundOrder;
+            transform.position = Vector3.zero;
+            transform.rotation = Quaternion.identity;
+            transform.localScale = Vector3.one;
 
-            GL.PopMatrix();
-        }
+            _verts.Clear(); _colors.Clear(); _tris.Clear();
 
-        private void DrawSky()
-        {
-            GL.Begin(GL.QUADS);
+            Vector3 fieldTopLeft = W(0, _data.size.y);
+            float horizon = fieldTopLeft.y;
 
-            float skyTop = 12f;
-            float horizon = 4f;
-            
-            Vector3 bl = new Vector3(-15f, horizon, 1f);
-            Vector3 br = new Vector3(15f, horizon, 1f);
-            Vector3 tr = new Vector3(15f, skyTop, 1f);
-            Vector3 tl = new Vector3(-15f, skyTop, 1f);
+            // Outer ground fills the whole screen width below the horizon
+            Quad(new Vector3(-40f, -30f), new Vector3(40f, -30f), new Vector3(40f, horizon), new Vector3(-40f, horizon), _outerGround, _outerGround);
+            // Sky above the horizon
+            Quad(new Vector3(-40f, horizon), new Vector3(40f, horizon), new Vector3(40f, horizon + 20f), new Vector3(-40f, horizon + 20f), _skyBottom, _skyTop);
+            // Low hills just above the horizon (only ~1 world unit of sky is on camera)
+            for (float x = -20f; x <= 20f; x += 5.5f) Hill(x, horizon, 6f, 0.6f + 0.25f * Mathf.Abs(Mathf.Sin(x)), _hillColor);
 
-            GL.Color(_skyBottom);
-            GL.Vertex(bl);
-            GL.Vertex(br);
-            GL.Color(_skyTop);
-            GL.Vertex(tr);
-            GL.Vertex(tl);
+            // Field ground
+            Quad(W(0, 0), W(_data.size.x, 0), W(_data.size.x, _data.size.y), W(0, _data.size.y), _groundColor, _groundDark);
 
-            GL.End();
-        }
+            // Lanes
+            const float laneHeight = 1.2f;
+            foreach (float rowY in _data.ourRowsY) LaneQuad(rowY - laneHeight * 0.5f, rowY + laneHeight * 0.5f, _playerLane);
+            foreach (float rowY in _data.enemyRowsY) LaneQuad(rowY - laneHeight * 0.5f, rowY + laneHeight * 0.5f, _enemyLane);
+            foreach (float rowY in _data.ourRowsY) DashedLine(rowY);
+            foreach (float rowY in _data.enemyRowsY) DashedLine(rowY);
 
-        private void DrawHills()
-        {
-            GL.Begin(GL.TRIANGLES);
-            GL.Color(_hillColor);
-
-            DrawHill(-10f, 3.5f, 6f, 2.5f);
-            DrawHill(-4f, 3.5f, 5f, 2f);
-            DrawHill(2f, 3.5f, 7f, 3f);
-            DrawHill(9f, 3.5f, 5f, 2.2f);
-
-            Color darkerHill = _hillColor * 0.8f;
-            darkerHill.a = 1f;
-            GL.Color(darkerHill);
-            DrawHill(-7f, 3f, 4f, 1.5f);
-            DrawHill(5f, 3f, 4.5f, 1.8f);
-            DrawHill(12f, 3f, 4f, 1.5f);
-
-            GL.End();
-        }
-
-        private void DrawHill(float x, float baseY, float width, float height)
-        {
-            int segments = 8;
-            for (int i = 0; i < segments; i++)
-            {
-                float t1 = i / (float)segments;
-                float t2 = (i + 1) / (float)segments;
-                
-                float x1 = x - width / 2f + t1 * width;
-                float x2 = x - width / 2f + t2 * width;
-                float y1 = baseY + Mathf.Sin(t1 * Mathf.PI) * height;
-                float y2 = baseY + Mathf.Sin(t2 * Mathf.PI) * height;
-
-                GL.Vertex(new Vector3(x1, baseY, 0.9f));
-                GL.Vertex(new Vector3(x2, baseY, 0.9f));
-                GL.Vertex(new Vector3(x2, y2, 0.9f));
-
-                GL.Vertex(new Vector3(x1, baseY, 0.9f));
-                GL.Vertex(new Vector3(x2, y2, 0.9f));
-                GL.Vertex(new Vector3(x1, y1, 0.9f));
-            }
-        }
-
-        private void DrawGround()
-        {
-            GL.Begin(GL.QUADS);
-
-            Vector3 bl = _battlefield.LogicToWorldPosition(new Vector2(0, 0));
-            Vector3 br = _battlefield.LogicToWorldPosition(new Vector2(_data.size.x, 0));
-            Vector3 tr = _battlefield.LogicToWorldPosition(new Vector2(_data.size.x, _data.size.y));
-            Vector3 tl = _battlefield.LogicToWorldPosition(new Vector2(0, _data.size.y));
-
-            GL.Color(_groundColor);
-            GL.Vertex(bl);
-            GL.Vertex(br);
-            GL.Color(_groundDark);
-            GL.Vertex(tr);
-            GL.Vertex(tl);
-
-            GL.End();
-        }
-
-        private void DrawLanes()
-        {
-            float laneHeight = 1.2f;
-
-            GL.Begin(GL.QUADS);
-
-            foreach (float rowY in _data.ourRowsY)
-            {
-                GL.Color(_playerLane);
-                DrawLaneQuad(rowY - laneHeight * 0.5f, rowY + laneHeight * 0.5f);
-            }
-
-            foreach (float rowY in _data.enemyRowsY)
-            {
-                GL.Color(_enemyLane);
-                DrawLaneQuad(rowY - laneHeight * 0.5f, rowY + laneHeight * 0.5f);
-            }
-
-            GL.End();
-
-            GL.Begin(GL.LINES);
-            GL.Color(_laneLineColor);
-
-            foreach (float rowY in _data.ourRowsY)
-            {
-                DrawDashedLine(rowY);
-            }
-
-            foreach (float rowY in _data.enemyRowsY)
-            {
-                DrawDashedLine(rowY);
-            }
-
-            GL.End();
-        }
-
-        private void DrawLaneQuad(float yMin, float yMax)
-        {
-            Vector3 bl = _battlefield.LogicToWorldPosition(new Vector2(0, yMin));
-            Vector3 br = _battlefield.LogicToWorldPosition(new Vector2(_data.size.x, yMin));
-            Vector3 tr = _battlefield.LogicToWorldPosition(new Vector2(_data.size.x, yMax));
-            Vector3 tl = _battlefield.LogicToWorldPosition(new Vector2(0, yMax));
-
-            GL.Vertex(bl);
-            GL.Vertex(br);
-            GL.Vertex(tr);
-            GL.Vertex(tl);
-        }
-
-        private void DrawDashedLine(float y)
-        {
-            float dashLen = 1.5f;
-            float gapLen = 0.8f;
-            float x = 0;
-            while (x < _data.size.x)
-            {
-                Vector3 start = _battlefield.LogicToWorldPosition(new Vector2(x, y));
-                Vector3 end = _battlefield.LogicToWorldPosition(new Vector2(Mathf.Min(x + dashLen, _data.size.x), y));
-                GL.Vertex(start);
-                GL.Vertex(end);
-                x += dashLen + gapLen;
-            }
-        }
-
-        private void DrawGroundTexture()
-        {
-            GL.Begin(GL.LINES);
-            GL.Color(new Color(0.5f, 0.4f, 0.3f, 0.15f));
-
-            for (float x = 0; x < _data.size.x; x += 2f)
-            {
-                Vector3 bottom = _battlefield.LogicToWorldPosition(new Vector2(x, 0));
-                Vector3 top = _battlefield.LogicToWorldPosition(new Vector2(x + 0.5f, _data.size.y));
-                GL.Vertex(bottom);
-                GL.Vertex(top);
-            }
-
-            GL.End();
-        }
-
-        private void DrawFences()
-        {
-            GL.Begin(GL.QUADS);
-            GL.Color(_fenceColor);
-
-            float postWidth = 0.15f;
-            float postHeight = 0.8f;
-            float railHeight = 0.08f;
-
+            // Fences
             for (float x = _data.boundaryMinX; x <= _data.boundaryMaxX; x += 3f)
             {
-                DrawFencePost(x, 0, postWidth, postHeight);
-                DrawFencePost(x, _data.size.y, postWidth, postHeight);
+                FencePost(x, 0f);
+                FencePost(x, _data.size.y);
             }
+            FenceRails(0f);
+            FenceRails(_data.size.y);
 
-            Vector3 leftBottom = _battlefield.LogicToWorldPosition(new Vector2(_data.boundaryMinX, 0));
-            Vector3 rightBottom = _battlefield.LogicToWorldPosition(new Vector2(_data.boundaryMaxX, 0));
-            DrawFenceRail(leftBottom, rightBottom, railHeight, 0.3f);
-            DrawFenceRail(leftBottom, rightBottom, railHeight, 0.6f);
-
-            Vector3 leftTop = _battlefield.LogicToWorldPosition(new Vector2(_data.boundaryMinX, _data.size.y));
-            Vector3 rightTop = _battlefield.LogicToWorldPosition(new Vector2(_data.boundaryMaxX, _data.size.y));
-            DrawFenceRail(leftTop, rightTop, railHeight, 0.3f);
-            DrawFenceRail(leftTop, rightTop, railHeight, 0.6f);
-
-            GL.End();
+            var mesh = new Mesh { name = "BattlefieldMesh" };
+            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            mesh.SetVertices(_verts);
+            mesh.SetColors(_colors);
+            mesh.SetTriangles(_tris, 0);
+            mesh.RecalculateBounds();
+            _meshFilter.sharedMesh = mesh;
         }
 
-        private void DrawFencePost(float x, float y, float width, float height)
+        private Vector3 W(float x, float y) => _battlefield.LogicToWorldPosition(new Vector2(x, y));
+
+        private void Quad(Vector3 bl, Vector3 br, Vector3 tr, Vector3 tl, Color bottom, Color top)
         {
-            Vector3 pos = _battlefield.LogicToWorldPosition(new Vector2(x, y));
-            float hw = width * 0.5f;
-            
-            GL.Vertex(pos + new Vector3(-hw, 0, 0));
-            GL.Vertex(pos + new Vector3(hw, 0, 0));
-            GL.Vertex(pos + new Vector3(hw, height, 0));
-            GL.Vertex(pos + new Vector3(-hw, height, 0));
+            int i = _verts.Count;
+            _verts.Add(bl); _verts.Add(br); _verts.Add(tr); _verts.Add(tl);
+            _colors.Add(bottom); _colors.Add(bottom); _colors.Add(top); _colors.Add(top);
+            _tris.Add(i); _tris.Add(i + 2); _tris.Add(i + 1);
+            _tris.Add(i); _tris.Add(i + 3); _tris.Add(i + 2);
         }
 
-        private void DrawFenceRail(Vector3 left, Vector3 right, float height, float yOffset)
+        private void Hill(float x, float baseY, float width, float height, Color c)
         {
-            float hh = height * 0.5f;
-            Vector3 offset = new Vector3(0, yOffset, 0);
+            const int segments = 10;
+            for (int s = 0; s < segments; s++)
+            {
+                float t1 = s / (float)segments, t2 = (s + 1) / (float)segments;
+                float x1 = x - width / 2f + t1 * width, x2 = x - width / 2f + t2 * width;
+                float y1 = baseY + Mathf.Sin(t1 * Mathf.PI) * height, y2 = baseY + Mathf.Sin(t2 * Mathf.PI) * height;
+                Quad(new Vector3(x1, baseY), new Vector3(x2, baseY), new Vector3(x2, y2), new Vector3(x1, y1), c, c);
+            }
+        }
 
-            GL.Vertex(left + offset + new Vector3(0, -hh, 0));
-            GL.Vertex(right + offset + new Vector3(0, -hh, 0));
-            GL.Vertex(right + offset + new Vector3(0, hh, 0));
-            GL.Vertex(left + offset + new Vector3(0, hh, 0));
+        private void LaneQuad(float yMin, float yMax, Color c)
+        {
+            Quad(W(0, yMin), W(_data.size.x, yMin), W(_data.size.x, yMax), W(0, yMax), c, c);
+        }
+
+        private void Line(Vector3 a, Vector3 b, float thickness, Color c)
+        {
+            Vector3 d = (b - a).normalized;
+            Vector3 n = new Vector3(-d.y, d.x, 0f) * (thickness * 0.5f);
+            Quad(a - n, b - n, b + n, a + n, c, c);
+        }
+
+        private void DashedLine(float y)
+        {
+            const float dashLen = 1.5f, gapLen = 0.8f;
+            for (float x = 0; x < _data.size.x; x += dashLen + gapLen)
+                Line(W(x, y), W(Mathf.Min(x + dashLen, _data.size.x), y), 0.06f, _laneLineColor);
+        }
+
+        private void FencePost(float x, float y)
+        {
+            Vector3 p = W(x, y);
+            const float hw = 0.075f, h = 0.8f;
+            Quad(p + new Vector3(-hw, 0), p + new Vector3(hw, 0), p + new Vector3(hw, h), p + new Vector3(-hw, h), _fenceColor, _fenceColor);
+        }
+
+        private void FenceRails(float y)
+        {
+            Vector3 l = W(_data.boundaryMinX, y), r = W(_data.boundaryMaxX, y);
+            Line(l + new Vector3(0, 0.3f), r + new Vector3(0, 0.3f), 0.08f, _fenceColor);
+            Line(l + new Vector3(0, 0.6f), r + new Vector3(0, 0.6f), 0.08f, _fenceColor);
         }
 
         private void OnDestroy()
         {
-            if (_mat != null) DestroyImmediate(_mat);
+            if (_mat != null) Destroy(_mat);
         }
     }
 }
