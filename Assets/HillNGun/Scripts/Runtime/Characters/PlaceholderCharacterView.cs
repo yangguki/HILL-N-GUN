@@ -1,5 +1,6 @@
 using UnityEngine;
 using HillNGun.Core;
+using HillNGun.Data;
 using HillNGun.Battlefield;
 
 namespace HillNGun.Characters
@@ -11,25 +12,37 @@ namespace HillNGun.Characters
         [SerializeField] private Transform _weaponPivot;
         [SerializeField] private SpriteRenderer _hitFlashOverlay;
         [SerializeField] private Transform _damageNumberSpawnPoint;
+        [SerializeField] private SpriteLibrary _spriteLibrary;
 
         private CharacterStateMachine _character;
         private BattlefieldSystem _battlefield;
+        private CharacterSprites _sprites;
         private Color _originalColor;
         private float _hitFlashTimer;
         private bool _isFlashing;
         private LineRenderer _aimLine;
         private TextMesh _nameLabel;
+        private Sprite _idleSprite;
+        private Sprite _shootSprite;
+        private Sprite _rollSprite;
+        private Sprite _downedSprite;
 
         public void Initialize(CharacterStateMachine character)
         {
             _character = character;
             _battlefield = ServiceLocator.Get<BattlefieldSystem>();
             
+            if (_spriteLibrary == null)
+            {
+                _spriteLibrary = ServiceLocator.Get<SpriteLibrary>();
+            }
+
+            LoadSprites(character);
             SetupVisuals(character);
             
             if (_bodyRenderer != null)
             {
-                _originalColor = GetTeamColor(character.Team, character.Data?.role ?? Role.Assault);
+                _originalColor = Color.white;
                 _bodyRenderer.color = _originalColor;
             }
 
@@ -41,6 +54,21 @@ namespace HillNGun.Characters
             UpdateView(character);
         }
 
+        private void LoadSprites(CharacterStateMachine character)
+        {
+            if (_spriteLibrary != null && character.Data != null)
+            {
+                _sprites = _spriteLibrary.GetCharacterSprites(character.Data.id);
+                if (_sprites != null)
+                {
+                    _idleSprite = _sprites.idle;
+                    _shootSprite = _sprites.shoot;
+                    _rollSprite = _sprites.roll;
+                    _downedSprite = _sprites.downed;
+                }
+            }
+        }
+
         private void SetupVisuals(CharacterStateMachine character)
         {
             if (_bodyRenderer == null)
@@ -50,7 +78,15 @@ namespace HillNGun.Characters
                 {
                     _bodyRenderer = gameObject.AddComponent<SpriteRenderer>();
                 }
-                _bodyRenderer.sprite = CreateBodySprite();
+            }
+            
+            if (_idleSprite != null)
+            {
+                _bodyRenderer.sprite = _idleSprite;
+            }
+            else
+            {
+                _bodyRenderer.sprite = CreateBodySprite(character);
             }
 
             var aimLineGo = new GameObject("AimLine");
@@ -77,11 +113,12 @@ namespace HillNGun.Characters
             _nameLabel.color = Color.white;
         }
 
-        private Sprite CreateBodySprite()
+        private Sprite CreateBodySprite(CharacterStateMachine character)
         {
             int size = 64;
             var texture = new Texture2D(size, size);
             var pixels = new Color[size * size];
+            Color mainColor = GetTeamColor(character.Team, character.Data?.role ?? Role.Assault);
 
             for (int y = 0; y < size; y++)
             {
@@ -92,7 +129,7 @@ namespace HillNGun.Characters
                     float dist = Mathf.Sqrt(dx * dx + dy * dy);
 
                     if (dist < size / 2f - 3)
-                        pixels[y * size + x] = Color.white;
+                        pixels[y * size + x] = mainColor;
                     else if (dist < size / 2f)
                         pixels[y * size + x] = new Color(0.2f, 0.2f, 0.2f, 1f);
                     else
@@ -120,6 +157,15 @@ namespace HillNGun.Characters
             else
             {
                 return new Color(0.8f, 0.6f, 0.2f);
+            }
+        }
+
+        public void SetSpriteLibrary(SpriteLibrary library)
+        {
+            _spriteLibrary = library;
+            if (_character != null)
+            {
+                LoadSprites(_character);
             }
         }
 
@@ -174,8 +220,16 @@ namespace HillNGun.Characters
             switch (character.OverallState)
             {
                 case CharacterOverallState.Downed:
-                    _bodyRenderer.color = Color.Lerp(_originalColor, Color.gray, 0.5f);
-                    transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+                    if (_downedSprite != null)
+                    {
+                        _bodyRenderer.sprite = _downedSprite;
+                        transform.rotation = Quaternion.identity;
+                    }
+                    else
+                    {
+                        transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+                    }
+                    _bodyRenderer.color = Color.Lerp(_originalColor, Color.gray, 0.3f);
                     break;
 
                 case CharacterOverallState.Eliminated:
@@ -183,11 +237,25 @@ namespace HillNGun.Characters
                     break;
 
                 default:
+                    transform.rotation = Quaternion.identity;
+                    
+                    if (character.MovementState == MovementState.Rolling && _rollSprite != null)
+                    {
+                        _bodyRenderer.sprite = _rollSprite;
+                    }
+                    else if (character.ActionState == ActionState.Firing && _shootSprite != null)
+                    {
+                        _bodyRenderer.sprite = _shootSprite;
+                    }
+                    else if (_idleSprite != null)
+                    {
+                        _bodyRenderer.sprite = _idleSprite;
+                    }
+                    
                     if (!_isFlashing)
                     {
                         _bodyRenderer.color = _originalColor;
                     }
-                    transform.rotation = Quaternion.identity;
                     break;
             }
 

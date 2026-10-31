@@ -134,6 +134,7 @@ namespace HillNGun.Editor
         {
             string[] args = System.Environment.GetCommandLineArgs();
             string platform = "all";
+            bool skipSetup = false;
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -141,26 +142,117 @@ namespace HillNGun.Editor
                 {
                     platform = args[i + 1].ToLower();
                 }
+                if (args[i] == "-skipSetup")
+                {
+                    skipSetup = true;
+                }
             }
 
-            UpdateBuildSettings();
-
-            switch (platform)
+            try
             {
-                case "windows":
-                    BuildWindowsStandalone();
-                    break;
-                case "macos":
-                case "osx":
-                    BuildMacOSStandalone();
-                    break;
-                case "android":
-                    BuildAndroid();
-                    break;
-                case "all":
-                default:
-                    BuildAllPlatforms();
-                    break;
+                if (!skipSetup)
+                {
+                    Debug.Log("[BuildHelper] Running setup...");
+                    GameSetup.SetupAllHeadless();
+                }
+
+                UpdateBuildSettings();
+
+                bool success = false;
+                switch (platform)
+                {
+                    case "windows":
+                        success = BuildWindowsStandaloneHeadless();
+                        break;
+                    case "macos":
+                    case "osx":
+                        success = BuildMacOSStandaloneHeadless();
+                        break;
+                    case "android":
+                        success = BuildAndroidHeadless();
+                        break;
+                    case "all":
+                    default:
+                        success = BuildAllPlatformsHeadless();
+                        break;
+                }
+
+                if (!success)
+                {
+                    Debug.LogError("[BuildHelper] Build failed!");
+                    EditorApplication.Exit(1);
+                }
+                else
+                {
+                    Debug.Log("[BuildHelper] Build completed successfully!");
+                    EditorApplication.Exit(0);
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[BuildHelper] Build failed with exception: {e.Message}\n{e.StackTrace}");
+                EditorApplication.Exit(1);
+            }
+        }
+
+        private static bool BuildAllPlatformsHeadless()
+        {
+            bool success = true;
+            success &= BuildWindowsStandaloneHeadless();
+            success &= BuildMacOSStandaloneHeadless();
+            success &= BuildAndroidHeadless();
+            return success;
+        }
+
+        private static bool BuildWindowsStandaloneHeadless()
+        {
+            string buildPath = Path.Combine(BUILD_FOLDER, "Windows", $"{PRODUCT_NAME}.exe");
+            return BuildPlayerHeadless(BuildTarget.StandaloneWindows64, buildPath, "Windows");
+        }
+
+        private static bool BuildMacOSStandaloneHeadless()
+        {
+            string buildPath = Path.Combine(BUILD_FOLDER, "macOS", $"{PRODUCT_NAME}.app");
+            return BuildPlayerHeadless(BuildTarget.StandaloneOSX, buildPath, "macOS");
+        }
+
+        private static bool BuildAndroidHeadless()
+        {
+            ConfigureAndroidSettings();
+            string buildPath = Path.Combine(BUILD_FOLDER, "Android", $"{PRODUCT_NAME}.apk");
+            return BuildPlayerHeadless(BuildTarget.Android, buildPath, "Android");
+        }
+
+        private static bool BuildPlayerHeadless(BuildTarget target, string locationPath, string platformName)
+        {
+            string directory = Path.GetDirectoryName(locationPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var buildOptions = new BuildPlayerOptions
+            {
+                scenes = GetEnabledScenePaths(),
+                locationPathName = locationPath,
+                target = target,
+                options = BuildOptions.None
+            };
+
+            Debug.Log($"[BuildHelper] Building {platformName}...");
+
+            BuildReport report = BuildPipeline.BuildPlayer(buildOptions);
+            BuildSummary summary = report.summary;
+
+            if (summary.result == BuildResult.Succeeded)
+            {
+                Debug.Log($"[BuildHelper] {platformName} build succeeded: {summary.totalSize} bytes at {locationPath}");
+                return true;
+            }
+            else
+            {
+                Debug.LogError($"[BuildHelper] {platformName} build failed with {summary.totalErrors} errors");
+                return false;
             }
         }
 

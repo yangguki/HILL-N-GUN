@@ -1,5 +1,6 @@
 using UnityEngine;
 using HillNGun.Core;
+using HillNGun.Data;
 using System.Collections.Generic;
 
 namespace HillNGun.Feel
@@ -12,9 +13,12 @@ namespace HillNGun.Feel
         [Header("Settings")]
         [SerializeField] private bool _soundEnabled = true;
         [SerializeField] [Range(0f, 1f)] private float _masterVolume = 0.5f;
+        [SerializeField] private AudioLibrary _audioLibrary;
 
         private AudioSource _sfxSource;
+        private AudioSource _bgmSource;
         private Dictionary<string, AudioClip> _clipCache = new Dictionary<string, AudioClip>();
+        private bool _useLibrary;
 
         public bool SoundEnabled
         {
@@ -25,7 +29,11 @@ namespace HillNGun.Feel
         public float MasterVolume
         {
             get => _masterVolume;
-            set => _masterVolume = Mathf.Clamp01(value);
+            set
+            {
+                _masterVolume = Mathf.Clamp01(value);
+                UpdateBGMVolume();
+            }
         }
 
         private void Awake()
@@ -35,7 +43,23 @@ namespace HillNGun.Feel
             _sfxSource.playOnAwake = false;
             _sfxSource.spatialBlend = 0f;
 
-            GenerateClips();
+            _bgmSource = gameObject.AddComponent<AudioSource>();
+            _bgmSource.playOnAwake = false;
+            _bgmSource.loop = true;
+            _bgmSource.spatialBlend = 0f;
+
+            if (_audioLibrary == null)
+            {
+                _audioLibrary = ServiceLocator.Get<AudioLibrary>();
+            }
+
+            _useLibrary = _audioLibrary != null && _audioLibrary.shotLight != null;
+            
+            if (!_useLibrary)
+            {
+                GenerateClips();
+            }
+
             ServiceLocator.Register(this);
         }
 
@@ -43,6 +67,12 @@ namespace HillNGun.Feel
         {
             ServiceLocator.Unregister<PlaceholderAudio>();
             _instance = null;
+        }
+
+        public void SetAudioLibrary(AudioLibrary library)
+        {
+            _audioLibrary = library;
+            _useLibrary = library != null && library.shotLight != null;
         }
 
         private void GenerateClips()
@@ -282,74 +312,190 @@ namespace HillNGun.Feel
 
         public void PlayShot(bool isHeavy = false, bool isShotgun = false)
         {
-            if (isShotgun) Play("shot_shotgun");
-            else if (isHeavy) Play("shot_heavy");
-            else Play("shot_light");
+            if (_useLibrary)
+            {
+                AudioClip clip = isShotgun ? _audioLibrary.shotShotgun :
+                                 isHeavy ? _audioLibrary.shotHeavy : _audioLibrary.shotLight;
+                PlayClip(clip);
+            }
+            else
+            {
+                if (isShotgun) Play("shot_shotgun");
+                else if (isHeavy) Play("shot_heavy");
+                else Play("shot_light");
+            }
         }
 
         public void PlayHit(int damage)
         {
-            Play(damage >= 300 ? "hit_heavy" : "hit_light");
+            if (_useLibrary)
+            {
+                PlayClip(damage >= 300 ? _audioLibrary.hitHeavy : _audioLibrary.hitLight);
+            }
+            else
+            {
+                Play(damage >= 300 ? "hit_heavy" : "hit_light");
+            }
         }
 
         public void PlayReloadClick()
         {
-            Play("reload_click");
+            if (_useLibrary) PlayClip(_audioLibrary.reloadClick);
+            else Play("reload_click");
         }
 
         public void PlayReloadFull()
         {
-            Play("reload_full");
+            if (_useLibrary) PlayClip(_audioLibrary.reloadFull);
+            else Play("reload_full");
         }
 
         public void PlayRoll()
         {
-            Play("roll");
+            if (_useLibrary) PlayClip(_audioLibrary.roll);
+            else Play("roll");
         }
 
         public void PlayGrenadeThrow()
         {
-            Play("grenade_throw");
+            if (_useLibrary) PlayClip(_audioLibrary.grenadeThrow);
+            else Play("grenade_throw");
         }
 
         public void PlayGrenadeExplode()
         {
-            Play("grenade_explode");
+            if (_useLibrary) PlayClip(_audioLibrary.grenadeExplode);
+            else Play("grenade_explode");
         }
 
         public void PlayCoverHit()
         {
-            Play("cover_hit");
+            if (_useLibrary) PlayClip(_audioLibrary.coverHit);
+            else Play("cover_hit");
         }
 
         public void PlayCoverBreak()
         {
-            Play("cover_break");
+            if (_useLibrary) PlayClip(_audioLibrary.coverBreak);
+            else Play("cover_break");
         }
 
         public void PlayDowned()
         {
-            Play("downed");
+            if (_useLibrary) PlayClip(_audioLibrary.downed);
+            else Play("downed");
         }
 
         public void PlayRevive()
         {
-            Play("revive");
+            if (_useLibrary) PlayClip(_audioLibrary.revive);
+            else Play("revive");
         }
 
         public void PlaySkillActivate()
         {
-            Play("skill_activate");
+            if (_useLibrary) PlayClip(_audioLibrary.skillActivate);
+            else Play("skill_activate");
         }
 
         public void PlayChargeReady()
         {
-            Play("charge_ready");
+            if (_useLibrary) PlayClip(_audioLibrary.chargeReady);
+            else Play("charge_ready");
         }
 
         public void PlayUIClick()
         {
-            Play("ui_click");
+            if (_useLibrary) PlayClip(_audioLibrary.uiClick);
+            else Play("ui_click");
+        }
+
+        public void PlayBossRoar()
+        {
+            if (_useLibrary) PlayClip(_audioLibrary.bossRoar);
+        }
+
+        public void PlayBossWarning()
+        {
+            if (_useLibrary) PlayClip(_audioLibrary.bossWarning);
+        }
+
+        public void PlayVictory()
+        {
+            if (_useLibrary) PlayClip(_audioLibrary.victoryFanfare);
+        }
+
+        public void PlayDefeat()
+        {
+            if (_useLibrary) PlayClip(_audioLibrary.defeatSting);
+        }
+
+        public void PlayMenuBGM()
+        {
+            if (_useLibrary && _audioLibrary.bgmMenu != null)
+            {
+                PlayBGM(_audioLibrary.bgmMenu);
+            }
+        }
+
+        public void PlayBattleBGM()
+        {
+            if (_useLibrary && _audioLibrary.bgmBattle != null)
+            {
+                PlayBGM(_audioLibrary.bgmBattle);
+            }
+        }
+
+        public void PlayBossBGM()
+        {
+            if (_useLibrary && _audioLibrary.bgmBoss != null)
+            {
+                PlayBGM(_audioLibrary.bgmBoss);
+            }
+        }
+
+        public void StopBGM()
+        {
+            if (_bgmSource != null && _bgmSource.isPlaying)
+            {
+                _bgmSource.Stop();
+            }
+        }
+
+        private void PlayBGM(AudioClip clip)
+        {
+            if (_bgmSource == null || clip == null) return;
+
+            if (_bgmSource.clip == clip && _bgmSource.isPlaying) return;
+
+            _bgmSource.clip = clip;
+            _bgmSource.volume = GetBGMVolume();
+            _bgmSource.Play();
+        }
+
+        private float GetBGMVolume()
+        {
+            if (_useLibrary)
+            {
+                return _masterVolume * _audioLibrary.bgmVolume;
+            }
+            return _masterVolume * 0.5f;
+        }
+
+        private void UpdateBGMVolume()
+        {
+            if (_bgmSource != null)
+            {
+                _bgmSource.volume = GetBGMVolume();
+            }
+        }
+
+        private void PlayClip(AudioClip clip, float volumeMultiplier = 1f)
+        {
+            if (!_soundEnabled || clip == null) return;
+
+            float vol = _useLibrary ? _masterVolume * _audioLibrary.sfxVolume : _masterVolume;
+            _sfxSource.PlayOneShot(clip, vol * volumeMultiplier);
         }
 
         private void Play(string clipName, float volumeMultiplier = 1f)

@@ -58,6 +58,12 @@ namespace HillNGun.Data
         [Tooltip("진동 활성화")]
         public bool vibrationEnabled = true;
 
+        [Tooltip("히트스톱 활성화")]
+        public bool hitStopEnabled = true;
+
+        public float hitStopLightDuration => hitstopLight;
+        public float hitStopHeavyDuration => hitstopHeavy;
+
         public float GetHitstopDuration(int damage, bool isGrenade = false)
         {
             if (isGrenade) return hitstopGrenade;

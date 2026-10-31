@@ -33,24 +33,19 @@ namespace HillNGun.Editor
                 "   - 캐릭터, 무기, 수류탄, 스킬 등\n" +
                 "   - 적 타입 및 스테이지 데이터\n" +
                 "   - 보스 데이터\n\n" +
-                "2. 모든 게임 씬 생성\n" +
+                "2. 플레이스홀더 아트 및 오디오 생성\n\n" +
+                "3. 모든 게임 씬 생성\n" +
                 "   - Title, ModeSelect, CharacterSelect\n" +
                 "   - PvE_Match, PvP_Match, M1_Sandbox\n" +
                 "   - Result\n\n" +
-                "3. Build Settings 업데이트\n\n" +
+                "4. Build Settings 업데이트\n\n" +
                 "기존 에셋이 있으면 덮어씁니다. 계속하시겠습니까?",
                 "계속", "취소"))
             {
                 return;
             }
 
-            CreateDirectories();
-            CreateAllDataAssets();
-            CreateAllScenes();
-            BuildHelper.UpdateBuildSettings();
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
+            SetupAllHeadless();
 
             EditorUtility.DisplayDialog("완료", 
                 "전체 게임 설정이 완료되었습니다.\n\n" +
@@ -58,6 +53,170 @@ namespace HillNGun.Editor
                 "M1_Sandbox 씬에서 조작을 테스트할 수 있습니다.\n\n" +
                 "빌드: HillNGun → Build → Build All Platforms",
                 "확인");
+        }
+
+        public static void SetupAllHeadless()
+        {
+            CreateDirectories();
+            
+            ArtGenerator.GenerateAllArt();
+            AudioGenerator.GenerateAllAudio();
+            
+            CreateAllDataAssets();
+            CreateSpriteLibrary();
+            CreateAudioLibrary();
+            CreateAllScenes();
+            BuildHelper.UpdateBuildSettings();
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            
+            Debug.Log("[GameSetup] Setup completed successfully!");
+        }
+
+        private static void CreateSpriteLibrary()
+        {
+            string path = DATA_PATH + "SpriteLibrary.asset";
+            var library = ScriptableObject.CreateInstance<SpriteLibrary>();
+            
+            library.characters = new CharacterSprites[]
+            {
+                LoadCharacterSprites("buster"),
+                LoadCharacterSprites("raven"),
+                LoadCharacterSprites("volt")
+            };
+
+            library.enemies = new EnemySprites[]
+            {
+                new EnemySprites { enemyId = "pistol_mook", idle = LoadSprite("Enemies/pistol_mook") },
+                new EnemySprites { enemyId = "dynamite_bandit", idle = LoadSprite("Enemies/dynamite_bandit") },
+                new EnemySprites { enemyId = "mounted_raider", idle = LoadSprite("Enemies/mounted_raider") }
+            };
+
+            library.boss = new BossSprites
+            {
+                bossId = "rattlesnake_rex",
+                idle = LoadSprite("Boss/rattlesnake_rex"),
+                warningIndicator = LoadSprite("Boss/warning_indicator")
+            };
+
+            library.covers = new CoverSprites[]
+            {
+                LoadCoverSprites("barrel"),
+                LoadCoverSprites("crate"),
+                LoadCoverSprites("wagon")
+            };
+
+            library.bullet = LoadSprite("Projectiles/bullet");
+            library.bulletHeavy = LoadSprite("Projectiles/bullet_heavy");
+            library.grenade = LoadSprite("Projectiles/grenade");
+
+            library.muzzleFlash = LoadSprite("Effects/muzzle_flash");
+            library.hitSpark = LoadSprite("Effects/hit_spark");
+            library.dustPuff = LoadSprite("Effects/dust_puff");
+            library.explosion = LoadSprite("Effects/explosion");
+
+            library.skyGradient = LoadSprite("Background/sky_gradient");
+            library.mesas = LoadSprite("Background/mesas");
+            library.saloonFacades = LoadSprite("Background/saloon_facades");
+            library.ground = LoadSprite("Background/ground");
+
+            library.hpBarBg = LoadSprite("UI/hp_bar_bg");
+            library.hpBarFill = LoadSprite("UI/hp_bar_fill");
+            library.ammoCell = LoadSprite("UI/ammo_cell");
+            library.ammoCellEmpty = LoadSprite("UI/ammo_cell_empty");
+            library.buttonBg = LoadSprite("UI/button_bg");
+            library.joystickBg = LoadSprite("UI/joystick_bg");
+            library.joystickKnob = LoadSprite("UI/joystick_knob");
+
+            CreateOrReplaceAsset(library, path);
+        }
+
+        private static CharacterSprites LoadCharacterSprites(string id)
+        {
+            return new CharacterSprites
+            {
+                characterId = id,
+                idle = LoadSprite($"Characters/{id}_idle"),
+                shoot = LoadSprite($"Characters/{id}_shoot"),
+                roll = LoadSprite($"Characters/{id}_roll"),
+                downed = LoadSprite($"Characters/{id}_downed")
+            };
+        }
+
+        private static CoverSprites LoadCoverSprites(string id)
+        {
+            return new CoverSprites
+            {
+                coverId = id,
+                intact = LoadSprite($"Covers/{id}_intact"),
+                cracked = LoadSprite($"Covers/{id}_cracked"),
+                damaged = LoadSprite($"Covers/{id}_damaged"),
+                destroyed = LoadSprite($"Covers/{id}_destroyed")
+            };
+        }
+
+        private static Sprite LoadSprite(string relativePath)
+        {
+            string path = $"Assets/HillNGun/Art/Generated/{relativePath}.png";
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
+        private static void CreateAudioLibrary()
+        {
+            string path = DATA_PATH + "AudioLibrary.asset";
+            var library = ScriptableObject.CreateInstance<AudioLibrary>();
+            
+            library.masterVolume = 0.7f;
+            library.sfxVolume = 0.8f;
+            library.bgmVolume = 0.5f;
+
+            library.shotLight = LoadAudioClip("SFX/shot_light");
+            library.shotHeavy = LoadAudioClip("SFX/shot_heavy");
+            library.shotShotgun = LoadAudioClip("SFX/shot_shotgun");
+            library.chargeLoop = LoadAudioClip("SFX/charge_loop");
+            library.chargeReady = LoadAudioClip("SFX/charge_ready");
+
+            library.reloadClick = LoadAudioClip("SFX/reload_click");
+            library.reloadFull = LoadAudioClip("SFX/reload_full");
+
+            library.roll = LoadAudioClip("SFX/roll");
+            library.footstep = LoadAudioClip("SFX/footstep");
+
+            library.grenadeThrow = LoadAudioClip("SFX/grenade_throw");
+            library.grenadeExplode = LoadAudioClip("SFX/grenade_explode");
+
+            library.coverHit = LoadAudioClip("SFX/cover_hit");
+            library.coverBreak = LoadAudioClip("SFX/cover_break");
+
+            library.hitLight = LoadAudioClip("SFX/hit_light");
+            library.hitHeavy = LoadAudioClip("SFX/hit_heavy");
+            library.downed = LoadAudioClip("SFX/downed");
+            library.revive = LoadAudioClip("SFX/revive");
+            library.skillActivate = LoadAudioClip("SFX/skill_activate");
+
+            library.bossRoar = LoadAudioClip("SFX/boss_roar");
+            library.bossWarning = LoadAudioClip("SFX/boss_warning");
+            library.bossPhaseChange = LoadAudioClip("SFX/boss_phase_change");
+
+            library.uiClick = LoadAudioClip("SFX/ui_click");
+            library.uiHover = LoadAudioClip("SFX/ui_hover");
+            library.uiBack = LoadAudioClip("SFX/ui_back");
+
+            library.victoryFanfare = LoadAudioClip("SFX/victory_fanfare");
+            library.defeatSting = LoadAudioClip("SFX/defeat_sting");
+
+            library.bgmMenu = LoadAudioClip("BGM/bgm_menu");
+            library.bgmBattle = LoadAudioClip("BGM/bgm_battle");
+            library.bgmBoss = LoadAudioClip("BGM/bgm_boss");
+
+            CreateOrReplaceAsset(library, path);
+        }
+
+        private static AudioClip LoadAudioClip(string relativePath)
+        {
+            string path = $"Assets/HillNGun/Audio/Generated/{relativePath}.wav";
+            return AssetDatabase.LoadAssetAtPath<AudioClip>(path);
         }
 
         private static void CreateDirectories()
@@ -317,7 +476,7 @@ namespace HillNGun.Editor
             var bossRex = CreateOrLoad<BossData>(DATA_PATH + "Bosses/boss_rattlesnake_rex.asset");
             bossRex.id = "rattlesnake_rex";
             bossRex.nameKey = "pve.boss.rattlesnake_rex";
-            bossRex.maxHp = 24000;
+            bossRex.maxHp = 18000;
             bossRex.hitRadius = 1.5f;
             bossRex.moveSpeed = 1.5f;
             bossRex.baseColor = new Color(0.5f, 0.3f, 0.2f);
