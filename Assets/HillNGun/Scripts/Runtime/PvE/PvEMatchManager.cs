@@ -38,6 +38,28 @@ namespace HillNGun.PvE
         private List<BotBrain> _allyBots = new List<BotBrain>();
         private int _playerControlledIndex = 0;
         private List<AutoGunner> _allyGunners = new List<AutoGunner>();
+        private List<AbilityPilot> _allyPilots = new List<AbilityPilot>();
+
+        public event System.Action<CharacterStateMachine, SkillEffect> OnSkillUsed;
+        public event System.Action<CharacterStateMachine, CharacterStateMachine> OnAllyRevived;
+        public event System.Action<BossInstance, int> OnBossVolley;
+        public int SkillsUsed { get; private set; }
+        public int GrenadesThrown { get; private set; }
+        public int RevivesCompleted { get; private set; }
+        public int BossVolleys { get; private set; }
+        public int BossPhase3Volleys { get; private set; }
+
+        /// <summary>Squad size used for PvE HP scaling (decision D15).</summary>
+        public int PartySize
+        {
+            get
+            {
+                int n = 0;
+                foreach (var c in _playerTeam)
+                    if (c != null && c.OverallState != CharacterOverallState.Eliminated) n++;
+                return Mathf.Max(1, n);
+            }
+        }
         private readonly List<GameObject> _stageViews = new List<GameObject>();
         private CombatSystem _combat;
 
@@ -89,6 +111,7 @@ namespace HillNGun.PvE
             _combat = ServiceLocator.Get<CombatSystem>();
             SpawnCovers();
             ProjectileView.Ensure();
+            CombatFeedback.Ensure();
             SpawnPlayerTeam();
             if (_stages != null && _stages.Length > 0)
             {
@@ -160,6 +183,7 @@ namespace HillNGun.PvE
                         var bot = new BotBrain(character, _botBehavior);
                         _allyBots.Add(bot);
                         _allyGunners.Add(new AutoGunner(character, 0.5f + 0.3f * i));
+                        _allyPilots.Add(new AbilityPilot(character, _botBehavior, 2f + 1.5f * i));
                     }
                 }
             }
@@ -216,6 +240,9 @@ namespace HillNGun.PvE
             character.OnDamageTaken += HandlePlayerDamaged;
 
             _combat?.RegisterCharacter(character);
+            ServiceLocator.Get<ReviveSystem>()?.RegisterCharacter(character);
+            character.OnSkillActivated += HandleSkillActivated;
+            character.OnRevived += HandlePlayerRevived;
 
             return character;
         }
@@ -241,6 +268,20 @@ namespace HillNGun.PvE
         {
             PlayerDamageTaken += damage;
             EffectsManager.Instance?.SpawnDamageNumber(character.Position, damage, damage >= 400);
+        }
+
+        private void HandleSkillActivated(CharacterStateMachine c, SkillEffect effect, Vector2? target)
+        {
+            SkillsUsed++;
+            Debug.Log($"[PvE] Skill {c.Data?.skill?.id} ({effect}) by {c.Data?.id} at {_stageTimer:F1}s");
+            OnSkillUsed?.Invoke(c, effect);
+        }
+
+        private void HandlePlayerRevived(CharacterStateMachine c)
+        {
+            RevivesCompleted++;
+            Debug.Log($"[PvE] {c.Data?.id} revived at {_stageTimer:F1}s");
+            OnAllyRevived?.Invoke(null, c);
         }
 
         private void HandlePlayerDowned(CharacterStateMachine character)
@@ -323,7 +364,9 @@ namespace HillNGun.PvE
             if (_currentStage?.bossData == null) return;
 
             _activeBoss = new BossInstance();
-            _activeBoss.Initialize(_currentStage.bossData, _currentStage.bossData.battlePosition);
+            int scaledHp = _currentStage.bossData.GetScaledMaxHp(PartySize);
+            _activeBoss.Initialize(_currentStage.bossData, _currentStage.bossData.battlePosition, scaledHp);
+            Debug.Log($"[PvE] Boss {_currentStage.bossData.id} hp={scaledHp} (party {PartySize})");
             _combat?.RegisterCombatTarget(_activeBoss);
 
             _activeBoss.OnDefeated += HandleBossDefeated;
@@ -370,14 +413,17 @@ namespace HillNGun.PvE
         {
             // PvE allies: BotBrain targets characters only, so PvE uses AutoGunner against enemies/boss.
             float dt = Time.deltaTime;
-            foreach (var gunner in _allyGunners)
+            for (int i = 0; i < _allyGunners.Count; i++)
             {
+                var gunner = _allyGunners[i];
                 var c = gunner.Character;
                 if (c == null || c.OverallState != CharacterOverallState.Active) continue;
                 float range = c.Data?.weapon?.range ?? 7f;
                 Vector2? inRange = FindTargetFor(c.Position, range * 1.1f);
-                DriveAllyMovement(c, inRange);
-                gunner.Tick(dt, inRange);
+                var pilot = i < _allyPilots.Count ? _allyPilots[i] : null;
+                bool pilotMoving = pilot != null && TickPilot(pilot, dt, inRange);
+                if (!pilotMoving) DriveAllyMovement(c, inRange);
+                if (pilot == null || !pilot.IsHolding) gunner.Tick(dt, inRange);
             }
         }
 
@@ -441,6 +487,17 @@ namespace HillNGun.PvE
                     }
                 }
             }
+        }
+
+        /// <summary>Skill/grenade/revive for an ally (or autopilot). Grenades aim at the nearest target within grenade range.</summary>
+        public bool TickPilot(AbilityPilot pilot, float dt, Vector2? inRange)
+        {
+            var c = pilot.Character;
+            Vector2? target = inRange ?? FindTargetFor(c.Position, c.Data?.grenade?.maxRange ?? 9f);
+            int before = pilot.GrenadesThrown;
+            bool moving = pilot.Tick(dt, target, _playerTeam);
+            if (pilot.GrenadesThrown > before) GrenadesThrown++;
+            return moving;
         }
 
         /// <summary>
@@ -549,7 +606,9 @@ namespace HillNGun.PvE
                 int row = entry.preferredRow;
 
                 var enemy = new EnemyInstance();
-                enemy.Initialize(entry.enemyData, new Vector2(spawnX, spawnY), row);
+                var rules = ServiceLocator.Get<MatchRulesData>();
+                float hpMul = rules != null ? rules.GetPvEEnemyHpMul(PartySize) : 1f;
+                enemy.Initialize(entry.enemyData, new Vector2(spawnX, spawnY), row, hpMul);
                 var fieldData = ServiceLocator.Get<Battlefield.BattlefieldSystem>()?.Data;
                 if (fieldData != null) enemy.SetHittableMaxY(fieldData.size.y);
                 _combat?.RegisterCombatTarget(enemy);
@@ -676,8 +735,12 @@ namespace HillNGun.PvE
                 foreach (var ph in boss.Data.phases)
                     if (ph.phase == boss.CurrentPhase) { speed = ph.fanShotBulletSpeed; break; }
             float radius = boss.CurrentPhaseData?.fanShotBulletRadius ?? 0.2f;
+            float coverMul = boss.CurrentPhaseData?.coverDamageMul ?? 1f;
             foreach (var dir in directions)
-                _combat.SpawnEnemyProjectile(boss.Position + dir * 1.2f, dir, speed, radius, damage, 20f, Team.Enemy);
+                _combat.SpawnEnemyProjectile(boss.Position + dir * 1.2f, dir, speed, radius, damage, 24f, Team.Enemy, coverMul);
+            BossVolleys++;
+            if (boss.CurrentPhase == BossPhase.Phase3) BossPhase3Volleys++;
+            OnBossVolley?.Invoke(boss, boss.LastBurstIndex);
         }
 
         public event System.Action<BossInstance, Rect, int> OnTailSweepResolved;

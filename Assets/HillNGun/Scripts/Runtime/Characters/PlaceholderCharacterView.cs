@@ -135,6 +135,8 @@ namespace HillNGun.Characters
             _teamMarker = markerGo.AddComponent<SpriteRenderer>();
             _teamMarker.sprite = CreateMarkerSprite();
             _teamMarker.color = character.Team == Team.Player ? new Color(0.3f, 0.6f, 1f, 0.75f) : new Color(1f, 0.3f, 0.25f, 0.75f);
+            _markerBaseColor = _teamMarker.color;
+            _markerBaseScale = markerGo.transform.localScale;
 
             if (character.Team == Team.Enemy && _bodyRenderer != null)
             {
@@ -243,7 +245,88 @@ namespace HillNGun.Characters
             UpdateAimLine(character, worldPos);
             UpdateFlash();
             UpdateStateVisuals(character);
+            UpdateStatusBar(character);
         }
+
+        // Downed / revive bar + skill state marker tint (placeholder visuals, no external art)
+        private Transform _barRoot;
+        private SpriteRenderer _barBg, _barFill;
+        private static Sprite _pixelSprite;
+
+        private static Sprite PixelSprite()
+        {
+            if (_pixelSprite != null) return _pixelSprite;
+            var tex = new Texture2D(4, 4) { filterMode = FilterMode.Point };
+            var px = new Color[16];
+            for (int i = 0; i < 16; i++) px[i] = Color.white;
+            tex.SetPixels(px);
+            tex.Apply();
+            _pixelSprite = Sprite.Create(tex, new Rect(0, 0, 4, 4), new Vector2(0f, 0.5f), 4f);
+            return _pixelSprite;
+        }
+
+        private void UpdateStatusBar(CharacterStateMachine character)
+        {
+            bool downed = character.OverallState == CharacterOverallState.Downed;
+            if (_barRoot == null)
+            {
+                if (!downed) { UpdateSkillMarker(character); return; }
+                _barRoot = new GameObject("StatusBar").transform;
+                _barRoot.SetParent(transform, false);
+                _barBg = new GameObject("Bg").AddComponent<SpriteRenderer>();
+                _barBg.transform.SetParent(_barRoot, false);
+                _barBg.sprite = PixelSprite();
+                _barBg.color = new Color(0f, 0f, 0f, 0.7f);
+                _barFill = new GameObject("Fill").AddComponent<SpriteRenderer>();
+                _barFill.transform.SetParent(_barRoot, false);
+                _barFill.sprite = PixelSprite();
+            }
+            _barRoot.gameObject.SetActive(downed);
+            UpdateSkillMarker(character);
+            if (!downed) return;
+
+            const float w = 1.2f, h = 0.16f;
+            _barRoot.rotation = Quaternion.identity;
+            _barRoot.position = transform.position + new Vector3(-w * 0.5f, 0.85f, 0f);
+            _barBg.transform.localScale = new Vector3(w, h, 1f);
+            float ratio;
+            if (character.ReviveProgress > 0f)
+            {
+                ratio = character.ReviveProgress;
+                _barFill.color = new Color(0.35f, 0.95f, 0.45f);
+            }
+            else
+            {
+                var d = ServiceLocator.Get<DownedData>();
+                ratio = character.DownedTimeRemaining / Mathf.Max(0.1f, d != null ? d.downedDuration : 10f);
+                _barFill.color = new Color(1f, 0.75f, 0.25f);
+            }
+            _barFill.transform.localScale = new Vector3(w * Mathf.Clamp01(ratio), h * 0.7f, 1f);
+            _barBg.sortingOrder = FieldView.OverlayOrder - 5;
+            _barFill.sortingOrder = FieldView.OverlayOrder - 4;
+        }
+
+        private void UpdateSkillMarker(CharacterStateMachine character)
+        {
+            if (_teamMarker == null) return;
+            if (character.IsSpreadBoostActive || character.IsPierceArmed || character.IsHoldingSkill)
+            {
+                float p = 0.6f + 0.4f * Mathf.PingPong(Time.time * 4f, 1f);
+                _teamMarker.color = character.IsPierceArmed ? new Color(0.4f, 1f, 1f, p) : new Color(1f, 0.9f, 0.3f, p);
+                _teamMarker.transform.localScale = _markerBaseScale * 1.35f;
+                _markerTinted = true;
+            }
+            else if (_markerTinted)
+            {
+                _teamMarker.color = _markerBaseColor;
+                _teamMarker.transform.localScale = _markerBaseScale;
+                _markerTinted = false;
+            }
+        }
+
+        private bool _markerTinted;
+        private Color _markerBaseColor = Color.white;
+        private Vector3 _markerBaseScale = Vector3.one;
 
         private void UpdateAimLine(CharacterStateMachine character, Vector3 worldPos)
         {

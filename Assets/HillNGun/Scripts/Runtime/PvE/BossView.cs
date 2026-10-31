@@ -187,7 +187,7 @@ namespace HillNGun.PvE
         {
             if (_hpBarFill == null || _boss == null) return;
 
-            float hpPercent = (float)_boss.CurrentHp / _boss.Data.maxHp;
+            float hpPercent = _boss.HpRatio;
             _hpBarFill.transform.localScale = new Vector3(hpPercent, 1f, 1f);
             _hpBarFill.transform.localPosition = new Vector3((hpPercent - 1f) / 2f, 0f, 0f);
         }

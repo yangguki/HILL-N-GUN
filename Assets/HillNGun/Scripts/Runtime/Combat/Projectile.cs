@@ -16,6 +16,35 @@ namespace HillNGun.Combat
         public Team OwnerTeam { get; private set; }
         public bool IsActive { get; private set; }
 
+        // Modifiers (set per shot by CombatSystem; defaults = plain bullet)
+        /// <summary>Character that fired this (null for enemy/boss bullets).</summary>
+        public HillNGun.Characters.CharacterStateMachine Owner { get; private set; }
+        public float CoverDamageMul { get; private set; } = 1f;
+        public float AfterPierceMul { get; private set; } = 0.8f;
+        /// <summary>Damage multiplier when the bullet hits a target's weak point (1 = none).</summary>
+        public float WeakpointMul { get; private set; } = 1f;
+        public float WeakpointRadius { get; private set; }
+        public bool HasPierce => _piercesRemaining > 0;
+
+        public void SetModifiers(HillNGun.Characters.CharacterStateMachine owner, float coverDamageMul,
+            float afterPierceMul, float weakpointMul, float weakpointRadius)
+        {
+            Owner = owner;
+            CoverDamageMul = coverDamageMul;
+            AfterPierceMul = afterPierceMul;
+            WeakpointMul = weakpointMul;
+            WeakpointRadius = weakpointRadius;
+        }
+
+        private void ClearModifiers()
+        {
+            Owner = null;
+            CoverDamageMul = 1f;
+            AfterPierceMul = 0.8f;
+            WeakpointMul = 1f;
+            WeakpointRadius = 0f;
+        }
+
         private Vector2 _startPosition;
         private float _distanceTraveled;
         private int _piercesRemaining;
@@ -32,6 +61,7 @@ namespace HillNGun.Combat
             OwnerTeam = team;
             _distanceTraveled = 0f;
             _piercesRemaining = pierces;
+            ClearModifiers();
             IsActive = true;
         }
 
@@ -47,6 +77,7 @@ namespace HillNGun.Combat
             OwnerTeam = team;
             _distanceTraveled = 0f;
             _piercesRemaining = 0;
+            ClearModifiers();
             IsActive = true;
         }
 
@@ -107,7 +138,7 @@ namespace HillNGun.Combat
             if (_piercesRemaining > 0)
             {
                 _piercesRemaining--;
-                Damage = Mathf.RoundToInt(Damage * 0.8f);
+                Damage = Mathf.RoundToInt(Damage * AfterPierceMul);
             }
             else
             {
@@ -128,6 +159,7 @@ namespace HillNGun.Combat
         public void Reset()
         {
             IsActive = false;
+            ClearModifiers();
             Position = Vector2.zero;
             Direction = Vector2.zero;
             _distanceTraveled = 0f;

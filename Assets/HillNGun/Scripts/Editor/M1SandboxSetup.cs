@@ -269,6 +269,7 @@ namespace HillNGun.Editor
             skillBreach.id = "skill_breach";
             skillBreach.nameKey = "skill.breach.name";
             skillBreach.useType = SkillUseType.Tap;
+            skillBreach.effect = SkillEffect.SpreadBoost;
             skillBreach.cooldown = 12f;
             skillBreach.duration = 3f;
             skillBreach.parameters = new SkillParameter[] {
@@ -281,6 +282,7 @@ namespace HillNGun.Editor
             skillPierce.id = "skill_pierce";
             skillPierce.nameKey = "skill.pierce.name";
             skillPierce.useType = SkillUseType.Hold;
+            skillPierce.effect = SkillEffect.PierceNextShot;
             skillPierce.cooldown = 18f;
             skillPierce.holdTime = 1.0f;
             skillPierce.duration = 0f;
@@ -294,6 +296,7 @@ namespace HillNGun.Editor
             skillRepair.id = "skill_repair";
             skillRepair.nameKey = "skill.repair.name";
             skillRepair.useType = SkillUseType.DragRelease;
+            skillRepair.effect = SkillEffect.RepairCover;
             skillRepair.cooldown = 15f;
             skillRepair.targetRange = 6f;
             skillRepair.duration = 0f;
@@ -321,7 +324,8 @@ namespace HillNGun.Editor
             psvWeakpoint.passiveType = PassiveType.Weakpoint;
             psvWeakpoint.parameters = new PassiveParameter[] {
                 new PassiveParameter { key = "aimTime", value = 2.0f },
-                new PassiveParameter { key = "weakpointMul", value = 1.25f }
+                new PassiveParameter { key = "weakpointMul", value = 1.25f },
+                new PassiveParameter { key = "weakpointRadius", value = 0.2f } // decision D5: centre radius on any target
             };
             EditorUtility.SetDirty(psvWeakpoint);
 
@@ -582,6 +586,8 @@ namespace HillNGun.Editor
             rules.roundMaxTime = 80f;
             rules.roundsToWin = 2;
             rules.maxRounds = 3;
+            // PvE enemy HP by squad size (03 doc: 2인 협동 적 HP x1.5; 3-person squad x3.4 tuned toward 60~120s stages, decision D15)
+            rules.pveEnemyHpMultipliers = new float[] { 1f, 1.5f, 3.4f };
             EditorUtility.SetDirty(rules);
         }
 

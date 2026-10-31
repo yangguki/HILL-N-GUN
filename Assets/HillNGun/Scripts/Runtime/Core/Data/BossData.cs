@@ -16,6 +16,16 @@ namespace HillNGun.Data
         public float hitRadius = 1.5f;
         public float moveSpeed = 1.5f;
 
+        [Tooltip("살아 있는 파티 인원(1,2,3...)별 체력 배율. 03 문서: 혼자 24,000 / 2인 40,800(×1.7). 3인 AI 분대는 실측으로 조정")]
+        public float[] partyHpMultipliers = new float[] { 1f, 1.7f, 4.0f };
+
+        public int GetScaledMaxHp(int partySize)
+        {
+            if (partyHpMultipliers == null || partyHpMultipliers.Length == 0) return maxHp;
+            int i = Mathf.Clamp(partySize - 1, 0, partyHpMultipliers.Length - 1);
+            return Mathf.RoundToInt(maxHp * partyHpMultipliers[i]);
+        }
+
         [Header("Phases")]
         public BossPhaseData[] phases;
 
@@ -44,6 +54,14 @@ namespace HillNGun.Data
         public float fanShotWarning = 0.8f;
         public float fanShotBulletSpeed = 12f;
         public float fanShotBulletRadius = 0.2f;
+        [Tooltip("한 번의 예고 뒤 연속 발사 횟수 (3페이즈 난사 3연속)")]
+        public int fanShotBurstCount = 1;
+        [Tooltip("연속 발사 간격 (초)")]
+        public float fanShotBurstInterval = 0.35f;
+        [Tooltip("이 페이즈 탄의 엄폐물 피해 배율 (3페이즈 ×2)")]
+        public float coverDamageMul = 1f;
+        [Tooltip("이 페이즈에서 내려올 전투 위치 y (타일). 음수면 그대로")]
+        public float battleY = -1f;
 
         [Header("Secondary Attack - Tail Sweep")]
         public bool usesTailSweep = true;

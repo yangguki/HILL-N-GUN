@@ -27,5 +27,11 @@ namespace HillNGun.Data
         [Tooltip("소생 후 체력 비율")]
         [Range(0.1f, 1f)]
         public float reviveHpRatio = 0.3f;
+
+        [Tooltip("소생 진행 중 기절 타이머 정지 (기획 미확정 → 토글, 결정 D16)")]
+        public bool pauseDownedTimerWhileReviving = true;
+
+        [Tooltip("소생자가 범위를 벗어나면 진행도 초기화 (false면 유지)")]
+        public bool resetProgressWhenInterrupted = true;
     }
 }

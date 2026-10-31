@@ -92,3 +92,8 @@ pvp.ui.round_win,라운드 승리
 pvp.ui.round_lose,라운드 패배
 pvp.ui.round_draw,무승부
 pvp.map.main_street,마을 큰길
+fx.pierce_shot,관통!
+fx.repair,보수
+fx.weakpoint,약점!
+fx.reviving,소생 중...
+fx.revived,소생!

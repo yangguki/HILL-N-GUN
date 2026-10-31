@@ -15,6 +15,9 @@ namespace HillNGun.Data
         [Tooltip("사용 방식: Tap=즉발, Hold=누르고 있기, DragRelease=끌어 조준 후 발동")]
         public SkillUseType useType = SkillUseType.Tap;
 
+        [Tooltip("스킬 효과 종류 (수치는 parameters)")]
+        public SkillEffect effect = SkillEffect.None;
+
         [Header("Timing")]
         [Tooltip("재사용 대기 시간 (초)")]
         public float cooldown = 12f;

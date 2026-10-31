@@ -527,6 +527,9 @@ namespace HillNGun.Editor
             bossRex.entryDuration = 3f;
             bossRex.entryStartPosition = new Vector2(12f, 20f);
             bossRex.battlePosition = new Vector2(12f, 14f);
+            // HP scale by squad size (decision D8/D15). 03 doc: 2인 협동 40,800 (= x1.7).
+            // 3-person squad (player + 2 AI) tuned toward a 90~120s boss fight.
+            bossRex.partyHpMultipliers = new float[] { 1f, 1.7f, 4.0f };
 
             var pistolMook = AssetDatabase.LoadAssetAtPath<EnemyData>(DATA_PATH + "Enemies/enemy_pistol_mook.asset");
 
@@ -589,14 +592,18 @@ namespace HillNGun.Editor
                     fanShotCount = 7,
                     fanShotAngle = 100f,
                     fanShotDamage = 150,
-                    fanShotInterval = 2f,
+                    fanShotInterval = 3f,          // 3연속 난사로 대체 → 경고 간격은 1페이즈와 같게 (decision D18)
                     fanShotWarning = 0.5f,
                     fanShotBulletSpeed = 9f,
                     fanShotBulletRadius = 0.2f,
                     usesTailSweep = false, // 3페이즈: 지면 부채꼴 난사 (꼬리 휩쓸기 없음)
+                    fanShotBurstCount = 3,      // 난사: 경고 1회당 3연속 부채꼴 (decision D9)
+                    fanShotBurstInterval = 0.35f,
+                    coverDamageMul = 2f,        // 3페이즈 엄폐물 피해 x2
+                    battleY = 12.5f,            // 3페이즈: 앞으로 내려와 전장 압박
                     summonsMooks = false,
                     enrageSpeedMultiplier = 1.5f,
-                    enrageAttackSpeedMultiplier = 1.5f,
+                    enrageAttackSpeedMultiplier = 1f, // 문서에 공격 가속 없음 (D18)
                     movesHorizontally = true,
                     moveRange = 12f,
                     moveInterval = 2f
@@ -633,7 +640,12 @@ namespace HillNGun.Editor
             botBehavior.grenadeUseChance = 0.3f;
             botBehavior.skillUseChance = 0.2f;
             botBehavior.revivePriority = 0.6f;
-            botBehavior.reviveSeekDistance = 5f;
+            botBehavior.reviveSeekDistance = 8f;
+            botBehavior.useSkills = true;
+            botBehavior.repairCoverBelowRatio = 0.6f;
+            botBehavior.useGrenades = true;
+            botBehavior.grenadeMinInterval = 4f;
+            botBehavior.reviveAllies = true;
             EditorUtility.SetDirty(botBehavior);
         }
 

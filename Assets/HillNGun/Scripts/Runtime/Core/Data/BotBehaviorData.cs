@@ -62,5 +62,17 @@ namespace HillNGun.Data
         public bool advanceWhenOutOfRange = true;
         [Tooltip("보스 꼬리 휩쓸기 바닥 경고 안에 있으면 옆으로 피함")]
         public bool dodgeTailSweep = true;
+
+        [Header("Abilities (PvE allies / PvP bots)")]
+        [Tooltip("스킬을 쓸 수 있을 때 사용")]
+        public bool useSkills = true;
+        [Tooltip("볼트 수리: 이 비율 아래로 깎인 아군 엄폐물을 고침")]
+        public float repairCoverBelowRatio = 0.6f;
+        [Tooltip("사거리 안 적에게 수류탄 투척")]
+        public bool useGrenades = true;
+        [Tooltip("수류탄 투척 최소 간격 (초)")]
+        public float grenadeMinInterval = 4f;
+        [Tooltip("기절한 아군에게 가서 소생")]
+        public bool reviveAllies = true;
     }
 }

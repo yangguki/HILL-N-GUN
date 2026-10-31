@@ -54,7 +54,25 @@ namespace HillNGun.AI
                 _decisionTimer = _behaviorData.decisionInterval;
             }
 
+            if (_skillHolding)
+            {
+                TickSkillHold(deltaTime);
+                return;
+            }
+
             ExecuteCurrentState(deltaTime, enemies);
+        }
+
+        private bool _skillHolding;
+        private float _skillHoldTime;
+
+        private void TickSkillHold(float dt)
+        {
+            if (!_character.IsHoldingSkill) { _skillHolding = false; return; }
+            _skillHoldTime += dt;
+            Vector2 dir = _currentTarget != null ? (_currentTarget.Position - _character.Position).normalized : Vector2.up;
+            _character.OnSkillHoldCommand(new SkillHoldCommand(_skillHoldTime, dir, Time.time));
+            if (!_character.IsHoldingSkill) _skillHolding = false;
         }
 
         private void MakeDecision(CharacterStateMachine[] enemies)
@@ -252,7 +270,7 @@ namespace HillNGun.AI
 
         private void ExecuteGrenade()
         {
-            if (_grenadeCooldownTimer > 0f || _currentTarget == null)
+            if (_grenadeCooldownTimer > 0f || _currentTarget == null || !_behaviorData.useGrenades || !_character.HasGrenadeReady)
             {
                 _currentState = BotState.Idle;
                 return;
@@ -275,12 +293,37 @@ namespace HillNGun.AI
                 return;
             }
 
+            var skill = _character.Data?.skill;
+            if (skill == null || !_behaviorData.useSkills || !_character.IsSkillReady)
+            {
+                _currentState = BotState.Idle;
+                return;
+            }
+
             Vector2 targetPos = _currentTarget?.Position ?? _character.Position;
+            if (skill.effect == SkillEffect.RepairCover)
+            {
+                // 긴급 보수: only when an own cover is damaged enough
+                var combat = ServiceLocator.Get<HillNGun.Combat.CombatSystem>();
+                var cover = combat?.FindCoverToRepair(_character, _behaviorData.repairCoverBelowRatio);
+                if (cover == null) { _currentState = BotState.Idle; return; }
+                targetPos = cover.Position;
+            }
 
             _character.OnSkillStartCommand(new SkillStartCommand(Vector2.zero, Time.time));
-            _character.OnSkillReleaseCommand(new SkillReleaseCommand(targetPos, 0.5f, Time.time));
+            switch (skill.useType)
+            {
+                case SkillUseType.Hold:
+                    // hold over time (same as a player); TickSkillHold activates at skill.holdTime
+                    _skillHolding = _character.IsHoldingSkill;
+                    _skillHoldTime = 0f;
+                    break;
+                case SkillUseType.DragRelease:
+                    _character.OnSkillReleaseCommand(new SkillReleaseCommand(targetPos, 0f, Time.time));
+                    break;
+            }
 
-            _skillCooldownTimer = _character.Data?.skill?.cooldown ?? 15f;
+            _skillCooldownTimer = skill.cooldown;
             _currentState = BotState.Idle;
         }
 
@@ -297,14 +340,21 @@ namespace HillNGun.AI
             var downedData = ServiceLocator.Get<DownedData>();
             float reviveRange = downedData?.reviveRange ?? 1.5f;
 
-            if (distance <= reviveRange)
+            if (distance <= reviveRange * 0.8f)
             {
                 _character.OnMoveCommand(MoveCommand.Stop(Time.time));
             }
+            else if (_reviveTarget.CurrentRowIndex != _character.CurrentRowIndex
+                     && Mathf.Abs(_reviveTarget.Position.y - _character.Position.y) > reviveRange * 0.5f)
+            {
+                if (_character.MovementState != MovementState.RowChanging)
+                    _character.OnRowChangeCommand(new RowChangeCommand(
+                        _reviveTarget.CurrentRowIndex > _character.CurrentRowIndex ? 1 : -1, Time.time));
+            }
             else
             {
-                Vector2 direction = (_reviveTarget.Position - _character.Position).normalized;
-                _character.OnMoveCommand(new MoveCommand(direction, 1f, Time.time));
+                float dx = _reviveTarget.Position.x - _character.Position.x;
+                _character.OnMoveCommand(new MoveCommand(new Vector2(Mathf.Sign(dx), 0f), 1f, Time.time));
             }
         }
 

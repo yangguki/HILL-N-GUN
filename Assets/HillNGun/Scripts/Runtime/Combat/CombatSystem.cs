@@ -63,6 +63,7 @@ namespace HillNGun.Combat
             {
                 _characters.Add(character);
                 character.OnFired += HandleCharacterFired;
+                character.OnSkillActivated += HandleSkillActivated;
             }
         }
 
@@ -72,6 +73,7 @@ namespace HillNGun.Combat
             {
                 _characters.Remove(character);
                 character.OnFired -= HandleCharacterFired;
+                character.OnSkillActivated -= HandleSkillActivated;
             }
         }
 
@@ -112,26 +114,90 @@ namespace HillNGun.Combat
             _combatTargets.Clear();
         }
 
+        public event System.Action<CharacterStateMachine, CoverInstance, int> OnCoverRepaired;
+        public event System.Action<CharacterStateMachine, SkillEffect> OnSkillEffect;
+
         private void HandleCharacterFired(CharacterStateMachine character, Vector2 direction, int damage)
         {
             if (character.Data?.weapon == null) return;
 
             var weapon = character.Data.weapon;
+            var skill = character.Data.skill;
             Vector2 muzzlePos = character.Position + direction * weapon.muzzleForwardOffset;
 
-            float[] angles = weapon.GetSpreadAngles();
-            int pierces = 0;
-
-            if (character.IsSkillActive && character.Data.skill?.id == "skill_pierce")
+            // 버스터 돌파 사격: wider fixed spread + cover damage x2 while active (03 §2)
+            float spread = weapon.spreadDeg;
+            float coverMul = weapon.coverDamageMul;
+            if (character.IsSpreadBoostActive && skill != null)
             {
-                pierces = (int)character.Data.skill.GetParam("pierceCovers", 1);
+                spread = skill.GetParam("spreadDeg", spread);
+                coverMul *= skill.GetParam("coverDamageMul", 1f);
             }
 
+            // 레이븐 관통탄: only the next shot (03 §2 "다음 한 발")
+            int pierces = 0;
+            float afterPierceMul = 0.8f;
+            if (character.ConsumePierceShot() && skill != null)
+            {
+                pierces = Mathf.RoundToInt(skill.GetParam("pierceCovers", 1f));
+                afterPierceMul = skill.GetParam("afterPierceMul", 0.8f);
+                OnSkillEffect?.Invoke(character, SkillEffect.PierceNextShot);
+            }
+
+            // 레이븐 패시브: aim held >= aimTime → weak-point hits x1.25 (01 §5)
+            float wpMul = character.GetWeakpointBonusMultiplier();
+            float wpRadius = character.Data.passive != null ? character.Data.passive.GetParam("weakpointRadius", 0.2f) : 0f;
+
+            float[] angles = weapon.GetSpreadAngles(spread);
             foreach (float angle in angles)
             {
                 Vector2 bulletDir = CoordinateHelper.RotateDirection(direction, angle);
-                _projectilePool.Spawn(muzzlePos, bulletDir, weapon, damage, character.Team, pierces);
+                var p = _projectilePool.Spawn(muzzlePos, bulletDir, weapon, damage, character.Team, pierces);
+                p?.SetModifiers(character, coverMul, afterPierceMul, wpMul, wpRadius);
             }
+        }
+
+        private void HandleSkillActivated(CharacterStateMachine character, SkillEffect effect, Vector2? target)
+        {
+            OnSkillEffect?.Invoke(character, effect);
+            if (effect != SkillEffect.RepairCover) return;
+
+            // 볼트 긴급 보수: nearest own (not destroyed) cover to the aimed point, within targetRange (03 §2)
+            var skill = character.Data.skill;
+            float range = skill != null ? skill.targetRange : 6f;
+            Vector2 aim = target ?? character.Position;
+            if (Vector2.Distance(aim, character.Position) > range)
+                aim = character.Position + (aim - character.Position).normalized * range;
+
+            CoverInstance best = null;
+            float bestDist = float.MaxValue;
+            foreach (var cover in _covers)
+            {
+                if (cover.IsDestroyed || cover.Team != character.Team) continue;
+                if (Vector2.Distance(cover.Position, character.Position) > range + cover.Data.width * 0.5f) continue;
+                float d = DistanceToRect(aim, cover.GetBounds());
+                if (d < bestDist) { bestDist = d; best = cover; }
+            }
+            if (best == null) return;
+
+            int before = best.CurrentHp;
+            best.Repair(skill != null ? skill.GetParam("repairPercent", 0.4f) : 0.4f);
+            OnCoverRepaired?.Invoke(character, best, best.CurrentHp - before);
+        }
+
+        /// <summary>Own-team cover most in need of repair within range (for bots / autopilot). Null if none below ratio.</summary>
+        public CoverInstance FindCoverToRepair(CharacterStateMachine character, float belowRatio)
+        {
+            float range = character.Data?.skill != null ? character.Data.skill.targetRange : 6f;
+            CoverInstance best = null;
+            float bestRatio = belowRatio;
+            foreach (var cover in _covers)
+            {
+                if (cover.IsDestroyed || cover.Team != character.Team || !cover.Data.repairable) continue;
+                if (Vector2.Distance(cover.Position, character.Position) > range) continue;
+                if (cover.HpRatio < bestRatio) { bestRatio = cover.HpRatio; best = cover; }
+            }
+            return best;
         }
 
         public void SpawnGrenade(Vector2 start, Vector2 target, GrenadeData data, Team team)
@@ -141,9 +207,11 @@ namespace HillNGun.Combat
             _grenades.Add(grenade);
         }
 
-        public void SpawnEnemyProjectile(Vector2 start, Vector2 direction, float speed, float radius, int damage, float range, Team team)
+        public void SpawnEnemyProjectile(Vector2 start, Vector2 direction, float speed, float radius, int damage, float range, Team team, float coverDamageMul = 1f)
         {
-            _projectilePool.SpawnSimple(start, direction, speed, radius, damage, range, team);
+            var p = _projectilePool.SpawnSimple(start, direction, speed, radius, damage, range, team);
+            if (p != null && !Mathf.Approximately(coverDamageMul, 1f))
+                p.SetModifiers(null, coverDamageMul, 0.8f, 1f, 0f);
         }
 
         private void UpdateGrenades(float dt)
@@ -212,19 +280,34 @@ namespace HillNGun.Combat
                 }
             }
 
-            if (!data.ignoresCover)
+            // PvE enemies / boss inside the blast
+            for (int i = _combatTargets.Count - 1; i >= 0; i--)
             {
-                foreach (var cover in _covers)
+                if (i >= _combatTargets.Count) continue; // list may be cleared by a stage ending mid-loop
+                var ct = _combatTargets[i];
+                if (ct == null || !ct.CanBeHit || ct.Team == grenade.OwnerTeam) continue;
+                float dist = Mathf.Max(0f, CoordinateHelper.Distance(ct.Position, explosionPos) - ct.HitRadius * 0.5f);
+                if (dist <= data.radius)
                 {
-                    if (cover.IsDestroyed) continue;
+                    int damage = data.GetDamageAtDistance(dist);
+                    ct.ReceiveHit(damage, (ct.Position - explosionPos).normalized);
+                    OnCombatTargetHit?.Invoke(null, ct, damage);
+                }
+            }
 
-                    Rect bounds = cover.GetBounds();
-                    float dist = DistanceToRect(explosionPos, bounds);
-                    if (dist <= data.radius)
-                    {
-                        int damage = data.GetDamageAtDistance(dist);
-                        cover.TakeDamage(damage, data.coverDamageMul);
-                    }
+            // Covers always take blast damage x coverDamageMul (01 §6 수류탄 ×1.5).
+            // ignoresCover only means characters behind cover are still hit (01 §8, decision D4).
+            foreach (var cover in _covers)
+            {
+                if (cover.IsDestroyed) continue;
+                if (!data.ignoresCover && cover.Team == grenade.OwnerTeam) continue;
+
+                Rect bounds = cover.GetBounds();
+                float dist = DistanceToRect(explosionPos, bounds);
+                if (dist <= data.radius)
+                {
+                    int damage = data.GetDamageAtDistance(dist);
+                    cover.TakeDamage(damage, data.coverDamageMul);
                 }
             }
 
@@ -330,31 +413,14 @@ namespace HillNGun.Combat
 
             if (hitCover != null)
             {
-                hitCover.TakeDamage(projectile.Damage);
+                hitCover.TakeDamage(projectile.Damage, projectile.CoverDamageMul);
                 OnCoverHit?.Invoke(projectile, hitCover, projectile.Damage);
                 projectile.OnHitCover();
                 ApplyHitFeel(projectile.Damage, false);
             }
             else if (hitCharacter != null)
             {
-                int damage = projectile.Damage;
-
-                if (hitCharacter.Data?.weakpointRadius > 0)
-                {
-                    float distToCenter = CoordinateHelper.Distance(
-                        projectile.Position, 
-                        hitCharacter.Position
-                    );
-                    
-                    if (distToCenter <= hitCharacter.Data.weakpointRadius)
-                    {
-                        var attacker = GetAttacker(projectile.OwnerTeam);
-                        if (attacker != null)
-                        {
-                            damage = Mathf.RoundToInt(damage * attacker.GetWeakpointBonusMultiplier());
-                        }
-                    }
-                }
+                int damage = ApplyWeakpoint(projectile, hitCharacter.Position);
 
                 if (hitCharacter.OverallState == CharacterOverallState.Downed)
                 {
@@ -378,12 +444,30 @@ namespace HillNGun.Combat
             }
             else if (hitCombatTarget != null)
             {
-                int dmg = projectile.Damage;
+                int dmg = ApplyWeakpoint(projectile, hitCombatTarget.Position);
                 hitCombatTarget.ReceiveHit(dmg, projectile.Direction);
                 OnCombatTargetHit?.Invoke(projectile, hitCombatTarget, dmg);
                 projectile.OnHitTarget();
                 ApplyHitFeel(dmg, true);
             }
+        }
+
+        public event System.Action<Projectile, Vector2, int> OnWeakpointHit;
+
+        /// <summary>Weak point = centre radius from the shooter's passive; applies to any target (decision D5).</summary>
+        private int ApplyWeakpoint(Projectile projectile, Vector2 targetCenter)
+        {
+            int damage = projectile.Damage;
+            if (projectile.WeakpointMul <= 1f || projectile.WeakpointRadius <= 0f) return damage;
+            // closest approach of this frame's sweep to the centre
+            Vector2 prev = projectile.Position - projectile.Direction * projectile.Speed * GameTime.DeltaTime;
+            Vector2 seg = projectile.Position - prev;
+            float t = seg.sqrMagnitude > 0f ? Mathf.Clamp01(Vector2.Dot(targetCenter - prev, seg) / seg.sqrMagnitude) : 1f;
+            float d = Vector2.Distance(prev + seg * t, targetCenter);
+            if (d > projectile.WeakpointRadius) return damage;
+            damage = Mathf.RoundToInt(damage * projectile.WeakpointMul);
+            OnWeakpointHit?.Invoke(projectile, targetCenter, damage);
+            return damage;
         }
 
         private CharacterStateMachine GetAttacker(Team team)

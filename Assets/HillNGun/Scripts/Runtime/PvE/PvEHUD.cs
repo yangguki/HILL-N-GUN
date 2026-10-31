@@ -175,7 +175,7 @@ namespace HillNGun.PvE
             GUI.color = new Color(0.15f, 0.12f, 0.1f);
             GUI.DrawTexture(new Rect(x, y, barWidth, barHeight), Texture2D.whiteTexture);
 
-            float hpPercent = (float)boss.CurrentHp / boss.Data.maxHp;
+            float hpPercent = boss.HpRatio;
             hpPercent = Mathf.Clamp01(hpPercent);
 
             Color hpColor = boss.CurrentPhase switch
@@ -192,7 +192,7 @@ namespace HillNGun.PvE
 
             DrawBorder(x, y, barWidth, barHeight, new Color(0.4f, 0.3f, 0.2f), 2f);
 
-            string hpText = $"{boss.CurrentHp} / {boss.Data.maxHp}";
+            string hpText = $"{boss.CurrentHp} / {boss.MaxHp}";
             GUIStyle hpStyle = new GUIStyle(_labelStyle);
             hpStyle.alignment = TextAnchor.MiddleCenter;
             hpStyle.fontSize = 18;

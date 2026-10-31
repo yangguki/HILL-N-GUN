@@ -10,6 +10,13 @@ namespace HillNGun.PvE
         public BossData Data { get; private set; }
         public Vector2 Position { get; private set; }
         public int CurrentHp { get; private set; }
+        /// <summary>Max HP after party-size scaling (BossData.partyHpMultipliers).</summary>
+        public int MaxHp { get; private set; }
+        public float HpRatio => MaxHp > 0 ? (float)CurrentHp / MaxHp : 0f;
+        /// <summary>1-based index of the volley within the current fan-shot burst.</summary>
+        public int LastBurstIndex { get; private set; }
+        private int _burstRemaining;
+        private float _burstTimer;
         public bool IsAlive => CurrentHp > 0;
         public bool IsDefeated => CurrentHp <= 0;
         public float HitRadius => Data?.hitRadius ?? 1.5f;
@@ -52,12 +59,14 @@ namespace HillNGun.PvE
         public event Action<BossInstance, WarningType> OnWarningStart;
         public event Action<BossInstance> OnEntryComplete;
 
-        public void Initialize(BossData data, Vector2 position)
+        public void Initialize(BossData data, Vector2 position, int maxHpOverride = 0)
         {
             Data = data;
             Position = data.entryStartPosition;
             SweepTargetX = data.battlePosition.x;
-            CurrentHp = data.maxHp;
+            MaxHp = maxHpOverride > 0 ? maxHpOverride : data.maxHp;
+            CurrentHp = MaxHp;
+            _burstRemaining = 0;
             CurrentPhase = BossPhase.Phase1;
             _currentPhaseData = GetPhaseData(CurrentPhase);
 
@@ -96,6 +105,20 @@ namespace HillNGun.PvE
             if (_isEntering)
             {
                 UpdateEntry(deltaTime);
+                return;
+            }
+
+            if (_burstRemaining > 0 && _currentPhaseData != null)
+            {
+                _burstTimer -= deltaTime * _currentPhaseData.enrageAttackSpeedMultiplier;
+                if (_burstTimer <= 0f)
+                {
+                    _burstRemaining--;
+                    LastBurstIndex++;
+                    _burstTimer = _currentPhaseData.fanShotBurstInterval;
+                    ExecuteFanShotVolley();
+                }
+                UpdateMovement(deltaTime);
                 return;
             }
 
@@ -208,6 +231,15 @@ namespace HillNGun.PvE
 
         private void ExecuteFanShot()
         {
+            // Phase 3 탄막: fanShotBurstCount volleys per warning (03 §4 / decision D9)
+            LastBurstIndex = 1;
+            _burstRemaining = Mathf.Max(1, _currentPhaseData.fanShotBurstCount) - 1;
+            _burstTimer = _currentPhaseData.fanShotBurstInterval;
+            ExecuteFanShotVolley();
+        }
+
+        private void ExecuteFanShotVolley()
+        {
             int count = _currentPhaseData.fanShotCount;
             float totalAngle = _currentPhaseData.fanShotAngle;
             float startAngle = -totalAngle / 2f;
@@ -235,7 +267,16 @@ namespace HillNGun.PvE
 
         private void UpdateMovement(float deltaTime)
         {
-            if (_currentPhaseData == null || !_currentPhaseData.movesHorizontally) return;
+            if (_currentPhaseData == null) return;
+
+            // Phase battle line (phase 3 descends closer to the player cover line)
+            if (_currentPhaseData.battleY >= 0f && !Mathf.Approximately(Position.y, _currentPhaseData.battleY))
+            {
+                float ny = Mathf.MoveTowards(Position.y, _currentPhaseData.battleY, Mathf.Max(0.5f, Data.moveSpeed) * deltaTime);
+                Position = new Vector2(Position.x, ny);
+            }
+
+            if (!_currentPhaseData.movesHorizontally) return;
 
             float speedMul = _currentPhaseData.enrageSpeedMultiplier;
             _moveTimer -= deltaTime * speedMul;
@@ -272,7 +313,7 @@ namespace HillNGun.PvE
         {
             if (Data?.phases == null || CurrentHp <= 0) return;
 
-            float hpPercent = (float)CurrentHp / Data.maxHp;
+            float hpPercent = (float)CurrentHp / Mathf.Max(1, MaxHp);
 
             BossPhase newPhase = CurrentPhase;
             foreach (var phaseData in Data.phases)
@@ -290,6 +331,7 @@ namespace HillNGun.PvE
             {
                 CurrentPhase = newPhase;
                 _currentPhaseData = GetPhaseData(CurrentPhase);
+                _burstRemaining = 0;
                 ResetTimers();
                 OnPhaseChanged?.Invoke(this);
             }

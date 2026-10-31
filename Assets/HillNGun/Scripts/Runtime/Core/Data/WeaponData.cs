@@ -77,14 +77,17 @@ namespace HillNGun.Data
             return Mathf.RoundToInt(damagePerProjectile * damageMultiplier);
         }
 
-        public float[] GetSpreadAngles()
+        public float[] GetSpreadAngles() => GetSpreadAngles(spreadDeg);
+
+        /// <summary>Fixed, evenly spaced pellet angles across totalSpreadDeg (no randomness).</summary>
+        public float[] GetSpreadAngles(float totalSpreadDeg)
         {
-            if (projectilesPerShot <= 1 || spreadDeg <= 0f)
+            if (projectilesPerShot <= 1 || totalSpreadDeg <= 0f)
                 return new float[] { 0f };
 
             float[] angles = new float[projectilesPerShot];
-            float halfSpread = spreadDeg / 2f;
-            float step = spreadDeg / (projectilesPerShot - 1);
+            float halfSpread = totalSpreadDeg / 2f;
+            float step = totalSpreadDeg / (projectilesPerShot - 1);
 
             for (int i = 0; i < projectilesPerShot; i++)
             {

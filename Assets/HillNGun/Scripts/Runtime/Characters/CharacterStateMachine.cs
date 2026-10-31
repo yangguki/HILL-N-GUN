@@ -75,6 +75,51 @@ namespace HillNGun.Characters
         public event System.Action<CharacterStateMachine, Vector2, int> OnFired;
         public event System.Action<CharacterStateMachine> OnRollStarted;
         public event System.Action<CharacterStateMachine> OnSkillUsed;
+        /// <summary>Skill fired: effect + optional aimed point (logic handled by CombatSystem).</summary>
+        public event System.Action<CharacterStateMachine, SkillEffect, Vector2?> OnSkillActivated;
+
+        private bool _pierceArmed;
+        /// <summary>0..1 progress of an ally reviving this downed character.</summary>
+        public float ReviveProgress => _reviveProgress;
+        public bool IsBeingRevived { get; private set; }
+        public float DownedTimeRemaining
+        {
+            get
+            {
+                var d = ServiceLocator.Get<DownedData>();
+                return Mathf.Max(0f, (d != null ? d.downedDuration : 10f) - _downedTimer);
+            }
+        }
+        public SkillEffect ActiveSkillEffect => _data?.skill != null ? _data.skill.effect : SkillEffect.None;
+        public bool IsSpreadBoostActive => _skillActiveTimer > 0f && ActiveSkillEffect == SkillEffect.SpreadBoost;
+        public bool IsPierceArmed => _pierceArmed;
+        public bool IsSkillReady => _data?.skill != null && _skillCooldownTimer <= 0f;
+        public bool IsHoldingSkill => _actionState == ActionState.UsingSkill;
+        public bool HasGrenadeReady => _grenadeSystem != null && _grenadeSystem.HasGrenade();
+        public bool IsBusy => !CanPerformAction();
+
+        /// <summary>Returns true once if the next shot was armed by the pierce skill, then disarms.</summary>
+        public bool ConsumePierceShot()
+        {
+            if (!_pierceArmed) return false;
+            _pierceArmed = false;
+            return true;
+        }
+
+        /// <summary>Adds revive progress (called by ReviveSystem). Completes the revive at 1.</summary>
+        public void AddReviveProgress(float amount)
+        {
+            if (_overallState != CharacterOverallState.Downed) return;
+            IsBeingRevived = amount > 0f;
+            _reviveProgress = Mathf.Clamp01(_reviveProgress + amount);
+            if (_reviveProgress >= 1f) Revive();
+        }
+
+        public void ResetReviveProgress()
+        {
+            _reviveProgress = 0f;
+            IsBeingRevived = false;
+        }
 
         public void Initialize(CharacterData data, Team team, int playerIndex, Vector2 startPosition, int startRow)
         {
@@ -216,7 +261,8 @@ namespace HillNGun.Characters
             var downedData = ServiceLocator.Get<DownedData>();
             if (downedData == null) return;
 
-            _downedTimer += dt;
+            if (!(IsBeingRevived && downedData.pauseDownedTimerWhileReviving))
+                _downedTimer += dt;
 
             if (_moveDirection.magnitude > 0.1f)
             {
@@ -501,6 +547,10 @@ namespace HillNGun.Characters
             {
                 ActivateSkill(cmd.TargetPosition);
             }
+            else if (_data.skill.useType == SkillUseType.Hold && cmd.HoldTime >= _data.skill.holdTime)
+            {
+                ActivateSkill();
+            }
 
             _actionState = ActionState.None;
         }
@@ -511,8 +561,11 @@ namespace HillNGun.Characters
 
             _skillCooldownTimer = _data.skill.cooldown;
             _skillActiveTimer = _data.skill.duration;
+            if (_data.skill.effect == SkillEffect.PierceNextShot) _pierceArmed = true;
+            if (_actionState == ActionState.UsingSkill) _actionState = ActionState.None;
 
             OnSkillUsed?.Invoke(this);
+            OnSkillActivated?.Invoke(this, _data.skill.effect, targetPosition);
         }
 
         public bool IsSkillActive => _skillActiveTimer > 0f;
@@ -564,6 +617,10 @@ namespace HillNGun.Characters
             _actionState = ActionState.None;
             _isAiming = false;
             _downedTimer = 0f;
+            _reviveProgress = 0f;
+            IsBeingRevived = false;
+            _pierceArmed = false;
+            _skillActiveTimer = 0f;
 
             var downedData = ServiceLocator.Get<DownedData>();
             _downedHp = downedData?.downedHp ?? 600;
@@ -583,6 +640,8 @@ namespace HillNGun.Characters
             _movementState = MovementState.Idle;
             _downedTimer = 0f;
             _downedHp = 0;
+            _reviveProgress = 0f;
+            IsBeingRevived = false;
 
             OnRevived?.Invoke(this);
         }
@@ -620,6 +679,8 @@ namespace HillNGun.Characters
             _skillCooldownTimer = 0f;
             _skillActiveTimer = 0f;
             _rollShotBonusActive = false;
+            _pierceArmed = false;
+            IsBeingRevived = false;
 
             _ammoGauge?.Reset();
             _grenadeSystem?.Reset();

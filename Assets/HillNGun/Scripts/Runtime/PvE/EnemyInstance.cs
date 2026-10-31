@@ -40,13 +40,17 @@ namespace HillNGun.PvE
         public event Action<EnemyInstance, Vector2, int> OnExplosiveThrown;
         public event Action<EnemyInstance> OnWarningStart;
 
-        public void Initialize(EnemyData data, Vector2 position, int rowIndex)
+        /// <summary>Max HP after party-size scaling (MatchRulesData.pveEnemyHpMultipliers).</summary>
+        public int MaxHp { get; private set; }
+
+        public void Initialize(EnemyData data, Vector2 position, int rowIndex, float hpMultiplier = 1f)
         {
             Data = data;
             Position = position;
             // Spawned off-screen: start in "entering" state (-1) and walk to the preferred row.
             CurrentRowIndex = -1;
-            CurrentHp = data.maxHp;
+            MaxHp = Mathf.Max(1, Mathf.RoundToInt(data.maxHp * Mathf.Max(0.01f, hpMultiplier)));
+            CurrentHp = MaxHp;
             _attackTimer = UnityEngine.Random.Range(0.5f, data.attackInterval);
             _rowChangeTimer = data.rowChangeInterval;
             _targetRow = rowIndex;
@@ -179,7 +183,7 @@ namespace HillNGun.PvE
 
         public void Reset()
         {
-            CurrentHp = Data.maxHp;
+            CurrentHp = MaxHp > 0 ? MaxHp : Data.maxHp;
             IsFleeing = false;
             IsDefeated = false;
             _attackTimer = UnityEngine.Random.Range(0.5f, Data.attackInterval);

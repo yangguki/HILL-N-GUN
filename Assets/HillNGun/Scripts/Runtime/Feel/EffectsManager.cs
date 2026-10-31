@@ -79,6 +79,14 @@ namespace HillNGun.Feel
             dmgNum.Spawn(worldPos, damage, isCrit);
         }
 
+        /// <summary>Floating label (skill / revive / weak point) at a logic position.</summary>
+        public void SpawnFloatingText(Vector2 position, string text, Color color)
+        {
+            var dmgNum = GetFromPool(_damageNumberPool);
+            Vector3 worldPos = _battlefield?.LogicToWorldPosition(position) ?? (Vector3)position;
+            dmgNum.SpawnText(worldPos, text, color);
+        }
+
         public void SpawnExplosion(Vector2 position, float radius)
         {
             var explosion = GetFromPool(_explosionPool);
@@ -333,6 +341,21 @@ namespace HillNGun.Feel
             _damage = damage;
             _isCrit = isCrit;
             _yOffset = 0;
+            _text = null;
+            IsActive = true;
+        }
+
+        private string _text;
+        private Color _color;
+
+        public void SpawnText(Vector3 pos, string text, Color color)
+        {
+            _position = pos;
+            _timer = 1.4f;
+            _text = text;
+            _color = color;
+            _isCrit = false;
+            _yOffset = 0;
             IsActive = true;
         }
 
@@ -340,7 +363,7 @@ namespace HillNGun.Feel
         {
             if (!IsActive) return;
             _timer -= dt;
-            _yOffset += dt * 2f;
+            _yOffset += dt * (_text != null ? 0.8f : 2f);
             if (_timer <= 0) IsActive = false;
         }
 
@@ -364,9 +387,18 @@ namespace HillNGun.Feel
             style.alignment = TextAnchor.MiddleCenter;
             
             Color textColor = _isCrit ? new Color(1f, 0.8f, 0.2f, alpha) : new Color(1f, 1f, 1f, alpha);
+            if (_text != null) { textColor = new Color(_color.r, _color.g, _color.b, alpha); style.fontSize = 22; }
             style.normal.textColor = textColor;
 
             float y = Screen.height - screenPos.y;
+            if (_text != null)
+            {
+                var shadow = new GUIStyle(style);
+                shadow.normal.textColor = new Color(0f, 0f, 0f, alpha * 0.8f);
+                GUI.Label(new Rect(screenPos.x - 99, y - 34, 200, 30), _text, shadow);
+                GUI.Label(new Rect(screenPos.x - 100, y - 35, 200, 30), _text, style);
+                return;
+            }
             GUI.Label(new Rect(screenPos.x - 50, y - 15, 100, 30), _damage.ToString(), style);
         }
     }

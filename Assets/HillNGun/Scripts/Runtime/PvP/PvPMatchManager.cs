@@ -98,6 +98,7 @@ namespace HillNGun.PvP
                 CoverFieldSpawner.Spawn(field, am?.CoverDatas, field.mirrorCoversToEnemySideInPvP);
             }
             ProjectileView.Ensure();
+            CombatFeedback.Ensure();
             StartMatch();
         }
 
@@ -223,6 +224,7 @@ namespace HillNGun.PvP
             };
 
             _combat?.RegisterCharacter(character);
+            ServiceLocator.Get<ReviveSystem>()?.RegisterCharacter(character);
 
             return character;
         }

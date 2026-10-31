@@ -45,6 +45,16 @@ namespace HillNGun.DebugTools
         private float _resultTimer = -1f;
         private int _lastBossPhase = -1;
         private const float FullRunRealTimeout = 900f;
+
+        // milestone-A verification (skills / revive / phase-3 barrage)
+        private AbilityPilot _pilot;
+        private PvEMatchManager _hookedPve;
+        private readonly System.Collections.Generic.HashSet<SkillEffect> _skillShots = new System.Collections.Generic.HashSet<SkillEffect>();
+        private bool _barrageShot;
+        private bool _forcedDown;
+        private bool _reviveShot;
+        private float _bossSpawnTime = -1f;
+        private bool _bossDurationLogged;
         
         private enum SmokeTestPhase
         {
@@ -138,7 +148,61 @@ namespace HillNGun.DebugTools
             _autopilotTimer = 0f;
             _gunner = null;
             _gunnerOwner = null;
+            _pilot = null;
             _advancedRow = false;
+        }
+
+        private void HookPvE(PvEMatchManager pve)
+        {
+            if (_hookedPve == pve) return;
+            _hookedPve = pve;
+            pve.OnSkillUsed += (c, effect) =>
+            {
+                Timeline($"SKILL {c.Data?.skill?.id} ({effect}) by {c.Data?.id}");
+                if (_skillShots.Add(effect)) StartCoroutine(ShotAfter($"skill_{effect}", 0.25f));
+            };
+            pve.OnAllyRevived += (r, c) => Timeline($"REVIVED {c.Data?.id} hp={c.CurrentHp}");
+            pve.OnBossVolley += (boss, burstIndex) =>
+            {
+                if (boss.CurrentPhase != BossPhase.Phase3) return;
+                if (burstIndex >= 2) Timeline($"BOSS P3 barrage volley {burstIndex}/{boss.CurrentPhaseData?.fanShotBurstCount} y={boss.Position.y:F1}");
+                if (!_barrageShot && burstIndex >= 2)
+                {
+                    _barrageShot = true;
+                    StartCoroutine(ShotAfter("boss_phase3_barrage", 0.35f));
+                }
+            };
+        }
+
+        /// <summary>Smoke-only test hook: down one AI ally once in the boss fight so the revive path is exercised.</summary>
+        private void CheckReviveTest(PvEMatchManager pve, BossInstance boss)
+        {
+            if (!_forcedDown && boss != null && boss.CurrentPhase >= BossPhase.Phase2)
+            {
+                for (int i = 0; i < pve.PlayerTeam.Count; i++)
+                {
+                    var c = pve.PlayerTeam[i];
+                    if (i == pve.PlayerControlledIndex || c == null || c.OverallState != CharacterOverallState.Active || c.IsInvulnerable) continue;
+                    c.TakeDamage(c.CurrentHp + 1, Vector2.down);
+                    if (c.OverallState != CharacterOverallState.Downed) continue;
+                    _forcedDown = true;
+                    Timeline($"TEST HOOK: forced {c.Data?.id} downed to exercise revive");
+                    break;
+                }
+            }
+            if (_forcedDown && !_reviveShot)
+            {
+                foreach (var c in pve.PlayerTeam)
+                {
+                    if (c != null && c.OverallState == CharacterOverallState.Downed && c.ReviveProgress >= 0.4f)
+                    {
+                        _reviveShot = true;
+                        Timeline($"REVIVE in progress {c.Data?.id} {c.ReviveProgress:P0}");
+                        StartCoroutine(TakeScreenshotDelayed("revive_progress"));
+                        break;
+                    }
+                }
+            }
         }
 
         private void Update()
@@ -296,6 +360,7 @@ namespace HillNGun.DebugTools
             var pve = FindFirstObjectByType<PvEMatchManager>();
             if (pve == null) return;
 
+            HookPvE(pve);
             RunAutopilot();
 
             if (pve.CurrentStageIndex != _lastStageIndex)
@@ -318,7 +383,8 @@ namespace HillNGun.DebugTools
                 if (!_bossSeen)
                 {
                     _bossSeen = true;
-                    Timeline($"BOSS spawned ({boss.Data?.id} hp={boss.CurrentHp})");
+                    _bossSpawnTime = _matchTimer;
+                    Timeline($"BOSS spawned ({boss.Data?.id} hp={boss.CurrentHp}/{boss.MaxHp} party={pve.PartySize})");
                     StartCoroutine(ShotAfter("boss_entry", 2f));
                 }
                 if ((int)boss.CurrentPhase != _lastBossPhase)
@@ -338,13 +404,19 @@ namespace HillNGun.DebugTools
                     }
                 }
                 if (!sweepWarn) _sweepShotThisWarning = false;
+                CheckReviveTest(pve, boss);
+            }
+            else if (_bossSeen && !_bossDurationLogged)
+            {
+                _bossDurationLogged = true;
+                Timeline($"BOSS fight over after {_matchTimer - _bossSpawnTime:F1}s game time; skills={pve.SkillsUsed} grenades={pve.GrenadesThrown} revives={pve.RevivesCompleted} volleys={pve.BossVolleys} p3volleys={pve.BossPhase3Volleys}");
             }
 
             if (_matchTimer - _lastScreenshotTime >= 15f)
             {
                 _lastScreenshotTime = _matchTimer;
                 LogMatchState("PvE");
-                Debug.Log($"[SmokeTest] TailSweeps={pve.TailSweepCount} hits={pve.TailSweepHits}");
+                Debug.Log($"[SmokeTest] TailSweeps={pve.TailSweepCount} hits={pve.TailSweepHits} skills={pve.SkillsUsed} grenades={pve.GrenadesThrown} revives={pve.RevivesCompleted}");
                 StartCoroutine(TakeScreenshotDelayed($"pve_full_{Mathf.FloorToInt(_matchTimer)}s"));
             }
         }
@@ -503,7 +575,7 @@ namespace HillNGun.DebugTools
                 var boss = pveManager.ActiveBoss;
                 if (boss != null)
                 {
-                    Debug.Log($"[SmokeTest] Boss: {boss.Data?.id}, pos={boss.Position}, hp={boss.CurrentHp}/{boss.Data?.maxHp}");
+                    Debug.Log($"[SmokeTest] Boss: {boss.Data?.id}, pos={boss.Position}, hp={boss.CurrentHp}/{boss.MaxHp}");
                 }
             }
 
@@ -611,8 +683,11 @@ namespace HillNGun.DebugTools
             {
                 float range = me.Data?.weapon?.range ?? 7f;
                 Vector2? inRange = pve.FindTargetFor(me.Position, range * 1.1f);
-                if (_autopilotTimer > 0.5f && me.OverallState == CharacterOverallState.Active) pve.DriveAllyMovement(me, inRange);
-                _gunner.Tick(Time.deltaTime, inRange ?? target);
+                if (_pilot == null || _pilot.Character != me)
+                    _pilot = new AbilityPilot(me, RuntimeAssetManager.Instance?.BotBehavior, 1f);
+                bool pilotMoving = me.OverallState == CharacterOverallState.Active && pve.TickPilot(_pilot, Time.deltaTime, inRange);
+                if (!pilotMoving && _autopilotTimer > 0.5f && me.OverallState == CharacterOverallState.Active) pve.DriveAllyMovement(me, inRange);
+                if (!_pilot.IsHolding) _gunner.Tick(Time.deltaTime, inRange ?? target);
                 return;
             }
 
