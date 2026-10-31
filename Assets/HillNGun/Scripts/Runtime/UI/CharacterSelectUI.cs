@@ -67,6 +67,7 @@ namespace HillNGun.UI
         private Texture2D SpriteToTexture(Sprite sprite)
         {
             if (sprite == null) return null;
+            if (!sprite.texture.isReadable) return sprite.texture; // single-sprite texture: use as-is
             
             var rect = sprite.textureRect;
             var tex = new Texture2D((int)rect.width, (int)rect.height, TextureFormat.RGBA32, false);

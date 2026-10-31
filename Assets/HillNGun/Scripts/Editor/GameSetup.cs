@@ -100,11 +100,13 @@ namespace HillNGun.Editor
                 warningIndicator = LoadSprite("Boss/warning_indicator")
             };
 
+            // Keyed by CoverData.id (generated art: barrel / crate / wagon)
             library.covers = new CoverSprites[]
             {
-                LoadCoverSprites("barrel"),
-                LoadCoverSprites("crate"),
-                LoadCoverSprites("wagon")
+                LoadCoverSprites("cover_barrel", "barrel"),
+                LoadCoverSprites("cover_trough", "crate"),
+                LoadCoverSprites("cover_swing_door", "crate"),
+                LoadCoverSprites("cover_wagon", "wagon")
             };
 
             library.bullet = LoadSprite("Projectiles/bullet");
@@ -144,11 +146,11 @@ namespace HillNGun.Editor
             };
         }
 
-        private static CoverSprites LoadCoverSprites(string id)
+        private static CoverSprites LoadCoverSprites(string coverId, string id)
         {
             return new CoverSprites
             {
-                coverId = id,
+                coverId = coverId,
                 intact = LoadSprite($"Covers/{id}_intact"),
                 cracked = LoadSprite($"Covers/{id}_cracked"),
                 damaged = LoadSprite($"Covers/{id}_damaged"),
@@ -159,7 +161,23 @@ namespace HillNGun.Editor
         private static Sprite LoadSprite(string relativePath)
         {
             string path = $"Assets/HillNGun/Art/Generated/{relativePath}.png";
-            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer != null && (importer.textureType != TextureImporterType.Sprite || importer.spriteImportMode != SpriteImportMode.Single))
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.SaveAndReimport();
+            }
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (sprite == null)
+            {
+                foreach (var obj in AssetDatabase.LoadAllAssetsAtPath(path))
+                {
+                    if (obj is Sprite s) { sprite = s; break; }
+                }
+            }
+            if (sprite == null) Debug.LogWarning($"[GameSetup] Sprite not found: {path}");
+            return sprite;
         }
 
         private static void CreateAudioLibrary()
@@ -804,9 +822,10 @@ namespace HillNGun.Editor
             var stage3 = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_3.asset");
             var bossStage = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_boss.asset");
             
-            var coverBarrel = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Covers/cover_barrel.asset");
-            var coverCrate = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Covers/cover_crate.asset");
-            var coverWagon = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Covers/cover_wagon.asset");
+            var coverBarrel = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Cover/cover_barrel.asset");
+            var coverTrough = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Cover/cover_trough.asset");
+            var coverSwingDoor = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Cover/cover_swing_door.asset");
+            var coverWagon = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Cover/cover_wagon.asset");
             
             var botBehavior = AssetDatabase.LoadAssetAtPath<BotBehaviorData>(DATA_PATH + "AI/bot_behavior_default.asset");
             var battlefieldData = AssetDatabase.LoadAssetAtPath<BattlefieldData>(DATA_PATH + "Battlefield/battlefield_main.asset");
@@ -825,7 +844,7 @@ namespace HillNGun.Editor
             SetPrivateField(assetManager, "_enemyDatas", new EnemyData[] { enemyPistol, enemyDynamite, enemyMounted });
             SetPrivateField(assetManager, "_bossDatas", bossData != null ? new BossData[] { bossData } : new BossData[0]);
             SetPrivateField(assetManager, "_stageDatas", new StageData[] { stage1, stage2, stage3, bossStage });
-            SetPrivateField(assetManager, "_coverDatas", new CoverData[] { coverBarrel, coverCrate, coverWagon });
+            SetPrivateField(assetManager, "_coverDatas", new CoverData[] { coverBarrel, coverTrough, coverSwingDoor, coverWagon });
             SetPrivateField(assetManager, "_botBehavior", botBehavior);
             SetPrivateField(assetManager, "_battlefieldData", battlefieldData);
             SetPrivateField(assetManager, "_downedData", downedData);

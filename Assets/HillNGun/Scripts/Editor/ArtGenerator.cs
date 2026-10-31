@@ -908,6 +908,9 @@ namespace HillNGun.Editor
             if (importer != null)
             {
                 importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single; // Multiple => LoadAssetAtPath<Sprite> returns null
+                importer.alphaIsTransparency = true;
+                importer.isReadable = true; // CharacterSelectUI builds portrait textures from sprite pixels
                 importer.spritePixelsPerUnit = PPU;
                 importer.filterMode = filterMode;
                 importer.textureCompression = TextureImporterCompression.Uncompressed;
