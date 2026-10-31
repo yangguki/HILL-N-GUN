@@ -46,6 +46,16 @@ namespace HillNGun.UI
                     UIKit.TF("stage.wanted", "현상수배: {0}  ${1:N0}", UIKit.T(selected.bossNameKey, selected.bossNameKey), selected.bossBounty), t.fontBody, t.textDim);
 
             Rect body = new Rect(right.x + 16f, right.y + 84f, right.width - 32f, right.height - 100f);
+            var portrait = LobbyUI.RegionPortrait(selected.id);
+            if ((!regionUnlocked || selected.stageIds == null || selected.stageIds.Length == 0) && portrait != null)
+            {
+                // wanted poster from the design deck on the left, message on the right
+                float pw = Mathf.Min(body.height * 0.75f, body.width * 0.4f);
+                Rect pr = new Rect(body.x, body.y, pw, pw / 0.75f);
+                UIKit.Sprite(pr, portrait, regionUnlocked ? Color.white : new Color(0.55f, 0.55f, 0.55f, 1f));
+                UIKit.Border(pr, t.panelBorder, 2f);
+                body = new Rect(pr.xMax + 16f, body.y, body.width - pw - 16f, body.height);
+            }
             if (!regionUnlocked)
             {
                 UIKit.Label(body, UIKit.T("stage.region_locked", "이전 지역 보스를 잡으면 열립니다 (FP 528)"), t.fontHeader, t.textDim, TextAnchor.MiddleCenter, true, true);
@@ -86,11 +96,22 @@ namespace HillNGun.UI
             UIKit.Label(new Rect(r.x + 8f, r.y + 60f, r.width - 16f, 56f), name, t.fontBody, unlocked ? t.text : t.textDim, TextAnchor.MiddleCenter, true, true);
             if (sd != null && !isBoss)
                 UIKit.Label(new Rect(r.x + 8f, r.y + 116f, r.width - 16f, 26f), UIKit.TF("stage.target_time", "목표 {0:0}~{1:0}초", sd.stageTimeMin, sd.stageTimeMax), t.fontSmall, t.textDim, TextAnchor.MiddleCenter);
-            if (isBoss)
-                UIKit.Label(new Rect(r.x + 8f, r.y + 116f, r.width - 16f, 26f), "$" + reg.bossBounty.ToString("N0"), t.fontHeader, t.accent, TextAnchor.MiddleCenter, true);
-
             string status = cleared ? UIKit.T("stage.cleared", "★ 클리어") : unlocked ? UIKit.T("stage.open", "도전 가능") : UIKit.T("stage.locked", "잠김: 이전 스테이지 클리어 필요");
-            UIKit.Label(new Rect(r.x + 8f, r.y + 150f, r.width - 16f, 48f), status, t.fontBody, cleared ? t.good : unlocked ? t.text : t.textDim, TextAnchor.MiddleCenter, true, true);
+            var bossArt = isBoss ? LobbyUI.RegionPortrait(reg.id) : null;
+            if (bossArt != null)
+            {
+                // boss card: deck portrait between the name and the bounty
+                Rect art = new Rect(r.x + 10f, r.y + 114f, r.width - 20f, r.height - 114f - 150f);
+                UIKit.Sprite(art, bossArt, unlocked ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f));
+                UIKit.Label(new Rect(r.x + 8f, r.yMax - 144f, r.width - 16f, 30f), "$" + reg.bossBounty.ToString("N0"), t.fontHeader, t.accent, TextAnchor.MiddleCenter, true);
+                UIKit.Label(new Rect(r.x + 8f, r.yMax - 112f, r.width - 16f, 44f), status, t.fontBody, cleared ? t.good : unlocked ? t.text : t.textDim, TextAnchor.MiddleCenter, true, true);
+            }
+            else
+            {
+                if (isBoss)
+                    UIKit.Label(new Rect(r.x + 8f, r.y + 116f, r.width - 16f, 26f), "$" + reg.bossBounty.ToString("N0"), t.fontHeader, t.accent, TextAnchor.MiddleCenter, true);
+                UIKit.Label(new Rect(r.x + 8f, r.y + 150f, r.width - 16f, 48f), status, t.fontBody, cleared ? t.good : unlocked ? t.text : t.textDim, TextAnchor.MiddleCenter, true, true);
+            }
 
             if (UIKit.Button(new Rect(r.x + 12f, r.yMax - 62f, r.width - 24f, 50f), UIKit.T("stage.go", "출격"), unlocked, UIKit.ButtonKind.Primary))
                 _lobby.StartPvE(globalIndex);

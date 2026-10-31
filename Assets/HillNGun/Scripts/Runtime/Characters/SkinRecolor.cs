@@ -12,6 +12,8 @@ namespace HillNGun.Characters
     {
         private static readonly Dictionary<string, Sprite> _cache = new Dictionary<string, Sprite>();
 
+        private static float Ramp(float x, float a, float b) => x <= a ? 0f : x >= b ? 1f : (x - a) / (b - a);
+
         public static Sprite Get(Sprite src, Color tint, float strength)
         {
             if (src == null || strength <= 0.001f) return src;
@@ -26,20 +28,30 @@ namespace HillNGun.Characters
             try { px = tex.GetPixels(x, y, w, h); }
             catch { return src; }
 
+            Color.RGBToHSV(tint, out float th, out float ts, out float tv);
+            float lift = tv * 0.95f;
             for (int i = 0; i < px.Length; i++)
             {
                 Color c = px[i];
                 if (c.a <= 0.01f) continue;
-                float lum = c.r * 0.30f + c.g * 0.59f + c.b * 0.11f;
-                // brightness-preserving remap: shadows stay dark, highlights get a bright tint
-                float k = Mathf.Clamp01(0.25f + lum * 1.15f);
-                Color target = new Color(Mathf.Clamp01(tint.r * k + lum * 0.15f), Mathf.Clamp01(tint.g * k + lum * 0.15f), Mathf.Clamp01(tint.b * k + lum * 0.15f), c.a);
-                px[i] = Color.Lerp(c, target, strength);
+                Color.RGBToHSV(c, out float ph, out float s, out float v);
+                // keep faces / hands: soft skin-tone mask (hue ~ orange, mid saturation, bright)
+                float hd = Mathf.Min(Mathf.Abs(ph - 0.06f), 1f - Mathf.Abs(ph - 0.06f));
+                float skin = (1f - Ramp(hd, 0.04f, 0.08f)) * Ramp(s, 0.12f, 0.22f) * (1f - Ramp(s, 0.6f, 0.72f)) * Ramp(v, 0.42f, 0.6f);
+                float st = strength * (1f - 0.85f * skin);
+                // hue -> skin hue, saturation toward the tint, value lifted for bright tints (gold reads as gold, not olive)
+                float nv = Mathf.Min(1f, (1f - lift) * v + lift * (0.3f + 0.75f * Mathf.Pow(v, 0.5f)));
+                float ns = s + (ts - s) * 0.9f;
+                float nh = Mathf.Repeat(th - (1f - nv) * 0.07f * ts, 1f); // warmer shadows
+                Color target = Color.HSVToRGB(nh, ns, nv);
+                target.a = c.a;
+                px[i] = Color.Lerp(c, target, st);
             }
 
-            var outTex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = tex.filterMode, wrapMode = TextureWrapMode.Clamp, name = src.name + "_skin" };
+            bool mips = tex.mipmapCount > 1;
+            var outTex = new Texture2D(w, h, TextureFormat.RGBA32, mips) { filterMode = tex.filterMode, wrapMode = TextureWrapMode.Clamp, name = src.name + "_skin" };
             outTex.SetPixels(px);
-            outTex.Apply(false, false);
+            outTex.Apply(mips, false);
             Vector2 pivot = new Vector2(src.pivot.x / r.width, src.pivot.y / r.height);
             var sprite = Sprite.Create(outTex, new Rect(0, 0, w, h), pivot, src.pixelsPerUnit, 0, SpriteMeshType.FullRect);
             sprite.name = outTex.name;

@@ -73,9 +73,30 @@ namespace HillNGun.UI
             return null;
         }
 
+        /// <summary>Menu art: deck portrait when present, else the idle field sprite.</summary>
+        public static Sprite PortraitSprite(string characterId)
+        {
+            var lib = ServiceLocator.Get<SpriteLibrary>() ?? Assets?.SpriteLibrary;
+            if (lib?.characters == null) return null;
+            foreach (var c in lib.characters) if (c != null && c.characterId == characterId) return c.portrait != null ? c.portrait : c.idle;
+            return null;
+        }
+
+        public static Sprite BossPortrait()
+        {
+            var lib = ServiceLocator.Get<SpriteLibrary>() ?? Assets?.SpriteLibrary;
+            return lib?.boss == null ? null : (lib.boss.portrait != null ? lib.boss.portrait : lib.boss.idle);
+        }
+
+        public static Sprite RegionPortrait(string regionId)
+        {
+            var lib = ServiceLocator.Get<SpriteLibrary>() ?? Assets?.SpriteLibrary;
+            return lib != null ? lib.GetRegionPortrait(regionId) : null;
+        }
+
         public static Sprite SkinPreview(string characterId, SkinDefinition skin)
         {
-            var s = IdleSprite(characterId);
+            var s = PortraitSprite(characterId);
             if (skin == null || skin.unlock == SkinUnlockType.Default) return s;
             return SkinRecolor.Get(s, skin.tint, skin.recolorStrength);
         }

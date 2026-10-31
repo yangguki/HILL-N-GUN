@@ -97,8 +97,18 @@ namespace HillNGun.Editor
             {
                 bossId = "rattlesnake_rex",
                 idle = LoadSprite("Boss/rattlesnake_rex"),
-                warningIndicator = LoadSprite("Boss/warning_indicator")
+                warningIndicator = LoadSprite("Boss/warning_indicator"),
+                portrait = LoadDeckSprite("Portraits/rattlesnake_rex_portrait")
             };
+
+            // Deck boss portraits (HILLNGUN_기획서 hng_g3_boss1-5) for the lobby stage select
+            var regionArt = new System.Collections.Generic.List<RegionBossArt>();
+            foreach (var rid in new[] { "dusty_town", "railroad_canyon", "silver_mine", "border_fort", "ghost_town" })
+            {
+                var sp = LoadDeckSprite($"Portraits/region_{rid}");
+                if (sp != null) regionArt.Add(new RegionBossArt { regionId = rid, portrait = sp });
+            }
+            library.regionBosses = regionArt.ToArray();
 
             // Keyed by CoverData.id (generated art: barrel / crate / wagon)
             library.covers = new CoverSprites[]
@@ -142,7 +152,8 @@ namespace HillNGun.Editor
                 idle = LoadSprite($"Characters/{id}_idle"),
                 shoot = LoadSprite($"Characters/{id}_shoot"),
                 roll = LoadSprite($"Characters/{id}_roll"),
-                downed = LoadSprite($"Characters/{id}_downed")
+                downed = LoadSprite($"Characters/{id}_downed"),
+                portrait = LoadDeckSprite($"Portraits/{id}_portrait")
             };
         }
 
@@ -158,8 +169,53 @@ namespace HillNGun.Editor
             };
         }
 
+        // Character art from the design deck (Assets/HillNGun/Art/Deck, committed source art) wins over the procedural
+        // placeholders in Art/Generated (ArtGenerator only writes Generated/, so setup never overwrites deck art).
+        // Set false to go back to the procedural set. Deck sprites keep the old world size: 256px canvas at 128 PPU = 2 units
+        // (same as the 64px@32 placeholders), enemies/boss likewise (x4 resolution, x4 PPU).
+        public static bool UseDeckArt = true;
+        private const string DECK_ART_PATH = "Assets/HillNGun/Art/Deck/";
+        private const float DECK_PPU = 128f;
+        private const float DECK_HERO_PPU = 108f;
+        private const float DECK_PORTRAIT_PPU = 100f;
+
+        private static Sprite LoadDeckSprite(string relativePath)
+        {
+            if (!UseDeckArt) return null;
+            string path = $"{DECK_ART_PATH}{relativePath}.png";
+            if (!System.IO.File.Exists(path)) return null;
+            bool portrait = relativePath.StartsWith("Portraits/");
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer != null)
+            {
+                // heroes drawn ~18% larger than the old placeholders so the painted deck art stays readable at field scale
+                float ppu = portrait ? DECK_PORTRAIT_PPU : relativePath.StartsWith("Characters/") ? DECK_HERO_PPU : DECK_PPU;
+                bool dirty = importer.textureType != TextureImporterType.Sprite || importer.spriteImportMode != SpriteImportMode.Single
+                    || !importer.isReadable || !Mathf.Approximately(importer.spritePixelsPerUnit, ppu) || importer.mipmapEnabled == portrait
+                    || importer.textureCompression != TextureImporterCompression.Uncompressed || importer.maxTextureSize < 1024;
+                if (dirty)
+                {
+                    importer.textureType = TextureImporterType.Sprite;
+                    importer.spriteImportMode = SpriteImportMode.Single;
+                    importer.alphaIsTransparency = true;
+                    importer.isReadable = true; // SkinRecolor + CharacterSelect portraits read pixels
+                    importer.spritePixelsPerUnit = ppu;
+                    importer.filterMode = FilterMode.Bilinear;
+                    importer.mipmapEnabled = !portrait; // field sprites are drawn ~4x smaller than source
+                    importer.textureCompression = TextureImporterCompression.Uncompressed;
+                    importer.maxTextureSize = 1024;
+                    importer.SaveAndReimport();
+                }
+            }
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (sprite == null) Debug.LogWarning($"[GameSetup] Deck sprite failed to load: {path}");
+            return sprite;
+        }
+
         private static Sprite LoadSprite(string relativePath)
         {
+            var deck = LoadDeckSprite(relativePath);
+            if (deck != null) return deck;
             string path = $"Assets/HillNGun/Art/Generated/{relativePath}.png";
             var importer = AssetImporter.GetAtPath(path) as TextureImporter;
             if (importer != null && (importer.textureType != TextureImporterType.Sprite || importer.spriteImportMode != SpriteImportMode.Single))
@@ -678,7 +734,7 @@ namespace HillNGun.Editor
                 // FP 528: 보스를 잡으면 지역 스킨 해금
                 skins.Add(new SkinDefinition { id = c + "_dusty", characterId = c, nameKey = "skin." + c + ".dusty", unlock = SkinUnlockType.BossReward, requirementId = "dusty_town", tint = new Color(0.86f, 0.72f, 0.52f) });
                 // FP 526: 일부 스킨은 현상금으로 구매
-                skins.Add(new SkinDefinition { id = c + "_gold", characterId = c, nameKey = "skin." + c + ".gold", unlock = SkinUnlockType.Purchase, cost = 1500, tint = new Color(1f, 0.85f, 0.35f) });
+                skins.Add(new SkinDefinition { id = c + "_gold", characterId = c, nameKey = "skin." + c + ".gold", unlock = SkinUnlockType.Purchase, cost = 1500, tint = new Color(1f, 0.85f, 0.35f), recolorStrength = 0.8f });
                 // FP 527: 숙련도 보상은 능력치 대신 스킨·칭호
                 skins.Add(new SkinDefinition { id = c + "_veteran", characterId = c, nameKey = "skin." + c + ".veteran", unlock = SkinUnlockType.Mastery, masteryLevel = 3, tint = new Color(0.6f, 0.75f, 0.95f) });
             }

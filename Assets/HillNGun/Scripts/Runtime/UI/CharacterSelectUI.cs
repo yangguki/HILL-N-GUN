@@ -57,9 +57,10 @@ namespace HillNGun.UI
             {
                 if (charData == null) continue;
                 var sprites = _spriteLibrary.GetCharacterSprites(charData.id);
-                if (sprites?.idle != null)
+                var art = sprites?.portrait != null ? sprites.portrait : sprites?.idle;
+                if (art != null)
                 {
-                    _characterPortraits[charData.id] = SpriteToTexture(sprites.idle);
+                    _characterPortraits[charData.id] = SpriteToTexture(art);
                 }
             }
         }
@@ -75,7 +76,7 @@ namespace HillNGun.UI
                 (int)rect.x, (int)rect.y, (int)rect.width, (int)rect.height);
             tex.SetPixels(pixels);
             tex.Apply();
-            tex.filterMode = FilterMode.Point;
+            tex.filterMode = sprite.texture.filterMode;
             return tex;
         }
 
@@ -199,7 +200,7 @@ namespace HillNGun.UI
                 CharacterData charData = GetCharacterById(_selectedIds[i]);
                 if (charData != null)
                 {
-                    DrawCharacterIcon(x + slotWidth / 2f - 30f, startY + 35f, 60f, charData);
+                    DrawCharacterIcon(x + slotWidth / 2f - 37f, startY + 28f, 74f, charData);
 
                     string charName = GetLocalizedString(charData.nameKey, charData.id);
                     GUIStyle smallNameStyle = new GUIStyle(_charNameStyle);
@@ -252,7 +253,7 @@ namespace HillNGun.UI
                     DrawBorder(x, startY, cardWidth, cardHeight, new Color(0.5f, 0.7f, 0.5f), 3f);
                 }
 
-                DrawCharacterIcon(x + cardWidth / 2f - 35f, startY + 15f, 70f, charData);
+                DrawCharacterIcon(x + cardWidth / 2f - 42f, startY + 8f, 86f, charData);
 
                 string charName = GetLocalizedString(charData.nameKey, charData.id);
                 GUI.Label(new Rect(x, startY + 95f, cardWidth, 30f), charName, _charNameStyle);

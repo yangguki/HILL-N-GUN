@@ -19,25 +19,47 @@ namespace HillNGun.UI
 
             float cw = (cards.width - 2 * 14f) / 3f;
             DrawModeCard(new Rect(cards.x, cards.y, cw, cards.height), "mode.pve.title", "PvE 스토리", "mode.pve.desc", "먼지 마을을 지켜라!\n3개 스테이지 + 보스전",
-                new Color(0.32f, 0.55f, 0.36f), UIKit.T("lobby.pve_go", "스테이지 선택"), () => _lobby.SetTab(LobbyTab.Stages), null);
+                new Color(0.32f, 0.55f, 0.36f), UIKit.T("lobby.pve_go", "스테이지 선택"), () => _lobby.SetTab(LobbyTab.Stages), null,
+                new[] { LobbyUI.BossPortrait() });
             DrawModeCard(new Rect(cards.x + cw + 14f, cards.y, cw, cards.height), "mode.pvp.title", "PvP 대전", "mode.pvp.desc", "봇과 3v3 탈락전\n3판 2선승",
                 new Color(0.62f, 0.33f, 0.28f), UIKit.T("lobby.pvp_go", "대전 시작"), _lobby.StartPvP,
-                ExternalServices.Matchmaking.IsOnline ? null : UIKit.T("stub.online", "온라인 매칭·랭크: 서버 필요"));
+                ExternalServices.Matchmaking.IsOnline ? null : UIKit.T("stub.online", "온라인 매칭·랭크: 서버 필요"),
+                new[] { LobbyUI.PortraitSprite("buster"), LobbyUI.PortraitSprite("raven"), LobbyUI.PortraitSprite("volt") });
             DrawModeCard(new Rect(cards.x + (cw + 14f) * 2, cards.y, cw, cards.height), "mode.practice.title", "연습장", "mode.practice.desc", "조작 연습 및 테스트\n과녁과 엄폐물",
-                new Color(0.36f, 0.42f, 0.62f), UIKit.T("lobby.practice_go", "연습하기"), _lobby.StartPractice, null);
+                new Color(0.36f, 0.42f, 0.62f), UIKit.T("lobby.practice_go", "연습하기"), _lobby.StartPractice, null,
+                new[] { LobbyUI.PortraitSprite("volt") });
 
             DrawProfile(profile);
         }
 
-        private void DrawModeCard(Rect r, string titleKey, string titleFb, string descKey, string descFb, Color color, string action, System.Action onClick, string stub)
+        private void DrawModeCard(Rect r, string titleKey, string titleFb, string descKey, string descFb, Color color, string action, System.Action onClick, string stub, Sprite[] arts = null)
         {
             var t = UIKit.Theme;
             UIKit.Panel(r);
-            Rect art = new Rect(r.x + 14f, r.y + 14f, r.width - 28f, r.height * 0.36f);
+            Rect art = new Rect(r.x + 14f, r.y + 14f, r.width - 28f, r.height * 0.46f);
             UIKit.Fill(art, color);
             // simple self-made emblem: wanted-poster frame
             UIKit.Border(new Rect(art.x + 10f, art.y + 10f, art.width - 20f, art.height - 20f), new Color(1f, 1f, 1f, 0.35f), 3f);
-            UIKit.Label(art, UIKit.T(titleKey, titleFb), t.fontTitle - 6, Color.white, TextAnchor.MiddleCenter, true);
+            int n = 0;
+            if (arts != null) foreach (var a in arts) if (a != null) n++;
+            if (n > 0)
+            {
+                // deck character art (HILLNGUN_기획서) over the card color, title on a dark strip below
+                Rect pic = new Rect(art.x + 6f, art.y + 6f, art.width - 12f, art.height - 50f);
+                float each = pic.width / n; int i = 0;
+                foreach (var a in arts)
+                {
+                    if (a == null) continue;
+                    float overlap = n > 1 ? each * 0.18f : 0f;
+                    UIKit.Sprite(new Rect(pic.x + i * each - overlap, pic.y, each + overlap * 2f, pic.height), a);
+                    i++;
+                }
+                Rect strip = new Rect(art.x, art.yMax - 44f, art.width, 44f);
+                UIKit.Fill(strip, new Color(0f, 0f, 0f, 0.55f));
+                UIKit.Label(strip, UIKit.T(titleKey, titleFb), t.fontHeader + 2, Color.white, TextAnchor.MiddleCenter, true);
+            }
+            else
+                UIKit.Label(art, UIKit.T(titleKey, titleFb), t.fontTitle - 6, Color.white, TextAnchor.MiddleCenter, true);
             UIKit.Label(new Rect(r.x + 16f, art.yMax + 12f, r.width - 32f, 90f), UIKit.T(descKey, descFb), t.fontBody, t.text, TextAnchor.UpperCenter, false, true);
             if (!string.IsNullOrEmpty(stub))
                 UIKit.StubTag(new Rect(r.x + 16f, r.yMax - 118f, r.width - 32f, 28f), stub);

@@ -15,6 +15,9 @@ namespace HillNGun.Data
         [Header("Boss")]
         public BossSprites boss;
 
+        [Header("Region bosses (deck portraits, lobby stage select)")]
+        public RegionBossArt[] regionBosses;
+
         [Header("Covers")]
         public CoverSprites[] covers;
 
@@ -66,6 +69,13 @@ namespace HillNGun.Data
             return enemies.Length > 0 ? enemies[0] : null;
         }
 
+        public Sprite GetRegionPortrait(string regionId)
+        {
+            if (regionBosses == null) return null;
+            foreach (var r in regionBosses) if (r != null && r.regionId == regionId) return r.portrait;
+            return null;
+        }
+
         public CoverSprites GetCoverSprites(string coverId)
         {
             if (covers == null) return null;
@@ -86,6 +96,15 @@ namespace HillNGun.Data
         public Sprite shoot;
         public Sprite roll;
         public Sprite downed;
+        [Tooltip("Large art for menus (character select, lobby). Optional: falls back to idle")]
+        public Sprite portrait;
+    }
+
+    [Serializable]
+    public class RegionBossArt
+    {
+        public string regionId;
+        public Sprite portrait;
     }
 
     [Serializable]
@@ -101,6 +120,7 @@ namespace HillNGun.Data
         public string bossId;
         public Sprite idle;
         public Sprite warningIndicator;
+        public Sprite portrait;
     }
 
     [Serializable]
