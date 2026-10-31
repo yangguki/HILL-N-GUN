@@ -5,6 +5,9 @@ using HillNGun.Core;
 using HillNGun.Characters;
 using HillNGun.AI;
 using HillNGun.Input;
+using HillNGun.Combat;
+using HillNGun.Cover;
+using HillNGun.Feel;
 
 namespace HillNGun.PvE
 {
@@ -34,6 +37,13 @@ namespace HillNGun.PvE
         private List<CharacterStateMachine> _playerTeam = new List<CharacterStateMachine>();
         private List<BotBrain> _allyBots = new List<BotBrain>();
         private int _playerControlledIndex = 0;
+        private List<AutoGunner> _allyGunners = new List<AutoGunner>();
+        private CombatSystem _combat;
+
+        public int TotalEnemyDamage { get; private set; }
+        public int EnemiesDefeated { get; private set; }
+        public int PlayerDamageTaken { get; private set; }
+        public int PlayerControlledIndex => _playerControlledIndex;
 
         private int _currentGauge;
         private int _currentWave;
@@ -70,6 +80,9 @@ namespace HillNGun.PvE
         private void Start()
         {
             LoadDataFromAssetManager();
+            _combat = ServiceLocator.Get<CombatSystem>();
+            SpawnCovers();
+            ProjectileView.Ensure();
             SpawnPlayerTeam();
             if (_stages != null && _stages.Length > 0)
             {
@@ -104,6 +117,14 @@ namespace HillNGun.PvE
             }
         }
 
+        private void SpawnCovers()
+        {
+            var am = RuntimeAssetManager.Instance;
+            var field = am?.BattlefieldData ?? ServiceLocator.Get<BattlefieldData>();
+            if (field == null || !field.spawnCoversInPvE) return;
+            CoverFieldSpawner.Spawn(field, am?.CoverDatas, false);
+        }
+
         private void SpawnPlayerTeam()
         {
             _playerTeam.Clear();
@@ -131,6 +152,7 @@ namespace HillNGun.PvE
                     {
                         var bot = new BotBrain(character, _botBehavior);
                         _allyBots.Add(bot);
+                        _allyGunners.Add(new AutoGunner(character, 0.5f + 0.3f * i));
                     }
                 }
             }
@@ -163,6 +185,10 @@ namespace HillNGun.PvE
 
             character.OnDowned += HandlePlayerDowned;
             character.OnEliminated += HandlePlayerEliminated;
+            character.OnFired += HandlePlayerFired;
+            character.OnDamageTaken += HandlePlayerDamaged;
+
+            _combat?.RegisterCharacter(character);
 
             return character;
         }
@@ -176,6 +202,18 @@ namespace HillNGun.PvE
                     return data;
             }
             return null;
+        }
+
+        private void HandlePlayerFired(CharacterStateMachine character, Vector2 direction, int damage)
+        {
+            EffectsManager.Instance?.SpawnMuzzleFlash(character.Position, direction,
+                (character.Data?.weapon?.projectilesPerShot ?? 1) > 1);
+        }
+
+        private void HandlePlayerDamaged(CharacterStateMachine character, int damage, Vector2 direction)
+        {
+            PlayerDamageTaken += damage;
+            EffectsManager.Instance?.SpawnDamageNumber(character.Position, damage, damage >= 400);
         }
 
         private void HandlePlayerDowned(CharacterStateMachine character)
@@ -207,6 +245,7 @@ namespace HillNGun.PvE
             _roundResult = PvERoundResult.InProgress;
             _isMatchActive = true;
 
+            _combat?.ClearCombatTargets();
             _activeEnemies.Clear();
             _activeBoss = null;
 
@@ -258,6 +297,7 @@ namespace HillNGun.PvE
 
             _activeBoss = new BossInstance();
             _activeBoss.Initialize(_currentStage.bossData, _currentStage.bossData.battlePosition);
+            _combat?.RegisterCombatTarget(_activeBoss);
 
             _activeBoss.OnDefeated += HandleBossDefeated;
             _activeBoss.OnDamageTaken += HandleBossDamaged;
@@ -299,9 +339,13 @@ namespace HillNGun.PvE
 
         private void UpdateAllyBots()
         {
-            foreach (var bot in _allyBots)
+            // PvE allies: BotBrain targets characters only, so PvE uses AutoGunner against enemies/boss.
+            float dt = Time.deltaTime;
+            foreach (var gunner in _allyGunners)
             {
-                bot.Update(Time.deltaTime, null);
+                var c = gunner.Character;
+                if (c == null) continue;
+                gunner.Tick(dt, FindTargetFor(c.Position, (c.Data?.weapon?.range ?? 7f) * 1.5f));
             }
         }
 
@@ -363,6 +407,25 @@ namespace HillNGun.PvE
             }
         }
 
+        /// <summary>Nearest hittable enemy/boss position within range, or null.</summary>
+        public Vector2? FindTargetFor(Vector2 from, float maxRange)
+        {
+            Vector2? best = null;
+            float bestDist = maxRange;
+            foreach (var e in _activeEnemies)
+            {
+                if (e == null || !e.CanBeHit || e.IsEntering) continue;
+                float d = Vector2.Distance(from, e.Position);
+                if (d <= bestDist) { bestDist = d; best = e.Position; }
+            }
+            if (_activeBoss != null && _activeBoss.CanBeHit)
+            {
+                float d = Vector2.Distance(from, _activeBoss.Position);
+                if (d <= bestDist) { best = _activeBoss.Position; }
+            }
+            return best;
+        }
+
         private Vector2 GetNearestPlayerPosition(Vector2 fromPosition)
         {
             if (_playerTeam == null || _playerTeam.Count == 0)
@@ -399,6 +462,9 @@ namespace HillNGun.PvE
 
                 var enemy = new EnemyInstance();
                 enemy.Initialize(entry.enemyData, new Vector2(spawnX, spawnY), row);
+                var fieldData = ServiceLocator.Get<Battlefield.BattlefieldSystem>()?.Data;
+                if (fieldData != null) enemy.SetHittableMaxY(fieldData.size.y);
+                _combat?.RegisterCombatTarget(enemy);
 
                 enemy.OnDefeated += HandleEnemyDefeated;
                 enemy.OnDamageTaken += HandleEnemyDamaged;
@@ -420,6 +486,8 @@ namespace HillNGun.PvE
 
         private void HandleEnemyDefeated(EnemyInstance enemy)
         {
+            EnemiesDefeated++;
+            _combat?.UnregisterCombatTarget(enemy);
             _currentGauge += enemy.Data.gaugeValue;
             OnGaugeChanged?.Invoke(_currentGauge);
             OnEnemyDefeated?.Invoke(enemy);
@@ -463,14 +531,31 @@ namespace HillNGun.PvE
 
         private void HandleEnemyDamaged(EnemyInstance enemy, int damage, Vector2 direction)
         {
+            TotalEnemyDamage += damage;
+            EffectsManager.Instance?.SpawnDamageNumber(enemy.Position, damage, damage >= 500);
+            EffectsManager.Instance?.SpawnImpact(enemy.Position, false);
         }
 
         private void HandleEnemyAttack(EnemyInstance enemy, Vector2 direction, int damage)
         {
+            if (_combat == null || enemy?.Data == null) return;
+            var d = enemy.Data;
+            int count = Mathf.Max(1, d.projectilesPerShot);
+            for (int i = 0; i < count; i++)
+            {
+                float angle = count > 1 ? Mathf.Lerp(-d.spreadDeg * 0.5f, d.spreadDeg * 0.5f, i / (float)(count - 1)) : 0f;
+                Vector2 dir = Battlefield.CoordinateHelper.RotateDirection(direction, angle);
+                _combat.SpawnEnemyProjectile(enemy.Position + dir * 0.6f, dir, d.bulletSpeed, d.bulletRadius, damage, d.attackRange, Team.Enemy);
+            }
+            EffectsManager.Instance?.SpawnMuzzleFlash(enemy.Position, direction, false);
         }
 
         private void HandleEnemyExplosive(EnemyInstance enemy, Vector2 direction, int damage)
         {
+            if (_combat == null || enemy?.Data == null) return;
+            var d = enemy.Data;
+            float speed = d.attackRange / Mathf.Max(0.1f, d.explosiveFlightTime);
+            _combat.SpawnEnemyProjectile(enemy.Position + direction * 0.6f, direction, speed, d.explosiveRadius * 0.25f, damage, d.attackRange, Team.Enemy);
         }
 
         private void HandleBossDefeated(BossInstance boss)
@@ -481,10 +566,19 @@ namespace HillNGun.PvE
 
         private void HandleBossDamaged(BossInstance boss, int damage, Vector2 direction)
         {
+            TotalEnemyDamage += damage;
+            EffectsManager.Instance?.SpawnDamageNumber(boss.Position, damage, damage >= 500);
         }
 
         private void HandleBossFanShot(BossInstance boss, Vector2[] directions, int damage)
         {
+            if (_combat == null || directions == null) return;
+            float speed = 12f;
+            if (boss.Data?.phases != null)
+                foreach (var ph in boss.Data.phases)
+                    if (ph.phase == boss.CurrentPhase) { speed = ph.fanShotBulletSpeed; break; }
+            foreach (var dir in directions)
+                _combat.SpawnEnemyProjectile(boss.Position + dir * 1.2f, dir, speed, 0.25f, damage, 20f, Team.Enemy);
         }
 
         private void HandleBossTailSweep(BossInstance boss, float width)

@@ -5,7 +5,7 @@ using HillNGun.Core;
 
 namespace HillNGun.PvE
 {
-    public class BossInstance
+    public class BossInstance : HillNGun.Combat.ICombatTarget
     {
         public BossData Data { get; private set; }
         public Vector2 Position { get; private set; }
@@ -13,6 +13,9 @@ namespace HillNGun.PvE
         public bool IsAlive => CurrentHp > 0;
         public bool IsDefeated => CurrentHp <= 0;
         public float HitRadius => Data?.hitRadius ?? 1.5f;
+        public Team Team => Team.Enemy;
+        public bool CanBeHit => IsAlive && !IsInEntryPhase();
+        public void ReceiveHit(int damage, Vector2 direction) => TakeDamage(damage, direction);
         public BossPhase CurrentPhase { get; private set; }
 
         private BossPhaseData _currentPhaseData;

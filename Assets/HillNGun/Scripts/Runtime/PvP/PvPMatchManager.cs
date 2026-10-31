@@ -6,6 +6,7 @@ using HillNGun.Characters;
 using HillNGun.AI;
 using HillNGun.Cover;
 using HillNGun.Combat;
+using HillNGun.Feel;
 
 namespace HillNGun.PvP
 {
@@ -41,6 +42,9 @@ namespace HillNGun.PvP
         private List<BotBrain> _allyBotBrains = new List<BotBrain>();
         private List<BotBrain> _enemyBotBrains = new List<BotBrain>();
         private int _playerControlledIndex = 0;
+        private CombatSystem _combat;
+        public int TotalDamageToEnemyTeam { get; private set; }
+        public int TotalDamageToPlayerTeam { get; private set; }
 
         private int _currentRound = 0;
         private int _playerRoundsWon = 0;
@@ -86,6 +90,14 @@ namespace HillNGun.PvP
         private void Start()
         {
             LoadDataFromAssetManager();
+            _combat = ServiceLocator.Get<CombatSystem>();
+            var am = RuntimeAssetManager.Instance;
+            var field = am?.BattlefieldData ?? ServiceLocator.Get<BattlefieldData>();
+            if (field != null)
+            {
+                CoverFieldSpawner.Spawn(field, am?.CoverDatas, field.mirrorCoversToEnemySideInPvP);
+            }
+            ProjectileView.Ensure();
             StartMatch();
         }
 
@@ -202,6 +214,15 @@ namespace HillNGun.PvP
 
             character.OnDowned += HandleCharacterDowned;
             character.OnEliminated += HandleCharacterEliminated;
+            character.OnFired += (c, dir, dmg) =>
+                EffectsManager.Instance?.SpawnMuzzleFlash(c.Position, dir, (c.Data?.weapon?.projectilesPerShot ?? 1) > 1);
+            character.OnDamageTaken += (c, dmg, dir) =>
+            {
+                if (c.Team == Team.Enemy) TotalDamageToEnemyTeam += dmg; else TotalDamageToPlayerTeam += dmg;
+                EffectsManager.Instance?.SpawnDamageNumber(c.Position, dmg, dmg >= 500);
+            };
+
+            _combat?.RegisterCharacter(character);
 
             return character;
         }

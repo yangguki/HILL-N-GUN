@@ -25,6 +25,7 @@ namespace HillNGun.Data
         public bool isRanged = true;
         public float attackRange = 10f;
         public float bulletSpeed = 8f;
+        public float bulletRadius = 0.15f;
         public int projectilesPerShot = 1;
         public float spreadDeg = 0f;
 

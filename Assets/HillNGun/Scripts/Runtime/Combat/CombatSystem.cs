@@ -18,6 +18,7 @@ namespace HillNGun.Combat
         private List<CoverInstance> _covers;
         private List<CharacterStateMachine> _characters;
         private List<TargetInstance> _targets;
+        private List<ICombatTarget> _combatTargets;
 
         public FeelData FeelData => _feelData;
         public IReadOnlyList<CoverInstance> Covers => _covers;
@@ -28,6 +29,7 @@ namespace HillNGun.Combat
         public event System.Action<Projectile, CoverInstance, int> OnCoverHit;
         public event System.Action<Projectile, TargetInstance, int> OnTargetHit;
         public event System.Action<GrenadeProjectile, Vector2> OnGrenadeExploded;
+        public event System.Action<Projectile, ICombatTarget, int> OnCombatTargetHit;
 
         private void Awake()
         {
@@ -36,6 +38,7 @@ namespace HillNGun.Combat
             _covers = new List<CoverInstance>(32);
             _characters = new List<CharacterStateMachine>(8);
             _targets = new List<TargetInstance>(16);
+            _combatTargets = new List<ICombatTarget>(32);
 
             ServiceLocator.Register(this);
         }
@@ -91,6 +94,22 @@ namespace HillNGun.Combat
         public void UnregisterTarget(TargetInstance target)
         {
             _targets.Remove(target);
+        }
+
+        /// <summary>PvE enemies / boss (non-character hittables).</summary>
+        public void RegisterCombatTarget(ICombatTarget target)
+        {
+            if (target != null && !_combatTargets.Contains(target)) _combatTargets.Add(target);
+        }
+
+        public void UnregisterCombatTarget(ICombatTarget target)
+        {
+            _combatTargets.Remove(target);
+        }
+
+        public void ClearCombatTargets()
+        {
+            _combatTargets.Clear();
         }
 
         private void HandleCharacterFired(CharacterStateMachine character, Vector2 direction, int damage)
@@ -231,10 +250,13 @@ namespace HillNGun.Combat
             CoverInstance hitCover = null;
             CharacterStateMachine hitCharacter = null;
             TargetInstance hitTarget = null;
+            ICombatTarget hitCombatTarget = null;
+            bool ownCoverBlocks = _matchRules != null && _matchRules.ownCoverBlocksOwnShots;
 
             foreach (var cover in _covers)
             {
                 if (cover.IsDestroyed) continue;
+                if (!ownCoverBlocks && cover.Team == projectile.OwnerTeam) continue;
 
                 Rect bounds = cover.GetBounds();
                 if (projectile.CheckRectHit(bounds.center, bounds.width, bounds.height, out float t))
@@ -245,6 +267,7 @@ namespace HillNGun.Combat
                         hitCover = cover;
                         hitCharacter = null;
                         hitTarget = null;
+                        hitCombatTarget = null;
                     }
                 }
             }
@@ -263,6 +286,7 @@ namespace HillNGun.Combat
                         hitCharacter = character;
                         hitCover = null;
                         hitTarget = null;
+                        hitCombatTarget = null;
                     }
                 }
             }
@@ -278,6 +302,26 @@ namespace HillNGun.Combat
                     {
                         closestT = t;
                         hitTarget = target;
+                        hitCharacter = null;
+                        hitCover = null;
+                        hitCombatTarget = null;
+                    }
+                }
+            }
+
+            for (int i = 0; i < _combatTargets.Count; i++)
+            {
+                var ct = _combatTargets[i];
+                if (ct == null || !ct.CanBeHit) continue;
+                if (ct.Team == projectile.OwnerTeam) continue;
+
+                if (projectile.CheckHit(ct.Position, ct.HitRadius, out float t))
+                {
+                    if (t < closestT)
+                    {
+                        closestT = t;
+                        hitCombatTarget = ct;
+                        hitTarget = null;
                         hitCharacter = null;
                         hitCover = null;
                     }
@@ -331,6 +375,14 @@ namespace HillNGun.Combat
                 OnTargetHit?.Invoke(projectile, hitTarget, projectile.Damage);
                 projectile.OnHitTarget();
                 ApplyHitFeel(projectile.Damage, true);
+            }
+            else if (hitCombatTarget != null)
+            {
+                int dmg = projectile.Damage;
+                hitCombatTarget.ReceiveHit(dmg, projectile.Direction);
+                OnCombatTargetHit?.Invoke(projectile, hitCombatTarget, dmg);
+                projectile.OnHitTarget();
+                ApplyHitFeel(dmg, true);
             }
         }
 

@@ -5,7 +5,7 @@ using HillNGun.Core;
 
 namespace HillNGun.PvE
 {
-    public class EnemyInstance
+    public class EnemyInstance : HillNGun.Combat.ICombatTarget
     {
         public EnemyData Data { get; private set; }
         public Vector2 Position { get; private set; }
@@ -15,6 +15,16 @@ namespace HillNGun.PvE
         public bool IsFleeing { get; private set; }
         public bool IsDefeated { get; private set; }
         public float HitRadius => Data?.hitRadius ?? 0.5f;
+        /// <summary>True while walking in from off-screen to the first row (cannot attack yet).</summary>
+        public bool IsEntering => CurrentRowIndex < 0;
+
+        // ICombatTarget
+        public Team Team => Team.Enemy;
+        public bool CanBeHit => IsAlive && Position.y <= _hittableMaxY;
+        public void ReceiveHit(int damage, Vector2 direction) => TakeDamage(damage, direction);
+
+        private float _hittableMaxY = float.MaxValue;
+        public void SetHittableMaxY(float maxY) { _hittableMaxY = maxY; }
 
         private float _attackTimer;
         private float _warningTimer;
@@ -34,7 +44,8 @@ namespace HillNGun.PvE
         {
             Data = data;
             Position = position;
-            CurrentRowIndex = rowIndex;
+            // Spawned off-screen: start in "entering" state (-1) and walk to the preferred row.
+            CurrentRowIndex = -1;
             CurrentHp = data.maxHp;
             _attackTimer = UnityEngine.Random.Range(0.5f, data.attackInterval);
             _rowChangeTimer = data.rowChangeInterval;
@@ -51,6 +62,7 @@ namespace HillNGun.PvE
         public void Update(float deltaTime, Vector2 playerPosition)
         {
             if (!IsAlive) return;
+            if (IsEntering) return;
 
             if (_isAttacking)
             {
@@ -103,6 +115,7 @@ namespace HillNGun.PvE
 
         private void ChangeRow()
         {
+            if (IsEntering) return;
             int newRow = (CurrentRowIndex + 1) % 3;
             _targetRow = newRow;
             _rowChangeTimer = Data.rowChangeInterval;
@@ -115,7 +128,7 @@ namespace HillNGun.PvE
             float targetY = rowYPositions[Mathf.Clamp(_targetRow, 0, rowYPositions.Length - 1)];
             float currentY = Position.y;
 
-            float step = Data.moveSpeed * deltaTime;
+            float step = Data.moveSpeed * deltaTime * (IsEntering ? 2f : 1f);
             float newY = Mathf.MoveTowards(currentY, targetY, step);
             Position = new Vector2(Position.x, newY);
 
