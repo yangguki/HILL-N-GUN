@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using HillNGun.Core;
 using HillNGun.Input;
+using HillNGun.PvE;
+using HillNGun.PvP;
+using HillNGun.Characters;
 using System;
 using System.IO;
 using System.Collections;
@@ -21,6 +24,7 @@ namespace HillNGun.DebugTools
         private bool _pveCompleted;
         private bool _pvpCompleted;
         private SmokeTestPhase _phase = SmokeTestPhase.WaitingTitle;
+        private bool _phaseScreenshotTaken;
         
         private enum SmokeTestPhase
         {
@@ -66,7 +70,14 @@ namespace HillNGun.DebugTools
             }
 
             _screenshotFolder = Path.Combine(Application.persistentDataPath, "smoketest");
-            if (!Directory.Exists(_screenshotFolder))
+            if (Directory.Exists(_screenshotFolder))
+            {
+                foreach (var file in Directory.GetFiles(_screenshotFolder, "*.png"))
+                {
+                    File.Delete(file);
+                }
+            }
+            else
             {
                 Directory.CreateDirectory(_screenshotFolder);
             }
@@ -86,6 +97,13 @@ namespace HillNGun.DebugTools
             {
                 Debug.Log($"[SmokeTest] Caught {type}: {condition}\n{stackTrace}");
             }
+        }
+
+        private void SetPhase(SmokeTestPhase newPhase)
+        {
+            _phase = newPhase;
+            _phaseScreenshotTaken = false;
+            _autopilotTimer = 0f;
         }
 
         private void Update()
@@ -129,46 +147,56 @@ namespace HillNGun.DebugTools
             string sceneName = SceneManager.GetActiveScene().name;
             if (sceneName == "Title" || sceneName.Contains("Title"))
             {
-                _phase = SmokeTestPhase.Title;
-                StartCoroutine(TakeScreenshotDelayed("title_screen"));
+                SetPhase(SmokeTestPhase.Title);
             }
         }
 
         private void UpdateTitle()
         {
             _autopilotTimer += Time.deltaTime;
+            
+            if (!_phaseScreenshotTaken && _autopilotTimer > 0.5f)
+            {
+                _phaseScreenshotTaken = true;
+                StartCoroutine(TakeScreenshotDelayed("title_screen"));
+            }
+            
             if (_autopilotTimer > 2f)
             {
                 Debug.Log("[SmokeTest] Advancing from Title to ModeSelect");
                 GameFlowManager.Instance?.GoToModeSelect();
-                _phase = SmokeTestPhase.ModeSelect;
-                _autopilotTimer = 0f;
+                SetPhase(SmokeTestPhase.ModeSelect);
             }
         }
 
         private void UpdateModeSelect()
         {
             _autopilotTimer += Time.deltaTime;
-            if (_autopilotTimer > 0.5f)
+            
+            if (!_phaseScreenshotTaken && _autopilotTimer > 0.5f)
             {
+                _phaseScreenshotTaken = true;
                 StartCoroutine(TakeScreenshotDelayed("mode_select"));
             }
+            
             if (_autopilotTimer > 2f)
             {
                 Debug.Log("[SmokeTest] Selecting PvE mode");
                 GameFlowManager.Instance?.GoToCharacterSelect(GameMode.PvE);
-                _phase = SmokeTestPhase.CharacterSelect;
-                _autopilotTimer = 0f;
+                SetPhase(SmokeTestPhase.CharacterSelect);
             }
         }
 
         private void UpdateCharacterSelect()
         {
             _autopilotTimer += Time.deltaTime;
-            if (_autopilotTimer > 0.5f && _autopilotTimer < 1f)
+            
+            if (!_phaseScreenshotTaken && _autopilotTimer > 0.5f)
             {
+                _phaseScreenshotTaken = true;
                 StartCoroutine(TakeScreenshotDelayed("character_select_pve"));
             }
+            
             if (_autopilotTimer > 2f)
             {
                 Debug.Log("[SmokeTest] Starting PvE match with default characters");
@@ -178,10 +206,9 @@ namespace HillNGun.DebugTools
                     flowManager.SetAllCharacters("buster", "raven", "volt");
                     flowManager.StartMatch();
                 }
-                _phase = SmokeTestPhase.PvEMatch;
-                _autopilotTimer = 0f;
+                SetPhase(SmokeTestPhase.PvEMatch);
                 _matchTimer = 0f;
-                _lastScreenshotTime = 0f;
+                _lastScreenshotTime = -5f;
             }
         }
 
@@ -195,6 +222,7 @@ namespace HillNGun.DebugTools
             if (_matchTimer - _lastScreenshotTime >= 5f)
             {
                 _lastScreenshotTime = _matchTimer;
+                LogMatchState("PvE");
                 StartCoroutine(TakeScreenshotDelayed($"pve_match_{Mathf.FloorToInt(_matchTimer)}s"));
             }
 
@@ -203,30 +231,38 @@ namespace HillNGun.DebugTools
                 Debug.Log("[SmokeTest] PvE match time complete (20s). Moving to PvP.");
                 _pveCompleted = true;
                 GameFlowManager.Instance?.GoToModeSelect();
-                _phase = SmokeTestPhase.PvPModeSelect;
-                _autopilotTimer = 0f;
+                SetPhase(SmokeTestPhase.PvPModeSelect);
             }
         }
 
         private void UpdatePvPModeSelect()
         {
             _autopilotTimer += Time.deltaTime;
+            
+            if (!_phaseScreenshotTaken && _autopilotTimer > 0.5f)
+            {
+                _phaseScreenshotTaken = true;
+                StartCoroutine(TakeScreenshotDelayed("pvp_mode_select"));
+            }
+            
             if (_autopilotTimer > 2f)
             {
                 Debug.Log("[SmokeTest] Selecting PvP mode");
                 GameFlowManager.Instance?.GoToCharacterSelect(GameMode.PvP);
-                _phase = SmokeTestPhase.PvPCharacterSelect;
-                _autopilotTimer = 0f;
+                SetPhase(SmokeTestPhase.PvPCharacterSelect);
             }
         }
 
         private void UpdatePvPCharacterSelect()
         {
             _autopilotTimer += Time.deltaTime;
-            if (_autopilotTimer > 0.5f && _autopilotTimer < 1f)
+            
+            if (!_phaseScreenshotTaken && _autopilotTimer > 0.5f)
             {
+                _phaseScreenshotTaken = true;
                 StartCoroutine(TakeScreenshotDelayed("character_select_pvp"));
             }
+            
             if (_autopilotTimer > 2f)
             {
                 Debug.Log("[SmokeTest] Starting PvP match");
@@ -236,10 +272,9 @@ namespace HillNGun.DebugTools
                     flowManager.SetAllCharacters("buster", "raven", "volt");
                     flowManager.StartMatch();
                 }
-                _phase = SmokeTestPhase.PvPMatch;
-                _autopilotTimer = 0f;
+                SetPhase(SmokeTestPhase.PvPMatch);
                 _matchTimer = 0f;
-                _lastScreenshotTime = 0f;
+                _lastScreenshotTime = -5f;
             }
         }
 
@@ -253,6 +288,7 @@ namespace HillNGun.DebugTools
             if (_matchTimer - _lastScreenshotTime >= 5f)
             {
                 _lastScreenshotTime = _matchTimer;
+                LogMatchState("PvP");
                 StartCoroutine(TakeScreenshotDelayed($"pvp_match_{Mathf.FloorToInt(_matchTimer)}s"));
             }
 
@@ -260,7 +296,115 @@ namespace HillNGun.DebugTools
             {
                 Debug.Log("[SmokeTest] PvP match time complete (15s). Test finished.");
                 _pvpCompleted = true;
-                _phase = SmokeTestPhase.Complete;
+                SetPhase(SmokeTestPhase.Complete);
+            }
+        }
+
+        private void LogMatchState(string matchType)
+        {
+            Debug.Log($"[SmokeTest] === {matchType} Match State at {_matchTimer:F1}s ===");
+            
+            var camera = Camera.main;
+            if (camera != null)
+            {
+                Debug.Log($"[SmokeTest] Camera: pos={camera.transform.position}, rect={camera.rect}, orthoSize={camera.orthographicSize}");
+            }
+            else
+            {
+                Debug.LogWarning("[SmokeTest] WARNING: No main camera found!");
+            }
+
+            int playerCount = 0;
+            int enemyCount = 0;
+            int coverCount = 0;
+
+            var pveManager = FindFirstObjectByType<PvEMatchManager>();
+            if (pveManager != null)
+            {
+                var playerTeam = pveManager.PlayerTeam;
+                playerCount = playerTeam?.Count ?? 0;
+                
+                if (playerTeam != null)
+                {
+                    foreach (var p in playerTeam)
+                    {
+                        if (p != null)
+                        {
+                            Debug.Log($"[SmokeTest] Player: {p.Data?.id}, pos={p.Position}, state={p.OverallState}");
+                        }
+                    }
+                }
+
+                var enemies = pveManager.ActiveEnemies;
+                enemyCount = enemies?.Count ?? 0;
+                
+                if (enemies != null)
+                {
+                    foreach (var e in enemies)
+                    {
+                        if (e != null)
+                        {
+                            Debug.Log($"[SmokeTest] Enemy: {e.Data?.id}, pos={e.Position}, alive={e.IsAlive}");
+                        }
+                    }
+                }
+
+                var boss = pveManager.ActiveBoss;
+                if (boss != null)
+                {
+                    Debug.Log($"[SmokeTest] Boss: {boss.Data?.id}, pos={boss.Position}, hp={boss.CurrentHp}/{boss.Data?.maxHp}");
+                }
+            }
+
+            var pvpManager = FindFirstObjectByType<PvPMatchManager>();
+            if (pvpManager != null)
+            {
+                var playerTeam = pvpManager.PlayerTeam;
+                playerCount = playerTeam?.Count ?? 0;
+                
+                if (playerTeam != null)
+                {
+                    foreach (var p in playerTeam)
+                    {
+                        if (p != null)
+                        {
+                            Debug.Log($"[SmokeTest] PlayerTeam: {p.Data?.id}, pos={p.Position}, state={p.OverallState}");
+                        }
+                    }
+                }
+
+                var enemyTeam = pvpManager.EnemyTeam;
+                enemyCount = enemyTeam?.Count ?? 0;
+                
+                if (enemyTeam != null)
+                {
+                    foreach (var e in enemyTeam)
+                    {
+                        if (e != null)
+                        {
+                            Debug.Log($"[SmokeTest] EnemyTeam: {e.Data?.id}, pos={e.Position}, state={e.OverallState}");
+                        }
+                    }
+                }
+            }
+
+            var characters = FindObjectsByType<CharacterStateMachine>(FindObjectsSortMode.None);
+            var enemyViews = FindObjectsByType<EnemyView>(FindObjectsSortMode.None);
+            var bossViews = FindObjectsByType<BossView>(FindObjectsSortMode.None);
+
+            Debug.Log($"[SmokeTest] Found GameObjects: CharacterStateMachine={characters.Length}, EnemyView={enemyViews.Length}, BossView={bossViews.Length}");
+
+            if (playerCount == 0)
+            {
+                Debug.LogWarning("[SmokeTest] WARNING: Player count is 0!");
+            }
+            if (matchType == "PvE" && enemyCount == 0 && pveManager?.ActiveBoss == null)
+            {
+                Debug.LogWarning("[SmokeTest] WARNING: No enemies or boss spawned in PvE!");
+            }
+            if (matchType == "PvP" && enemyCount == 0)
+            {
+                Debug.LogWarning("[SmokeTest] WARNING: Enemy team count is 0 in PvP!");
             }
         }
 

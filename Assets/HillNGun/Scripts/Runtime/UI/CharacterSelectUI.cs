@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using HillNGun.Core;
 using HillNGun.Data;
 
@@ -18,6 +19,8 @@ namespace HillNGun.UI
         private bool _stylesInitialized;
 
         private LocalizationManager _localization;
+        private SpriteLibrary _spriteLibrary;
+        private Dictionary<string, Texture2D> _characterPortraits = new Dictionary<string, Texture2D>();
         private string[] _selectedIds = new string[3];
         private int _activeSlot = 0;
         private int _hoveredChar = -1;
@@ -32,6 +35,47 @@ namespace HillNGun.UI
         private void Start()
         {
             _localization = ServiceLocator.Get<LocalizationManager>();
+            _spriteLibrary = ServiceLocator.Get<SpriteLibrary>();
+            
+            if (_availableCharacters == null || _availableCharacters.Length == 0)
+            {
+                var assetManager = RuntimeAssetManager.Instance;
+                if (assetManager != null)
+                {
+                    _availableCharacters = assetManager.CharacterDatas;
+                }
+            }
+            
+            CacheCharacterPortraits();
+        }
+
+        private void CacheCharacterPortraits()
+        {
+            if (_spriteLibrary == null || _availableCharacters == null) return;
+            
+            foreach (var charData in _availableCharacters)
+            {
+                if (charData == null) continue;
+                var sprites = _spriteLibrary.GetCharacterSprites(charData.id);
+                if (sprites?.idle != null)
+                {
+                    _characterPortraits[charData.id] = SpriteToTexture(sprites.idle);
+                }
+            }
+        }
+
+        private Texture2D SpriteToTexture(Sprite sprite)
+        {
+            if (sprite == null) return null;
+            
+            var rect = sprite.textureRect;
+            var tex = new Texture2D((int)rect.width, (int)rect.height, TextureFormat.RGBA32, false);
+            var pixels = sprite.texture.GetPixels(
+                (int)rect.x, (int)rect.y, (int)rect.width, (int)rect.height);
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return tex;
         }
 
         private void InitStyles()
@@ -244,21 +288,26 @@ namespace HillNGun.UI
 
         private void DrawCharacterIcon(float x, float y, float size, CharacterData charData)
         {
-            Color roleColor = charData.role switch
+            Texture2D portrait = null;
+            if (charData != null && _characterPortraits.TryGetValue(charData.id, out portrait) && portrait != null)
             {
-                Role.Assault => new Color(0.7f, 0.4f, 0.3f),
-                Role.Sniper => new Color(0.4f, 0.5f, 0.7f),
-                Role.Support => new Color(0.4f, 0.6f, 0.45f),
-                _ => Color.gray
-            };
+                GUI.color = Color.white;
+                GUI.DrawTexture(new Rect(x, y, size, size), portrait, ScaleMode.ScaleToFit);
+            }
+            else
+            {
+                Color roleColor = charData?.role switch
+                {
+                    Role.Assault => new Color(0.7f, 0.4f, 0.3f),
+                    Role.Sniper => new Color(0.4f, 0.5f, 0.7f),
+                    Role.Support => new Color(0.4f, 0.6f, 0.45f),
+                    _ => Color.gray
+                };
 
-            GUI.color = roleColor;
-            GUI.DrawTexture(new Rect(x, y, size, size), GetCharacterTexture());
-            GUI.color = Color.white;
-
-            GUI.color = new Color(0.2f, 0.15f, 0.1f);
-            GUI.DrawTexture(new Rect(x + size * 0.3f, y + size * 0.15f, size * 0.4f, size * 0.3f), Texture2D.whiteTexture);
-            GUI.color = Color.white;
+                GUI.color = roleColor;
+                GUI.DrawTexture(new Rect(x, y, size, size), GetCharacterTexture());
+                GUI.color = Color.white;
+            }
         }
 
         private Texture2D _characterTexture;
@@ -272,21 +321,21 @@ namespace HillNGun.UI
 
             float center = size / 2f;
 
-            for (int y = 0; y < size; y++)
+            for (int py = 0; py < size; py++)
             {
-                for (int x = 0; x < size; x++)
+                for (int px = 0; px < size; px++)
                 {
-                    float dx = x - center;
-                    float dy = y - center;
+                    float dx = px - center;
+                    float dy = py - center;
                     float dist = Mathf.Sqrt(dx * dx + dy * dy);
 
                     if (dist < size / 2f - 2)
                     {
-                        pixels[y * size + x] = Color.white;
+                        pixels[py * size + px] = Color.white;
                     }
                     else
                     {
-                        pixels[y * size + x] = Color.clear;
+                        pixels[py * size + px] = Color.clear;
                     }
                 }
             }

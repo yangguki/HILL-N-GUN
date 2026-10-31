@@ -780,6 +780,59 @@ namespace HillNGun.Editor
             camera.clearFlags = CameraClearFlags.SolidColor;
             cameraGO.tag = "MainCamera";
             cameraGO.AddComponent<AudioListener>();
+            
+            CreateRuntimeAssetManager();
+        }
+
+        private static void CreateRuntimeAssetManager()
+        {
+            var spriteLibrary = AssetDatabase.LoadAssetAtPath<SpriteLibrary>(DATA_PATH + "SpriteLibrary.asset");
+            var audioLibrary = AssetDatabase.LoadAssetAtPath<AudioLibrary>(DATA_PATH + "AudioLibrary.asset");
+            
+            var charBuster = AssetDatabase.LoadAssetAtPath<CharacterData>(DATA_PATH + "Characters/char_buster.asset");
+            var charRaven = AssetDatabase.LoadAssetAtPath<CharacterData>(DATA_PATH + "Characters/char_raven.asset");
+            var charVolt = AssetDatabase.LoadAssetAtPath<CharacterData>(DATA_PATH + "Characters/char_volt.asset");
+            
+            var enemyPistol = AssetDatabase.LoadAssetAtPath<EnemyData>(DATA_PATH + "Enemies/enemy_pistol_mook.asset");
+            var enemyDynamite = AssetDatabase.LoadAssetAtPath<EnemyData>(DATA_PATH + "Enemies/enemy_dynamite_bandit.asset");
+            var enemyMounted = AssetDatabase.LoadAssetAtPath<EnemyData>(DATA_PATH + "Enemies/enemy_mounted_raider.asset");
+            
+            var bossData = AssetDatabase.LoadAssetAtPath<BossData>(DATA_PATH + "Bosses/boss_rattlesnake_rex.asset");
+            
+            var stage1 = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_1.asset");
+            var stage2 = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_2.asset");
+            var stage3 = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_3.asset");
+            var bossStage = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_boss.asset");
+            
+            var coverBarrel = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Covers/cover_barrel.asset");
+            var coverCrate = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Covers/cover_crate.asset");
+            var coverWagon = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Covers/cover_wagon.asset");
+            
+            var botBehavior = AssetDatabase.LoadAssetAtPath<BotBehaviorData>(DATA_PATH + "AI/bot_behavior_default.asset");
+            var battlefieldData = AssetDatabase.LoadAssetAtPath<BattlefieldData>(DATA_PATH + "Battlefield/battlefield_main.asset");
+            var downedData = AssetDatabase.LoadAssetAtPath<DownedData>(DATA_PATH + "Downed/downed_default.asset");
+            var feelData = AssetDatabase.LoadAssetAtPath<FeelData>(DATA_PATH + "Feel/feel_default.asset");
+            var matchRules = AssetDatabase.LoadAssetAtPath<MatchRulesData>(DATA_PATH + "Match/match_rules_default.asset");
+            var inputData = AssetDatabase.LoadAssetAtPath<InputData>(DATA_PATH + "Input/input_default.asset");
+            var touchControls = AssetDatabase.LoadAssetAtPath<TouchControlsData>(DATA_PATH + "Input/touch_controls.asset");
+            
+            var assetManagerGO = new GameObject("RuntimeAssetManager");
+            var assetManager = assetManagerGO.AddComponent<RuntimeAssetManager>();
+            
+            SetPrivateField(assetManager, "_spriteLibrary", spriteLibrary);
+            SetPrivateField(assetManager, "_audioLibrary", audioLibrary);
+            SetPrivateField(assetManager, "_characterDatas", new CharacterData[] { charBuster, charRaven, charVolt });
+            SetPrivateField(assetManager, "_enemyDatas", new EnemyData[] { enemyPistol, enemyDynamite, enemyMounted });
+            SetPrivateField(assetManager, "_bossDatas", bossData != null ? new BossData[] { bossData } : new BossData[0]);
+            SetPrivateField(assetManager, "_stageDatas", new StageData[] { stage1, stage2, stage3, bossStage });
+            SetPrivateField(assetManager, "_coverDatas", new CoverData[] { coverBarrel, coverCrate, coverWagon });
+            SetPrivateField(assetManager, "_botBehavior", botBehavior);
+            SetPrivateField(assetManager, "_battlefieldData", battlefieldData);
+            SetPrivateField(assetManager, "_downedData", downedData);
+            SetPrivateField(assetManager, "_feelData", feelData);
+            SetPrivateField(assetManager, "_matchRules", matchRules);
+            SetPrivateField(assetManager, "_inputData", inputData);
+            SetPrivateField(assetManager, "_touchControlsData", touchControls);
         }
 
         private static void CreateBattlefieldAndSystems()

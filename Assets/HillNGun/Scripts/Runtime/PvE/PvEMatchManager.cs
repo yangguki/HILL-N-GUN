@@ -69,10 +69,38 @@ namespace HillNGun.PvE
 
         private void Start()
         {
+            LoadDataFromAssetManager();
             SpawnPlayerTeam();
             if (_stages != null && _stages.Length > 0)
             {
                 StartStage(_currentStageIndex);
+            }
+            else
+            {
+                Debug.LogWarning("[PvEMatchManager] No stages configured - nothing to spawn");
+            }
+        }
+
+        private void LoadDataFromAssetManager()
+        {
+            var assetManager = RuntimeAssetManager.Instance;
+            if (assetManager == null)
+            {
+                Debug.LogWarning("[PvEMatchManager] RuntimeAssetManager not found");
+                return;
+            }
+
+            if (_stages == null || _stages.Length == 0)
+            {
+                _stages = assetManager.StageDatas;
+            }
+            if (_characterDatas == null || _characterDatas.Length == 0)
+            {
+                _characterDatas = assetManager.CharacterDatas;
+            }
+            if (_botBehavior == null)
+            {
+                _botBehavior = assetManager.BotBehavior;
             }
         }
 
@@ -237,7 +265,15 @@ namespace HillNGun.PvE
             _activeBoss.OnTailSweep += HandleBossTailSweep;
             _activeBoss.OnSummonMooks += HandleBossSummon;
 
+            CreateBossView(_activeBoss);
             OnBossSpawned?.Invoke(_activeBoss);
+        }
+
+        private void CreateBossView(BossInstance boss)
+        {
+            var go = new GameObject($"Boss_{boss.Data?.id}");
+            var view = go.AddComponent<BossView>();
+            view.Initialize(boss);
         }
 
         private void Update()
@@ -370,8 +406,16 @@ namespace HillNGun.PvE
                 enemy.OnExplosiveThrown += HandleEnemyExplosive;
 
                 _activeEnemies.Add(enemy);
+                CreateEnemyView(enemy);
                 OnEnemySpawned?.Invoke(enemy);
             }
+        }
+
+        private void CreateEnemyView(EnemyInstance enemy)
+        {
+            var go = new GameObject($"Enemy_{enemy.Data?.id}");
+            var view = go.AddComponent<EnemyView>();
+            view.Initialize(enemy);
         }
 
         private void HandleEnemyDefeated(EnemyInstance enemy)

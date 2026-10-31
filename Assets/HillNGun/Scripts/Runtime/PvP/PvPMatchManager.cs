@@ -85,7 +85,27 @@ namespace HillNGun.PvP
 
         private void Start()
         {
+            LoadDataFromAssetManager();
             StartMatch();
+        }
+
+        private void LoadDataFromAssetManager()
+        {
+            var assetManager = RuntimeAssetManager.Instance;
+            if (assetManager == null)
+            {
+                Debug.LogWarning("[PvPMatchManager] RuntimeAssetManager not found");
+                return;
+            }
+
+            if (_characterDatas == null || _characterDatas.Length == 0)
+            {
+                _characterDatas = assetManager.CharacterDatas;
+            }
+            if (_botBehavior == null)
+            {
+                _botBehavior = assetManager.BotBehavior;
+            }
         }
 
         public void StartMatch()
