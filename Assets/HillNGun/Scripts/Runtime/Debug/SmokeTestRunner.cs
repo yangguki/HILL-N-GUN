@@ -32,6 +32,19 @@ namespace HillNGun.DebugTools
         private AutoGunner _gunner;
         private CharacterStateMachine _gunnerOwner;
         private bool _advancedRow;
+
+        // -smoketest-fullpve: play PvE through every stage + boss until the Result scene
+        private static bool _fullPvE;
+        private static float _timeScale = 2f;
+        private float _realTimer;
+        private int _lastStageIndex = -1;
+        private int _lastWave = -1;
+        private bool _bossSeen;
+        private int _sweepShots;
+        private bool _sweepShotThisWarning;
+        private float _resultTimer = -1f;
+        private int _lastBossPhase = -1;
+        private const float FullRunRealTimeout = 900f;
         
         private enum SmokeTestPhase
         {
@@ -55,7 +68,19 @@ namespace HillNGun.DebugTools
                 if (arg.Equals("-smoketest", StringComparison.OrdinalIgnoreCase))
                 {
                     _isSmokeTest = true;
-                    break;
+                }
+                else if (arg.Equals("-smoketest-fullpve", StringComparison.OrdinalIgnoreCase))
+                {
+                    _isSmokeTest = true;
+                    _fullPvE = true;
+                }
+            }
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (args[i].Equals("-smoketest-timescale", StringComparison.OrdinalIgnoreCase) &&
+                    float.TryParse(args[i + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float ts))
+                {
+                    _timeScale = Mathf.Clamp(ts, 0.25f, 8f);
                 }
             }
 
@@ -219,11 +244,127 @@ namespace HillNGun.DebugTools
                 SetPhase(SmokeTestPhase.PvEMatch);
                 _matchTimer = 0f;
                 _lastScreenshotTime = -5f;
+                if (_fullPvE)
+                {
+                    Time.timeScale = _timeScale;
+                    _realTimer = 0f;
+                    Debug.Log($"[SmokeTest] FULL PvE run started (timeScale={_timeScale})");
+                }
             }
+        }
+
+        private void Timeline(string evt)
+        {
+            Debug.Log($"[SmokeTest][Timeline] game={_matchTimer:F1}s real={_realTimer:F1}s {evt}");
+        }
+
+        private void UpdateFullPvE()
+        {
+            _matchTimer += Time.deltaTime;
+            _realTimer += Time.unscaledDeltaTime;
+            _autopilotTimer += Time.deltaTime;
+
+            if (_realTimer > FullRunRealTimeout)
+            {
+                Timeline("TIMEOUT - full run did not reach Result");
+                Time.timeScale = 1f;
+                SetPhase(SmokeTestPhase.Complete);
+                return;
+            }
+
+            string scene = SceneManager.GetActiveScene().name;
+            if (scene.Contains("Result"))
+            {
+                if (_resultTimer < 0f)
+                {
+                    _resultTimer = 0f;
+                    Time.timeScale = 1f;
+                    var session = GameFlowManager.Instance?.CurrentSession;
+                    Timeline($"RESULT scene loaded (result={session?.result})");
+                }
+                _resultTimer += Time.unscaledDeltaTime;
+                if (_resultTimer > 1.5f)
+                {
+                    _pveCompleted = true;
+                    SetPhase(SmokeTestPhase.Complete);
+                    _phase = SmokeTestPhase.Complete;
+                    StartCoroutine(TakeScreenshotDelayed("result_screen"));
+                }
+                return;
+            }
+
+            var pve = FindFirstObjectByType<PvEMatchManager>();
+            if (pve == null) return;
+
+            RunAutopilot();
+
+            if (pve.CurrentStageIndex != _lastStageIndex)
+            {
+                _lastStageIndex = pve.CurrentStageIndex;
+                _lastWave = -1;
+                Timeline($"STAGE {pve.CurrentStageIndex + 1}/{pve.StageCount} start ({pve.CurrentStageId}) gaugeMax={pve.GaugeMax} waves={pve.TotalWaves}");
+            }
+            if (pve.IsMatchActive && pve.ActiveBoss == null && pve.CurrentWave != _lastWave && pve.CurrentWave >= 0)
+            {
+                _lastWave = pve.CurrentWave;
+                Timeline($"stage {pve.CurrentStageIndex + 1} WAVE {pve.CurrentWave + 1}/{pve.TotalWaves} gauge={pve.CurrentGauge}/{pve.GaugeMax}");
+                if (pve.CurrentStageIndex == 0 || pve.CurrentWave >= 2)
+                    StartCoroutine(ShotAfter($"stage{pve.CurrentStageIndex + 1}_wave{pve.CurrentWave + 1}", 6f)); // after delayBeforeWave (3s) + walk-in
+            }
+
+            var boss = pve.ActiveBoss;
+            if (boss != null)
+            {
+                if (!_bossSeen)
+                {
+                    _bossSeen = true;
+                    Timeline($"BOSS spawned ({boss.Data?.id} hp={boss.CurrentHp})");
+                    StartCoroutine(ShotAfter("boss_entry", 2f));
+                }
+                if ((int)boss.CurrentPhase != _lastBossPhase)
+                {
+                    _lastBossPhase = (int)boss.CurrentPhase;
+                    Timeline($"BOSS phase {boss.CurrentPhase} hp={boss.CurrentHp}");
+                }
+                bool sweepWarn = boss.CurrentWarning == BossInstance.WarningType.TailSweep;
+                if (sweepWarn && !_sweepShotThisWarning && boss.WarningRemaining < (boss.CurrentPhaseData?.tailSweepWarning ?? 1f) * 0.6f)
+                {
+                    _sweepShotThisWarning = true;
+                    Timeline($"TAIL SWEEP warning area={boss.TailSweepArea}");
+                    if (_sweepShots < 3)
+                    {
+                        _sweepShots++;
+                        StartCoroutine(TakeScreenshotDelayed($"boss_tailsweep_warning_{_sweepShots}"));
+                    }
+                }
+                if (!sweepWarn) _sweepShotThisWarning = false;
+            }
+
+            if (_matchTimer - _lastScreenshotTime >= 15f)
+            {
+                _lastScreenshotTime = _matchTimer;
+                LogMatchState("PvE");
+                Debug.Log($"[SmokeTest] TailSweeps={pve.TailSweepCount} hits={pve.TailSweepHits}");
+                StartCoroutine(TakeScreenshotDelayed($"pve_full_{Mathf.FloorToInt(_matchTimer)}s"));
+            }
+        }
+
+        private IEnumerator ShotAfter(string name, float gameSeconds)
+        {
+            yield return new WaitForSeconds(gameSeconds);
+            if (SceneManager.GetActiveScene().name.Contains("Result")) yield break;
+            LogMatchState("PvE");
+            yield return TakeScreenshotDelayed(name);
         }
 
         private void UpdatePvEMatch()
         {
+            if (_fullPvE)
+            {
+                UpdateFullPvE();
+                return;
+            }
+
             _matchTimer += Time.deltaTime;
             _autopilotTimer += Time.deltaTime;
             
@@ -464,6 +605,15 @@ namespace HillNGun.DebugTools
                 _gunnerOwner = me;
                 _gunner = new AutoGunner(me, 0.3f);
                 _advancedRow = false;
+            }
+
+            if (pve != null && me != null && _fullPvE)
+            {
+                float range = me.Data?.weapon?.range ?? 7f;
+                Vector2? inRange = pve.FindTargetFor(me.Position, range * 1.1f);
+                if (_autopilotTimer > 0.5f && me.OverallState == CharacterOverallState.Active) pve.DriveAllyMovement(me, inRange);
+                _gunner.Tick(Time.deltaTime, inRange ?? target);
+                return;
             }
 
             // Move up to the front row once so short-range weapons can reach the enemy line
