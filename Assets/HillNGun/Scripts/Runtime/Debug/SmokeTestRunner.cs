@@ -252,9 +252,47 @@ namespace HillNGun.DebugTools
             }
         }
 
+        // Performance sampling during matches (real-time frames only; capture mode uses a fixed frame rate)
+        private int _fpsFrames, _fpsSlow;
+        private double _fpsTime;
+        private long _drawSum, _setPassSum, _drawMax;
+        private int _drawSamples;
+        private Unity.Profiling.ProfilerRecorder _drawRec, _setPassRec;
+
+        private void SamplePerf()
+        {
+            if (Time.captureFramerate != 0) return;
+            if (_phase != SmokeTestPhase.PvEMatch && _phase != SmokeTestPhase.PvPMatch) return;
+            float dt = Time.unscaledDeltaTime;
+            if (dt <= 0f || dt > 0.5f) return;
+            if (!_drawRec.Valid)
+            {
+                _drawRec = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Draw Calls Count");
+                _setPassRec = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "SetPass Calls Count");
+            }
+            _fpsFrames++;
+            _fpsTime += dt;
+            if (dt > 1f / 45f) _fpsSlow++;
+            if (_drawRec.Valid && _drawRec.LastValue > 0)
+            {
+                _drawSum += _drawRec.LastValue; _drawSamples++;
+                if (_drawRec.LastValue > _drawMax) _drawMax = _drawRec.LastValue;
+                if (_setPassRec.Valid) _setPassSum += _setPassRec.LastValue;
+            }
+            if (_fpsFrames % 600 == 0) LogPerf("running");
+        }
+
+        private void LogPerf(string tag)
+        {
+            if (_fpsFrames == 0) return;
+            string draws = _drawSamples > 0 ? $"drawCalls avg={_drawSum / (double)_drawSamples:F0} max={_drawMax} setPass avg={_setPassSum / (double)_drawSamples:F0}" : "drawCalls n/a (release player)";
+            Debug.Log($"[SmokeTest] PERF {tag}: avgFPS={_fpsFrames / _fpsTime:F1} frames={_fpsFrames} slow(<45fps)={100.0 * _fpsSlow / _fpsFrames:F1}% {draws} actor3D={HillNGun.View3D.Actor3DStage.Enabled}");
+        }
+
         private void Update()
         {
             if (!_isSmokeTest) return;
+            SamplePerf();
 
             switch (_phase)
             {
@@ -1102,6 +1140,9 @@ namespace HillNGun.DebugTools
 
         private void CompleteTest()
         {
+            LogPerf("final");
+            if (_drawRec.Valid) _drawRec.Dispose();
+            if (_setPassRec.Valid) _setPassRec.Dispose();
             StartCoroutine(TakeScreenshotDelayed("test_complete"));
             StartCoroutine(QuitAfterDelay());
             _phase = (SmokeTestPhase)(-1);
