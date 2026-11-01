@@ -76,6 +76,8 @@ namespace HillNGun.Data
         public bool useGrenades = true;
         [Tooltip("수류탄 투척 최소 간격 (초)")]
         public float grenadeMinInterval = 4f;
+        [Tooltip("PvE AI 아군 수류탄 최소 간격 (초). 수류탄 12초 재충전(t49u 수정) 후에도 스테이지 길이(03 §4)를 지키기 위한 값. 0 이하 = grenadeMinInterval 사용")]
+        public float pveAllyGrenadeMinInterval = 45f;
         [Tooltip("기절한 아군에게 가서 소생")]
         public bool reviveAllies = true;
     }

@@ -197,7 +197,7 @@ namespace HillNGun.PvE
                         var bot = new BotBrain(character, _botBehavior);
                         _allyBots.Add(bot);
                         _allyGunners.Add(new AutoGunner(character, 0.5f + 0.3f * i));
-                        _allyPilots.Add(new AbilityPilot(character, _botBehavior, 2f + 1.5f * i));
+                        _allyPilots.Add(new AbilityPilot(character, _botBehavior, 2f + 1.5f * i, _botBehavior != null ? _botBehavior.pveAllyGrenadeMinInterval : 0f));
                     }
                 }
             }

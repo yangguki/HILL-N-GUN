@@ -237,8 +237,13 @@ namespace HillNGun.Characters
             _view?.UpdateView(this);
         }
 
+        /// <summary>Advance cooldown/recharge timers only (same path Update uses). Public for tests.</summary>
+        public void TickTimers(float dt) => UpdateCooldowns(dt);
+
         private void UpdateCooldowns(float dt)
         {
+            // grenade recharge (01 §8: one grenade every GrenadeData.rechargeTime). Was never ticked before t49u.
+            _grenadeSystem?.Update(dt);
             if (_damageBoostTimer > 0f) _damageBoostTimer -= dt;
             if (_rollCooldownTimer > 0f)
                 _rollCooldownTimer -= dt;

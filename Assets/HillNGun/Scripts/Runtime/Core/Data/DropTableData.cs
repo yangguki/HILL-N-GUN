@@ -43,8 +43,8 @@ namespace HillNGun.Data
             new DropEntry { type = DropType.WeaponBoost, weight = 18f, value = 1.25f, duration = 8f, color = new Color(1f, 0.55f, 0.15f) },
             new DropEntry { type = DropType.Heal, weight = 26f, value = 0.25f, color = new Color(0.45f, 0.95f, 0.45f) },
             new DropEntry { type = DropType.Ammo, weight = 20f, color = new Color(1f, 0.88f, 0.4f) },
-            new DropEntry { type = DropType.Grenade, weight = 14f, amount = 1, color = new Color(0.95f, 0.3f, 0.22f) },
-            new DropEntry { type = DropType.Coins, weight = 22f, amount = 25, color = new Color(1f, 0.82f, 0.2f) },
+            new DropEntry { type = DropType.Grenade, weight = 6f, amount = 1, color = new Color(0.95f, 0.3f, 0.22f) },
+            new DropEntry { type = DropType.Coins, weight = 30f, amount = 25, color = new Color(1f, 0.82f, 0.2f) },
         };
 
         [Header("Pickup")]

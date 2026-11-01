@@ -27,11 +27,15 @@ namespace HillNGun.AI
         public int SkillsUsed { get; private set; }
         public int GrenadesThrown { get; private set; }
 
-        public AbilityPilot(CharacterStateMachine character, BotBehaviorData behavior, float grenadeInitialDelay = 2f)
+        private readonly float _grenadeIntervalOverride;
+
+        /// <param name="grenadeIntervalOverride">&gt;0 replaces BotBehaviorData.grenadeMinInterval (PvE allies).</param>
+        public AbilityPilot(CharacterStateMachine character, BotBehaviorData behavior, float grenadeInitialDelay = 2f, float grenadeIntervalOverride = 0f)
         {
             _c = character;
             _b = behavior;
             _grenadeTimer = grenadeInitialDelay;
+            _grenadeIntervalOverride = grenadeIntervalOverride;
         }
 
         /// <param name="target">Enemy target in weapon range (null if none).</param>
@@ -161,7 +165,7 @@ namespace HillNGun.AI
 
             _c.OnGrenadeAimStartCommand(new GrenadeAimStartCommand(Vector2.zero, now));
             _c.OnGrenadeReleaseCommand(new GrenadeReleaseCommand(target.Value, true, now));
-            _grenadeTimer = _b != null ? _b.grenadeMinInterval : 4f;
+            _grenadeTimer = _grenadeIntervalOverride > 0f ? _grenadeIntervalOverride : (_b != null ? _b.grenadeMinInterval : 4f);
             GrenadesThrown++;
         }
     }

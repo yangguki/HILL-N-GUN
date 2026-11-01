@@ -953,6 +953,7 @@ namespace HillNGun.Editor
             botBehavior.repairCoverBelowRatio = 0.6f;
             botBehavior.useGrenades = true;
             botBehavior.grenadeMinInterval = 4f;
+            botBehavior.pveAllyGrenadeMinInterval = 45f;
             botBehavior.reviveAllies = true;
             EditorUtility.SetDirty(botBehavior);
         }
