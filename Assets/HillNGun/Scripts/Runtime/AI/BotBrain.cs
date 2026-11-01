@@ -50,6 +50,8 @@ namespace HillNGun.AI
 
             _decisionTimer -= deltaTime;
             _rollCooldownTimer -= deltaTime;
+
+            if (TickBulletDodge(deltaTime)) return;
             _grenadeCooldownTimer -= deltaTime;
             _skillCooldownTimer -= deltaTime;
 
@@ -66,6 +68,43 @@ namespace HillNGun.AI
             }
 
             ExecuteCurrentState(deltaTime, enemies);
+        }
+
+        // ---- bullet dodge (t48u): roll if it is ready, otherwise a short side-step ----
+        private HillNGun.Combat.BulletDodgeSense _bulletSense;
+        private float _sidestepTimer;
+        private Vector2 _sidestepDir;
+        public int BulletDodges => _bulletSense?.Reactions ?? 0;
+
+        private bool TickBulletDodge(float dt)
+        {
+            if (_sidestepTimer > 0f)
+            {
+                _sidestepTimer -= dt;
+                _character.OnMoveCommand(new MoveCommand(_sidestepDir, 1f, Time.time));
+                if (_sidestepTimer <= 0f) _character.OnMoveCommand(MoveCommand.Stop(Time.time));
+                return true;
+            }
+            if (!_behaviorData.bulletDodge.Enabled) return false;
+            _bulletSense ??= new HillNGun.Combat.BulletDodgeSense(_behaviorData.bulletDodge);
+            var combat = ServiceLocator.Get<HillNGun.Combat.CombatSystem>();
+            var list = combat?.ProjectilePool?.ActiveProjectiles;
+            Team hostile = _character.Team == Team.Player ? Team.Enemy : Team.Player;
+            float radius = _character.Data != null ? _character.Data.hitRadius : 0.5f;
+            if (!_bulletSense.Tick(Time.time, _character.Position, radius, list, hostile, out var dir)) return false;
+            if (_isAiming) { _character.OnAimReleaseCommand(new AimReleaseCommand(_aimDirection, false, Time.time)); _isAiming = false; }
+            if (_rollCooldownTimer <= 0f && _character.RollCooldownRatio <= 0f && !_character.ActionsBlockedByMotion)
+            {
+                _character.OnRollCommand(new RollCommand(dir, Time.time));
+                _rollCooldownTimer = _character.Data?.roll?.cooldown ?? 4f;
+            }
+            else
+            {
+                _sidestepDir = dir;
+                _sidestepTimer = _behaviorData.sidestepTime;
+            }
+            _currentState = BotState.Idle;
+            return true;
         }
 
         private bool _skillHolding;

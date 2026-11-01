@@ -88,6 +88,9 @@ namespace HillNGun.Data
         public RegionDefinition[] regions = new RegionDefinition[0];
         public SkinDefinition[] skins = new SkinDefinition[0];
 
+        [Header("Guns (t48u: 총 상점 / 장착)")]
+        public WeaponCatalogData weaponCatalog;
+
         public int XpToNextBadge(int level) => badgeXpBase + badgeXpPerLevel * Mathf.Max(0, level - 1);
 
         public int MasteryLevelFor(int xp)

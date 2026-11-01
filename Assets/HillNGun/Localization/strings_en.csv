@@ -181,3 +181,25 @@ theme.canyon_pass,Canyon Pass
 theme.rail_station,Rail Station
 theme.sunset_showdown,Sunset Showdown
 theme.frontier_dusk,Frontier Dusk
+reward.coins_picked,Bounty picked up {0}
+shop.tab.guns,Guns
+shop.tab.skins,Skins
+shop.guns_note,Guns per role · equip here or on the character screen
+char.guns,Guns
+gun.anyone,Everyone
+gun.stats,DMG {0} · every {1:0.##}s · range {2:0.#} · mag {3} · speed {4:0}
+gun.equipped_toast,{0}: {1} equipped
+weapon.wpn_buster,Double-barrel Shotgun
+weapon.wpn_buster.desc,5 pellets up close (starter)
+weapon.wpn_raven,Hunting Rifle
+weapon.wpn_raven.desc,Charged long shot (starter)
+weapon.wpn_volt,Big Revolver
+weapon.wpn_volt.desc,One careful shot at a time (starter)
+weapon.wpn_peacemaker,Peacemaker Revolver
+weapon.wpn_peacemaker.desc,6 rounds · quick hammer · 380 per shot
+weapon.wpn_coachgun,Coach Gun
+weapon.wpn_coachgun.desc,6 pellets · range 5.5
+weapon.wpn_lever_action,Lever-action Rifle
+weapon.wpn_lever_action.desc,No charge · 4 rounds · range 11
+weapon.wpn_gatling,Gatling Gun
+weapon.wpn_gatling.desc,Hold to keep firing · 18 rounds

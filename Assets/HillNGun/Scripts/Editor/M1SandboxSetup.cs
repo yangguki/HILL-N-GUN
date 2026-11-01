@@ -151,6 +151,8 @@ namespace HillNGun.Editor
             wpnBuster.shotsPerCell = 1;
             wpnBuster.rechargePerCell = 1.2f;
             wpnBuster.muzzleForwardOffset = 1.0f;
+            wpnBuster.nameKey = "weapon.wpn_buster"; wpnBuster.descKey = "weapon.wpn_buster.desc";
+            wpnBuster.holdToRepeat = false; wpnBuster.cockAnimation = false;
             EditorUtility.SetDirty(wpnBuster);
 
             var wpnRaven = CreateOrLoad<WeaponData>(DATA_PATH + "Weapons/wpn_raven.asset");
@@ -170,6 +172,8 @@ namespace HillNGun.Editor
             wpnRaven.chargeMaxTime = 1.0f;
             wpnRaven.chargeDamageMul = 1.6f;
             wpnRaven.muzzleForwardOffset = 1.0f;
+            wpnRaven.nameKey = "weapon.wpn_raven"; wpnRaven.descKey = "weapon.wpn_raven.desc";
+            wpnRaven.holdToRepeat = false; wpnRaven.cockAnimation = true;
             EditorUtility.SetDirty(wpnRaven);
 
             var wpnVolt = CreateOrLoad<WeaponData>(DATA_PATH + "Weapons/wpn_volt.asset");
@@ -186,6 +190,8 @@ namespace HillNGun.Editor
             wpnVolt.shotsPerCell = 1;
             wpnVolt.rechargePerCell = 1.5f;
             wpnVolt.muzzleForwardOffset = 1.0f;
+            wpnVolt.nameKey = "weapon.wpn_volt"; wpnVolt.descKey = "weapon.wpn_volt.desc";
+            wpnVolt.holdToRepeat = false; wpnVolt.cockAnimation = true; // big revolver: one tap, one shot, hammer cock
             EditorUtility.SetDirty(wpnVolt);
         }
 
@@ -543,6 +549,15 @@ namespace HillNGun.Editor
             feel.bigDamageThreshold = 500;
             feel.shakeEnabled = true;
             feel.vibrationEnabled = true;
+            // shot visibility (view only, t48u): readable bullets against the sand
+            feel.bulletHeadSize = 0.62f;
+            feel.bulletTrailLength = 1.8f;
+            feel.bulletTrailWidth = 0.28f;
+            feel.bulletHaloAlpha = 0.5f;
+            feel.playerBulletColor = new Color(1f, 0.86f, 0.25f, 1f);
+            feel.enemyBulletColor = new Color(1f, 0.36f, 0.2f, 1f);
+            feel.muzzleFlashSize = 1.05f;
+            feel.muzzleFlashTime = 0.1f;
             EditorUtility.SetDirty(feel);
         }
 

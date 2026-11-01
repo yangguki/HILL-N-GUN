@@ -48,6 +48,8 @@ namespace HillNGun.Combat
         private Vector2 _startPosition;
         private float _distanceTraveled;
         private int _piercesRemaining;
+        /// <summary>Distance flown so far (view: trail length is clamped to it).</summary>
+        public float DistanceTraveled => _distanceTraveled;
 
         public void Initialize(Vector2 startPos, Vector2 direction, WeaponData weapon, int damage, Team team, int pierces = 0)
         {

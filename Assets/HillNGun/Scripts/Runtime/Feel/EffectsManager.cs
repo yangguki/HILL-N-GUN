@@ -17,6 +17,8 @@ namespace HillNGun.Feel
         private List<ImpactEffect> _impactPool = new List<ImpactEffect>();
         private List<DamageNumber> _damageNumberPool = new List<DamageNumber>();
         private List<ExplosionRing> _explosionPool = new List<ExplosionRing>();
+        private List<DebrisBurst> _debrisPool = new List<DebrisBurst>();
+        private HillNGun.Data.FeelData _feel;
 
         private const int POOL_SIZE = 20;
 
@@ -49,14 +51,44 @@ namespace HillNGun.Feel
                 dn.Bind(transform, i);
                 _damageNumberPool.Add(dn);
                 _explosionPool.Add(new ExplosionRing());
+                if (i < 6) _debrisPool.Add(new DebrisBurst());
             }
         }
 
         public void SpawnMuzzleFlash(Vector2 position, Vector2 direction, bool isShotgun)
+            => SpawnMuzzleFlash(position, direction, isShotgun, 1f);
+
+        /// <summary>
+        /// Muzzle flash at the gun muzzle (position + aim * forwardOffset), oriented along the on-screen direction of the
+        /// shot (perspective-aware), size/lifetime from FeelData. muzzleForward = WeaponData.muzzleForwardOffset.
+        /// </summary>
+        public void SpawnMuzzleFlash(Vector2 position, Vector2 direction, bool isShotgun, float muzzleForward)
         {
-            var flash = GetFromPool(_muzzleFlashPool);
-            Vector3 worldPos = _battlefield?.LogicToWorldPosition(position) ?? (Vector3)position;
-            flash.Spawn(worldPos, direction, isShotgun);
+            if (_feel == null) _feel = ServiceLocator.Get<HillNGun.Data.FeelData>();
+            float size = _feel != null ? _feel.muzzleFlashSize : 1.05f;
+            float time = _feel != null ? _feel.muzzleFlashTime : 0.1f;
+            float fwd = (_feel != null ? _feel.muzzleFlashForward : 0.55f) * Mathf.Max(0f, muzzleForward);
+            Vector2 d = direction.sqrMagnitude > 1e-6f ? direction.normalized : Vector2.up;
+            Vector2 muzzle = position + d * fwd;
+            Vector3 w0 = ToWorld(muzzle);
+            Vector3 w1 = ToWorld(muzzle + d * 0.5f);
+            Vector2 wd = (Vector2)(w1 - w0);
+            if (wd.sqrMagnitude < 1e-8f) wd = d;
+            float persp = Battlefield.FieldView.PerspectiveScale(muzzle.y);
+            GetFromPool(_muzzleFlashPool).Spawn(w0, wd.normalized, isShotgun, size * persp * (isShotgun ? 1.25f : 1f), time);
+        }
+
+        private Vector3 ToWorld(Vector2 logic) => _battlefield?.LogicToWorldPosition(logic) ?? Battlefield.FieldView.ToWorld(logic);
+
+        /// <summary>Cover destroyed: splinters fly out + dust puffs (view only, pooled).</summary>
+        public void SpawnCoverDebris(Vector2 position, float width, bool isWood)
+        {
+            if (_feel == null) _feel = ServiceLocator.Get<HillNGun.Data.FeelData>();
+            int n = _feel != null ? _feel.debrisSplinters : 16;
+            float life = _feel != null ? _feel.debrisLifetime : 0.75f;
+            float persp = Battlefield.FieldView.PerspectiveScale(position.y);
+            GetFromPool(_debrisPool).Spawn(ToWorld(position), Mathf.Max(0.6f, width) * persp, persp, isWood, n, life);
+            SpawnImpact(position, isWood);
         }
 
         public void SpawnTracer(Vector2 start, Vector2 end, Team team)
@@ -114,6 +146,7 @@ namespace HillNGun.Feel
             foreach (var i in _impactPool) i.Update(dt);
             foreach (var d in _damageNumberPool) d.Update(dt);
             foreach (var e in _explosionPool) e.Update(dt);
+            foreach (var b in _debrisPool) b.Update(dt);
         }
 
         private static Material _fxMat;
@@ -149,6 +182,7 @@ namespace HillNGun.Feel
             foreach (var t in _tracerPool) any |= t.IsActive;
             foreach (var i in _impactPool) any |= i.IsActive;
             foreach (var e in _explosionPool) any |= e.IsActive;
+            foreach (var b in _debrisPool) any |= b.IsActive;
             if (!any) return;
             if (_fxMat == null)
             {
@@ -158,7 +192,9 @@ namespace HillNGun.Feel
             _fxMat.SetPass(0);
             GL.PushMatrix();
             GL.Begin(GL.TRIANGLES);
+            foreach (var b in _debrisPool) b.EmitDust();
             foreach (var f in _muzzleFlashPool) f.Emit();
+            foreach (var b in _debrisPool) b.EmitSplinters();
             GL.End();
             GL.Begin(GL.LINES);
             foreach (var t in _tracerPool) t.Emit();
@@ -188,18 +224,22 @@ namespace HillNGun.Feel
         public bool IsActive { get; private set; }
         private Vector3 _position;
         private Vector2 _direction;
-        private float _timer;
+        private float _timer, _life;
         private float _size;
         private bool _isShotgun;
-        private static Material _mat;
+        private float _spin;
 
-        public void Spawn(Vector3 pos, Vector2 dir, bool shotgun)
+        public void Spawn(Vector3 pos, Vector2 dir, bool shotgun) => Spawn(pos, dir, shotgun, shotgun ? 0.8f : 0.5f, 0.08f);
+
+        public void Spawn(Vector3 pos, Vector2 dir, bool shotgun, float size, float life)
         {
             _position = pos;
-            _direction = dir.normalized;
-            _timer = 0.08f;
+            _direction = dir.sqrMagnitude > 1e-8f ? dir.normalized : Vector2.up;
+            _life = Mathf.Max(0.02f, life);
+            _timer = _life;
             _isShotgun = shotgun;
-            _size = shotgun ? 0.8f : 0.5f;
+            _size = size;
+            _spin = Random.Range(0f, 360f);
             IsActive = true;
         }
 
@@ -210,35 +250,128 @@ namespace HillNGun.Feel
             if (_timer <= 0) IsActive = false;
         }
 
+        /// <summary>Triangles: hot core star, forward flame tongue(s), side sparks. Bright for the first half, then fades.</summary>
         public void Emit()
         {
             if (!IsActive) return;
+            float k = Mathf.Clamp01(_timer / _life);            // 1 → 0
+            float grow = Mathf.Lerp(1.15f, 0.7f, k);              // pops out fast
+            float alpha = Mathf.Clamp01(k * 1.6f);
+            Vector3 f = (Vector3)_direction;
+            Vector3 r = new Vector3(-_direction.y, _direction.x, 0f);
+            float s = _size * grow;
 
-
-            float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
-            float alpha = _timer / 0.08f;
-
-            GL.Color(new Color(1f, 0.9f, 0.3f, alpha));
-
-            Vector3 forward = (Vector3)_direction * _size;
-            Vector3 right = new Vector3(-_direction.y, _direction.x, 0) * _size * 0.4f;
-
-            GL.Vertex(_position);
-            GL.Vertex(_position + forward + right * 0.5f);
-            GL.Vertex(_position + forward - right * 0.5f);
-
+            // outer flame
+            GL.Color(new Color(1f, 0.55f, 0.12f, alpha * 0.85f));
+            Tri(_position - f * s * 0.12f, _position + f * s + r * s * 0.16f, _position + f * s - r * s * 0.16f);
+            Tri(_position, _position + f * s * 0.45f + r * s * 0.32f, _position + f * s * 0.62f);
+            Tri(_position, _position + f * s * 0.45f - r * s * 0.32f, _position + f * s * 0.62f);
             if (_isShotgun)
             {
-                Vector3 r1 = Quaternion.Euler(0, 0, 20) * forward;
-                Vector3 r2 = Quaternion.Euler(0, 0, -20) * forward;
-                GL.Vertex(_position);
-                GL.Vertex(_position + r1 * 0.7f + right * 0.3f);
-                GL.Vertex(_position + r1 * 0.7f - right * 0.3f);
-                GL.Vertex(_position);
-                GL.Vertex(_position + r2 * 0.7f + right * 0.3f);
-                GL.Vertex(_position + r2 * 0.7f - right * 0.3f);
+                Vector3 f1 = Quaternion.Euler(0, 0, 24) * f, f2 = Quaternion.Euler(0, 0, -24) * f;
+                Tri(_position, _position + f1 * s * 0.8f + r * s * 0.1f, _position + f1 * s * 0.8f - r * s * 0.1f);
+                Tri(_position, _position + f2 * s * 0.8f + r * s * 0.1f, _position + f2 * s * 0.8f - r * s * 0.1f);
             }
+            // hot core star (4 points, random spin per shot)
+            GL.Color(new Color(1f, 0.97f, 0.75f, alpha));
+            float cs = s * 0.26f;
+            for (int i = 0; i < 4; i++)
+            {
+                float a0 = (_spin + i * 90f) * Mathf.Deg2Rad;
+                Vector3 p = new Vector3(Mathf.Cos(a0), Mathf.Sin(a0), 0f);
+                Vector3 q = new Vector3(-p.y, p.x, 0f);
+                Tri(_position + f * s * 0.1f + p * cs, _position + f * s * 0.1f + q * cs * 0.3f, _position + f * s * 0.1f - q * cs * 0.3f);
+            }
+            GL.Color(new Color(1f, 1f, 0.92f, alpha));
+            Tri(_position + f * s * 0.62f, _position + r * s * 0.09f, _position - r * s * 0.09f);
+        }
 
+        private static void Tri(Vector3 a, Vector3 b, Vector3 c) { GL.Vertex(a); GL.Vertex(b); GL.Vertex(c); }
+    }
+
+    /// <summary>Cover destruction: splinters (spinning slivers with gravity) + expanding dust puffs.</summary>
+    public class DebrisBurst : IPooledEffect
+    {
+        public bool IsActive { get; private set; }
+        private const int Max = 28;
+        private readonly Vector3[] _p = new Vector3[Max];
+        private readonly Vector3[] _v = new Vector3[Max];
+        private readonly float[] _rot = new float[Max];
+        private readonly float[] _spin = new float[Max];
+        private readonly float[] _len = new float[Max];
+        private readonly Vector3[] _dust = new Vector3[6];
+        private int _n;
+        private float _timer, _life, _scale, _width;
+        private Vector3 _origin;
+        private bool _wood;
+
+        public void Spawn(Vector3 pos, float width, float scale, bool wood, int splinters, float life)
+        {
+            _origin = pos; _width = width; _scale = scale; _wood = wood;
+            _life = Mathf.Max(0.2f, life); _timer = _life;
+            _n = Mathf.Clamp(splinters, 4, Max);
+            for (int i = 0; i < _n; i++)
+            {
+                float a = Random.Range(20f, 160f) * Mathf.Deg2Rad;
+                float sp = Random.Range(2.5f, 6.5f) * scale;
+                _p[i] = pos + new Vector3(Random.Range(-0.5f, 0.5f) * width, Random.Range(0f, 0.5f) * scale, 0f);
+                _v[i] = new Vector3(Mathf.Cos(a) * sp, Mathf.Sin(a) * sp, 0f);
+                _rot[i] = Random.Range(0f, 360f);
+                _spin[i] = Random.Range(-720f, 720f);
+                _len[i] = Random.Range(0.12f, 0.3f) * scale;
+            }
+            for (int i = 0; i < _dust.Length; i++)
+                _dust[i] = pos + new Vector3((i / 5f - 0.5f) * width, Random.Range(0.05f, 0.35f) * scale, 0f);
+            IsActive = true;
+        }
+
+        public void Update(float dt)
+        {
+            if (!IsActive) return;
+            _timer -= dt;
+            for (int i = 0; i < _n; i++)
+            {
+                _v[i].y -= 14f * _scale * dt;
+                _p[i] += _v[i] * dt;
+                _rot[i] += _spin[i] * dt;
+            }
+            if (_timer <= 0f) IsActive = false;
+        }
+
+        public void EmitDust()
+        {
+            if (!IsActive) return;
+            float k = 1f - _timer / _life;
+            float a = 0.5f * (1f - k);
+            GL.Color(_wood ? new Color(0.78f, 0.66f, 0.5f, a) : new Color(0.72f, 0.7f, 0.66f, a));
+            float r = (0.25f + 0.65f * Mathf.Sqrt(k)) * _scale;
+            for (int i = 0; i < _dust.Length; i++)
+            {
+                Vector3 c = _dust[i] + new Vector3(0f, k * 0.4f * _scale, 0f);
+                const int seg = 10;
+                for (int j = 0; j < seg; j++)
+                {
+                    float a0 = j * Mathf.PI * 2f / seg, a1 = (j + 1) * Mathf.PI * 2f / seg;
+                    GL.Vertex(c);
+                    GL.Vertex(c + new Vector3(Mathf.Cos(a0), Mathf.Sin(a0) * 0.7f, 0f) * r);
+                    GL.Vertex(c + new Vector3(Mathf.Cos(a1), Mathf.Sin(a1) * 0.7f, 0f) * r);
+                }
+            }
+        }
+
+        public void EmitSplinters()
+        {
+            if (!IsActive) return;
+            float a = Mathf.Clamp01(_timer / _life * 1.5f);
+            for (int i = 0; i < _n; i++)
+            {
+                GL.Color(_wood ? (i % 3 == 0 ? new Color(0.86f, 0.66f, 0.4f, a) : new Color(0.5f, 0.32f, 0.16f, a))
+                               : new Color(0.55f, 0.55f, 0.58f, a));
+                float rr = _rot[i] * Mathf.Deg2Rad;
+                Vector3 d = new Vector3(Mathf.Cos(rr), Mathf.Sin(rr), 0f) * _len[i];
+                Vector3 q = new Vector3(-d.y, d.x, 0f) * 0.22f;
+                GL.Vertex(_p[i] - d - q); GL.Vertex(_p[i] + d); GL.Vertex(_p[i] - d + q);
+            }
         }
     }
 

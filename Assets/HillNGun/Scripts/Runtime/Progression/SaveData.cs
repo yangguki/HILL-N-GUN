@@ -15,6 +15,7 @@ namespace HillNGun.Progression
         public List<string> clearedStages = new List<string>();
         public List<string> unlockedRegions = new List<string>();
         public List<string> ownedSkins = new List<string>();
+        public List<string> ownedWeapons = new List<string>();
         public List<CharacterSave> characters = new List<CharacterSave>();
         public int pveRuns;
         public int bossKills;
@@ -42,6 +43,8 @@ namespace HillNGun.Progression
         public int matches;
         public int wins;
         public string equippedSkin;
+        /// <summary>WeaponData id; empty = the character's starting gun.</summary>
+        public string equippedWeapon;
     }
 
     /// <summary>One result-screen line: localization key + optional argument.</summary>

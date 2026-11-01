@@ -23,6 +23,7 @@ namespace HillNGun.UI
         private LobbyHomePanel _home;
         private StageSelectPanel _stages;
         private CharacterPanel _characters;
+        public CharacterPanel Characters => _characters;
         private ShopPanel _shop;
         private SettingsView _settings;
 

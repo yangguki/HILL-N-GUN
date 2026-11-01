@@ -56,6 +56,44 @@ namespace HillNGun.PvE
             _targetRow = rowIndex;
             IsFleeing = false;
             IsDefeated = false;
+            _dodge = null;
+            _dodging = false;
+        }
+
+        // ---- bullet dodge (t48u) ----
+        private HillNGun.Combat.BulletDodgeSense _dodge;
+        private float _dodgeTargetX;
+        private bool _dodging;
+        public int DodgeCount => _dodge?.Reactions ?? 0;
+        public bool IsDodging => _dodging;
+
+        /// <summary>
+        /// Watches player bullets and side-steps (x) after a data-driven delay. Not while winding up an attack (the aim
+        /// is locked) or entering. minX / maxX = walkable field span.
+        /// </summary>
+        public void TickDodge(float dt, float now, System.Collections.Generic.IReadOnlyList<HillNGun.Combat.Projectile> projectiles, float minX, float maxX)
+        {
+            if (Data == null || !IsAlive || IsEntering) return;
+            if (_dodge == null)
+            {
+                if (!Data.bulletDodge.Enabled) return;
+                _dodge = new HillNGun.Combat.BulletDodgeSense(Data.bulletDodge);
+            }
+            if (_dodging)
+            {
+                float x = Mathf.MoveTowards(Position.x, _dodgeTargetX, Data.dodgeStepSpeed * dt);
+                Position = new Vector2(x, Position.y);
+                if (Mathf.Approximately(x, _dodgeTargetX)) _dodging = false;
+                return;
+            }
+            if (_isAttacking) return;
+            if (_dodge.Tick(now, Position, HitRadius, projectiles, Team.Player, out var dir))
+            {
+                float tx = Position.x + dir.x * Data.dodgeStepDistance;
+                if (tx < minX || tx > maxX) tx = Position.x - dir.x * Data.dodgeStepDistance; // wall: step the other way
+                _dodgeTargetX = Mathf.Clamp(tx, minX, maxX);
+                _dodging = true;
+            }
         }
 
         public void SetPosition(Vector2 pos)

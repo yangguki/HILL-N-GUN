@@ -32,6 +32,7 @@ namespace HillNGun.Core
         [SerializeField] private Actor3DData _actor3D;
         [SerializeField] private Actor3DAnimData _actor3DAnim;
         [SerializeField] private StageThemeLibrary _stageThemes;
+        [SerializeField] private DropTableData _dropTable;
 
         public SpriteLibrary SpriteLibrary => _spriteLibrary;
         public AudioLibrary AudioLibrary => _audioLibrary;
@@ -56,6 +57,7 @@ namespace HillNGun.Core
         public Actor3DData Actor3D => _actor3D;
         public Actor3DAnimData Actor3DAnim => _actor3DAnim;
         public StageThemeLibrary StageThemes => _stageThemes;
+        public DropTableData DropTable => _dropTable;
 
         private void Awake()
         {
@@ -106,6 +108,8 @@ namespace HillNGun.Core
                 ServiceLocator.Register(_actor3D);
             if (_actor3DAnim != null)
                 ServiceLocator.Register(_actor3DAnim);
+            if (_dropTable != null)
+                ServiceLocator.Register(_dropTable);
 
             ServiceLocator.Register(this);
             Debug.Log("[RuntimeAssetManager] Services registered");

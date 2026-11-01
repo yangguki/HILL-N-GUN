@@ -77,17 +77,55 @@ namespace HillNGun.UI
             string passive = cd.passive != null ? UIKit.T(cd.passive.nameKey, cd.passive.id) : "-";
             UIKit.Small(new Rect(x, y, w, 22f), UIKit.TF("char.kit", "스킬 {0} · 패시브 {1}", skill, passive));
 
-            // skins
+            // guns (t48u loadout) on top, skins below
             UIKit.Panel(right);
-            UIKit.Header(new Rect(right.x + 16f, right.y + 10f, right.width - 32f, 34f), UIKit.T("char.skins", "스킨"));
-            UIKit.Small(new Rect(right.x + 16f, right.y + 44f, right.width - 32f, 22f), UIKit.T("char.skins_note", "능력치 변화 없음 · 임시 색 변경 (실제 아트는 외부 작업)"));
+            var guns = new System.Collections.Generic.List<WeaponOffer>();
+            var cat = p.WeaponCatalog;
+            if (cat?.offers != null) foreach (var o in cat.offers) if (o != null && o.weapon != null && o.AllowedFor(cd.id)) guns.Add(o);
+            float gy = right.y + 10f;
+            if (guns.Count > 0)
+            {
+                UIKit.Header(new Rect(right.x + 16f, gy, right.width - 32f, 34f), UIKit.T("char.guns", "총"));
+                gy += 40f;
+                string eq = p.GetEquippedWeaponId(cd.id, cd.weapon);
+                foreach (var o in guns)
+                {
+                    DrawGunRow(new Rect(right.x + 14f, gy, right.width - 28f, 66f), cd.id, o, eq);
+                    gy += 72f;
+                }
+                gy += 6f;
+            }
+            Rect skinArea = new Rect(right.x, gy, right.width, right.yMax - gy);
+            UIKit.Header(new Rect(skinArea.x + 16f, skinArea.y, skinArea.width - 32f, 34f), UIKit.T("char.skins", "스킨"));
+            UIKit.Small(new Rect(skinArea.x + 160f, skinArea.y + 6f, skinArea.width - 176f, 22f), UIKit.T("char.skins_note", "능력치 변화 없음 · 임시 색 변경 (실제 아트는 외부 작업)"), TextAnchor.MiddleRight);
             var skins = p.GetSkinsFor(cd.id);
-            float ry = right.y + 76f, rowH = Mathf.Min(96f, (right.height - 90f) / Mathf.Max(1, skins.Count));
+            float ry = skinArea.y + 40f, rowH = Mathf.Min(96f, (skinArea.height - 44f) / Mathf.Max(1, skins.Count));
             foreach (var s in skins)
             {
                 DrawSkinRow(new Rect(right.x + 14f, ry, right.width - 28f, rowH - 8f), cd.id, s, equippedId);
                 ry += rowH;
             }
+        }
+
+        private void DrawGunRow(Rect r, string charId, WeaponOffer o, string equippedId)
+        {
+            var t = UIKit.Theme;
+            var p = LobbyUI.Prog;
+            bool owned = o.ownedByDefault || p.OwnsWeapon(o.Id);
+            bool equipped = o.Id == equippedId;
+            UIKit.Fill(r, equipped ? new Color(0.45f, 0.33f, 0.18f) : t.panelDark);
+            UIKit.Border(r, equipped ? t.accent : new Color(0, 0, 0, 0.35f), equipped ? 2f : 1f);
+            float x = r.x + 12f, w = r.width - 24f - 170f;
+            UIKit.Label(new Rect(x, r.y + 2f, w, 30f), ShopPanel.GunName(o), t.fontBody, owned ? t.text : t.textDim, TextAnchor.MiddleLeft, true);
+            UIKit.Label(new Rect(x, r.y + 32f, w, 32f), ShopPanel.GunStats(o.weapon), t.fontSmall, t.textDim, TextAnchor.MiddleLeft, false, true);
+            Rect btn = new Rect(r.xMax - 160f, r.y + (r.height - 44f) / 2f, 150f, 44f);
+            if (equipped) UIKit.Button(btn, UIKit.T("skin.equipped", "장착 중"), false);
+            else if (owned)
+            {
+                if (UIKit.Button(btn, UIKit.T("skin.equip", "장착"), true, UIKit.ButtonKind.Primary) && p.EquipWeapon(charId, o.Id))
+                    _lobby.ShowToast(UIKit.TF("gun.equipped_toast", "{0}: {1} 장착", LobbyUI.CharName(charId), ShopPanel.GunName(o)));
+            }
+            else if (UIKit.Button(btn, "$" + o.cost.ToString("N0"), true)) { ShopPanel.ShowGuns = true; _lobby.SetTab(LobbyTab.Shop); }
         }
 
         private void DrawSkinRow(Rect r, string charId, SkinDefinition s, string equippedId)

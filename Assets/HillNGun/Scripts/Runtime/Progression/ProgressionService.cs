@@ -80,6 +80,9 @@ namespace HillNGun.Progression
             if (cfg.regions != null && cfg.regions.Length > 0) AddUnique(Data.unlockedRegions, cfg.regions[0].id);
             if (cfg.skins != null)
                 foreach (var s in cfg.skins) if (s != null && s.unlock == SkinUnlockType.Default) AddUnique(Data.ownedSkins, s.id);
+            if (Data.ownedWeapons == null) Data.ownedWeapons = new List<string>();
+            if (cfg.weaponCatalog != null && cfg.weaponCatalog.offers != null)
+                foreach (var o in cfg.weaponCatalog.offers) if (o != null && o.ownedByDefault) AddUnique(Data.ownedWeapons, o.Id);
         }
 
         public void Save()
@@ -200,6 +203,49 @@ namespace HillNGun.Progression
             return true;
         }
 
+        // ---------------- guns (t48u) ----------------
+
+        public WeaponCatalogData WeaponCatalog => Config.weaponCatalog;
+
+        public bool OwnsWeapon(string weaponId) => !string.IsNullOrEmpty(weaponId) && Data.ownedWeapons != null && Data.ownedWeapons.Contains(weaponId);
+
+        public bool TryPurchaseWeapon(string weaponId)
+        {
+            var o = WeaponCatalog?.Find(weaponId);
+            if (o == null || OwnsWeapon(weaponId) || o.ownedByDefault) return false;
+            if (Data.bounty < o.cost) return false;
+            Data.bounty -= o.cost;
+            Data.ownedWeapons.Add(weaponId);
+            Save();
+            Debug.Log($"[Progression] Bought gun {weaponId} for ${o.cost}, bounty left ${Data.bounty}");
+            return true;
+        }
+
+        public bool EquipWeapon(string characterId, string weaponId)
+        {
+            var o = WeaponCatalog?.Find(weaponId);
+            if (o == null || !o.AllowedFor(characterId) || !OwnsWeapon(weaponId)) return false;
+            Data.GetCharacter(characterId, true).equippedWeapon = o.ownedByDefault ? null : weaponId;
+            Save();
+            return true;
+        }
+
+        /// <summary>Equipped shop gun for a character, or null = keep CharacterData.weapon (starting gun).</summary>
+        public WeaponData GetEquippedWeapon(string characterId)
+        {
+            var c = Data.GetCharacter(characterId, false);
+            if (c == null || string.IsNullOrEmpty(c.equippedWeapon)) return null;
+            var o = WeaponCatalog?.Find(c.equippedWeapon);
+            if (o == null || o.weapon == null || !o.AllowedFor(characterId) || !OwnsWeapon(o.Id)) return null;
+            return o.weapon;
+        }
+
+        public string GetEquippedWeaponId(string characterId, WeaponData starting)
+        {
+            var w = GetEquippedWeapon(characterId);
+            return w != null ? w.id : starting != null ? starting.id : null;
+        }
+
         public bool EquipSkin(string characterId, string skinId)
         {
             var s = GetSkin(skinId);
@@ -253,6 +299,11 @@ namespace HillNGun.Progression
                 }
             }
 
+            if (s.bonusBounty > 0)
+            {
+                r.bountyGained += s.bonusBounty;
+                r.lines.Add(new RewardLine("reward.coins_picked", "$" + s.bonusBounty));
+            }
             Data.bounty += r.bountyGained;
             AddBadgeXp(r.xpGained, r);
             if (s.selectedCharacterIds != null)

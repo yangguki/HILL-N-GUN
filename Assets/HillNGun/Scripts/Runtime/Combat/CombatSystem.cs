@@ -24,6 +24,7 @@ namespace HillNGun.Combat
         public IReadOnlyList<CoverInstance> Covers => _covers;
         public IReadOnlyList<CharacterStateMachine> Characters => _characters;
         public ProjectilePool ProjectilePool => _projectilePool;
+        public IReadOnlyList<ICombatTarget> CombatTargets => _combatTargets;
 
         public event System.Action<Projectile, CharacterStateMachine, int> OnCharacterHit;
         public event System.Action<Projectile, CoverInstance, int> OnCoverHit;
@@ -320,6 +321,39 @@ namespace HillNGun.Combat
             {
                 GameTime.ApplyHitstop(_feelData.hitstopGrenade);
             }
+        }
+
+        /// <summary>
+        /// Would a bullet from shooterTeam flying from → to be stopped by a cover? Same skip rules as the projectile
+        /// collision pass (destroyed covers never block; own covers only when ownCoverBlocksOwnShots). Used by tests /
+        /// smoke to prove a destroyed cover loses its cover judgment.
+        /// </summary>
+        public bool CoverBlocksSegment(Vector2 from, Vector2 to, Team shooterTeam)
+        {
+            bool ownCoverBlocks = _matchRules != null && _matchRules.ownCoverBlocksOwnShots;
+            foreach (var cover in _covers)
+            {
+                if (cover == null || cover.IsDestroyed) continue;
+                if (!ownCoverBlocks && cover.Team == shooterTeam) continue;
+                if (SegmentHitsRect(from, to, cover.GetBounds())) return true;
+            }
+            return false;
+        }
+
+        public static bool SegmentHitsRect(Vector2 a, Vector2 b, Rect r)
+        {
+            float t0 = 0f, t1 = 1f;
+            Vector2 d = b - a;
+            float[] p = { -d.x, d.x, -d.y, d.y };
+            float[] q = { a.x - r.xMin, r.xMax - a.x, a.y - r.yMin, r.yMax - a.y };
+            for (int i = 0; i < 4; i++)
+            {
+                if (Mathf.Approximately(p[i], 0f)) { if (q[i] < 0f) return false; continue; }
+                float t = q[i] / p[i];
+                if (p[i] < 0f) { if (t > t1) return false; if (t > t0) t0 = t; }
+                else { if (t < t0) return false; if (t < t1) t1 = t; }
+            }
+            return true;
         }
 
         private void ProcessCollisions()

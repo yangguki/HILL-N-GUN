@@ -50,6 +50,14 @@ namespace HillNGun.Combat
             return true;
         }
 
+        /// <summary>Pickup (t48u drops): +n grenades up to the carry limit. False when already full.</summary>
+        public bool AddGrenades(int n = 1)
+        {
+            if (n <= 0 || _currentGrenades >= _maxGrenades) return false;
+            _currentGrenades = System.Math.Min(_maxGrenades, _currentGrenades + n);
+            return true;
+        }
+
         public void Refill()
         {
             _currentGrenades = _maxGrenades;

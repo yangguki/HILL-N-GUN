@@ -265,3 +265,25 @@ theme.canyon_pass,협곡 광산길
 theme.rail_station,기차역
 theme.sunset_showdown,석양의 결투
 theme.frontier_dusk,황혼의 변경
+reward.coins_picked,주운 현상금 {0}
+shop.tab.guns,총기
+shop.tab.skins,스킨
+shop.guns_note,역할별 총 · 구매 후 캐릭터 화면이나 여기서 장착
+char.guns,총
+gun.anyone,모두
+gun.stats,피해 {0} · 간격 {1:0.##}초 · 사거리 {2:0.#} · 탄창 {3}발 · 탄속 {4:0}
+gun.equipped_toast,{0}: {1} 장착
+weapon.wpn_buster,더블배럴 산탄총
+weapon.wpn_buster.desc,근거리 산탄 5발 (기본)
+weapon.wpn_raven,사냥용 라이플
+weapon.wpn_raven.desc,충전 저격 (기본)
+weapon.wpn_volt,대형 리볼버
+weapon.wpn_volt.desc,한 발씩 정확하게 (기본)
+weapon.wpn_peacemaker,피스메이커 리볼버
+weapon.wpn_peacemaker.desc,6연발 · 빠른 격발 · 한 발 380
+weapon.wpn_coachgun,코치건
+weapon.wpn_coachgun.desc,산탄 6발 · 사거리 5.5
+weapon.wpn_lever_action,레버액션 소총
+weapon.wpn_lever_action.desc,충전 없이 4연발 · 사거리 11
+weapon.wpn_gatling,개틀링건
+weapon.wpn_gatling.desc,누르고 있으면 연사 · 18발

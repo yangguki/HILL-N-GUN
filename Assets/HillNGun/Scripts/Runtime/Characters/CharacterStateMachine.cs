@@ -105,6 +105,8 @@ namespace HillNGun.Characters
         private float BufferWindow => Feel.inputBufferWindow >= 0f ? Feel.inputBufferWindow : (_data?.roll != null ? _data.roll.inputBuffer : 0.1f);
         private bool RollBlocksActions => _movementState == MovementState.Rolling && _data?.roll != null && !_data.roll.canFireDuring;
         private bool RecoveryBlocksActions => _recoveryTimer > 0f && Feel.recoveryBlocksActions;
+        /// <summary>True while a roll / landing recovery blocks shooting (input layers queue instead of dropping).</summary>
+        public bool ActionsBlockedByMotion => RollBlocksActions || RecoveryBlocksActions;
         /// <summary>Seconds until roll/recovery stop blocking actions.</summary>
         private float TimeUntilActionsFree()
         {
@@ -144,6 +146,24 @@ namespace HillNGun.Characters
         public bool IsPierceArmed => _pierceArmed;
         public bool IsSkillReady => _data?.skill != null && _skillCooldownTimer <= 0f;
         public bool IsHoldingSkill => _actionState == ActionState.UsingSkill;
+        // ---- temporary gun upgrade (t48u drop) ----
+        private float _damageBoostMul = 1f;
+        private float _damageBoostTimer;
+        public bool IsDamageBoosted => _damageBoostTimer > 0f;
+        public float DamageBoostRemaining => Mathf.Max(0f, _damageBoostTimer);
+        public float DamageBoostMul => IsDamageBoosted ? _damageBoostMul : 1f;
+
+        /// <summary>Temporary weapon upgrade: shot damage × mul for duration seconds (refreshes, keeps the larger mul).</summary>
+        public void ApplyDamageBoost(float mul, float duration)
+        {
+            if (_overallState != CharacterOverallState.Active || mul <= 0f || duration <= 0f) return;
+            _damageBoostMul = IsDamageBoosted ? Mathf.Max(_damageBoostMul, mul) : mul;
+            _damageBoostTimer = Mathf.Max(_damageBoostTimer, duration);
+        }
+
+        /// <summary>Ammo pickup: refill the whole bullet gauge.</summary>
+        public void RefillAmmo() => _ammoGauge?.Reset();
+
         /// <summary>Heal an active character by a ratio of max HP (supply crate).</summary>
         public void Heal(float ratio)
         {
@@ -219,6 +239,7 @@ namespace HillNGun.Characters
 
         private void UpdateCooldowns(float dt)
         {
+            if (_damageBoostTimer > 0f) _damageBoostTimer -= dt;
             if (_rollCooldownTimer > 0f)
                 _rollCooldownTimer -= dt;
 
@@ -522,6 +543,7 @@ namespace HillNGun.Characters
                 damage = Mathf.RoundToInt(damage * bonus);
                 _rollShotBonusActive = false;
             }
+            if (IsDamageBoosted) damage = Mathf.RoundToInt(damage * _damageBoostMul);
 
             OnFired?.Invoke(this, _lastAimDirection, damage);
         }
@@ -534,6 +556,7 @@ namespace HillNGun.Characters
 
             _lastFireTime = Time.time;
             int damage = _data.weapon.GetChargeDamage(chargeTime);
+            if (IsDamageBoosted) damage = Mathf.RoundToInt(damage * _damageBoostMul);
             OnFired?.Invoke(this, _lastAimDirection, damage);
         }
 

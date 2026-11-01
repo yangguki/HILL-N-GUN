@@ -175,6 +175,7 @@ namespace HillNGun.PvE
 
             GUI.color = new Color(0.15f, 0.12f, 0.1f);
             GUI.DrawTexture(new Rect(x, y, barWidth, barHeight), Texture2D.whiteTexture);
+            HillNGun.UI.HudZones.ReportGui("pve.bossbar", new Rect(x - 4f, y - 32f, barWidth + 100f, barHeight + 36f));
 
             float hpPercent = boss.HpRatio;
             hpPercent = Mathf.Clamp01(hpPercent);

@@ -40,6 +40,10 @@ namespace HillNGun.Data
         [Range(0f, 1f)]
         public float dodgeChance = 0.4f;
 
+        [Header("Bullet dodge (t48u): react to incoming bullets with a roll, or a side-step when the roll is cooling down")]
+        public HillNGun.Combat.DodgeTuning bulletDodge = new HillNGun.Combat.DodgeTuning { chance = 0.25f, delayMin = 0.15f, delayMax = 0.35f, lookahead = 0.6f, margin = 0.2f, cooldown = 2.5f };
+        public float sidestepTime = 0.3f;
+
         [Header("Abilities")]
         [Tooltip("Chance to use grenade when available")]
         [Range(0f, 1f)]

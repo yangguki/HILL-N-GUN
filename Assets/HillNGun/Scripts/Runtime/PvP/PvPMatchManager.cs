@@ -165,7 +165,10 @@ namespace HillNGun.PvP
             _matchResult = MatchResult.None;
             MatchElapsed = 0f;
 
+            _allChars = null;
             SpawnTeams();
+            // Field drops (t48u): a destroyed cover drops for the team that broke it
+            HillNGun.Combat.DropDirector.Begin(GameMode.PvP, () => _allChars ??= BuildAll(), () => _playerTeam.Count > _playerControlledIndex ? _playerTeam[_playerControlledIndex] : null);
             StartRound();
             Debug.Log($"[PvP] Match start: best of {MaxRounds} (first to {RoundsToWin}), round {RoundTimeLimit}s, crate={(_rules != null && _rules.supplyCrateEnabled)}");
         }
@@ -211,7 +214,7 @@ namespace HillNGun.PvP
                 if (charData == null) continue;
 
                 Vector2 p = GetSpawnPoint(Team.Player, i);
-                var playerChar = CreateCharacter(charData, Team.Player, i, p, RowFor(p, Team.Player));
+                var playerChar = CreateCharacter(HillNGun.Progression.Loadout.Resolve(charData), Team.Player, i, p, RowFor(p, Team.Player));
                 _playerTeam.Add(playerChar);
                 if (i != _playerControlledIndex)
                     _allyBotBrains.Add(new BotBrain(playerChar, _botBehavior) { ObjectiveProvider = CrateObjective });
@@ -273,7 +276,7 @@ namespace HillNGun.PvP
             character.OnDowned += HandleCharacterDowned;
             character.OnEliminated += HandleCharacterEliminated;
             character.OnFired += (c, dir, dmg) =>
-                EffectsManager.Instance?.SpawnMuzzleFlash(c.Position, dir, (c.Data?.weapon?.projectilesPerShot ?? 1) > 1);
+                EffectsManager.Instance?.SpawnMuzzleFlash(c.Position, dir, (c.Data?.weapon?.projectilesPerShot ?? 1) > 1, c.Data?.weapon?.muzzleForwardOffset ?? 1f);
             character.OnDamageTaken += (c, dmg, dir) =>
             {
                 if (!_isRoundActive) return;
@@ -294,8 +297,17 @@ namespace HillNGun.PvP
             return null;
         }
 
+        private List<CharacterStateMachine> _allChars;
+        private List<CharacterStateMachine> BuildAll()
+        {
+            var l = new List<CharacterStateMachine>(_playerTeam);
+            l.AddRange(_enemyTeam);
+            return l;
+        }
+
         private void StartRound()
         {
+            HillNGun.Combat.DropDirector.Instance?.ClearField();
             _currentPhase = PvPPhase.RoundStart;
             _delayTimer = _rules != null ? _rules.roundStartDelay : _roundStartDelay;
             _lastRoundResult = PvPRoundResult.InProgress;

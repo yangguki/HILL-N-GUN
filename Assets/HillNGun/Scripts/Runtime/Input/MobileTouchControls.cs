@@ -1,51 +1,62 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using HillNGun.Core;
 using HillNGun.Data;
+using HillNGun.Characters;
 using HillNGun.UI;
+using HillNGun.UI.Touch;
+using ETouch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace HillNGun.Input
 {
+    /// <summary>
+    /// Touch driver (Brawl-Stars-style on-screen controls). Reads EnhancedTouch every frame and forwards per-finger
+    /// down / move / up to <see cref="TouchControlRouter"/> (logic), then lets <see cref="TouchControlsView"/> (uGUI) and
+    /// <see cref="TouchAimOverlay"/> (world aim guides) draw the state. Layout follows the screen, Screen.safeArea and
+    /// the HUD rects in <see cref="HudZones"/>. Hidden on desktop unless a Touchscreen device appears (or ForceTouch).
+    /// </summary>
     public class MobileTouchControls : MonoBehaviour
     {
         [SerializeField] private TouchControlsData _controlsData;
 
+        /// <summary>Smoke / tests: treat the device as touch even on desktop.</summary>
+        public static bool ForceTouch;
+
         private IInputReceiver _receiver;
-        private Rect _safeArea;
+        private CharacterStateMachine _character;
+        private CharacterTouchContext _ctx;
+        private TouchControlRouter _router;
+        private TouchControlsView _view;
+        private TouchAimOverlay _overlay;
         private bool _isTouchDevice;
+        private float _redetectTimer;
 
-        private Texture2D _circleTexture;
-        private Texture2D _filledCircleTexture;
-        private Texture2D _buttonTexture;
+        private Vector2 _layoutScreen;
+        private Rect _layoutSafe;
+        private int _layoutHud = -1;
+        private TouchControlsData _layoutData;
+        private TouchLayout _layout;
 
-        private Vector2 _moveJoystickCenter;
-        private Vector2 _moveJoystickKnob;
-        private int _moveJoystickFinger = -1;
-        private bool _moveJoystickActive;
+        private readonly Dictionary<int, Vector2> _down = new Dictionary<int, Vector2>();
+        private readonly HashSet<int> _seen = new HashSet<int>();
+        private readonly List<int> _gone = new List<int>();
+        private bool _wasBlocked;
 
-        private Vector2 _aimJoystickCenter;
-        private Vector2 _aimJoystickKnob;
-        private int _aimJoystickFinger = -1;
-        private bool _aimJoystickActive;
-        private float _aimStartTime;
-
-        // Free-area swipe -> directional roll; move-stick vertical hold -> row change
-        private int _swipeFinger = -1;
-        private Vector2 _swipeStart;
-        private float _swipeStartTime;
-        private int _rowPendingDir;
-        private float _rowHoldTimer;
-        private bool _rowSent;
-
-        private bool _rollButtonPressed;
-        private bool _grenadeButtonPressed;
-        private bool _skillButtonPressed;
+        public TouchControlRouter Router => _router;
+        public TouchLayout Layout => _layout;
+        public TouchAimOverlay Overlay => _overlay;
+        public TouchControlsData ControlsData => _controlsData;
+        public bool IsActive => (_isTouchDevice || ForceTouch) && _controlsData != null;
+        /// <summary>Fingers currently tracked (diagnostics).</summary>
+        public int TrackedTouches => _down.Count;
 
         private void Awake()
         {
             EnhancedTouchSupport.Enable();
-            CreateTextures();
             ServiceLocator.Register(this);
+            _ctx = new CharacterTouchContext(null);
         }
 
         private void OnDestroy()
@@ -55,399 +66,142 @@ namespace HillNGun.Input
 
         private void Start()
         {
-            _isTouchDevice = IsTouchDevice();
+            _isTouchDevice = DetectTouch();
         }
 
         public void SetReceiver(IInputReceiver receiver)
         {
+            _router?.CancelAll();
+            _down.Clear();
             _receiver = receiver;
+            _character = receiver as CharacterStateMachine;
+            _ctx.Character = _character;
+            _router = receiver != null ? new TouchControlRouter(receiver, _ctx, _controlsData) : null;
+            _layoutHud = -1; // force a layout push into the new router
         }
 
         public void SetControlsData(TouchControlsData data)
         {
             _controlsData = data;
+            _router?.SetData(data);
+            _layoutHud = -1;
         }
 
-        private bool IsTouchDevice()
+        private static bool DetectTouch()
         {
 #if UNITY_ANDROID || UNITY_IOS
             return true;
 #else
-            return UnityEngine.InputSystem.Touchscreen.current != null;
+            return Touchscreen.current != null;
 #endif
         }
 
-        public bool IsActive => _isTouchDevice && _controlsData != null;
-
         private void Update()
         {
-            if (!IsActive || _receiver == null) return;
+            if (!_isTouchDevice && (_redetectTimer -= Time.unscaledDeltaTime) <= 0f)
+            {
+                _redetectTimer = 1f;
+                _isTouchDevice = DetectTouch();
+            }
+            if (!IsActive || _router == null)
+            {
+                if (_view != null) _view.SetVisible(false);
+                return;
+            }
+            EnsureViews();
+            UpdateLayout();
 
-            UpdateSafeArea();
+            bool blocked = Time.timeScale <= 0f; // pause menu (PauseMenuController sets 0; hitstop only slows to 0.05)
+            if (blocked)
+            {
+                if (!_wasBlocked) { _router.CancelAll(); _down.Clear(); }
+                _wasBlocked = true;
+                return;
+            }
+            if (_wasBlocked)
+            {
+                // fingers that were down through the pause must lift before they act again
+                _wasBlocked = false;
+                foreach (var t in ETouch.activeTouches) _ignored.Add(t.touchId);
+            }
             ProcessTouches();
-            ProcessRowHold();
+            _router.Tick(Time.deltaTime);
         }
 
-        private void ProcessRowHold()
-        {
-            if (_rowPendingDir == 0 || _rowSent) return;
-            var input = ServiceLocator.Get<InputData>();
-            float hold = input != null ? input.rowChangeHoldTime : _controlsData.rowChangeHoldTime;
-            _rowHoldTimer += Time.deltaTime;
-            if (_rowHoldTimer >= hold)
-            {
-                _receiver?.OnRowChangeCommand(new RowChangeCommand(_rowPendingDir, Time.time));
-                _rowSent = true; // one row per push; release below the threshold to go again
-            }
-        }
-
-        private void UpdateRowIntent(Vector2 stick)
-        {
-            var input = ServiceLocator.Get<InputData>();
-            float threshold = input != null ? input.rowChangeThreshold : _controlsData.rowChangeThreshold;
-            int dir = stick.y >= threshold ? 1 : (stick.y <= -threshold ? -1 : 0);
-            if (dir != _rowPendingDir)
-            {
-                _rowPendingDir = dir;
-                _rowHoldTimer = 0f;
-                _rowSent = false;
-            }
-        }
-
-        private void UpdateSafeArea()
-        {
-            _safeArea = Screen.safeArea;
-            if (_controlsData != null)
-            {
-                float pad = _controlsData.safeAreaPadding;
-                _safeArea.x += pad;
-                _safeArea.y += pad;
-                _safeArea.width -= pad * 2f;
-                _safeArea.height -= pad * 2f;
-            }
-        }
+        private readonly HashSet<int> _ignored = new HashSet<int>();
 
         private void ProcessTouches()
         {
-            var touches = UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches;
-
-            bool moveActive = false;
-            bool aimActive = false;
-
-            foreach (var touch in touches)
+            _seen.Clear();
+            foreach (var t in ETouch.activeTouches)
             {
-                Vector2 pos = touch.screenPosition;
-                pos.y = Screen.height - pos.y;
-
-                int fingerId = touch.touchId;
-
-                if (touch.phase == UnityEngine.InputSystem.TouchPhase.Began)
+                int id = t.touchId;
+                Vector2 pos = t.screenPosition;
+                var ph = t.phase;
+                bool ending = ph == UnityEngine.InputSystem.TouchPhase.Ended || ph == UnityEngine.InputSystem.TouchPhase.Canceled;
+                if (_ignored.Contains(id)) { if (ending) _ignored.Remove(id); continue; }
+                _seen.Add(id);
+                bool known = _down.ContainsKey(id);
+                if (!known)
                 {
-                    HandleTouchBegan(fingerId, pos);
+                    if (ph == UnityEngine.InputSystem.TouchPhase.None) continue;
+                    // Began, or a touch whose Began we never saw (frame hitch): treat as a press here.
+                    _router.PointerDown(id, pos);
+                    _down[id] = pos;
+                    known = true;
                 }
-                else if (touch.phase == UnityEngine.InputSystem.TouchPhase.Moved || 
-                         touch.phase == UnityEngine.InputSystem.TouchPhase.Stationary)
+                if (ending)
                 {
-                    HandleTouchMoved(fingerId, pos);
+                    _router.PointerUp(id, pos);
+                    _down.Remove(id);
                 }
-                else if (touch.phase == UnityEngine.InputSystem.TouchPhase.Ended || 
-                         touch.phase == UnityEngine.InputSystem.TouchPhase.Canceled)
+                else if ((_down[id] - pos).sqrMagnitude > 0.01f || ph == UnityEngine.InputSystem.TouchPhase.Moved)
                 {
-                    HandleTouchEnded(fingerId, pos);
-                }
-
-                if (fingerId == _moveJoystickFinger) moveActive = true;
-                if (fingerId == _aimJoystickFinger) aimActive = true;
-            }
-
-            if (!moveActive && _moveJoystickActive)
-            {
-                EndMoveJoystick();
-            }
-            if (!aimActive && _aimJoystickActive)
-            {
-                EndAimJoystick();
-            }
-        }
-
-        private void HandleTouchBegan(int fingerId, Vector2 pos)
-        {
-            Rect moveRect = _controlsData.GetMoveJoystickRect(_safeArea);
-            Rect aimRect = _controlsData.GetAimJoystickRect(_safeArea);
-            Rect rollRect = _controlsData.GetRollButtonRect(_safeArea);
-            Rect grenadeRect = _controlsData.GetGrenadeButtonRect(_safeArea);
-            Rect skillRect = _controlsData.GetSkillButtonRect(_safeArea);
-            Rect pauseRect = _controlsData.GetPauseButtonRect(_safeArea);
-
-            if (moveRect.Contains(pos) && _moveJoystickFinger == -1)
-            {
-                _moveJoystickFinger = fingerId;
-                _moveJoystickActive = true;
-                _moveJoystickCenter = moveRect.center;
-                _moveJoystickKnob = pos;
-            }
-            else if (aimRect.Contains(pos) && _aimJoystickFinger == -1)
-            {
-                _aimJoystickFinger = fingerId;
-                _aimJoystickActive = true;
-                _aimJoystickCenter = aimRect.center;
-                _aimJoystickKnob = pos;
-                _aimStartTime = Time.time;
-
-                _receiver?.OnAimStartCommand(new AimStartCommand(pos, _aimStartTime));
-            }
-            else if (rollRect.Contains(pos))
-            {
-                _rollButtonPressed = true;
-                Vector2 dir = GetMoveDirection();
-                _receiver?.OnRollCommand(new RollCommand(dir, Time.time));
-            }
-            else if (grenadeRect.Contains(pos))
-            {
-                _grenadeButtonPressed = true;
-                _receiver?.OnGrenadeAimStartCommand(new GrenadeAimStartCommand(pos, Time.time));
-            }
-            else if (skillRect.Contains(pos))
-            {
-                _skillButtonPressed = true;
-                _receiver?.OnSkillStartCommand(new SkillStartCommand(pos, Time.time));
-            }
-            else if (pauseRect.Contains(pos))
-            {
-                var pauseMenu = Object.FindFirstObjectByType<PauseMenuController>();
-                if (pauseMenu != null)
-                {
-                    if (pauseMenu.IsPaused)
-                        pauseMenu.Resume();
-                    else
-                        pauseMenu.Pause();
+                    _router.PointerMove(id, pos);
+                    _down[id] = pos;
                 }
             }
-            else if (_controlsData.rollSwipeEnabled && _swipeFinger == -1)
+            // ids that vanished without an Ended (device reset / focus loss): release them where they were
+            _gone.Clear();
+            foreach (var kv in _down) if (!_seen.Contains(kv.Key)) _gone.Add(kv.Key);
+            foreach (var id in _gone)
             {
-                _swipeFinger = fingerId;
-                _swipeStart = pos;
-                _swipeStartTime = Time.unscaledTime;
+                _router.PointerUp(id, _down[id]);
+                _down.Remove(id);
+            }
+            if (_ignored.Count > 0)
+            {
+                _gone.Clear();
+                foreach (var id in _ignored) if (!_seen.Contains(id)) { bool alive = false; foreach (var t in ETouch.activeTouches) if (t.touchId == id) { alive = true; break; } if (!alive) _gone.Add(id); }
+                foreach (var id in _gone) _ignored.Remove(id);
             }
         }
 
-        private void HandleTouchMoved(int fingerId, Vector2 pos)
+        private void LateUpdate()
         {
-            if (fingerId == _moveJoystickFinger)
-            {
-                _moveJoystickKnob = pos;
-                Vector2 delta = pos - _moveJoystickCenter;
-                float maxDist = _controlsData.moveJoystickSize / 2f - _controlsData.moveKnobSize / 2f;
-                
-                if (delta.magnitude > maxDist)
-                {
-                    _moveJoystickKnob = _moveJoystickCenter + delta.normalized * maxDist;
-                }
-
-                Vector2 dir = (pos - _moveJoystickCenter) / (maxDist > 0 ? maxDist : 1f);
-                float magnitude = Mathf.Clamp01(dir.magnitude);
-
-                if (magnitude < _controlsData.moveDeadzone)
-                {
-                    dir = Vector2.zero;
-                    magnitude = 0f;
-                }
-
-                dir.y = -dir.y;
-                _receiver?.OnMoveCommand(new MoveCommand(dir.normalized, magnitude, Time.time));
-                UpdateRowIntent(dir.normalized * magnitude);
-            }
-            else if (fingerId == _aimJoystickFinger)
-            {
-                _aimJoystickKnob = pos;
-                Vector2 delta = pos - _aimJoystickCenter;
-                float maxDist = _controlsData.aimJoystickSize / 2f - _controlsData.aimKnobSize / 2f;
-
-                if (delta.magnitude > maxDist)
-                {
-                    _aimJoystickKnob = _aimJoystickCenter + delta.normalized * maxDist;
-                }
-
-                Vector2 dir = delta.normalized;
-                dir.y = -dir.y;
-                bool outsideDeadzone = delta.magnitude > _controlsData.aimDeadzone * _controlsData.aimJoystickSize;
-
-                _receiver?.OnAimDragCommand(new AimDragCommand(dir, delta.magnitude, outsideDeadzone, Time.time));
-            }
+            if (!IsActive || _router == null || _view == null) return;
+            _view.Sync(_router, _character, _controlsData);
+            _overlay.Sync(_wasBlocked ? null : _router, _character, _controlsData);
         }
 
-        private void HandleTouchEnded(int fingerId, Vector2 pos)
+        private void EnsureViews()
         {
-            if (fingerId == _moveJoystickFinger)
-            {
-                EndMoveJoystick();
-            }
-            else if (fingerId == _aimJoystickFinger)
-            {
-                EndAimJoystick();
-            }
-            else if (fingerId == _swipeFinger)
-            {
-                _swipeFinger = -1;
-                Vector2 delta = pos - _swipeStart;
-                float minPx = _controlsData.rollSwipeMinDistance * Screen.height / 720f;
-                if (delta.magnitude >= minPx && Time.unscaledTime - _swipeStartTime <= _controlsData.rollSwipeMaxTime)
-                {
-                    Vector2 dir = delta.normalized;
-                    dir.y = -dir.y; // GUI space -> logic up
-                    _receiver?.OnRollCommand(new RollCommand(dir, Time.time));
-                }
-            }
-
-            _rollButtonPressed = false;
-            _grenadeButtonPressed = false;
-            _skillButtonPressed = false;
+            if (_view == null) _view = TouchControlsView.Create(transform);
+            if (_overlay == null) _overlay = TouchAimOverlay.Create(transform);
         }
 
-        private void EndMoveJoystick()
+        private void UpdateLayout()
         {
-            _moveJoystickFinger = -1;
-            _moveJoystickActive = false;
-            _rowPendingDir = 0; _rowHoldTimer = 0f; _rowSent = false;
-            _receiver?.OnMoveCommand(new MoveCommand(Vector2.zero, 0f, Time.time));
+            var screen = new Vector2(Screen.width, Screen.height);
+            var safe = Screen.safeArea;
+            var zones = HudZones.Collect();
+            if (screen == _layoutScreen && safe == _layoutSafe && HudZones.Version == _layoutHud && _layoutData == _controlsData) return;
+            _layoutScreen = screen; _layoutSafe = safe; _layoutHud = HudZones.Version; _layoutData = _controlsData;
+            _layout = TouchControlLayout.Compute(_controlsData, screen, safe, zones);
+            _router.SetLayout(_layout);
         }
 
-        private void EndAimJoystick()
-        {
-            if (_aimJoystickActive)
-            {
-                Vector2 delta = _aimJoystickKnob - _aimJoystickCenter;
-                Vector2 dir = delta.normalized;
-                dir.y = -dir.y;
-                bool wasOutside = delta.magnitude > _controlsData.aimDeadzone * _controlsData.aimJoystickSize;
-
-                _receiver?.OnAimReleaseCommand(new AimReleaseCommand(dir, wasOutside, Time.time));
-            }
-            _aimJoystickFinger = -1;
-            _aimJoystickActive = false;
-        }
-
-        private Vector2 GetMoveDirection()
-        {
-            if (_moveJoystickActive)
-            {
-                Vector2 dir = (_moveJoystickKnob - _moveJoystickCenter).normalized;
-                dir.y = -dir.y;
-                return dir;
-            }
-            return Vector2.zero; // no stick: the character rolls toward its last move direction (01 §9)
-        }
-
-        private void OnGUI()
-        {
-            if (!IsActive) return;
-
-            UpdateSafeArea();
-
-            GUI.color = new Color(1f, 1f, 1f, _controlsData.opacity);
-
-            DrawJoystick(_controlsData.GetMoveJoystickRect(_safeArea), 
-                _moveJoystickActive ? _moveJoystickKnob : Vector2.zero,
-                _moveJoystickActive, _controlsData.moveKnobSize, "이동");
-
-            DrawJoystick(_controlsData.GetAimJoystickRect(_safeArea),
-                _aimJoystickActive ? _aimJoystickKnob : Vector2.zero,
-                _aimJoystickActive, _controlsData.aimKnobSize, "조준");
-
-            DrawButton(_controlsData.GetRollButtonRect(_safeArea), "구르기", _rollButtonPressed, false);
-            DrawButton(_controlsData.GetGrenadeButtonRect(_safeArea), "수류탄", _grenadeButtonPressed, false);
-            DrawButton(_controlsData.GetSkillButtonRect(_safeArea), "스킬", _skillButtonPressed, false);
-            DrawButton(_controlsData.GetPauseButtonRect(_safeArea), "||", false, false);
-
-            GUI.color = Color.white;
-        }
-
-        private void DrawJoystick(Rect rect, Vector2 knobPos, bool active, float knobSize, string label)
-        {
-            GUI.color = _controlsData.joystickBgColor;
-            GUI.DrawTexture(rect, GetCircleTexture());
-
-            Rect knobRect;
-            if (active && knobPos != Vector2.zero)
-            {
-                knobRect = new Rect(knobPos.x - knobSize / 2f, knobPos.y - knobSize / 2f, knobSize, knobSize);
-            }
-            else
-            {
-                knobRect = new Rect(rect.center.x - knobSize / 2f, rect.center.y - knobSize / 2f, knobSize, knobSize);
-            }
-
-            GUI.color = active ? _controlsData.buttonActiveColor : _controlsData.joystickKnobColor;
-            GUI.DrawTexture(knobRect, GetFilledCircleTexture());
-
-            if (!active)
-            {
-                var style = new GUIStyle { fontSize = 12, alignment = TextAnchor.MiddleCenter };
-                style.normal.textColor = new Color(1f, 1f, 1f, 0.5f);
-                GUI.Label(rect, label, style);
-            }
-        }
-
-        private void DrawButton(Rect rect, string label, bool pressed, bool onCooldown)
-        {
-            Color btnColor = onCooldown ? _controlsData.buttonCooldownColor :
-                             pressed ? _controlsData.buttonActiveColor : _controlsData.buttonColor;
-            GUI.color = btnColor;
-            GUI.DrawTexture(rect, GetFilledCircleTexture());
-
-            var style = new GUIStyle { fontSize = 14, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
-            style.normal.textColor = Color.white;
-            GUI.Label(rect, label, style);
-        }
-
-        private void CreateTextures()
-        {
-            _circleTexture = CreateCircleTexture(64, false);
-            _filledCircleTexture = CreateCircleTexture(64, true);
-            _buttonTexture = CreateCircleTexture(64, true);
-        }
-
-        private Texture2D CreateCircleTexture(int size, bool filled)
-        {
-            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-            float center = size / 2f;
-            float radius = size / 2f - 2f;
-
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    float dist = Mathf.Sqrt((x - center) * (x - center) + (y - center) * (y - center));
-                    if (filled)
-                    {
-                        float alpha = Mathf.Clamp01((radius - dist + 1f) / 2f);
-                        tex.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
-                    }
-                    else
-                    {
-                        float ringWidth = 3f;
-                        float alpha = 1f - Mathf.Abs(dist - radius) / ringWidth;
-                        alpha = Mathf.Clamp01(alpha);
-                        tex.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
-                    }
-                }
-            }
-
-            tex.Apply();
-            tex.filterMode = FilterMode.Bilinear;
-            return tex;
-        }
-
-        private Texture2D GetCircleTexture()
-        {
-            if (_circleTexture == null) CreateTextures();
-            return _circleTexture;
-        }
-
-        private Texture2D GetFilledCircleTexture()
-        {
-            if (_filledCircleTexture == null) CreateTextures();
-            return _filledCircleTexture;
-        }
+        private void OnApplicationPause(bool paused) { if (paused) { _router?.CancelAll(); _down.Clear(); } }
+        private void OnApplicationFocus(bool focus) { if (!focus) { _router?.CancelAll(); _down.Clear(); } }
     }
 }

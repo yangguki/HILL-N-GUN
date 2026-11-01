@@ -8,6 +8,10 @@ namespace HillNGun.Data
     {
         [Header("Identification")]
         public string id;
+        [Tooltip("Localized display name key (shop / loadout)")]
+        public string nameKey;
+        [Tooltip("Localized one-line description key (shop / loadout)")]
+        public string descKey;
 
         [Header("Fire Mode")]
         [Tooltip("발사 모드: Auto=연사, ChargeRelease=충전 후 발사")]
@@ -36,6 +40,11 @@ namespace HillNGun.Data
         [Header("Fire Rate")]
         [Tooltip("발사 간격 (초)")]
         public float fireInterval = 0.6f;
+
+        [Tooltip("Touch: keep firing at fireInterval while the attack stick is held aimed (Gatling). Off = one release, one shot")]
+        public bool holdToRepeat = false;
+        [Tooltip("View: hammer-cock animation on the attack button during the fire interval (revolver / lever action)")]
+        public bool cockAnimation = false;
 
         [Header("Ammo Gauge")]
         [Tooltip("총 게이지 칸 수")]

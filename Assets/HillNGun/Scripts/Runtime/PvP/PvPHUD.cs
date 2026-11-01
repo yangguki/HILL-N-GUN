@@ -238,6 +238,7 @@ namespace HillNGun.PvP
 
             GUI.color = bgColor;
             GUI.DrawTexture(new Rect(x, y, panelWidth, panelHeight), Texture2D.whiteTexture);
+            HillNGun.UI.HudZones.ReportGui(isPlayer ? "pvp.team.player" : "pvp.team.enemy", new Rect(x, y, panelWidth, panelHeight));
             GUI.color = Color.white;
 
             string teamLabel = isPlayer ? "아군" : "적군";
@@ -305,6 +306,7 @@ namespace HillNGun.PvP
             style.normal.textColor = new Color(1f, 0.85f, 0.35f, Mathf.Clamp01(_toastTimer));
             // Bottom banner so it never overlaps the crate / floating texts near the top lane.
             Rect r = new Rect(Screen.width / 2f - 260f, Screen.height - 64f, 520f, 40f);
+            HillNGun.UI.HudZones.ReportGui("pvp.toast", r);
             GUI.color = new Color(0f, 0f, 0f, 0.55f * Mathf.Clamp01(_toastTimer));
             GUI.DrawTexture(r, Texture2D.whiteTexture);
             GUI.color = Color.white;

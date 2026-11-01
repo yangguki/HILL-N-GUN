@@ -216,6 +216,9 @@ namespace HillNGun.PvE
             // On-screen joysticks/buttons (touch devices only; hidden on desktop)
             if (_playerTeam.Count > _playerControlledIndex)
                 ServiceLocator.Get<MobileTouchControls>()?.SetReceiver(_playerTeam[_playerControlledIndex]);
+            // Field drops (t48u): covers / defeated enemies toss pickups to the player's rows
+            HillNGun.Combat.DropDirector.Begin(GameMode.PvE, () => _playerTeam,
+                () => _playerTeam.Count > _playerControlledIndex ? _playerTeam[_playerControlledIndex] : null);
         }
 
         private BattlefieldData Field => ServiceLocator.Get<Battlefield.BattlefieldSystem>()?.Data;
@@ -247,6 +250,7 @@ namespace HillNGun.PvE
             viewGo.transform.SetParent(go.transform);
             var view = CharacterViewFactory.Create(viewGo);
 
+            data = HillNGun.Progression.Loadout.Resolve(data); // equipped gun (t48u); starting gun = same data
             character.Initialize(data, Team.Player, index, position, rowIndex);
             view.Initialize(character);
             character.SetView(view);
@@ -278,7 +282,7 @@ namespace HillNGun.PvE
         private void HandlePlayerFired(CharacterStateMachine character, Vector2 direction, int damage)
         {
             EffectsManager.Instance?.SpawnMuzzleFlash(character.Position, direction,
-                (character.Data?.weapon?.projectilesPerShot ?? 1) > 1);
+                (character.Data?.weapon?.projectilesPerShot ?? 1) > 1, character.Data?.weapon?.muzzleForwardOffset ?? 1f);
         }
 
         private void HandlePlayerDamaged(CharacterStateMachine character, int damage, Vector2 direction)
@@ -357,6 +361,7 @@ namespace HillNGun.PvE
             _isMatchActive = true;
 
             CleanupStageActors(true);
+            HillNGun.Combat.DropDirector.Instance?.ClearField();
 
             ResetPlayerTeamForStage();
 
@@ -522,6 +527,9 @@ namespace HillNGun.PvE
                 {
                     Vector2 playerPos = GetNearestPlayerPosition(enemy.Position);
                     enemy.Update(Time.deltaTime, playerPos);
+                    var bfd = Field;
+                    enemy.TickDodge(Time.deltaTime, Time.time, _combat?.ProjectilePool?.ActiveProjectiles,
+                        (bfd != null ? bfd.boundaryMinX : 0.5f) + 0.5f, (bfd != null ? bfd.boundaryMaxX : 23.5f) - 0.5f);
 
                     if (_currentStage?.enemyRowsY != null)
                     {
@@ -681,6 +689,7 @@ namespace HillNGun.PvE
             _currentGauge += enemy.Data.gaugeValue;
             OnGaugeChanged?.Invoke(_currentGauge);
             OnEnemyDefeated?.Invoke(enemy);
+            HillNGun.Combat.DropDirector.Instance?.HandleEnemyDefeated(enemy.Position, enemy.Data.gaugeValue);
 
             var flowManager = GameFlowManager.Instance;
             flowManager?.IncrementEnemiesDefeated();
@@ -746,7 +755,7 @@ namespace HillNGun.PvE
                 Vector2 dir = Battlefield.CoordinateHelper.RotateDirection(direction, angle);
                 _combat.SpawnEnemyProjectile(enemy.Position + dir * 0.6f, dir, d.bulletSpeed, d.bulletRadius, damage, d.attackRange, Team.Enemy);
             }
-            EffectsManager.Instance?.SpawnMuzzleFlash(enemy.Position, direction, false);
+            EffectsManager.Instance?.SpawnMuzzleFlash(enemy.Position, direction, false, 0.8f);
         }
 
         private void HandleEnemyExplosive(EnemyInstance enemy, Vector2 direction, int damage)

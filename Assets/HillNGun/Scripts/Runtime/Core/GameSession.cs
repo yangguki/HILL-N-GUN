@@ -40,11 +40,14 @@ namespace HillNGun.Core
         /// <summary>Filled once by ProgressionService when the match ends (shown on the result screen).</summary>
         [NonSerialized] public object rewards;
         public bool rewardsGranted;
+        /// <summary>Bounty picked up from coin drops this match (t48u), paid out with the match rewards.</summary>
+        public int bonusBounty;
         /// <summary>PvE: rewarded-ad continues used in this run (reset when a run starts from the lobby).</summary>
         public int continuesUsed;
 
         public void ResetMatchProgress()
         {
+            bonusBounty = 0;
             result = MatchResult.None;
             playerKills = 0;
             playerDeaths = 0;

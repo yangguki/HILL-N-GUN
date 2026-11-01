@@ -36,6 +36,13 @@ namespace HillNGun.Data
         public float explosiveFlightTime = 0.8f;
 
         [Header("Movement")]
+        [Header("Bullet dodge (t48u)")]
+        [Tooltip("Reaction to incoming player bullets: chance / delay / lookahead / margin / cooldown")]
+        public HillNGun.Combat.DodgeTuning bulletDodge = new HillNGun.Combat.DodgeTuning { chance = 0f, delayMin = 0.15f, delayMax = 0.3f, lookahead = 0.55f, margin = 0.15f, cooldown = 3f };
+        [Tooltip("Side-step distance (tiles) and speed (tiles/s)")]
+        public float dodgeStepDistance = 1.2f;
+        public float dodgeStepSpeed = 7f;
+
         public bool movesBetweenRows = false;
         public float rowChangeInterval = 5f;
 

@@ -225,7 +225,7 @@ namespace HillNGun.Core
             bool isShotgun = character.Data?.weapon?.projectilesPerShot > 1;
             bool isHeavy = character.Data?.weapon?.fireMode == FireMode.ChargeRelease;
             
-            Feel.EffectsManager.Instance?.SpawnMuzzleFlash(character.Position, direction, isShotgun);
+            Feel.EffectsManager.Instance?.SpawnMuzzleFlash(character.Position, direction, isShotgun, character.Data?.weapon?.muzzleForwardOffset ?? 1f);
             
             float range = character.Data?.weapon?.range ?? 7f;
             Vector2 endPos = character.Position + direction.normalized * range;

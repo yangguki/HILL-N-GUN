@@ -95,9 +95,12 @@ namespace HillNGun.UI
             GUI.depth = -50;
             if (!_showMenu)
             {
-                // Desktop pause button (touch devices use the on-screen "||" of MobileTouchControls)
+                // Pause button for desktop and touch (touch: larger, and reported so the touch controls stay clear of it)
                 var mobile = ServiceLocator.Get<HillNGun.Input.MobileTouchControls>();
-                if ((mobile == null || !mobile.IsActive) && UIKit.Button(new Rect(size.x - 64f, 56f, 52f, 44f), "II", true, UIKit.ButtonKind.Normal, 22))
+                bool touch = mobile != null && mobile.IsActive;
+                Rect pr = touch ? new Rect(size.x - 92f, 56f, 76f, 64f) : new Rect(size.x - 64f, 56f, 52f, 44f);
+                if (touch) HudZones.ReportGui("pause", pr);
+                if (UIKit.Button(pr, "II", true, UIKit.ButtonKind.Normal, touch ? 28 : 22))
                     Pause();
                 UIKit.End();
                 return;

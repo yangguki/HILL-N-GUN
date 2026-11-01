@@ -371,29 +371,32 @@ namespace HillNGun.Editor
             CreateMotionFeelAssets();
             CreateActor3DAssets();
             CreateTouchControlsAsset();
+            CreateDropTableAsset();
         }
 
+        /// <summary>Field drops (t48u). Code defaults in DropTableData are the tuned numbers (see implementation_status.md).</summary>
+        private static void CreateDropTableAsset()
+        {
+            CreateFolderRecursive(DATA_PATH + "Drops");
+            var t = CreateOrLoad<DropTableData>(DATA_PATH + "Drops/drop_table.asset");
+            var defaults = ScriptableObject.CreateInstance<DropTableData>();
+            EditorUtility.CopySerialized(defaults, t);
+            Object.DestroyImmediate(defaults);
+            t.name = "drop_table";
+            EditorUtility.SetDirty(t);
+        }
+
+        /// <summary>
+        /// Brawl-Stars-style touch layout (t47u). Field defaults in TouchControlsData are the tuned values; the asset is
+        /// reset to them here so a regenerated project always matches the code (layout math in TouchControlLayout).
+        /// </summary>
         private static void CreateTouchControlsAsset()
         {
             var touchControls = CreateOrLoad<TouchControlsData>(DATA_PATH + "Input/touch_controls.asset");
-            touchControls.moveJoystickAnchor = new Vector2(0.15f, 0.25f);
-            touchControls.moveJoystickSize = 150f;
-            touchControls.moveKnobSize = 60f;
-            touchControls.moveDeadzone = 0.1f;
-            touchControls.aimJoystickAnchor = new Vector2(0.85f, 0.25f);
-            touchControls.aimJoystickSize = 150f;
-            touchControls.aimKnobSize = 60f;
-            touchControls.aimDeadzone = 0.15f;
-            touchControls.rollButtonAnchor = new Vector2(0.25f, 0.55f);
-            touchControls.rollButtonSize = 70f;
-            touchControls.grenadeButtonAnchor = new Vector2(0.35f, 0.45f);
-            touchControls.grenadeButtonSize = 70f;
-            touchControls.skillButtonAnchor = new Vector2(0.75f, 0.55f);
-            touchControls.skillButtonSize = 80f;
-            touchControls.pauseButtonAnchor = new Vector2(0.5f, 0.95f);
-            touchControls.pauseButtonSize = 50f;
-            touchControls.opacity = 0.6f;
-            touchControls.safeAreaPadding = 20f;
+            var defaults = ScriptableObject.CreateInstance<TouchControlsData>();
+            EditorUtility.CopySerialized(defaults, touchControls);
+            Object.DestroyImmediate(defaults);
+            touchControls.name = "touch_controls";
             EditorUtility.SetDirty(touchControls);
         }
 
@@ -417,6 +420,9 @@ namespace HillNGun.Editor
             pistolMook.baseColor = new Color(0.6f, 0.4f, 0.3f);
             pistolMook.fleesOnDefeat = true;
             pistolMook.fleeSpeed = 5f;
+            // t48u bullet dodge (proposal): sees a bullet coming, 25% side-step after 0.15-0.3 s, then 3 s cooldown
+            pistolMook.bulletDodge = new DodgeTuning { chance = 0.25f, delayMin = 0.15f, delayMax = 0.3f, lookahead = 0.55f, margin = 0.15f, cooldown = 3f };
+            pistolMook.dodgeStepDistance = 1.2f; pistolMook.dodgeStepSpeed = 7f;
             EditorUtility.SetDirty(pistolMook);
 
             var dynamiteBandit = CreateOrLoad<EnemyData>(DATA_PATH + "Enemies/enemy_dynamite_bandit.asset");
@@ -439,6 +445,8 @@ namespace HillNGun.Editor
             dynamiteBandit.baseColor = new Color(0.5f, 0.35f, 0.25f);
             dynamiteBandit.fleesOnDefeat = true;
             dynamiteBandit.fleeSpeed = 4f;
+            dynamiteBandit.bulletDodge = new DodgeTuning { chance = 0.15f, delayMin = 0.2f, delayMax = 0.35f, lookahead = 0.55f, margin = 0.15f, cooldown = 3.5f };
+            dynamiteBandit.dodgeStepDistance = 1.0f; dynamiteBandit.dodgeStepSpeed = 6f;
             EditorUtility.SetDirty(dynamiteBandit);
 
             var mountedRaider = CreateOrLoad<EnemyData>(DATA_PATH + "Enemies/enemy_mounted_raider.asset");
@@ -464,6 +472,8 @@ namespace HillNGun.Editor
             mountedRaider.scale = 1.3f;
             mountedRaider.fleesOnDefeat = true;
             mountedRaider.fleeSpeed = 6f;
+            mountedRaider.bulletDodge = new DodgeTuning { chance = 0.35f, delayMin = 0.12f, delayMax = 0.25f, lookahead = 0.6f, margin = 0.2f, cooldown = 2.5f };
+            mountedRaider.dodgeStepDistance = 1.6f; mountedRaider.dodgeStepSpeed = 9f;
             EditorUtility.SetDirty(mountedRaider);
         }
 
@@ -694,9 +704,77 @@ namespace HillNGun.Editor
         }
 
         /// <summary>Offline progression numbers (FP 522-529). Amounts not in the docs are proposals (decision D19).</summary>
+        private static WeaponData ShopGun(string id, System.Action<WeaponData> set)
+        {
+            var w = CreateOrLoad<WeaponData>(DATA_PATH + "Weapons/" + id + ".asset");
+            w.id = id;
+            w.nameKey = "weapon." + id;
+            w.descKey = "weapon." + id + ".desc";
+            w.fireMode = FireMode.Auto;
+            w.projectilesPerShot = 1; w.spreadDeg = 0f;
+            w.chargeMinTime = 0f; w.chargeMaxTime = 0f; w.chargeDamageMul = 1f;
+            w.muzzleForwardOffset = 1.0f; w.coverDamageMul = 1f;
+            w.holdToRepeat = false; w.cockAnimation = false;
+            set(w);
+            EditorUtility.SetDirty(w);
+            return w;
+        }
+
+        /// <summary>
+        /// Gun catalog (t48u). Starting guns = 03 numbers (unchanged). Shop guns are proposals from the design's gun list
+        /// (리볼버·산탄총·레버액션 소총·개틀링건; 다이너마이트 = the existing grenade), kept inside each role's weapon family
+        /// and priced against the bounty economy: a full PvE run ≈ $1,300-1,500, a PvP win $150, a skin $1,500.
+        /// </summary>
+        private static WeaponCatalogData CreateWeaponCatalog()
+        {
+            var wB = AssetDatabase.LoadAssetAtPath<WeaponData>(DATA_PATH + "Weapons/wpn_buster.asset");
+            var wR = AssetDatabase.LoadAssetAtPath<WeaponData>(DATA_PATH + "Weapons/wpn_raven.asset");
+            var wV = AssetDatabase.LoadAssetAtPath<WeaponData>(DATA_PATH + "Weapons/wpn_volt.asset");
+
+            var peacemaker = ShopGun("wpn_peacemaker", w =>
+            {   // 6-shot revolver: smaller rounds, more of them, quicker cock
+                w.damagePerProjectile = 380; w.projectileSpeed = 22f; w.projectileRadius = 0.25f; w.range = 7.5f;
+                w.fireInterval = 0.45f; w.gaugeCells = 6; w.shotsPerCell = 1; w.rechargePerCell = 0.9f;
+                w.cockAnimation = true;
+            });
+            var coach = ShopGun("wpn_coachgun", w =>
+            {   // coach gun (double barrel): one more pellet, a little more reach
+                w.damagePerProjectile = 140; w.projectilesPerShot = 6; w.spreadDeg = 32f; w.projectileSpeed = 18f;
+                w.projectileRadius = 0.3f; w.range = 5.5f; w.fireInterval = 0.6f; w.gaugeCells = 3; w.shotsPerCell = 1;
+                w.rechargePerCell = 1.1f;
+            });
+            var lever = ShopGun("wpn_lever_action", w =>
+            {   // lever-action rifle: no charge, quick follow-up shots, 4 rounds
+                w.damagePerProjectile = 560; w.projectileSpeed = 30f; w.projectileRadius = 0.14f; w.range = 11f;
+                w.fireInterval = 0.6f; w.gaugeCells = 4; w.shotsPerCell = 1; w.rechargePerCell = 1.3f;
+                w.cockAnimation = true;
+            });
+            var gatling = ShopGun("wpn_gatling", w =>
+            {   // Gatling: hold to keep firing (touch: hold the aim), 18 rounds, low damage per round
+                w.damagePerProjectile = 120; w.projectileSpeed = 20f; w.projectileRadius = 0.2f; w.range = 6f;
+                w.fireInterval = 0.1f; w.gaugeCells = 3; w.shotsPerCell = 6; w.rechargePerCell = 1.4f;
+                w.holdToRepeat = true;
+            });
+
+            var cat = CreateOrLoad<WeaponCatalogData>(DATA_PATH + "Progression/weapon_catalog.asset");
+            cat.offers = new[]
+            {
+                new WeaponOffer { weapon = wB, displayName = "더블배럴 산탄총", description = "근거리 산탄 5발 (기본)", ownedByDefault = true, characterIds = new[] { "buster" } },
+                new WeaponOffer { weapon = wR, displayName = "사냥용 라이플", description = "충전 저격 (기본)", ownedByDefault = true, characterIds = new[] { "raven" } },
+                new WeaponOffer { weapon = wV, displayName = "대형 리볼버", description = "한 발씩 정확하게 (기본)", ownedByDefault = true, characterIds = new[] { "volt" } },
+                new WeaponOffer { weapon = peacemaker, displayName = "피스메이커 리볼버", description = "6연발 · 빠른 격발 · 한 발 380", cost = 1800, characterIds = new[] { "volt" } },
+                new WeaponOffer { weapon = coach, displayName = "코치건", description = "산탄 6발 · 사거리 5.5", cost = 2000, characterIds = new[] { "buster" } },
+                new WeaponOffer { weapon = lever, displayName = "레버액션 소총", description = "충전 없이 4연발 · 사거리 11", cost = 2400, characterIds = new[] { "raven" } },
+                new WeaponOffer { weapon = gatling, displayName = "개틀링건", description = "누르고 있으면 연사 · 18발", cost = 3500, characterIds = new[] { "buster" } },
+            };
+            EditorUtility.SetDirty(cat);
+            return cat;
+        }
+
         private static void CreateProgressionAsset()
         {
             var p = CreateOrLoad<ProgressionData>(DATA_PATH + "Progression/progression_default.asset");
+            p.weaponCatalog = CreateWeaponCatalog();
             p.startingBounty = 0;
             p.bountyPerStageClear = 100;
             p.bountyPerBossDefeat = 1000; // FP 220: 렉스 현상금 $1,000
@@ -1123,6 +1201,7 @@ namespace HillNGun.Editor
             SetPrivateField(assetManager, "_actor3D", actor3D);
             SetPrivateField(assetManager, "_actor3DAnim", actor3DAnim);
             SetPrivateField(assetManager, "_stageThemes", AssetDatabase.LoadAssetAtPath<StageThemeLibrary>(StageThemeSetup.LIBRARY_PATH));
+            SetPrivateField(assetManager, "_dropTable", AssetDatabase.LoadAssetAtPath<DropTableData>(DATA_PATH + "Drops/drop_table.asset"));
         }
 
         private static void CreateBattlefieldAndSystems()
