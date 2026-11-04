@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e8245f250e77494a88756bb5e06cb12, type: 3}
+  m_Name: char_buster
+  m_EditorClassIdentifier: 
+  id: buster
+  nameKey: char.buster.name
+  role: 0
+  maxHp: 3200
+  moveSpeed: 3
+  chargingMoveSpeed: 3
+  rowChangeSpeedMul: 1.5
+  hitRadius: 0.5
+  weakpointRadius: 0
+  grenadeCount: 2
+  weapon: {fileID: 11400000, guid: fa1bd20290d1d4c7495674f8fe192270, type: 2}
+  grenade: {fileID: 11400000, guid: 713f7b8f854544647bb2142e2decc348, type: 2}
+  roll: {fileID: 11400000, guid: 05b017c8d200d4c089ac2106f337e91f, type: 2}
+  skill: {fileID: 11400000, guid: 6849ab9dd2beb46f48ca36d0510ab65f, type: 2}
+  passive: {fileID: 11400000, guid: 19e1d894011254b479bdedddf86d4a3d, type: 2}

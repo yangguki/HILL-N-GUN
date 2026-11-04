@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e8245f250e77494a88756bb5e06cb12, type: 3}
+  m_Name: char_volt
+  m_EditorClassIdentifier: 
+  id: volt
+  nameKey: char.volt.name
+  role: 2
+  maxHp: 2600
+  moveSpeed: 2.8
+  chargingMoveSpeed: 2.8
+  rowChangeSpeedMul: 1.5
+  hitRadius: 0.5
+  weakpointRadius: 0
+  grenadeCount: 2
+  weapon: {fileID: 11400000, guid: 1be72f64deb814a1f959b5e8bb5f5c30, type: 2}
+  grenade: {fileID: 11400000, guid: d89a5dce3230349b88bc9f97de16a4d5, type: 2}
+  roll: {fileID: 11400000, guid: b8d921f85d5364011ac74031c35096c0, type: 2}
+  skill: {fileID: 11400000, guid: f7ea24935145047189e9d6dbb75d154b, type: 2}
+  passive: {fileID: 11400000, guid: dfe4eafb7da84480d868c4cdbad2e4fe, type: 2}

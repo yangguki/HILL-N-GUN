@@ -1,0 +1,82 @@
+using HillNGun.Data;
+
+namespace HillNGun.Combat
+{
+    public class AmmoGauge
+    {
+        private readonly WeaponData _weapon;
+        private int _currentCells;
+        private float _rechargeProgress;
+        private int _shotsInCurrentCell;
+
+        public int CurrentCells => _currentCells;
+        public int MaxCells => _weapon?.gaugeCells ?? 1;
+        public float RechargeProgress => _rechargeProgress;
+        public bool IsFull => _currentCells >= MaxCells;
+        public bool IsEmpty => _currentCells <= 0 && _shotsInCurrentCell <= 0;
+
+        public AmmoGauge(WeaponData weapon)
+        {
+            _weapon = weapon;
+            _currentCells = weapon?.gaugeCells ?? 1;
+            _shotsInCurrentCell = weapon?.shotsPerCell ?? 1;
+            _rechargeProgress = 0f;
+        }
+
+        public void Update(float deltaTime, bool canRecharge)
+        {
+            if (!canRecharge || _weapon == null) return;
+
+            if (_currentCells < _weapon.gaugeCells)
+            {
+                _rechargeProgress += deltaTime / _weapon.rechargePerCell;
+
+                if (_rechargeProgress >= 1f)
+                {
+                    _rechargeProgress = 0f;
+                    _currentCells++;
+                    _shotsInCurrentCell = _weapon.shotsPerCell;
+                }
+            }
+        }
+
+        public bool CanFire()
+        {
+            return _currentCells > 0 || _shotsInCurrentCell > 0;
+        }
+
+        public void ConsumeShot()
+        {
+            if (!CanFire()) return;
+
+            _shotsInCurrentCell--;
+
+            if (_shotsInCurrentCell <= 0 && _currentCells > 0)
+            {
+                _currentCells--;
+                _shotsInCurrentCell = _currentCells > 0 ? (_weapon?.shotsPerCell ?? 1) : 0;
+            }
+
+            if (_currentCells < (_weapon?.gaugeCells ?? 1) && _rechargeProgress < 0.001f)
+            {
+                _rechargeProgress = 0f;
+            }
+        }
+
+        public void Reset()
+        {
+            _currentCells = _weapon?.gaugeCells ?? 1;
+            _shotsInCurrentCell = _weapon?.shotsPerCell ?? 1;
+            _rechargeProgress = 0f;
+        }
+
+        public float GetCellFillRatio(int cellIndex)
+        {
+            if (cellIndex < _currentCells)
+                return 1f;
+            if (cellIndex == _currentCells && _currentCells < MaxCells)
+                return _rechargeProgress;
+            return 0f;
+        }
+    }
+}

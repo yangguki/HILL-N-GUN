@@ -1,0 +1,185 @@
+using UnityEngine;
+using HillNGun.Data;
+
+namespace HillNGun.Battlefield
+{
+    public static class CoordinateHelper
+    {
+        public static float Distance(Vector2 a, Vector2 b)
+        {
+            return Vector2.Distance(a, b);
+        }
+
+        public static float DistanceSquared(Vector2 a, Vector2 b)
+        {
+            Vector2 diff = a - b;
+            return diff.x * diff.x + diff.y * diff.y;
+        }
+
+        public static Vector2 Direction(Vector2 from, Vector2 to)
+        {
+            return (to - from).normalized;
+        }
+
+        public static float Angle(Vector2 direction)
+        {
+            return Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        }
+
+        public static Vector2 AngleToDirection(float angleDeg)
+        {
+            float rad = angleDeg * Mathf.Deg2Rad;
+            return new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
+        }
+
+        public static Vector2 RotateDirection(Vector2 direction, float angleDeg)
+        {
+            float rad = angleDeg * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+            return new Vector2(
+                direction.x * cos - direction.y * sin,
+                direction.x * sin + direction.y * cos
+            );
+        }
+
+        public static bool CirclesOverlap(Vector2 centerA, float radiusA, Vector2 centerB, float radiusB)
+        {
+            float combinedRadius = radiusA + radiusB;
+            return DistanceSquared(centerA, centerB) <= combinedRadius * combinedRadius;
+        }
+
+        public static bool PointInCircle(Vector2 point, Vector2 center, float radius)
+        {
+            return DistanceSquared(point, center) <= radius * radius;
+        }
+
+        public static bool LineCircleIntersection(
+            Vector2 lineStart, 
+            Vector2 lineEnd, 
+            Vector2 circleCenter, 
+            float circleRadius,
+            out float t)
+        {
+            t = 0f;
+
+            Vector2 d = lineEnd - lineStart;
+            Vector2 f = lineStart - circleCenter;
+
+            float a = Vector2.Dot(d, d);
+            float b = 2f * Vector2.Dot(f, d);
+            float c = Vector2.Dot(f, f) - circleRadius * circleRadius;
+
+            float discriminant = b * b - 4f * a * c;
+            if (discriminant < 0f) return false;
+
+            discriminant = Mathf.Sqrt(discriminant);
+
+            float t1 = (-b - discriminant) / (2f * a);
+            float t2 = (-b + discriminant) / (2f * a);
+
+            if (t1 >= 0f && t1 <= 1f)
+            {
+                t = t1;
+                return true;
+            }
+
+            if (t2 >= 0f && t2 <= 1f)
+            {
+                t = t2;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool SweptCircleCircleIntersection(
+            Vector2 startA, 
+            Vector2 endA, 
+            float radiusA,
+            Vector2 centerB, 
+            float radiusB,
+            out float t)
+        {
+            float combinedRadius = radiusA + radiusB;
+            return LineCircleIntersection(startA, endA, centerB, combinedRadius, out t);
+        }
+
+        public static bool PointInRect(Vector2 point, Vector2 rectCenter, float width, float height)
+        {
+            float halfWidth = width / 2f;
+            float halfHeight = height / 2f;
+
+            return point.x >= rectCenter.x - halfWidth &&
+                   point.x <= rectCenter.x + halfWidth &&
+                   point.y >= rectCenter.y - halfHeight &&
+                   point.y <= rectCenter.y + halfHeight;
+        }
+
+        public static bool LineRectIntersection(
+            Vector2 lineStart,
+            Vector2 lineEnd,
+            Vector2 rectCenter,
+            float width,
+            float height,
+            out float t)
+        {
+            t = 1f;
+
+            float halfWidth = width / 2f;
+            float halfHeight = height / 2f;
+
+            float left = rectCenter.x - halfWidth;
+            float right = rectCenter.x + halfWidth;
+            float bottom = rectCenter.y - halfHeight;
+            float top = rectCenter.y + halfHeight;
+
+            Vector2 dir = lineEnd - lineStart;
+            float tMin = 0f;
+            float tMax = 1f;
+
+            if (Mathf.Abs(dir.x) > 0.0001f)
+            {
+                float t1 = (left - lineStart.x) / dir.x;
+                float t2 = (right - lineStart.x) / dir.x;
+                if (t1 > t2) (t1, t2) = (t2, t1);
+                tMin = Mathf.Max(tMin, t1);
+                tMax = Mathf.Min(tMax, t2);
+                if (tMin > tMax) return false;
+            }
+            else if (lineStart.x < left || lineStart.x > right)
+            {
+                return false;
+            }
+
+            if (Mathf.Abs(dir.y) > 0.0001f)
+            {
+                float t1 = (bottom - lineStart.y) / dir.y;
+                float t2 = (top - lineStart.y) / dir.y;
+                if (t1 > t2) (t1, t2) = (t2, t1);
+                tMin = Mathf.Max(tMin, t1);
+                tMax = Mathf.Min(tMax, t2);
+                if (tMin > tMax) return false;
+            }
+            else if (lineStart.y < bottom || lineStart.y > top)
+            {
+                return false;
+            }
+
+            t = tMin;
+            return tMin >= 0f && tMin <= 1f;
+        }
+
+        public static Vector2 ClampAngle(Vector2 direction, float maxAngleDeg, Vector2 forward)
+        {
+            float angle = Vector2.SignedAngle(forward, direction);
+            float halfMax = maxAngleDeg / 2f;
+
+            if (Mathf.Abs(angle) <= halfMax)
+                return direction;
+
+            float clampedAngle = Mathf.Clamp(angle, -halfMax, halfMax);
+            return RotateDirection(forward, clampedAngle);
+        }
+    }
+}

@@ -1,0 +1,194 @@
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using HillNGun.Data;
+using HillNGun.Core;
+using HillNGun.Feel;
+
+namespace HillNGun.UI
+{
+    public class SettingsPanel : MonoBehaviour
+    {
+        [Header("References")]
+        [SerializeField] private InputData _inputData;
+        [SerializeField] private FeelData _feelData;
+
+        [Header("Panel")]
+        [SerializeField] private GameObject _panelRoot;
+        [SerializeField] private Button _openButton;
+        [SerializeField] private Button _closeButton;
+
+        [Header("Button Size")]
+        [SerializeField] private Button _buttonSizeSmall;
+        [SerializeField] private Button _buttonSizeMedium;
+        [SerializeField] private Button _buttonSizeLarge;
+        [SerializeField] private Image[] _buttonSizeIndicators;
+
+        [Header("Toggles")]
+        [SerializeField] private Toggle _shakeToggle;
+        [SerializeField] private Toggle _vibrationToggle;
+        [SerializeField] private Toggle _soundToggle;
+
+        [Header("Volume")]
+        [SerializeField] private Slider _volumeSlider;
+
+        private bool _isOpen;
+
+        private void Start()
+        {
+            if (_panelRoot != null)
+            {
+                _panelRoot.SetActive(false);
+            }
+
+            SetupButtons();
+            SetupToggles();
+            UpdateButtonSizeIndicators();
+        }
+
+        private void Update()
+        {
+            if (UnityEngine.InputSystem.Keyboard.current?.escapeKey.wasPressedThisFrame == true)
+            {
+                if (_isOpen) Close();
+            }
+
+            if (UnityEngine.InputSystem.Keyboard.current?.tabKey.wasPressedThisFrame == true)
+            {
+                if (_isOpen) Close();
+                else Open();
+            }
+        }
+
+        private void SetupButtons()
+        {
+            if (_openButton != null)
+                _openButton.onClick.AddListener(Open);
+
+            if (_closeButton != null)
+                _closeButton.onClick.AddListener(Close);
+
+            if (_buttonSizeSmall != null)
+                _buttonSizeSmall.onClick.AddListener(() => SetButtonSize(0));
+
+            if (_buttonSizeMedium != null)
+                _buttonSizeMedium.onClick.AddListener(() => SetButtonSize(1));
+
+            if (_buttonSizeLarge != null)
+                _buttonSizeLarge.onClick.AddListener(() => SetButtonSize(2));
+        }
+
+        private void SetupToggles()
+        {
+            if (_shakeToggle != null && _feelData != null)
+            {
+                _shakeToggle.isOn = _feelData.shakeEnabled;
+                _shakeToggle.onValueChanged.AddListener(OnShakeToggled);
+            }
+
+            if (_vibrationToggle != null && _feelData != null)
+            {
+                _vibrationToggle.isOn = _feelData.vibrationEnabled;
+                _vibrationToggle.onValueChanged.AddListener(OnVibrationToggled);
+            }
+
+            if (_soundToggle != null)
+            {
+                var audio = PlaceholderAudio.Instance;
+                _soundToggle.isOn = audio?.SoundEnabled ?? true;
+                _soundToggle.onValueChanged.AddListener(OnSoundToggled);
+            }
+
+            if (_volumeSlider != null)
+            {
+                var audio = PlaceholderAudio.Instance;
+                _volumeSlider.value = audio?.MasterVolume ?? 0.5f;
+                _volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
+            }
+        }
+
+        public void Open()
+        {
+            _isOpen = true;
+            if (_panelRoot != null)
+            {
+                _panelRoot.SetActive(true);
+            }
+            GameTime.IsPaused = true;
+            PlaceholderAudio.Instance?.PlayUIClick();
+        }
+
+        public void Close()
+        {
+            _isOpen = false;
+            if (_panelRoot != null)
+            {
+                _panelRoot.SetActive(false);
+            }
+            GameTime.IsPaused = false;
+            PlaceholderAudio.Instance?.PlayUIClick();
+        }
+
+        public void SetButtonSize(int index)
+        {
+            if (_inputData == null) return;
+            if (index < 0 || index >= _inputData.buttonScales.Length) return;
+
+            _inputData.currentButtonScaleIndex = index;
+            UpdateButtonSizeIndicators();
+            PlaceholderAudio.Instance?.PlayUIClick();
+        }
+
+        private void UpdateButtonSizeIndicators()
+        {
+            if (_buttonSizeIndicators == null || _inputData == null) return;
+
+            int currentIndex = _inputData.currentButtonScaleIndex;
+            for (int i = 0; i < _buttonSizeIndicators.Length; i++)
+            {
+                if (_buttonSizeIndicators[i] != null)
+                {
+                    _buttonSizeIndicators[i].color = (i == currentIndex) 
+                        ? Color.yellow 
+                        : Color.gray;
+                }
+            }
+        }
+
+        private void OnShakeToggled(bool value)
+        {
+            if (_feelData != null)
+            {
+                _feelData.shakeEnabled = value;
+            }
+        }
+
+        private void OnVibrationToggled(bool value)
+        {
+            if (_feelData != null)
+            {
+                _feelData.vibrationEnabled = value;
+            }
+        }
+
+        private void OnSoundToggled(bool value)
+        {
+            var audio = PlaceholderAudio.Instance;
+            if (audio != null)
+            {
+                audio.SoundEnabled = value;
+            }
+        }
+
+        private void OnVolumeChanged(float value)
+        {
+            var audio = PlaceholderAudio.Instance;
+            if (audio != null)
+            {
+                audio.MasterVolume = value;
+            }
+        }
+
+        public bool IsOpen => _isOpen;
+    }
+}

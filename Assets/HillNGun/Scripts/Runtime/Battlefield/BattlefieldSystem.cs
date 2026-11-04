@@ -1,0 +1,138 @@
+using UnityEngine;
+using HillNGun.Data;
+using HillNGun.Core;
+
+namespace HillNGun.Battlefield
+{
+    public class BattlefieldSystem : MonoBehaviour
+    {
+        [SerializeField] private BattlefieldData _data;
+
+        private Camera _mainCamera;
+        private float _screenScaleFactor = 1f;
+
+        public BattlefieldData Data => _data;
+
+        private void Awake()
+        {
+            _mainCamera = Camera.main;
+            CalculateScreenScale();
+            ServiceLocator.Register(this);
+        }
+
+        private void OnDestroy()
+        {
+            ServiceLocator.Unregister<BattlefieldSystem>();
+        }
+
+        private void CalculateScreenScale()
+        {
+            if (_data == null) return;
+            _screenScaleFactor = (float)Screen.width / _data.referenceResolution.x;
+        }
+
+        public Vector2 LogicToWorld(Vector2 tilePos)
+        {
+            if (_data == null) return Vector2.zero;
+
+            float worldX = (tilePos.x - _data.size.x / 2f);
+            float worldY = (tilePos.y - _data.size.y / 2f);
+
+            float scale = _data.GetPerspectiveScale(tilePos.y);
+            worldX *= scale;
+
+            return new Vector2(worldX, worldY);
+        }
+
+        public Vector2 WorldToLogic(Vector2 worldPos)
+        {
+            if (_data == null) return Vector2.zero;
+
+            float tileY = worldPos.y + _data.size.y / 2f;
+            float scale = _data.GetPerspectiveScale(tileY);
+
+            float tileX = worldPos.x / scale + _data.size.x / 2f;
+
+            return new Vector2(tileX, tileY);
+        }
+
+        public Vector3 LogicToWorldPosition(Vector2 tilePos)
+        {
+            Vector2 worldPos = LogicToWorld(tilePos);
+            return new Vector3(worldPos.x, worldPos.y, 0f);
+        }
+
+        public float GetPerspectiveScale(float yTile)
+        {
+            return _data?.GetPerspectiveScale(yTile) ?? 1f;
+        }
+
+        public Vector2 ClampToField(Vector2 tilePos)
+        {
+            if (_data == null) return tilePos;
+
+            tilePos.x = Mathf.Clamp(tilePos.x, _data.boundaryMinX, _data.boundaryMaxX);
+            tilePos.y = Mathf.Clamp(tilePos.y, 0f, _data.size.y);
+
+            return tilePos;
+        }
+
+        public int GetNearestRowIndex(float yTile, Team team)
+        {
+            float[] rows = team == Team.Player ? _data.ourRowsY : _data.enemyRowsY;
+            if (rows == null || rows.Length == 0) return 0;
+
+            int nearestIndex = 0;
+            float nearestDist = float.MaxValue;
+
+            for (int i = 0; i < rows.Length; i++)
+            {
+                float dist = Mathf.Abs(rows[i] - yTile);
+                if (dist < nearestDist)
+                {
+                    nearestDist = dist;
+                    nearestIndex = i;
+                }
+            }
+
+            return nearestIndex;
+        }
+
+        public float GetRowY(int rowIndex, Team team)
+        {
+            return team == Team.Player 
+                ? _data.GetOurRowY(rowIndex) 
+                : _data.GetEnemyRowY(rowIndex);
+        }
+
+        public int GetRowCount(Team team)
+        {
+            return team == Team.Player ? _data.OurRowCount : _data.EnemyRowCount;
+        }
+
+        public bool CanMoveToRow(int currentRow, int direction, Team team)
+        {
+            int newRow = currentRow + direction;
+            int maxRow = GetRowCount(team) - 1;
+            return newRow >= 0 && newRow <= maxRow;
+        }
+
+        public Vector2 GetStartPosition(int playerIndex, Team team)
+        {
+            if (_data == null) return Vector2.zero;
+
+            float x = playerIndex < _data.startX.Length 
+                ? _data.startX[playerIndex] 
+                : _data.size.x / 2f;
+
+            float y = GetRowY(_data.startRowIndex, team);
+
+            return new Vector2(x, y);
+        }
+
+        public float ScreenToLogicScale()
+        {
+            return _screenScaleFactor;
+        }
+    }
+}

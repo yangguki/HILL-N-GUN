@@ -1,0 +1,47 @@
+using UnityEngine;
+
+namespace HillNGun.Data
+{
+    [CreateAssetMenu(fileName = "InputData", menuName = "HillNGun/Data/Input")]
+    public class InputData : ScriptableObject
+    {
+        [Header("Fire Button")]
+        [Tooltip("사격 버튼 반경 (픽셀, 기준 해상도 기준)")]
+        public float fireButtonRadiusPx = 140f;
+
+        [Tooltip("데드존 비율 (버튼 반경 대비)")]
+        [Range(0.1f, 0.5f)]
+        public float deadzoneRatio = 0.2f;
+
+        [Header("Aiming")]
+        [Tooltip("조준 가능 각도 (도) - 앞쪽으로 제한")]
+        public float aimClampDeg = 170f;
+
+        [Tooltip("조준 최소 거리 (타일)")]
+        public float aimMinDistance = 2f;
+
+        [Header("Joystick")]
+        [Tooltip("조이스틱 반경 (픽셀)")]
+        public float joystickRadiusPx = 120f;
+
+        [Header("Row Change")]
+        [Tooltip("줄 이동 입력 임계값 (0-1)")]
+        [Range(0.3f, 0.9f)]
+        public float rowChangeThreshold = 0.6f;
+
+        [Tooltip("줄 이동 입력 유지 시간 (초)")]
+        public float rowChangeHoldTime = 0.15f;
+
+        [Header("Button Scale Options")]
+        [Tooltip("버튼 크기 배율 옵션 (작음/보통/큼)")]
+        public float[] buttonScales = { 0.85f, 1.0f, 1.15f };
+
+        [Tooltip("현재 버튼 크기 인덱스")]
+        public int currentButtonScaleIndex = 1;
+
+        public float DeadzoneRadius => fireButtonRadiusPx * deadzoneRatio;
+        public float CurrentButtonScale => buttonScales[Mathf.Clamp(currentButtonScaleIndex, 0, buttonScales.Length - 1)];
+        public float ScaledFireButtonRadius => fireButtonRadiusPx * CurrentButtonScale;
+        public float ScaledJoystickRadius => joystickRadiusPx * CurrentButtonScale;
+    }
+}

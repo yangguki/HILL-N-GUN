@@ -1,0 +1,44 @@
+using UnityEngine;
+
+namespace HillNGun.Data
+{
+    [CreateAssetMenu(fileName = "TargetData", menuName = "HillNGun/Data/Target")]
+    public class TargetData : ScriptableObject
+    {
+        [Header("Identification")]
+        public string id;
+
+        [Header("Stats")]
+        [Tooltip("체력")]
+        public int hp = 3000;
+
+        [Tooltip("판정 원 반경 (타일)")]
+        public float hitRadius = 0.5f;
+
+        [Header("Movement")]
+        [Tooltip("이동 여부")]
+        public bool moves = false;
+
+        [Tooltip("이동 속도 (타일/초)")]
+        public float moveSpeed = 2.0f;
+
+        [Tooltip("이동 범위 (타일)")]
+        public float moveRange = 3f;
+
+        [Header("Shooting")]
+        [Tooltip("반격 여부")]
+        public bool shoots = false;
+
+        [Tooltip("반격 피해")]
+        public int shootDamage = 120;
+
+        [Tooltip("탄속 (타일/초)")]
+        public float bulletSpeed = 8f;
+
+        [Tooltip("발사 간격 (초)")]
+        public float fireInterval = 1.5f;
+
+        [Tooltip("예고 시간 (초)")]
+        public float warningTime = 0.5f;
+    }
+}

@@ -1,0 +1,117 @@
+using NUnit.Framework;
+using HillNGun.Data;
+using HillNGun.Core;
+using UnityEngine;
+
+namespace HillNGun.Tests.EditMode
+{
+    [TestFixture]
+    public class WeaponChargeTests
+    {
+        private WeaponData CreateRavenWeapon()
+        {
+            var weapon = ScriptableObject.CreateInstance<WeaponData>();
+            weapon.fireMode = FireMode.ChargeRelease;
+            weapon.damagePerProjectile = 900;
+            weapon.chargeMinTime = 0.3f;
+            weapon.chargeMaxTime = 1.0f;
+            weapon.chargeDamageMul = 1.6f;
+            return weapon;
+        }
+
+        [Test]
+        public void MinimumDamageBeforeChargeMin()
+        {
+            var weapon = CreateRavenWeapon();
+
+            int damage = weapon.GetChargeDamage(0.2f);
+
+            Assert.AreEqual(900, damage);
+        }
+
+        [Test]
+        public void MinimumDamageAtChargeMin()
+        {
+            var weapon = CreateRavenWeapon();
+
+            int damage = weapon.GetChargeDamage(0.3f);
+
+            Assert.AreEqual(900, damage);
+        }
+
+        [Test]
+        public void MaximumDamageAtChargeMax()
+        {
+            var weapon = CreateRavenWeapon();
+
+            int damage = weapon.GetChargeDamage(1.0f);
+
+            Assert.AreEqual(1440, damage);
+        }
+
+        [Test]
+        public void LinearInterpolationMidCharge()
+        {
+            var weapon = CreateRavenWeapon();
+
+            int damage = weapon.GetChargeDamage(0.65f);
+
+            Assert.Greater(damage, 900);
+            Assert.Less(damage, 1440);
+        }
+
+        [Test]
+        public void ExcessChargeTimeGivesMaxDamage()
+        {
+            var weapon = CreateRavenWeapon();
+
+            int damage = weapon.GetChargeDamage(2.0f);
+
+            Assert.AreEqual(1440, damage);
+        }
+
+        [Test]
+        public void NonChargeWeaponReturnsBaseDamage()
+        {
+            var weapon = ScriptableObject.CreateInstance<WeaponData>();
+            weapon.fireMode = FireMode.Auto;
+            weapon.damagePerProjectile = 150;
+            weapon.chargeMinTime = 0f;
+            weapon.chargeMaxTime = 0f;
+
+            int damage = weapon.GetChargeDamage(1.0f);
+
+            Assert.AreEqual(150, damage);
+        }
+
+        [Test]
+        public void SpreadAnglesCalculation()
+        {
+            var weapon = ScriptableObject.CreateInstance<WeaponData>();
+            weapon.projectilesPerShot = 5;
+            weapon.spreadDeg = 30f;
+
+            float[] angles = weapon.GetSpreadAngles();
+
+            Assert.AreEqual(5, angles.Length);
+            Assert.AreEqual(-15f, angles[0], 0.01f);
+            Assert.AreEqual(-7.5f, angles[1], 0.01f);
+            Assert.AreEqual(0f, angles[2], 0.01f);
+            Assert.AreEqual(7.5f, angles[3], 0.01f);
+            Assert.AreEqual(15f, angles[4], 0.01f);
+        }
+
+        [Test]
+        public void SingleProjectileHasZeroSpread()
+        {
+            var weapon = ScriptableObject.CreateInstance<WeaponData>();
+            weapon.projectilesPerShot = 1;
+            weapon.spreadDeg = 0f;
+
+            float[] angles = weapon.GetSpreadAngles();
+
+            Assert.AreEqual(1, angles.Length);
+            Assert.AreEqual(0f, angles[0]);
+        }
+    }
+}

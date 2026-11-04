@@ -1,0 +1,200 @@
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using HillNGun.Characters;
+using HillNGun.Combat;
+using HillNGun.Core;
+
+namespace HillNGun.UI
+{
+    public class HUDController : MonoBehaviour
+    {
+        [Header("Health")]
+        [SerializeField] private Slider _healthSlider;
+        [SerializeField] private TextMeshProUGUI _healthText;
+
+        [Header("Ammo Gauge")]
+        [SerializeField] private Transform _ammoGaugeContainer;
+        [SerializeField] private Image[] _ammoCells;
+        [SerializeField] private TextMeshProUGUI _reloadingText;
+
+        [Header("Grenade")]
+        [SerializeField] private TextMeshProUGUI _grenadeCountText;
+        [SerializeField] private Slider _grenadeRechargeSlider;
+
+        [Header("Skill")]
+        [SerializeField] private Button _skillButton;
+        [SerializeField] private Image _skillCooldownOverlay;
+        [SerializeField] private TextMeshProUGUI _skillCooldownText;
+
+        [Header("Roll")]
+        [SerializeField] private Image _rollCooldownOverlay;
+
+        [Header("Character Info")]
+        [SerializeField] private TextMeshProUGUI _characterNameText;
+        [SerializeField] private Image _roleIcon;
+
+        private CharacterStateMachine _character;
+        private LocalizationManager _localization;
+
+        private void Awake()
+        {
+            _localization = ServiceLocator.Get<LocalizationManager>();
+        }
+
+        public void SetCharacter(CharacterStateMachine character)
+        {
+            _character = character;
+
+            if (_characterNameText != null && character.Data != null)
+            {
+                string name = _localization?.GetString(character.Data.nameKey) ?? character.Data.id;
+                _characterNameText.text = name;
+            }
+
+            InitializeAmmoGauge();
+        }
+
+        private void InitializeAmmoGauge()
+        {
+            if (_ammoCells == null || _character?.AmmoGauge == null) return;
+
+            int maxCells = _character.AmmoGauge.MaxCells;
+            for (int i = 0; i < _ammoCells.Length; i++)
+            {
+                if (_ammoCells[i] != null)
+                {
+                    _ammoCells[i].gameObject.SetActive(i < maxCells);
+                }
+            }
+        }
+
+        private void Update()
+        {
+            if (_character == null) return;
+
+            UpdateHealth();
+            UpdateAmmoGauge();
+            UpdateGrenade();
+            UpdateSkill();
+            UpdateRoll();
+        }
+
+        private void UpdateHealth()
+        {
+            if (_healthSlider != null)
+            {
+                _healthSlider.value = _character.HpRatio;
+            }
+
+            if (_healthText != null)
+            {
+                _healthText.text = $"{_character.CurrentHp}/{_character.MaxHp}";
+            }
+        }
+
+        private void UpdateAmmoGauge()
+        {
+            var gauge = _character.AmmoGauge;
+            if (gauge == null) return;
+
+            for (int i = 0; i < _ammoCells.Length; i++)
+            {
+                if (_ammoCells[i] != null && _ammoCells[i].gameObject.activeSelf)
+                {
+                    float fill = gauge.GetCellFillRatio(i);
+                    _ammoCells[i].fillAmount = fill;
+
+                    Color cellColor = fill >= 1f ? Color.yellow : 
+                                     fill > 0f ? Color.Lerp(Color.gray, Color.yellow, fill) : 
+                                     Color.gray;
+                    _ammoCells[i].color = cellColor;
+                }
+            }
+
+            if (_reloadingText != null)
+            {
+                bool isReloading = gauge.IsEmpty || gauge.CurrentCells < gauge.MaxCells;
+                _reloadingText.gameObject.SetActive(gauge.IsEmpty);
+                
+                if (gauge.IsEmpty)
+                {
+                    string reloadText = _localization?.GetString("ui.reloading") ?? "장전 중";
+                    _reloadingText.text = reloadText;
+                }
+            }
+        }
+
+        private void UpdateGrenade()
+        {
+            var grenadeSystem = _character.GrenadeSystem;
+            if (grenadeSystem == null) return;
+
+            if (_grenadeCountText != null)
+            {
+                _grenadeCountText.text = $"{grenadeSystem.CurrentGrenades}/{grenadeSystem.MaxGrenades}";
+            }
+
+            if (_grenadeRechargeSlider != null)
+            {
+                bool isRecharging = grenadeSystem.CurrentGrenades < grenadeSystem.MaxGrenades;
+                _grenadeRechargeSlider.gameObject.SetActive(isRecharging);
+                _grenadeRechargeSlider.value = grenadeSystem.RechargeProgress;
+            }
+        }
+
+        private void UpdateSkill()
+        {
+            float cooldownRatio = _character.SkillCooldownRatio;
+            bool isOnCooldown = cooldownRatio > 0f;
+
+            if (_skillCooldownOverlay != null)
+            {
+                _skillCooldownOverlay.fillAmount = cooldownRatio;
+                _skillCooldownOverlay.gameObject.SetActive(isOnCooldown);
+            }
+
+            if (_skillCooldownText != null)
+            {
+                if (isOnCooldown && _character.Data?.skill != null)
+                {
+                    float remainingTime = cooldownRatio * _character.Data.skill.cooldown;
+                    _skillCooldownText.text = Mathf.CeilToInt(remainingTime).ToString();
+                    _skillCooldownText.gameObject.SetActive(true);
+                }
+                else
+                {
+                    _skillCooldownText.gameObject.SetActive(false);
+                }
+            }
+
+            if (_skillButton != null)
+            {
+                _skillButton.interactable = !isOnCooldown;
+            }
+        }
+
+        private void UpdateRoll()
+        {
+            if (_rollCooldownOverlay != null)
+            {
+                _rollCooldownOverlay.fillAmount = _character.RollCooldownRatio;
+            }
+        }
+
+        public void OnSkillButtonPressed()
+        {
+            // Handled by input system
+        }
+
+        public void OnGrenadeButtonPressed()
+        {
+            // Handled by input system
+        }
+
+        public void OnRollButtonPressed()
+        {
+            // Handled by input system
+        }
+    }
+}

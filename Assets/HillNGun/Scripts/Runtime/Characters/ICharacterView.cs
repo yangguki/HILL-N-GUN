@@ -1,0 +1,14 @@
+using UnityEngine;
+
+namespace HillNGun.Characters
+{
+    public interface ICharacterView
+    {
+        void Initialize(CharacterStateMachine character);
+        void UpdateView(CharacterStateMachine character);
+        void PlayHitFlash(float duration);
+        void PlayDamageNumber(int damage, Vector2 position);
+        void SetVisible(bool visible);
+        void Cleanup();
+    }
+}

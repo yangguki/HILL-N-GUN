@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6f990d2f2c4f4690a6f14a1039584ae, type: 3}
+  m_Name: battlefield_main
+  m_EditorClassIdentifier: 
+  size: {x: 24, y: 18}
+  ourRowsY:
+  - 2
+  - 4.5
+  - 7
+  enemyRowsY:
+  - 11
+  - 13.5
+  - 16
+  coverOffsetMin: 0.35
+  coverOffsetMax: 0.85
+  startRowIndex: 1
+  assaultStartsFrontRow: 1
+  startX:
+  - 6
+  - 12
+  - 18
+  referenceResolution: {x: 1920, y: 1080}
+  pxPerTileX: 72
+  pxPerTileY: 50
+  perspectiveScaleBottom: 1
+  perspectiveScaleTop: 0.8
+  hudTopPx: 100
+  boundaryMinX: 0.5
+  boundaryMaxX: 23.5
+  covers:
+  - coverId: cover_barrel
+    rowIndex: 0
+    xPosition: 4
+  - coverId: cover_trough
+    rowIndex: 0
+    xPosition: 12
+  - coverId: cover_barrel
+    rowIndex: 0
+    xPosition: 20
+  - coverId: cover_swing_door
+    rowIndex: 1
+    xPosition: 6
+  - coverId: cover_wagon
+    rowIndex: 1
+    xPosition: 12
+  - coverId: cover_swing_door
+    rowIndex: 1
+    xPosition: 18
+  - coverId: cover_barrel
+    rowIndex: 2
+    xPosition: 3
+  - coverId: cover_trough
+    rowIndex: 2
+    xPosition: 9
+  - coverId: cover_trough
+    rowIndex: 2
+    xPosition: 15
+  - coverId: cover_barrel
+    rowIndex: 2
+    xPosition: 21
+  spawnCoversInPvE: 1
+  mirrorCoversToEnemySideInPvP: 1

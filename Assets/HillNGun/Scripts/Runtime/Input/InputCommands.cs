@@ -1,0 +1,200 @@
+using UnityEngine;
+
+namespace HillNGun.Input
+{
+    public enum CommandType
+    {
+        Move,
+        RowChange,
+        AimStart,
+        AimDrag,
+        AimRelease,
+        Roll,
+        GrenadeAimStart,
+        GrenadeAimDrag,
+        GrenadeRelease,
+        SkillStart,
+        SkillHold,
+        SkillRelease
+    }
+
+    public interface IInputCommand
+    {
+        CommandType Type { get; }
+        float Timestamp { get; }
+    }
+
+    public readonly struct MoveCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.Move;
+        public float Timestamp { get; }
+        public Vector2 Direction { get; }
+        public float Magnitude { get; }
+
+        public MoveCommand(Vector2 direction, float magnitude, float timestamp)
+        {
+            Direction = direction;
+            Magnitude = magnitude;
+            Timestamp = timestamp;
+        }
+
+        public static MoveCommand Stop(float timestamp) => new MoveCommand(Vector2.zero, 0f, timestamp);
+    }
+
+    public readonly struct RowChangeCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.RowChange;
+        public float Timestamp { get; }
+        public int Direction { get; }
+
+        public RowChangeCommand(int direction, float timestamp)
+        {
+            Direction = direction;
+            Timestamp = timestamp;
+        }
+    }
+
+    public readonly struct AimStartCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.AimStart;
+        public float Timestamp { get; }
+        public Vector2 ScreenPosition { get; }
+
+        public AimStartCommand(Vector2 screenPosition, float timestamp)
+        {
+            ScreenPosition = screenPosition;
+            Timestamp = timestamp;
+        }
+    }
+
+    public readonly struct AimDragCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.AimDrag;
+        public float Timestamp { get; }
+        public Vector2 Direction { get; }
+        public float Distance { get; }
+        public bool IsOutsideDeadzone { get; }
+
+        public AimDragCommand(Vector2 direction, float distance, bool isOutsideDeadzone, float timestamp)
+        {
+            Direction = direction;
+            Distance = distance;
+            IsOutsideDeadzone = isOutsideDeadzone;
+            Timestamp = timestamp;
+        }
+    }
+
+    public readonly struct AimReleaseCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.AimRelease;
+        public float Timestamp { get; }
+        public Vector2 Direction { get; }
+        public bool WasOutsideDeadzone { get; }
+
+        public AimReleaseCommand(Vector2 direction, bool wasOutsideDeadzone, float timestamp)
+        {
+            Direction = direction;
+            WasOutsideDeadzone = wasOutsideDeadzone;
+            Timestamp = timestamp;
+        }
+    }
+
+    public readonly struct RollCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.Roll;
+        public float Timestamp { get; }
+        public Vector2 Direction { get; }
+
+        public RollCommand(Vector2 direction, float timestamp)
+        {
+            Direction = direction;
+            Timestamp = timestamp;
+        }
+    }
+
+    public readonly struct GrenadeAimStartCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.GrenadeAimStart;
+        public float Timestamp { get; }
+        public Vector2 ScreenPosition { get; }
+
+        public GrenadeAimStartCommand(Vector2 screenPosition, float timestamp)
+        {
+            ScreenPosition = screenPosition;
+            Timestamp = timestamp;
+        }
+    }
+
+    public readonly struct GrenadeAimDragCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.GrenadeAimDrag;
+        public float Timestamp { get; }
+        public Vector2 Direction { get; }
+        public float Distance { get; }
+
+        public GrenadeAimDragCommand(Vector2 direction, float distance, float timestamp)
+        {
+            Direction = direction;
+            Distance = distance;
+            Timestamp = timestamp;
+        }
+    }
+
+    public readonly struct GrenadeReleaseCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.GrenadeRelease;
+        public float Timestamp { get; }
+        public Vector2 TargetPosition { get; }
+        public bool WasOutsideDeadzone { get; }
+
+        public GrenadeReleaseCommand(Vector2 targetPosition, bool wasOutsideDeadzone, float timestamp)
+        {
+            TargetPosition = targetPosition;
+            WasOutsideDeadzone = wasOutsideDeadzone;
+            Timestamp = timestamp;
+        }
+    }
+
+    public readonly struct SkillStartCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.SkillStart;
+        public float Timestamp { get; }
+        public Vector2 ScreenPosition { get; }
+
+        public SkillStartCommand(Vector2 screenPosition, float timestamp)
+        {
+            ScreenPosition = screenPosition;
+            Timestamp = timestamp;
+        }
+    }
+
+    public readonly struct SkillHoldCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.SkillHold;
+        public float Timestamp { get; }
+        public float HoldTime { get; }
+        public Vector2 Direction { get; }
+
+        public SkillHoldCommand(float holdTime, Vector2 direction, float timestamp)
+        {
+            HoldTime = holdTime;
+            Direction = direction;
+            Timestamp = timestamp;
+        }
+    }
+
+    public readonly struct SkillReleaseCommand : IInputCommand
+    {
+        public CommandType Type => CommandType.SkillRelease;
+        public float Timestamp { get; }
+        public Vector2 TargetPosition { get; }
+        public float HoldTime { get; }
+
+        public SkillReleaseCommand(Vector2 targetPosition, float holdTime, float timestamp)
+        {
+            TargetPosition = targetPosition;
+            HoldTime = holdTime;
+            Timestamp = timestamp;
+        }
+    }
+}

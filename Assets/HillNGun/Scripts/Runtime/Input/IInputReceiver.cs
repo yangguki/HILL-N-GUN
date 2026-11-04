@@ -1,0 +1,18 @@
+namespace HillNGun.Input
+{
+    public interface IInputReceiver
+    {
+        void OnMoveCommand(MoveCommand cmd);
+        void OnRowChangeCommand(RowChangeCommand cmd);
+        void OnAimStartCommand(AimStartCommand cmd);
+        void OnAimDragCommand(AimDragCommand cmd);
+        void OnAimReleaseCommand(AimReleaseCommand cmd);
+        void OnRollCommand(RollCommand cmd);
+        void OnGrenadeAimStartCommand(GrenadeAimStartCommand cmd);
+        void OnGrenadeAimDragCommand(GrenadeAimDragCommand cmd);
+        void OnGrenadeReleaseCommand(GrenadeReleaseCommand cmd);
+        void OnSkillStartCommand(SkillStartCommand cmd);
+        void OnSkillHoldCommand(SkillHoldCommand cmd);
+        void OnSkillReleaseCommand(SkillReleaseCommand cmd);
+    }
+}

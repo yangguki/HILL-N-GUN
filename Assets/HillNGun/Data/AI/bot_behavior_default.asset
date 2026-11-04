@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2316eabd67ecf415ab1e6809aca9361d, type: 3}
+  m_Name: bot_behavior_default
+  m_EditorClassIdentifier: 
+  decisionInterval: 0.3
+  distanceWeight: 1
+  lowHpWeight: 0.5
+  aimDuration: 0.4
+  aimJitter: 5
+  rowChangeChance: 0.3
+  dodgeHpThreshold: 0.5
+  dodgeChance: 0.4
+  bulletDodge:
+    chance: 0.25
+    delayMin: 0.15
+    delayMax: 0.35
+    lookahead: 0.6
+    margin: 0.2
+    cooldown: 2.5
+  sidestepTime: 0.3
+  grenadeUseChance: 0.3
+  skillUseChance: 0.2
+  revivePriority: 0.6
+  reviveSeekDistance: 8
+  advanceWhenOutOfRange: 1
+  dodgeTailSweep: 1
+  useSkills: 1
+  repairCoverBelowRatio: 0.6
+  useGrenades: 1
+  grenadeMinInterval: 4
+  pveAllyGrenadeMinInterval: 45
+  reviveAllies: 1

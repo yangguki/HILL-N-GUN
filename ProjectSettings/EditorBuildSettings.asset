@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/HillNGun/Scenes/Title.unity
+    guid: 9b989045dbf4a45d0a20f0db39b7c13c
+  - enabled: 1
+    path: Assets/HillNGun/Scenes/ModeSelect.unity
+    guid: f5ed11ae5ca374cf884d0691be60df56
+  - enabled: 1
+    path: Assets/HillNGun/Scenes/CharacterSelect.unity
+    guid: 9dd1c49da26e24498afbb602adac3158
+  - enabled: 1
+    path: Assets/HillNGun/Scenes/PvE_Match.unity
+    guid: 5eafce1425c354984b4c6d719cb18c9d
+  - enabled: 1
+    path: Assets/HillNGun/Scenes/PvP_Match.unity
+    guid: 10a93cbd1d9404d6c82969d17c19e663
+  - enabled: 1
+    path: Assets/HillNGun/Scenes/M1_Sandbox.unity
+    guid: ef5a8f42725b6412fad13a7781df790d
+  - enabled: 1
+    path: Assets/HillNGun/Scenes/Result.unity
+    guid: 5e35a62e072d248b292d3e7230dda02f
+  m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

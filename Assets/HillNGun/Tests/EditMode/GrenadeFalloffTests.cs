@@ -1,0 +1,102 @@
+using NUnit.Framework;
+using HillNGun.Data;
+using UnityEngine;
+
+namespace HillNGun.Tests.EditMode
+{
+    [TestFixture]
+    public class GrenadeFalloffTests
+    {
+        private GrenadeData CreateTestGrenadeData()
+        {
+            var grenade = ScriptableObject.CreateInstance<GrenadeData>();
+            grenade.centerDamage = 900;
+            grenade.edgeDamage = 450;
+            grenade.radius = 1.5f;
+            grenade.innerRadius = 0.5f;
+            return grenade;
+        }
+
+        [Test]
+        public void FullDamageAtCenter()
+        {
+            var grenade = CreateTestGrenadeData();
+
+            int damage = grenade.GetDamageAtDistance(0f);
+
+            Assert.AreEqual(900, damage);
+        }
+
+        [Test]
+        public void FullDamageWithinInnerRadius()
+        {
+            var grenade = CreateTestGrenadeData();
+
+            int damage = grenade.GetDamageAtDistance(0.4f);
+
+            Assert.AreEqual(900, damage);
+        }
+
+        [Test]
+        public void LinearFalloffBetweenInnerAndOuter()
+        {
+            var grenade = CreateTestGrenadeData();
+
+            int damageAtMid = grenade.GetDamageAtDistance(1.0f);
+
+            Assert.Greater(damageAtMid, 450);
+            Assert.Less(damageAtMid, 900);
+        }
+
+        [Test]
+        public void EdgeDamageAtRadius()
+        {
+            var grenade = CreateTestGrenadeData();
+
+            int damage = grenade.GetDamageAtDistance(1.49f);
+
+            Assert.LessOrEqual(Mathf.Abs(damage - 450), 10);
+        }
+
+        [Test]
+        public void NoDamageOutsideRadius()
+        {
+            var grenade = CreateTestGrenadeData();
+
+            int damage = grenade.GetDamageAtDistance(2.0f);
+
+            Assert.AreEqual(0, damage);
+        }
+
+        [Test]
+        public void FlightTimeCalculation()
+        {
+            var grenade = CreateTestGrenadeData();
+            grenade.flightTimeBase = 0.6f;
+            grenade.flightTimePerTile = 0.04f;
+
+            float timeAt2Tiles = grenade.GetFlightTime(2f);
+            float timeAt9Tiles = grenade.GetFlightTime(9f);
+
+            Assert.AreEqual(0.68f, timeAt2Tiles, 0.001f);
+            Assert.AreEqual(0.96f, timeAt9Tiles, 0.001f);
+        }
+
+        [Test]
+        public void VoltGrenadeSettings()
+        {
+            var grenade = ScriptableObject.CreateInstance<GrenadeData>();
+            grenade.centerDamage = 700;
+            grenade.edgeDamage = 350;
+            grenade.radius = 2.0f;
+            grenade.innerRadius = 0.5f;
+            grenade.knockback = 1.0f;
+
+            int centerDamage = grenade.GetDamageAtDistance(0f);
+            int edgeDamage = grenade.GetDamageAtDistance(1.9f);
+
+            Assert.AreEqual(700, centerDamage);
+            Assert.Greater(grenade.knockback, 0f);
+        }
+    }
+}

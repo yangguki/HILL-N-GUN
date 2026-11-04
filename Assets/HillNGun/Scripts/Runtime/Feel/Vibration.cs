@@ -1,0 +1,50 @@
+using UnityEngine;
+using HillNGun.Data;
+using HillNGun.Core;
+
+namespace HillNGun.Feel
+{
+    public static class Vibration
+    {
+        private static FeelData _feelData;
+
+        public static void SetFeelData(FeelData data)
+        {
+            _feelData = data;
+        }
+
+        public static void Vibrate(int milliseconds)
+        {
+            if (_feelData != null && !_feelData.vibrationEnabled) return;
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+            try
+            {
+                using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+                using (var currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+                using (var vibrator = currentActivity.Call<AndroidJavaObject>("getSystemService", "vibrator"))
+                {
+                    if (vibrator != null)
+                    {
+                        vibrator.Call("vibrate", (long)milliseconds);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"Vibration failed: {e.Message}");
+            }
+#elif UNITY_IOS && !UNITY_EDITOR
+            Handheld.Vibrate();
+#endif
+        }
+
+        public static void VibrateBigDamage(int damage)
+        {
+            if (_feelData == null) return;
+            if (!_feelData.ShouldVibrate(damage)) return;
+
+            Vibrate(_feelData.vibrateBigDamageMs);
+        }
+    }
+}

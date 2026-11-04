@@ -1,0 +1,49 @@
+using System;
+using System.Collections.Generic;
+
+namespace HillNGun.Core
+{
+    public static class ServiceLocator
+    {
+        private static readonly Dictionary<Type, object> _services = new Dictionary<Type, object>();
+
+        public static void Register<T>(T service) where T : class
+        {
+            var type = typeof(T);
+            if (_services.ContainsKey(type))
+            {
+                _services[type] = service;
+            }
+            else
+            {
+                _services.Add(type, service);
+            }
+        }
+
+        public static T Get<T>() where T : class
+        {
+            var type = typeof(T);
+            if (_services.TryGetValue(type, out var service))
+            {
+                return service as T;
+            }
+            return null;
+        }
+
+        public static bool TryGet<T>(out T service) where T : class
+        {
+            service = Get<T>();
+            return service != null;
+        }
+
+        public static void Unregister<T>() where T : class
+        {
+            _services.Remove(typeof(T));
+        }
+
+        public static void Clear()
+        {
+            _services.Clear();
+        }
+    }
+}

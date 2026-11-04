@@ -1,0 +1,289 @@
+key,ko
+game.title,힐앤건
+game.subtitle,서부 카우보이 슈팅
+ui.start_game,게임 시작
+ui.select_mode,모드 선택
+ui.select_team,팀 구성
+ui.start_match,전투 시작
+ui.back,뒤로
+ui.paused,일시정지
+ui.resume,재개
+ui.restart,재시작
+ui.quit_to_menu,메뉴로 나가기
+ui.quit_to_title,타이틀로 나가기
+ui.retry,재도전
+ui.to_title,타이틀
+mode.pve.title,PvE 스토리
+mode.pve.desc,"먼지 마을을 지켜라!
+3개 스테이지 + 보스전"
+mode.pvp.title,PvP 대전
+mode.pvp.desc,"봇과 3v3 탈락전
+3판 2선승"
+mode.practice.title,연습장
+mode.practice.desc,"조작 연습 및 테스트
+과녁과 엄폐물"
+role.assault,돌격
+role.sniper,저격
+role.support,지원
+result.victory,승리!
+result.defeat,패배
+stats.match_time,전투 시간
+stats.kills,처치
+stats.deaths,사망
+stats.damage_dealt,가한 피해
+stats.damage_taken,받은 피해
+stats.enemies_defeated,처치한 적
+stats.rounds,라운드
+stats.covers_destroyed,파괴된 엄폐물
+char.buster.name,버스터
+char.raven.name,레이븐
+char.volt.name,볼트
+ui.reloading,장전 중
+ui.downed,기절
+ui.reviving,소생 중
+ui.skill_ready,스킬 준비됨
+ui.grenade,수류탄
+ui.roll,구르기
+ui.hp,체력
+ui.ammo,탄약
+ui.cooldown,대기 중
+skill.breach.name,돌파 사격
+skill.breach.desc,3초간 산탄 퍼짐각 증가 및 엄폐물 피해 2배
+skill.pierce.name,관통탄
+skill.pierce.desc,다음 한 발이 엄폐물을 관통
+skill.repair.name,긴급 보수
+skill.repair.desc,아군 엄폐물 내구도 40% 회복
+passive.roll_shot.name,사격 집중
+passive.roll_shot.desc,구르기 후 첫 발 피해 +30%
+passive.weakpoint.name,약점 사격
+passive.weakpoint.desc,2초 이상 조준 시 약점 명중 피해 +25%
+passive.fast_revive.name,신속 소생
+passive.fast_revive.desc,소생 시간 2초로 감소
+cover.swing_door.name,살룬 스윙 도어
+cover.barrel.name,나무 통
+cover.trough.name,말 여물통
+cover.wagon.name,마차
+target.static,고정 과녁
+target.mover,이동 과녁
+target.shooter,반격 과녁
+debug.hit_circles,판정 원 표시
+debug.cover_colliders,엄폐물 충돌체 표시
+debug.ranges,사거리 표시
+debug.projectiles,투사체 표시
+debug.stats,상태 표시
+debug.grid,그리드 표시
+debug.invincible,무적
+debug.slow_motion,슬로모션
+pve.stage.dusty_town_1,먼지 마을 1-1
+pve.stage.dusty_town_2,먼지 마을 1-2
+pve.stage.dusty_town_3,먼지 마을 1-3
+pve.boss.rattlesnake_rex,방울뱀 렉스
+pve.enemy.pistol_mook,권총 졸개
+pve.enemy.dynamite_bandit,다이너마이트 강도
+pve.enemy.mounted_raider,말 탄 약탈자
+pve.ui.wave,웨이브
+pve.ui.gauge,적 게이지
+pve.ui.stage_clear,스테이지 클리어!
+pve.ui.stage_failed,스테이지 실패
+pve.ui.boss_warning,보스 등장!
+pve.ui.boss_defeated,보스 처치!
+pvp.ui.round,라운드
+pvp.ui.round_win,라운드 승리
+pvp.ui.round_lose,라운드 패배
+pvp.ui.round_draw,무승부
+pvp.map.main_street,마을 큰길
+fx.pierce_shot,관통!
+fx.repair,보수
+fx.weakpoint,약점!
+fx.reviving,소생 중...
+fx.revived,소생!
+result.draw,무승부
+result.round_w,승
+result.round_l,패
+result.round_d,무
+stats.round_history,라운드 기록
+reward.title,보상
+reward.none,보상 없음
+reward.bounty,현상금
+reward.xp,배지 경험치
+reward.badge,보안관 배지 Lv.{0}
+reward.bounty_total,보유 현상금
+reward.stage_unlocked,새 스테이지 해금: {0}
+reward.region_unlocked,새 지역 해금: {0}
+reward.skin_unlocked,새 스킨: {0}
+reward.badge_level,보안관 배지 Lv.{0} 달성
+reward.mastery_level,{0} 숙련도 Lv.{1}
+mastery.title.1,풋내기
+mastery.title.2,떠돌이 총잡이
+mastery.title.3,보안관 대리
+mastery.title.4,현상금 사냥꾼
+mastery.title.5,전설의 총잡이
+mastery.title.6,서부의 별
+region.dusty_town,먼지 마을
+region.railroad_canyon,철도 협곡
+skin.buster.dusty,버스터 - 먼지바람
+skin.buster.gold,버스터 - 황금 박차
+skin.buster.veteran,버스터 - 노련한 사냥꾼
+skin.raven.dusty,레이븐 - 먼지바람
+skin.raven.gold,레이븐 - 황금 박차
+skin.raven.veteran,레이븐 - 노련한 사냥꾼
+skin.volt.dusty,볼트 - 먼지바람
+skin.volt.gold,볼트 - 황금 박차
+skin.volt.veteran,볼트 - 노련한 사냥꾼
+pvp.ui.fight,싸워라!
+pvp.ui.reason_wiped,전멸
+pvp.ui.reason_alive,시간 초과 - 생존 인원
+pvp.ui.reason_hp,시간 초과 - 남은 체력
+pvp.ui.reason_draw,시간 초과 - 동점
+pvp.ui.match_win,매치 승리!
+pvp.ui.match_lose,매치 패배
+pvp.ui.match_draw,매치 무승부
+pvp.ui.crate_drop,보급 상자 투하!
+pvp.ui.crate_open_us,우리 팀이 보급 상자 획득
+pvp.ui.crate_open_them,상대 팀이 보급 상자 획득
+pvp.ui.match_point,매치 포인트
+ui.quit_to_lobby,로비로 나가기
+ui.to_lobby,로비
+lobby.tab.home,홈
+lobby.tab.stages,스테이지
+lobby.tab.characters,캐릭터
+lobby.tab.shop,상점
+lobby.tab.settings,설정
+lobby.pve_go,스테이지 선택
+lobby.pvp_go,대전 시작
+lobby.practice_go,연습하기
+lobby.pvp_offline,오프라인 프로토타입: 봇과 3대3 대전
+lobby.profile,내 기록
+lobby.stat.pve_runs,PvE 출격
+lobby.stat.boss_kills,보스 처치
+lobby.stat.pvp,PvP 승/패/무
+lobby.region_progress,지역 진행
+lobby.locked,잠김
+lobby.locked_paren,(잠김)
+lobby.coming_soon,준비 중
+lobby.no_stats_note,능력치 성장 없음: 보상은 스킨·칭호
+stub.online,온라인 매칭·랭크: 서버 필요 (스텁)
+stub.iap,외부 결제(IAP) 필요 · 오프라인 스텁
+stub.ads,광고 SDK 없음 · 스텁
+stage.regions,지역
+stage.wanted,"현상수배: {0}  ${1:N0}"
+stage.region_locked,이전 지역 보스를 잡으면 열립니다
+stage.region_soon,해금 완료! 이 지역 스테이지는 프로토타입 범위 밖입니다
+stage.chain_note,출격하면 고른 스테이지부터 보스까지 이어서 진행합니다
+stage.target_time,목표 {0:0}~{1:0}초
+stage.cleared,★ 클리어
+stage.open,도전 가능
+stage.locked,잠김: 이전 스테이지 클리어 필요
+stage.go,출격
+char.preview,(미리보기)
+char.mastery,숙련도 Lv.{0}  「{1}」
+char.mastery_max,최고 숙련도
+char.mastery_xp,{0} / {1} XP
+char.record,{0}판 · {1}승
+char.kit,스킬 {0} · 패시브 {1}
+char.skins,스킨
+char.skins_note,능력치 변화 없음 · 임시 색 변경 (실제 아트는 외부 작업)
+skin.default,기본
+skin.req.purchase,"현상금 ${0:N0}로 구매"
+skin.req.boss,{0} 보스 처치 보상
+skin.req.mastery,숙련도 Lv.{0} 달성
+skin.req.default,기본 지급
+skin.owned,보유 중
+skin.equipped,장착 중
+skin.equip,장착
+skin.equipped_toast,{0} 장착
+skin.to_shop,상점에서 구매
+skin.locked,잠김
+shop.bounty_title,현상금 상점
+shop.bounty_note,꾸미기 전용 · 능력치 변화 없음
+shop.premium_title,프리미엄
+shop.price_tbd,가격 미정
+shop.iap_ok,구매 완료
+shop.iap_offline,오프라인 프로토타입: 실제 결제는 지원하지 않습니다 (스텁)
+shop.buy,구매
+shop.not_enough,현상금 부족
+shop.bought,{0} 구매 완료!
+shop.product.season_pass,시즌 패스 (유료 단계)
+shop.product.season_pass.desc,한 달 시즌 · 서부풍 스킨·현상금·이모트 보상
+shop.product.skin_bundle,신규 캐릭터 스킨 묶음
+shop.product.skin_bundle.desc,출시 첫 주 한정 · 캐릭터 빠른 획득 + 스킨 (능력치 없음)
+shop.product.rank_pass,랭크 패스 (나중에 도입)
+shop.product.rank_pass.desc,랭크전 참여 보상형 프리미엄 패스
+settings.sound,소리
+settings.sound_on,소리 켜기
+settings.master,전체 볼륨
+settings.music,배경음
+settings.sfx,효과음
+settings.feel,화면·진동 (접근성)
+settings.vibration,진동
+settings.shake,화면 흔들림
+settings.controls,조작
+settings.button_size,버튼 크기
+settings.size_s,작게
+settings.size_m,보통
+settings.size_l,크게
+settings.language,언어
+settings.language_note,번역은 출시 전 (영어는 일부 화면만)
+settings.misc,기타
+settings.tutorial_replay,튜토리얼 다시 보기
+settings.tutorial_pending,튜토리얼: 다음 PvE 1-1에서 표시
+settings.tutorial_reset_done,다음 PvE 1-1에서 튜토리얼을 다시 보여줍니다
+settings.reset_progress,진행 초기화
+settings.reset_confirm,한 번 더 누르면 진행이 모두 지워집니다
+settings.reset_done,진행을 초기화했습니다
+result.ad_playing,광고 재생 중... (오프라인 스텁)
+result.ad_unavailable,지금은 광고를 볼 수 없습니다
+result.continue_ad,광고 보고 이어하기
+result.to_stages,스테이지 선택
+result.to_characters,캐릭터·스킨
+tutorial.header,조작 익히기 {0}/{1}
+tutorial.good,좋아요!
+tutorial.skip,건너뛰기
+tutorial.move,왼쪽 아래 조이스틱을 좌우로 밀어 움직이세요
+tutorial.move.pc,A · D 키로 좌우로 움직이세요
+tutorial.row,조이스틱을 위·아래로 밀어 엄폐 줄을 바꾸세요
+tutorial.row.pc,W · S 키로 엄폐 줄을 바꾸세요
+tutorial.shoot,오른쪽 사격 버튼을 누른 채 끌어 조준하고 떼면 발사!
+tutorial.shoot.pc,마우스 왼쪽 버튼을 누른 채 끌어 조준하고 떼면 발사!
+tutorial.gauge,탄약 게이지가 비면 잠시 장전합니다. 엄폐물 뒤에서 버티세요
+tutorial.roll,구르기 버튼으로 총알을 피하세요 (구르는 동안 무적)
+tutorial.roll.pc,스페이스바로 구르기 (구르는 동안 무적)
+tutorial.grenade,수류탄 버튼을 끌어 던지세요. 엄폐물에 강합니다
+tutorial.grenade.pc,Q 키 또는 마우스 오른쪽 버튼으로 수류탄을 던지세요
+tutorial.skill,스킬 버튼으로 캐릭터 고유 스킬을 쓰세요
+tutorial.skill.pc,E 키로 캐릭터 고유 스킬을 쓰세요
+tutorial.revive,동료가 쓰러지면 곁에 서서 소생하세요. 적 게이지를 채우면 클리어!
+region.silver_mine,은광산
+region.border_fort,국경 요새
+region.ghost_town,유령 마을
+boss.baron,기관사 바론
+boss.may,다이너마이트 메이
+boss.grimshaw,교수형 판사 그림쇼
+boss.nameless,이름 없는 총잡이
+theme.town_street,마을 큰길
+theme.canyon_pass,협곡 광산길
+theme.rail_station,기차역
+theme.sunset_showdown,석양의 결투
+theme.frontier_dusk,황혼의 변경
+reward.coins_picked,주운 현상금 {0}
+shop.tab.guns,총기
+shop.tab.skins,스킨
+shop.guns_note,역할별 총 · 구매 후 캐릭터 화면이나 여기서 장착
+char.guns,총
+gun.anyone,모두
+gun.stats,피해 {0} · 간격 {1:0.##}초 · 사거리 {2:0.#} · 탄창 {3}발 · 탄속 {4:0}
+gun.equipped_toast,{0}: {1} 장착
+weapon.wpn_buster,더블배럴 산탄총
+weapon.wpn_buster.desc,근거리 산탄 5발 (기본)
+weapon.wpn_raven,사냥용 라이플
+weapon.wpn_raven.desc,충전 저격 (기본)
+weapon.wpn_volt,대형 리볼버
+weapon.wpn_volt.desc,한 발씩 정확하게 (기본)
+weapon.wpn_peacemaker,피스메이커 리볼버
+weapon.wpn_peacemaker.desc,6연발 · 빠른 격발 · 한 발 380
+weapon.wpn_coachgun,코치건
+weapon.wpn_coachgun.desc,산탄 6발 · 사거리 5.5
+weapon.wpn_lever_action,레버액션 소총
+weapon.wpn_lever_action.desc,충전 없이 4연발 · 사거리 11
+weapon.wpn_gatling,개틀링건
+weapon.wpn_gatling.desc,누르고 있으면 연사 · 18발

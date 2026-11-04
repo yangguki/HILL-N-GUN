@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""HILL N GUN log report (offline).
+
+Reads two CSV formats written by the game:
+  1. GameLogger session logs   persistentDataPath/logs/<session>.csv
+     header: ts_ms,session_id,build,scene,event,actor,char_id,x,y,row,gauge,hp,v1,v2,extra
+  2. Local analytics events    persistentDataPath/analytics_local.csv (or smoketest_analytics.csv)
+     header: utc,event,fields      (fields = "k=v;k=v")
+
+Usage:
+  python3 tools/log_report.py <file.csv | folder>
+"""
+import csv
+import sys
+from collections import Counter, defaultdict
+from pathlib import Path
+
+
+def _f(v, default=0.0):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return default
+
+
+def report_session(path, rows):
+    ev = Counter(r.get("event", "") for r in rows)
+    per_char = defaultdict(Counter)
+    fps = []
+    for r in rows:
+        if r.get("char_id"):
+            per_char[r["char_id"]][r.get("event", "")] += 1
+        if r.get("event") == "perf_sample":
+            fps.append(_f(r.get("v1")))
+    t0 = _f(rows[0].get("ts_ms")) if rows else 0
+    t1 = _f(rows[-1].get("ts_ms")) if rows else 0
+    print(f"== Session log: {path.name}  ({len(rows)} rows, {(t1 - t0) / 1000:.1f}s)")
+    scenes = sorted({r.get("scene", "") for r in rows if r.get("scene")})
+    if scenes:
+        print("   scenes: " + ", ".join(scenes))
+    shots, hits = ev.get("shot_fired", 0), ev.get("hit", 0)
+    print(f"   shots {shots}  hits {hits}  accuracy {hits / shots * 100:.1f}%" if shots else "   shots 0")
+    print(f"   gauge_empty {ev.get('gauge_empty', 0)}  rolls {ev.get('roll', 0)}  row moves {ev.get('move_row', 0)}  "
+          f"grenades {ev.get('grenade_throw', 0)}  skills {ev.get('skill_use', 0)}")
+    print(f"   downed {ev.get('downed', 0)}  revived {ev.get('revived', 0)}  covers destroyed {ev.get('cover_destroyed', 0)}")
+    if fps:
+        print(f"   fps avg {sum(fps) / len(fps):.1f}  min {min(fps):.1f}  samples {len(fps)}")
+    for cid, c in sorted(per_char.items()):
+        print(f"   [{cid}] " + ", ".join(f"{k}={v}" for k, v in c.most_common(6)))
+    print()
+
+
+def _fields(s):
+    out = {}
+    for part in (s or "").split(";"):
+        if "=" in part:
+            k, v = part.split("=", 1)
+            out[k.strip()] = v.strip()
+    return out
+
+
+def report_analytics(path, rows):
+    ev = Counter(r.get("event", "") for r in rows)
+    print(f"== Analytics events: {path.name}  ({len(rows)} events)")
+    for name, n in ev.most_common():
+        print(f"   {name:<16} {n}")
+    results = Counter()
+    for r in rows:
+        if r.get("event") == "match_end":
+            f = _fields(r.get("fields"))
+            results[(f.get("mode", "?"), f.get("result", "?"))] += 1
+    if results:
+        print("   match results: " + ", ".join(f"{m}/{res}={n}" for (m, res), n in sorted(results.items())))
+    steps = [int(_f(_fields(r.get("fields")).get("step"), -1)) for r in rows if r.get("event") == "tutorial_step"]
+    if steps:
+        print(f"   tutorial furthest step reached: {max(steps) + 1}")
+    print()
+
+
+def analyze(path):
+    with open(path, newline="", encoding="utf-8-sig") as fh:
+        rows = list(csv.DictReader(fh))
+    if not rows:
+        print(f"== {path.name}: empty\n")
+        return
+    cols = set(rows[0].keys())
+    if "ts_ms" in cols:
+        report_session(path, rows)
+    elif {"utc", "event"} <= cols:
+        report_analytics(path, rows)
+    else:
+        print(f"== {path.name}: unknown CSV format ({', '.join(sorted(cols))})\n")
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(__doc__)
+        sys.exit(1)
+    p = Path(sys.argv[1])
+    files = sorted(p.rglob("*.csv")) if p.is_dir() else [p]
+    if not files or not files[0].exists():
+        print(f"no CSV found: {p}")
+        sys.exit(1)
+    for f in files:
+        try:
+            analyze(f)
+        except Exception as e:  # keep going on bad files
+            print(f"!! {f.name}: {e}\n")
+
+
+if __name__ == "__main__":
+    main()

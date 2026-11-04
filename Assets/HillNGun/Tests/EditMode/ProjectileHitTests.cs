@@ -1,0 +1,120 @@
+using NUnit.Framework;
+using HillNGun.Battlefield;
+using UnityEngine;
+
+namespace HillNGun.Tests.EditMode
+{
+    [TestFixture]
+    public class ProjectileHitTests
+    {
+        [Test]
+        public void SweptCircleHitsTarget()
+        {
+            Vector2 startPos = new Vector2(0f, 0f);
+            Vector2 endPos = new Vector2(5f, 0f);
+            float projectileRadius = 0.3f;
+            Vector2 targetCenter = new Vector2(3f, 0f);
+            float targetRadius = 0.5f;
+
+            bool hit = CoordinateHelper.SweptCircleCircleIntersection(
+                startPos, endPos, projectileRadius, 
+                targetCenter, targetRadius, 
+                out float t
+            );
+
+            Assert.IsTrue(hit);
+            Assert.Greater(t, 0f);
+            Assert.Less(t, 1f);
+        }
+
+        [Test]
+        public void SweptCircleMissesTarget()
+        {
+            Vector2 startPos = new Vector2(0f, 0f);
+            Vector2 endPos = new Vector2(5f, 0f);
+            float projectileRadius = 0.3f;
+            Vector2 targetCenter = new Vector2(3f, 3f);
+            float targetRadius = 0.5f;
+
+            bool hit = CoordinateHelper.SweptCircleCircleIntersection(
+                startPos, endPos, projectileRadius, 
+                targetCenter, targetRadius, 
+                out float t
+            );
+
+            Assert.IsFalse(hit);
+        }
+
+        [Test]
+        public void FastProjectileDoesNotPassThrough()
+        {
+            Vector2 startPos = new Vector2(0f, 0f);
+            Vector2 endPos = new Vector2(10f, 0f);
+            float projectileRadius = 0.12f;
+            Vector2 targetCenter = new Vector2(5f, 0f);
+            float targetRadius = 0.5f;
+
+            bool hit = CoordinateHelper.SweptCircleCircleIntersection(
+                startPos, endPos, projectileRadius, 
+                targetCenter, targetRadius, 
+                out float t
+            );
+
+            Assert.IsTrue(hit);
+        }
+
+        [Test]
+        public void LineRectIntersectionDetectsHit()
+        {
+            Vector2 lineStart = new Vector2(0f, 0f);
+            Vector2 lineEnd = new Vector2(5f, 0f);
+            Vector2 rectCenter = new Vector2(3f, 0f);
+            float width = 1f;
+            float height = 0.5f;
+
+            bool hit = CoordinateHelper.LineRectIntersection(
+                lineStart, lineEnd, rectCenter, width, height, out float t
+            );
+
+            Assert.IsTrue(hit);
+        }
+
+        [Test]
+        public void CirclesOverlapDetection()
+        {
+            Vector2 centerA = new Vector2(0f, 0f);
+            float radiusA = 0.5f;
+            Vector2 centerB = new Vector2(0.8f, 0f);
+            float radiusB = 0.5f;
+
+            bool overlap = CoordinateHelper.CirclesOverlap(centerA, radiusA, centerB, radiusB);
+
+            Assert.IsTrue(overlap);
+        }
+
+        [Test]
+        public void CirclesDoNotOverlap()
+        {
+            Vector2 centerA = new Vector2(0f, 0f);
+            float radiusA = 0.5f;
+            Vector2 centerB = new Vector2(2f, 0f);
+            float radiusB = 0.5f;
+
+            bool overlap = CoordinateHelper.CirclesOverlap(centerA, radiusA, centerB, radiusB);
+
+            Assert.IsFalse(overlap);
+        }
+
+        [Test]
+        public void PointInCircleDetection()
+        {
+            Vector2 point = new Vector2(0.3f, 0.2f);
+            Vector2 center = new Vector2(0f, 0f);
+            float radius = 0.5f;
+
+            bool inside = CoordinateHelper.PointInCircle(point, center, radius);
+
+            Assert.IsTrue(inside);
+        }
+    }
+}

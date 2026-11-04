@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d553f3ac8793044fd8aeb06e38205928, type: 3}
+  m_Name: AudioLibrary
+  m_EditorClassIdentifier: 
+  masterVolume: 0.7
+  sfxVolume: 0.8
+  bgmVolume: 0.5
+  shotLight: {fileID: 8300000, guid: 957a670ee1d404455b3ccd625923d22b, type: 3}
+  shotHeavy: {fileID: 8300000, guid: 672011ba0f9e94ba3a13051936ff65d8, type: 3}
+  shotShotgun: {fileID: 8300000, guid: 3335551c6aca84d1fa0b11a21940ed04, type: 3}
+  chargeLoop: {fileID: 8300000, guid: 090ad209275944716ab42ebaed67c24f, type: 3}
+  chargeReady: {fileID: 8300000, guid: 2b8972a7eb2c64567b3bef0f4eef12da, type: 3}
+  reloadClick: {fileID: 8300000, guid: 2e15512391396450e9c127227f63c649, type: 3}
+  reloadFull: {fileID: 8300000, guid: 42739e5d2198c48e8ac9d8d4982f134e, type: 3}
+  roll: {fileID: 8300000, guid: 603ce6c917c5240fc9a598a883ee7ad0, type: 3}
+  footstep: {fileID: 8300000, guid: 07bf0f1e9a81f43b587d262c6e17a1e5, type: 3}
+  grenadeThrow: {fileID: 8300000, guid: 06bacdd86d397435fbbd669e7b0542f5, type: 3}
+  grenadeExplode: {fileID: 8300000, guid: 54c365532cf1d4c2383f657f1a948028, type: 3}
+  coverHit: {fileID: 8300000, guid: e112f326d44b946188c40a2c4d7161b5, type: 3}
+  coverBreak: {fileID: 8300000, guid: 8f95574a73175457c93b3fb8e5dcff5b, type: 3}
+  hitLight: {fileID: 8300000, guid: d2e6f0fd70df14d3f8d5aa18b75cbc4f, type: 3}
+  hitHeavy: {fileID: 8300000, guid: 13dc9014ef3b946429894552914632ec, type: 3}
+  downed: {fileID: 8300000, guid: 13a483af4d2f64dc4abbdc7419c61a79, type: 3}
+  revive: {fileID: 8300000, guid: f84417fc5f5de49fa9ea98c760afe12b, type: 3}
+  skillActivate: {fileID: 8300000, guid: 3f4a353360db84c4a89f19515e7e1181, type: 3}
+  bossRoar: {fileID: 8300000, guid: 4911ce31d0147416087b4886b77bb699, type: 3}
+  bossWarning: {fileID: 8300000, guid: 698047a7ff37049cf8f7438e20f59058, type: 3}
+  bossPhaseChange: {fileID: 8300000, guid: d5c4eada95bbf497bb28d53a9e6ba4cd, type: 3}
+  uiClick: {fileID: 8300000, guid: a4e4f23e920dd4cedb87bf2ff75caf94, type: 3}
+  uiHover: {fileID: 8300000, guid: afa968c9b68cd4c5bad5b74e7c268175, type: 3}
+  uiBack: {fileID: 8300000, guid: b0f4a5ed815db4468ba8092151f9f8d6, type: 3}
+  victoryFanfare: {fileID: 8300000, guid: 969528eb5623143898e30a8430ecf516, type: 3}
+  defeatSting: {fileID: 8300000, guid: 9400007632e2843bfb3cf964dd2ec095, type: 3}
+  bgmMenu: {fileID: 8300000, guid: a32b099c16c15423c8f44ae717658528, type: 3}
+  bgmBattle: {fileID: 8300000, guid: a0198c69ad4234989a0fe36133839bfd, type: 3}
+  bgmBoss: {fileID: 8300000, guid: ac1ae1ad1e716447098cfaa5be7acc57, type: 3}

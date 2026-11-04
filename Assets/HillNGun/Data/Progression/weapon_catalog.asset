@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c602294e378c947018d39244faf8fe0d, type: 3}
+  m_Name: weapon_catalog
+  m_EditorClassIdentifier: 
+  offers:
+  - weapon: {fileID: 11400000, guid: fa1bd20290d1d4c7495674f8fe192270, type: 2}
+    displayName: "\uB354\uBE14\uBC30\uB7F4 \uC0B0\uD0C4\uCD1D"
+    description: "\uADFC\uAC70\uB9AC \uC0B0\uD0C4 5\uBC1C (\uAE30\uBCF8)"
+    cost: 0
+    ownedByDefault: 1
+    characterIds:
+    - buster
+  - weapon: {fileID: 11400000, guid: 067d6fa9c812e449aa81c52c2c9a701f, type: 2}
+    displayName: "\uC0AC\uB0E5\uC6A9 \uB77C\uC774\uD50C"
+    description: "\uCDA9\uC804 \uC800\uACA9 (\uAE30\uBCF8)"
+    cost: 0
+    ownedByDefault: 1
+    characterIds:
+    - raven
+  - weapon: {fileID: 11400000, guid: 1be72f64deb814a1f959b5e8bb5f5c30, type: 2}
+    displayName: "\uB300\uD615 \uB9AC\uBCFC\uBC84"
+    description: "\uD55C \uBC1C\uC529 \uC815\uD655\uD558\uAC8C (\uAE30\uBCF8)"
+    cost: 0
+    ownedByDefault: 1
+    characterIds:
+    - volt
+  - weapon: {fileID: 11400000, guid: 984da358d20dd45fc8dab61430566504, type: 2}
+    displayName: "\uD53C\uC2A4\uBA54\uC774\uCEE4 \uB9AC\uBCFC\uBC84"
+    description: "6\uC5F0\uBC1C \xB7 \uBE60\uB978 \uACA9\uBC1C \xB7 \uD55C \uBC1C
+      380"
+    cost: 1800
+    ownedByDefault: 0
+    characterIds:
+    - volt
+  - weapon: {fileID: 11400000, guid: a9008cede630846fea79e9fa4b80c64d, type: 2}
+    displayName: "\uCF54\uCE58\uAC74"
+    description: "\uC0B0\uD0C4 6\uBC1C \xB7 \uC0AC\uAC70\uB9AC 5.5"
+    cost: 2000
+    ownedByDefault: 0
+    characterIds:
+    - buster
+  - weapon: {fileID: 11400000, guid: 0d193065c1caf42d984804d6cade646f, type: 2}
+    displayName: "\uB808\uBC84\uC561\uC158 \uC18C\uCD1D"
+    description: "\uCDA9\uC804 \uC5C6\uC774 4\uC5F0\uBC1C \xB7 \uC0AC\uAC70\uB9AC
+      11"
+    cost: 2400
+    ownedByDefault: 0
+    characterIds:
+    - raven
+  - weapon: {fileID: 11400000, guid: 692f7ec84aff94e3c97fcf8db587b506, type: 2}
+    displayName: "\uAC1C\uD2C0\uB9C1\uAC74"
+    description: "\uB204\uB974\uACE0 \uC788\uC73C\uBA74 \uC5F0\uC0AC \xB7 18\uBC1C"
+    cost: 3500
+    ownedByDefault: 0
+    characterIds:
+    - buster

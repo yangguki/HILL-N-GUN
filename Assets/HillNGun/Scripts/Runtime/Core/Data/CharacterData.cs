@@ -1,0 +1,54 @@
+using UnityEngine;
+using HillNGun.Core;
+
+namespace HillNGun.Data
+{
+    [CreateAssetMenu(fileName = "CharacterData", menuName = "HillNGun/Data/Character")]
+    public class CharacterData : ScriptableObject
+    {
+        [Header("Identification")]
+        public string id;
+        public string nameKey;
+
+        [Header("Role")]
+        public Role role = Role.Assault;
+
+        [Header("Stats")]
+        [Tooltip("최대 체력")]
+        public int maxHp = 3200;
+
+        [Tooltip("이동 속도 (타일/초)")]
+        public float moveSpeed = 3.0f;
+
+        [Tooltip("충전 중 이동 속도 (타일/초) - 레이븐용")]
+        public float chargingMoveSpeed = 2.6f;
+
+        [Tooltip("줄 이동 속도 배율")]
+        public float rowChangeSpeedMul = 1.5f;
+
+        [Header("Hit Detection")]
+        [Tooltip("판정 원 반경 (타일)")]
+        public float hitRadius = 0.5f;
+
+        [Tooltip("약점 반경 (타일) - 레이븐용")]
+        public float weakpointRadius = 0f;
+
+        [Header("Grenade")]
+        [Tooltip("수류탄 보유 개수")]
+        public int grenadeCount = 2;
+
+        [Header("References")]
+        public WeaponData weapon;
+        public GrenadeData grenade;
+        public RollData roll;
+        public SkillData skill;
+        public PassiveData passive;
+
+        public float RowChangeSpeed => moveSpeed * rowChangeSpeedMul;
+
+        public float GetMoveSpeed(bool isCharging)
+        {
+            return isCharging ? chargingMoveSpeed : moveSpeed;
+        }
+    }
+}

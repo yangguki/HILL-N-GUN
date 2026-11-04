@@ -1,0 +1,82 @@
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using HillNGun.Data;
+using HillNGun.Core;
+using HillNGun.Feel;
+
+namespace HillNGun.UI
+{
+    public class ButtonSizeToggle : MonoBehaviour
+    {
+        [Header("References")]
+        [SerializeField] private InputData _inputData;
+        [SerializeField] private Button _toggleButton;
+        [SerializeField] private TextMeshProUGUI _sizeLabel;
+        [SerializeField] private Image _buttonPreview;
+
+        [Header("Size Labels")]
+        [SerializeField] private string[] _sizeLabels = { "작게", "보통", "크게" };
+
+        private int _currentIndex = 1;
+
+        public event System.Action<int> OnSizeChanged;
+
+        private void Start()
+        {
+            if (_inputData != null)
+            {
+                _currentIndex = _inputData.currentButtonScaleIndex;
+            }
+
+            UpdateDisplay();
+
+            if (_toggleButton != null)
+            {
+                _toggleButton.onClick.AddListener(CycleSize);
+            }
+        }
+
+        public void CycleSize()
+        {
+            if (_inputData == null) return;
+
+            _currentIndex = (_currentIndex + 1) % _inputData.buttonScales.Length;
+            _inputData.currentButtonScaleIndex = _currentIndex;
+
+            UpdateDisplay();
+            OnSizeChanged?.Invoke(_currentIndex);
+
+            PlaceholderAudio.Instance?.PlayUIClick();
+        }
+
+        public void SetSize(int index)
+        {
+            if (_inputData == null) return;
+            if (index < 0 || index >= _inputData.buttonScales.Length) return;
+
+            _currentIndex = index;
+            _inputData.currentButtonScaleIndex = _currentIndex;
+
+            UpdateDisplay();
+            OnSizeChanged?.Invoke(_currentIndex);
+        }
+
+        private void UpdateDisplay()
+        {
+            if (_sizeLabel != null && _currentIndex < _sizeLabels.Length)
+            {
+                _sizeLabel.text = _sizeLabels[_currentIndex];
+            }
+
+            if (_buttonPreview != null && _inputData != null)
+            {
+                float scale = _inputData.buttonScales[_currentIndex];
+                _buttonPreview.transform.localScale = Vector3.one * scale;
+            }
+        }
+
+        public int CurrentSizeIndex => _currentIndex;
+        public float CurrentScale => _inputData?.CurrentButtonScale ?? 1f;
+    }
+}

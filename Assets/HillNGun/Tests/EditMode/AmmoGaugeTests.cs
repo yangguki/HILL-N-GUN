@@ -1,0 +1,115 @@
+using NUnit.Framework;
+using HillNGun.Combat;
+using HillNGun.Data;
+using HillNGun.Core;
+using UnityEngine;
+
+namespace HillNGun.Tests.EditMode
+{
+    [TestFixture]
+    public class AmmoGaugeTests
+    {
+        private WeaponData CreateTestWeapon(int cells = 3, float rechargePerCell = 1.0f)
+        {
+            var weapon = ScriptableObject.CreateInstance<WeaponData>();
+            weapon.gaugeCells = cells;
+            weapon.shotsPerCell = 1;
+            weapon.rechargePerCell = rechargePerCell;
+            return weapon;
+        }
+
+        [Test]
+        public void GaugeStartsFull()
+        {
+            var weapon = CreateTestWeapon(3);
+            var gauge = new AmmoGauge(weapon);
+
+            Assert.AreEqual(3, gauge.CurrentCells);
+            Assert.IsTrue(gauge.IsFull);
+            Assert.IsFalse(gauge.IsEmpty);
+        }
+
+        [Test]
+        public void ConsumeShotReducesGauge()
+        {
+            var weapon = CreateTestWeapon(3);
+            var gauge = new AmmoGauge(weapon);
+
+            gauge.ConsumeShot();
+
+            Assert.AreEqual(2, gauge.CurrentCells);
+        }
+
+        [Test]
+        public void GaugeDoesNotRechargeWhileAiming()
+        {
+            var weapon = CreateTestWeapon(3, 1.0f);
+            var gauge = new AmmoGauge(weapon);
+            gauge.ConsumeShot();
+
+            gauge.Update(2.0f, canRecharge: false);
+
+            Assert.AreEqual(2, gauge.CurrentCells);
+            Assert.AreEqual(0f, gauge.RechargeProgress, 0.001f);
+        }
+
+        [Test]
+        public void GaugeRechargesWhenReleased()
+        {
+            var weapon = CreateTestWeapon(3, 1.0f);
+            var gauge = new AmmoGauge(weapon);
+            gauge.ConsumeShot();
+
+            gauge.Update(1.0f, canRecharge: true);
+
+            Assert.AreEqual(3, gauge.CurrentCells);
+            Assert.IsTrue(gauge.IsFull);
+        }
+
+        [Test]
+        public void GaugeRechargesPartially()
+        {
+            var weapon = CreateTestWeapon(3, 1.0f);
+            var gauge = new AmmoGauge(weapon);
+            gauge.ConsumeShot();
+
+            gauge.Update(0.5f, canRecharge: true);
+
+            Assert.AreEqual(2, gauge.CurrentCells);
+            Assert.AreEqual(0.5f, gauge.RechargeProgress, 0.01f);
+        }
+
+        [Test]
+        public void CannotFireWhenEmpty()
+        {
+            var weapon = CreateTestWeapon(3);
+            var gauge = new AmmoGauge(weapon);
+
+            gauge.ConsumeShot();
+            gauge.ConsumeShot();
+            gauge.ConsumeShot();
+
+            Assert.IsFalse(gauge.CanFire());
+            Assert.IsTrue(gauge.IsEmpty);
+        }
+
+        [Test]
+        public void ResetRestoresFullGauge()
+        {
+            var weapon = CreateTestWeapon(3);
+            var gauge = new AmmoGauge(weapon);
+            gauge.ConsumeShot();
+            gauge.ConsumeShot();
+
+            gauge.Reset();
+
+            Assert.AreEqual(3, gauge.CurrentCells);
+            Assert.IsTrue(gauge.IsFull);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+        }
+    }
+}

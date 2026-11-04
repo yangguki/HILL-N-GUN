@@ -1,0 +1,289 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using UnityEngine;
+using HillNGun.Core;
+using HillNGun.Characters;
+
+namespace HillNGun.Logging
+{
+    public class GameLogger : MonoBehaviour
+    {
+        private string _sessionId;
+        private string _logPath;
+        private StringBuilder _buffer;
+        private List<LogEntry> _entries;
+        private float _sessionStartTime;
+        private float _lastPerfSampleTime;
+
+        private const float PERF_SAMPLE_INTERVAL = 5f;
+        private const string CSV_HEADER = "ts_ms,session_id,build,scene,event,actor,char_id,x,y,row,gauge,hp,v1,v2,extra";
+
+        public string SessionId => _sessionId;
+        public string LogPath => _logPath;
+
+        private void Awake()
+        {
+            _sessionId = DateTime.Now.ToString("yyyyMMdd_HHmmss_") + Guid.NewGuid().ToString().Substring(0, 8);
+            _buffer = new StringBuilder();
+            _entries = new List<LogEntry>(1000);
+            _sessionStartTime = Time.time;
+
+            string logDir = Path.Combine(Application.persistentDataPath, "logs");
+            Directory.CreateDirectory(logDir);
+            _logPath = Path.Combine(logDir, $"{_sessionId}.csv");
+
+            WriteHeader();
+            ServiceLocator.Register(this);
+        }
+
+        private void OnDestroy()
+        {
+            LogSessionEnd();
+            FlushToFile();
+            ServiceLocator.Unregister<GameLogger>();
+        }
+
+        private void Update()
+        {
+            if (Time.time - _lastPerfSampleTime >= PERF_SAMPLE_INTERVAL)
+            {
+                LogPerfSample();
+                _lastPerfSampleTime = Time.time;
+            }
+        }
+
+        private void WriteHeader()
+        {
+            File.WriteAllText(_logPath, CSV_HEADER + "\n", Encoding.UTF8);
+        }
+
+        public void LogSessionStart(string sceneName)
+        {
+            Log("session_start", null, null,
+                v1: SystemInfo.deviceModel,
+                v2: $"{Screen.width}x{Screen.height}",
+                extra: Application.version);
+        }
+
+        public void LogSessionEnd()
+        {
+            float playTime = Time.time - _sessionStartTime;
+            Log("session_end", null, null, v1: playTime.ToString("F1"));
+        }
+
+        public void LogCharacterSelect(CharacterStateMachine character)
+        {
+            Log("char_select", character, character.Data?.id, v1: character.Data?.id);
+        }
+
+        public void LogMoveRow(CharacterStateMachine character, int fromRow, int toRow, bool isRoll)
+        {
+            Log("move_row", character, character.Data?.id,
+                v1: fromRow.ToString(),
+                v2: toRow.ToString(),
+                extra: isRoll ? "roll" : "walk");
+        }
+
+        public void LogAimStart(CharacterStateMachine character)
+        {
+            Log("aim_start", character, character.Data?.id, v1: character.Data?.weapon?.id);
+        }
+
+        public void LogAimCancel(CharacterStateMachine character)
+        {
+            Log("aim_cancel", character, character.Data?.id, v1: character.Data?.weapon?.id);
+        }
+
+        public void LogShotFired(CharacterStateMachine character, float aimAngle, float chargeTime, bool isMoving)
+        {
+            Log("shot_fired", character, character.Data?.id,
+                v1: aimAngle.ToString("F1"),
+                v2: chargeTime.ToString("F2"),
+                extra: isMoving ? "1" : "0");
+        }
+
+        public void LogHit(CharacterStateMachine attacker, string targetType, string targetId, int damage, bool isWeakpoint)
+        {
+            Log("hit", attacker, attacker?.Data?.id,
+                v1: damage.ToString(),
+                v2: targetType,
+                extra: $"{targetId},{(isWeakpoint ? "weakpoint" : "")}");
+        }
+
+        public void LogGaugeEmpty(CharacterStateMachine character, float burstDuration)
+        {
+            Log("gauge_empty", character, character.Data?.id, v1: burstDuration.ToString("F2"));
+        }
+
+        public void LogGaugeFull(CharacterStateMachine character, float rechargeTime)
+        {
+            Log("gauge_full", character, character.Data?.id, v1: rechargeTime.ToString("F2"));
+        }
+
+        public void LogRoll(CharacterStateMachine character, Vector2 direction, int dodgedBullets)
+        {
+            Log("roll", character, character.Data?.id,
+                v1: $"{direction.x:F2},{direction.y:F2}",
+                v2: dodgedBullets.ToString());
+        }
+
+        public void LogGrenadeThrow(CharacterStateMachine character, float distance)
+        {
+            Log("grenade_throw", character, character.Data?.id, v1: distance.ToString("F1"));
+        }
+
+        public void LogGrenadeExplode(CharacterStateMachine thrower, int hitCount, int totalDamage)
+        {
+            Log("grenade_explode", thrower, thrower?.Data?.id,
+                v1: hitCount.ToString(),
+                extra: totalDamage.ToString());
+        }
+
+        public void LogSkillUse(CharacterStateMachine character)
+        {
+            Log("skill_use", character, character.Data?.id,
+                v1: character.Data?.skill?.id,
+                v2: character.Data?.skill?.useType.ToString());
+        }
+
+        public void LogCoverDamaged(string coverId, int remainingHp, int stage)
+        {
+            Log("cover_damaged", null, null,
+                v1: remainingHp.ToString(),
+                v2: stage.ToString(),
+                extra: coverId);
+        }
+
+        public void LogCoverDestroyed(string coverId)
+        {
+            Log("cover_destroyed", null, null, extra: coverId);
+        }
+
+        public void LogDowned(CharacterStateMachine character, string cause)
+        {
+            Log("downed", character, character.Data?.id, v1: cause);
+        }
+
+        public void LogRevived(CharacterStateMachine character, float reviveTime)
+        {
+            Log("revived", character, character.Data?.id, v2: reviveTime.ToString("F2"));
+        }
+
+        public void LogOut(CharacterStateMachine character)
+        {
+            Log("out", character, character.Data?.id);
+        }
+
+        public void LogDualInput(float duration)
+        {
+            Log("input_dual", null, null, v1: duration.ToString("F2"));
+        }
+
+        private void LogPerfSample()
+        {
+            float fps = 1f / Time.unscaledDeltaTime;
+            float memory = (float)System.GC.GetTotalMemory(false) / (1024f * 1024f);
+
+            Log("perf_sample", null, null,
+                v1: fps.ToString("F1"),
+                v2: fps.ToString("F1"),
+                extra: memory.ToString("F1"));
+        }
+
+        private void Log(string eventType, CharacterStateMachine actor, string charId,
+                        string v1 = "", string v2 = "", string extra = "")
+        {
+            long tsMs = (long)((Time.time - _sessionStartTime) * 1000f);
+            float x = actor?.Position.x ?? 0f;
+            float y = actor?.Position.y ?? 0f;
+            int row = actor?.CurrentRowIndex ?? 0;
+            int gauge = actor?.AmmoGauge?.CurrentCells ?? 0;
+            int hp = actor?.CurrentHp ?? 0;
+
+            var entry = new LogEntry
+            {
+                TsMs = tsMs,
+                SessionId = _sessionId,
+                Build = Application.version,
+                Scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
+                Event = eventType,
+                Actor = actor?.name ?? "",
+                CharId = charId ?? "",
+                X = x,
+                Y = y,
+                Row = row,
+                Gauge = gauge,
+                Hp = hp,
+                V1 = v1,
+                V2 = v2,
+                Extra = extra
+            };
+
+            _entries.Add(entry);
+
+            if (_entries.Count >= 100)
+            {
+                FlushToFile();
+            }
+        }
+
+        private void FlushToFile()
+        {
+            if (_entries.Count == 0) return;
+
+            _buffer.Clear();
+            foreach (var entry in _entries)
+            {
+                _buffer.AppendLine(entry.ToCsvLine());
+            }
+
+            try
+            {
+                File.AppendAllText(_logPath, _buffer.ToString(), Encoding.UTF8);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to write log: {e.Message}");
+            }
+
+            _entries.Clear();
+        }
+
+        private struct LogEntry
+        {
+            public long TsMs;
+            public string SessionId;
+            public string Build;
+            public string Scene;
+            public string Event;
+            public string Actor;
+            public string CharId;
+            public float X;
+            public float Y;
+            public int Row;
+            public int Gauge;
+            public int Hp;
+            public string V1;
+            public string V2;
+            public string Extra;
+
+            public string ToCsvLine()
+            {
+                return $"{TsMs},{SessionId},{Build},{Scene},{Event},{Actor},{CharId}," +
+                       $"{X:F2},{Y:F2},{Row},{Gauge},{Hp},{Escape(V1)},{Escape(V2)},{Escape(Extra)}";
+            }
+
+            private static string Escape(string value)
+            {
+                if (string.IsNullOrEmpty(value)) return "";
+                if (value.Contains(",") || value.Contains("\"") || value.Contains("\n"))
+                {
+                    return "\"" + value.Replace("\"", "\"\"") + "\"";
+                }
+                return value;
+            }
+        }
+    }
+}

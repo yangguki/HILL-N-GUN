@@ -1,0 +1,92 @@
+using UnityEngine;
+using HillNGun.Data;
+using HillNGun.Core;
+
+namespace HillNGun.Feel
+{
+    public class ScreenShake : MonoBehaviour
+    {
+        [SerializeField] private FeelData _feelData;
+
+        private Vector3 _originalPosition;
+        private float _shakeTimer;
+        private float _shakeDuration;
+        private float _shakeAmplitude;
+        private Transform _cameraTransform;
+
+        private void Awake()
+        {
+            _cameraTransform = Camera.main?.transform;
+            if (_cameraTransform != null)
+            {
+                _originalPosition = _cameraTransform.localPosition;
+            }
+
+            ServiceLocator.Register(this);
+        }
+
+        private void OnDestroy()
+        {
+            ServiceLocator.Unregister<ScreenShake>();
+        }
+
+        private void LateUpdate()
+        {
+            if (_cameraTransform == null) return;
+            if (_feelData != null && !_feelData.shakeEnabled)
+            {
+                _cameraTransform.localPosition = _originalPosition;
+                return;
+            }
+
+            if (_shakeTimer > 0f)
+            {
+                _shakeTimer -= Time.unscaledDeltaTime;
+                float progress = 1f - (_shakeTimer / _shakeDuration);
+                float currentAmplitude = _shakeAmplitude * (1f - progress);
+
+                Vector2 offset = Random.insideUnitCircle * currentAmplitude;
+                _cameraTransform.localPosition = _originalPosition + (Vector3)offset;
+            }
+            else
+            {
+                _cameraTransform.localPosition = _originalPosition;
+            }
+        }
+
+        public void Shake(float amplitude, float duration)
+        {
+            if (_feelData != null && !_feelData.shakeEnabled) return;
+
+            if (amplitude * duration > _shakeAmplitude * _shakeTimer)
+            {
+                _shakeAmplitude = amplitude;
+                _shakeDuration = duration;
+                _shakeTimer = duration;
+            }
+        }
+
+        public void ShakeHeavyHit()
+        {
+            if (_feelData == null) return;
+            Shake(_feelData.shakeHeavyAmplitude, _feelData.shakeHeavyDuration);
+        }
+
+        public void ShakeCover()
+        {
+            if (_feelData == null) return;
+            Shake(_feelData.shakeCoverAmplitude, _feelData.shakeCoverDuration);
+        }
+
+        public void ShakeGrenade()
+        {
+            if (_feelData == null) return;
+            Shake(_feelData.shakeGrenadeAmplitude, _feelData.shakeGrenadeDuration);
+        }
+
+        public void SetFeelData(FeelData data)
+        {
+            _feelData = data;
+        }
+    }
+}

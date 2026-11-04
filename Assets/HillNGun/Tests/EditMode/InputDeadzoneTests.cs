@@ -1,0 +1,106 @@
+using NUnit.Framework;
+using HillNGun.Data;
+using UnityEngine;
+
+namespace HillNGun.Tests.EditMode
+{
+    [TestFixture]
+    public class InputDeadzoneTests
+    {
+        private InputData CreateTestInputData()
+        {
+            var input = ScriptableObject.CreateInstance<InputData>();
+            input.fireButtonRadiusPx = 140f;
+            input.deadzoneRatio = 0.2f;
+            input.buttonScales = new float[] { 0.85f, 1.0f, 1.15f };
+            input.currentButtonScaleIndex = 1;
+            return input;
+        }
+
+        [Test]
+        public void DeadzoneRadiusCalculation()
+        {
+            var input = CreateTestInputData();
+
+            float deadzoneRadius = input.DeadzoneRadius;
+
+            Assert.AreEqual(28f, deadzoneRadius, 0.01f);
+        }
+
+        [Test]
+        public void InputWithinDeadzoneShouldNotFire()
+        {
+            var input = CreateTestInputData();
+            float dragDistance = 20f;
+
+            bool shouldFire = dragDistance > input.DeadzoneRadius;
+
+            Assert.IsFalse(shouldFire);
+        }
+
+        [Test]
+        public void InputOutsideDeadzoneShouldFire()
+        {
+            var input = CreateTestInputData();
+            float dragDistance = 50f;
+
+            bool shouldFire = dragDistance > input.DeadzoneRadius;
+
+            Assert.IsTrue(shouldFire);
+        }
+
+        [Test]
+        public void ExactlyAtDeadzoneBoundaryShouldNotFire()
+        {
+            var input = CreateTestInputData();
+            float dragDistance = 28f;
+
+            bool shouldFire = dragDistance > input.DeadzoneRadius;
+
+            Assert.IsFalse(shouldFire);
+        }
+
+        [Test]
+        public void JustOutsideDeadzoneShouldFire()
+        {
+            var input = CreateTestInputData();
+            float dragDistance = 28.1f;
+
+            bool shouldFire = dragDistance > input.DeadzoneRadius;
+
+            Assert.IsTrue(shouldFire);
+        }
+
+        [Test]
+        public void ButtonScaleAffectsRadius()
+        {
+            var input = CreateTestInputData();
+            input.currentButtonScaleIndex = 2;
+
+            float scaledRadius = input.ScaledFireButtonRadius;
+
+            Assert.AreEqual(140f * 1.15f, scaledRadius, 0.01f);
+        }
+
+        [Test]
+        public void SmallButtonScale()
+        {
+            var input = CreateTestInputData();
+            input.currentButtonScaleIndex = 0;
+
+            float scaledRadius = input.ScaledFireButtonRadius;
+
+            Assert.AreEqual(140f * 0.85f, scaledRadius, 0.01f);
+        }
+
+        [Test]
+        public void DefaultButtonScale()
+        {
+            var input = CreateTestInputData();
+
+            float scale = input.CurrentButtonScale;
+
+            Assert.AreEqual(1.0f, scale);
+        }
+    }
+}

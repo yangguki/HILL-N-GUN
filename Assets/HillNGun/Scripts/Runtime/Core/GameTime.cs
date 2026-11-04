@@ -1,0 +1,57 @@
+using UnityEngine;
+
+namespace HillNGun.Core
+{
+    public static class GameTime
+    {
+        private static float _hitstopEndTime;
+        private static float _timeScale = 1f;
+        private static bool _isPaused;
+
+        public static float DeltaTime
+        {
+            get
+            {
+                if (_isPaused) return 0f;
+                if (Time.unscaledTime < _hitstopEndTime) return 0f;
+                return Time.deltaTime * _timeScale;
+            }
+        }
+
+        public static float UnscaledDeltaTime => Time.unscaledDeltaTime;
+
+        public static float TimeScale
+        {
+            get => _timeScale;
+            set => _timeScale = Mathf.Clamp(value, 0f, 2f);
+        }
+
+        public static bool IsPaused
+        {
+            get => _isPaused;
+            set => _isPaused = value;
+        }
+
+        public static bool IsInHitstop => Time.unscaledTime < _hitstopEndTime;
+
+        public static void ApplyHitstop(float duration)
+        {
+            if (duration <= 0f) return;
+            float newEndTime = Time.unscaledTime + duration;
+            if (newEndTime > _hitstopEndTime)
+            {
+                _hitstopEndTime = newEndTime;
+            }
+        }
+
+        public static void SetSlowMotion(float scale)
+        {
+            _timeScale = Mathf.Clamp(scale, 0.1f, 2f);
+        }
+
+        public static void ResetTimeScale()
+        {
+            _timeScale = 1f;
+        }
+    }
+}

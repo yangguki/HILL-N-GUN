@@ -1,0 +1,72 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace HillNGun.Core
+{
+    public class ObjectPool<T> where T : class
+    {
+        private readonly Stack<T> _pool;
+        private readonly Func<T> _createFunc;
+        private readonly Action<T> _onGet;
+        private readonly Action<T> _onRelease;
+        private readonly int _maxSize;
+        private int _activeCount;
+
+        public int ActiveCount => _activeCount;
+        public int PooledCount => _pool.Count;
+        public int TotalCount => _activeCount + _pool.Count;
+
+        public ObjectPool(Func<T> createFunc, Action<T> onGet = null, Action<T> onRelease = null, 
+                          int initialCapacity = 32, int maxSize = 120)
+        {
+            _createFunc = createFunc ?? throw new ArgumentNullException(nameof(createFunc));
+            _onGet = onGet;
+            _onRelease = onRelease;
+            _maxSize = maxSize;
+            _pool = new Stack<T>(initialCapacity);
+
+            for (int i = 0; i < initialCapacity; i++)
+            {
+                var item = _createFunc();
+                _pool.Push(item);
+            }
+        }
+
+        public T Get()
+        {
+            T item;
+            if (_pool.Count > 0)
+            {
+                item = _pool.Pop();
+            }
+            else
+            {
+                item = _createFunc();
+            }
+
+            _activeCount++;
+            _onGet?.Invoke(item);
+            return item;
+        }
+
+        public void Release(T item)
+        {
+            if (item == null) return;
+            
+            _activeCount = Mathf.Max(0, _activeCount - 1);
+            _onRelease?.Invoke(item);
+
+            if (_pool.Count < _maxSize)
+            {
+                _pool.Push(item);
+            }
+        }
+
+        public void Clear()
+        {
+            _pool.Clear();
+            _activeCount = 0;
+        }
+    }
+}

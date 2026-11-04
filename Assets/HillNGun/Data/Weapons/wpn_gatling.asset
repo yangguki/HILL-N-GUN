@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e33c8926118f14c438701ee86e1cdffe, type: 3}
+  m_Name: wpn_gatling
+  m_EditorClassIdentifier: 
+  id: wpn_gatling
+  nameKey: weapon.wpn_gatling
+  descKey: weapon.wpn_gatling.desc
+  fireMode: 0
+  damagePerProjectile: 120
+  projectilesPerShot: 1
+  spreadDeg: 0
+  projectileSpeed: 20
+  projectileRadius: 0.2
+  range: 6
+  fireInterval: 0.1
+  holdToRepeat: 1
+  cockAnimation: 0
+  gaugeCells: 3
+  shotsPerCell: 6
+  rechargePerCell: 1.4
+  chargeMinTime: 0
+  chargeMaxTime: 0
+  chargeDamageMul: 1
+  muzzleForwardOffset: 1
+  coverDamageMul: 1
