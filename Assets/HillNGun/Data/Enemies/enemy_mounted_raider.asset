@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2ae93e1685de4fde9657b979485bcb4, type: 3}
+  m_Name: enemy_mounted_raider
+  m_EditorClassIdentifier: 
+  id: mounted_raider
+  nameKey: pve.enemy.mounted_raider
+  enemyType: 2
+  maxHp: 1400
+  hitRadius: 0.7
+  moveSpeed: 3
+  warningTime: 1
+  attackInterval: 2
+  attackDamage: 100
+  isRanged: 1
+  attackRange: 12
+  bulletSpeed: 10
+  bulletRadius: 0.15
+  projectilesPerShot: 3
+  spreadDeg: 15
+  throwsExplosive: 0
+  explosiveRadius: 2
+  explosiveDamage: 450
+  explosiveFlightTime: 0.8
+  bulletDodge:
+    chance: 0.35
+    delayMin: 0.12
+    delayMax: 0.25
+    lookahead: 0.6
+    margin: 0.2
+    cooldown: 2.5
+  dodgeStepDistance: 1.6
+  dodgeStepSpeed: 9
+  movesBetweenRows: 1
+  rowChangeInterval: 5
+  gaugeValue: 3
+  scoreValue: 300
+  baseColor: {r: 0.4, g: 0.3, b: 0.25, a: 1}
+  scale: 1.3
+  fleesOnDefeat: 1
+  fleeSpeed: 6

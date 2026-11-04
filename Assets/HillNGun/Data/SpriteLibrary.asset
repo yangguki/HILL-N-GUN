@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59e5696d65a7a4bc0adf87f35e3530ba, type: 3}
+  m_Name: SpriteLibrary
+  m_EditorClassIdentifier: 
+  characters:
+  - characterId: buster
+    idle: {fileID: 21300000, guid: a42ae59f6bfa94beb8537cbb96f231db, type: 3}
+    shoot: {fileID: 21300000, guid: c3ee4c9f8ae4841e9ad34cc5cc94af9f, type: 3}
+    roll: {fileID: 21300000, guid: b1ee12bc8304342738a877d2d9688ade, type: 3}
+    downed: {fileID: 21300000, guid: 7ee814515757f4aeca5ba304bb1ff898, type: 3}
+    portrait: {fileID: 21300000, guid: f792815516a584847ac7ecca4c6e6840, type: 3}
+  - characterId: raven
+    idle: {fileID: 21300000, guid: 26a56273ec87249b4bc2d39f216b26ac, type: 3}
+    shoot: {fileID: 21300000, guid: f5635f54d0ad940c8bef06d7b3408c3f, type: 3}
+    roll: {fileID: 21300000, guid: b165d927b630d44f1aec43bbc19dd2b0, type: 3}
+    downed: {fileID: 21300000, guid: 144c9b42fd27b4e14a6c600140af7b5c, type: 3}
+    portrait: {fileID: 21300000, guid: 8551c8fa9cceb43da98aa80bfe81e853, type: 3}
+  - characterId: volt
+    idle: {fileID: 21300000, guid: 837aa731a6c65483ea9a574ccc4c9177, type: 3}
+    shoot: {fileID: 21300000, guid: 6eca702263c454ccf82cfdd60b14c63a, type: 3}
+    roll: {fileID: 21300000, guid: fa9944105dbc74668bf2fdfb157a65aa, type: 3}
+    downed: {fileID: 21300000, guid: eac2526b5581f4f478a92c66787dba7e, type: 3}
+    portrait: {fileID: 21300000, guid: 1c6d935bb207e4e67a59f15077e9e480, type: 3}
+  enemies:
+  - enemyId: pistol_mook
+    idle: {fileID: 21300000, guid: 632582f79bffc4e6093b3a16cd26a618, type: 3}
+  - enemyId: dynamite_bandit
+    idle: {fileID: 21300000, guid: a8625596ac8534f86afda887efd12cc9, type: 3}
+  - enemyId: mounted_raider
+    idle: {fileID: 21300000, guid: f8682d349fff9460bba0730e8e54db3f, type: 3}
+  boss:
+    bossId: rattlesnake_rex
+    idle: {fileID: 21300000, guid: de64c8b1f4e794cba9342acea5b79e41, type: 3}
+    warningIndicator: {fileID: 21300000, guid: cd9f0b152ea7541988a4e9bd8f0a0a90, type: 3}
+    portrait: {fileID: 21300000, guid: 6e315d2ed21454873a8638cf2cf4f872, type: 3}
+  regionBosses:
+  - regionId: dusty_town
+    portrait: {fileID: 21300000, guid: 4220aead6f0274b7baef9d118b5e1e89, type: 3}
+  - regionId: railroad_canyon
+    portrait: {fileID: 21300000, guid: de65d86194a4d47f2b35a387dc677705, type: 3}
+  - regionId: silver_mine
+    portrait: {fileID: 21300000, guid: cab5985d3fc49444b91ed78ee038c974, type: 3}
+  - regionId: border_fort
+    portrait: {fileID: 21300000, guid: 968e72d646d204ca2ab58635b0fb3b6a, type: 3}
+  - regionId: ghost_town
+    portrait: {fileID: 21300000, guid: e6bc84042ff384f9b9f4314b5ecb5b24, type: 3}
+  covers:
+  - coverId: cover_barrel
+    intact: {fileID: 21300000, guid: 698bfcafb037f4415b429694bc9378da, type: 3}
+    cracked: {fileID: 21300000, guid: 3bebec3ad0a9345dbaabcdbe5cd8a592, type: 3}
+    damaged: {fileID: 21300000, guid: 23aaf0c5477764008972bc8a77fa36d9, type: 3}
+    destroyed: {fileID: 21300000, guid: 2961e573ad68e40acaa323b20b5a5e75, type: 3}
+  - coverId: cover_trough
+    intact: {fileID: 21300000, guid: 1bd94358c3d3b4db2ae0f12a003da16f, type: 3}
+    cracked: {fileID: 21300000, guid: 82fcbf57302514fcd93f211161399eee, type: 3}
+    damaged: {fileID: 21300000, guid: 5f21555a6a320474e9aa49fbf57ef892, type: 3}
+    destroyed: {fileID: 21300000, guid: 40b33e2e500d54a6fb35846eae2e4763, type: 3}
+  - coverId: cover_swing_door
+    intact: {fileID: 21300000, guid: 1bd94358c3d3b4db2ae0f12a003da16f, type: 3}
+    cracked: {fileID: 21300000, guid: 82fcbf57302514fcd93f211161399eee, type: 3}
+    damaged: {fileID: 21300000, guid: 5f21555a6a320474e9aa49fbf57ef892, type: 3}
+    destroyed: {fileID: 21300000, guid: 40b33e2e500d54a6fb35846eae2e4763, type: 3}
+  - coverId: cover_wagon
+    intact: {fileID: 21300000, guid: 09a4ea01b50f0429bb1f4428c0c638c1, type: 3}
+    cracked: {fileID: 21300000, guid: 529f6b5b4c4ec43cb9d6c0aead32dcd4, type: 3}
+    damaged: {fileID: 21300000, guid: 4ec59fe7792e14683a334aa244803440, type: 3}
+    destroyed: {fileID: 21300000, guid: 2cc197607b7074020871379035beaa29, type: 3}
+  bullet: {fileID: 21300000, guid: 06cabd993a48941c8b58042eaecd1d67, type: 3}
+  bulletHeavy: {fileID: 21300000, guid: 33a46ab1589c54d339cce85eb29b1a04, type: 3}
+  grenade: {fileID: 21300000, guid: f60dc372ff53f4f10bb5e56d55547c13, type: 3}
+  muzzleFlash: {fileID: 21300000, guid: 0fdd428099c144911acc4477a74de0ba, type: 3}
+  hitSpark: {fileID: 21300000, guid: 99c42a9f2622a4c9198b3722be530893, type: 3}
+  dustPuff: {fileID: 21300000, guid: e506499032a564b58a68a243ac2a2958, type: 3}
+  explosion: {fileID: 21300000, guid: b8c19654bc8a24ac8b9528915bae343c, type: 3}
+  skyGradient: {fileID: 21300000, guid: c1977a6044de840d2a0c88013c994f22, type: 3}
+  mesas: {fileID: 21300000, guid: d55290020486a47b69a1bebe75e1d1a6, type: 3}
+  saloonFacades: {fileID: 21300000, guid: 428776a53571a4f06b23e16bf80ac88d, type: 3}
+  ground: {fileID: 21300000, guid: 6f444340886444f3ebcb8956d6a69960, type: 3}
+  hpBarBg: {fileID: 21300000, guid: 51663db25ac6147fc9833b2e3e00a902, type: 3}
+  hpBarFill: {fileID: 21300000, guid: ace4363524ab9471baea0a1a840b0fc0, type: 3}
+  ammoCell: {fileID: 21300000, guid: 6c7c59b16d0594bb6b16678a8cb1e384, type: 3}
+  ammoCellEmpty: {fileID: 21300000, guid: 0054fecdc92f84aecb4ec5f874197f74, type: 3}
+  buttonBg: {fileID: 21300000, guid: 160b93047e414476abc6455156d8ec80, type: 3}
+  joystickBg: {fileID: 21300000, guid: b97e4b528c67d49cba8a65b6c4221eb6, type: 3}
+  joystickKnob: {fileID: 21300000, guid: 94f7bf230d7e54f76a8a93053f1173e7, type: 3}

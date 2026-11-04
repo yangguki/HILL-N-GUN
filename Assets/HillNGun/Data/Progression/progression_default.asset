@@ -1,0 +1,195 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b26ea7f04d574d98ad41c0dba6c3e82, type: 3}
+  m_Name: progression_default
+  m_EditorClassIdentifier: 
+  startingBounty: 0
+  bountyPerStageClear: 100
+  bountyPerBossDefeat: 1000
+  bountyPvPWin: 150
+  bountyPvPDraw: 50
+  bountyPvPLoss: 0
+  stageBountyEveryClear: 1
+  xpPerStageClear: 30
+  xpBossDefeat: 120
+  xpPvEFailedRun: 15
+  xpPvPWin: 80
+  xpPvPDraw: 50
+  xpPvPLoss: 40
+  badgeXpBase: 200
+  badgeXpPerLevel: 100
+  maxBadgeLevel: 50
+  bountyPerBadgeLevel: 200
+  masteryXpPerMatch: 20
+  masteryXpWinBonus: 15
+  masteryLevelXp: 0000000064000000fa000000f401000084030000dc050000
+  masteryTitleKeys:
+  - mastery.title.1
+  - mastery.title.2
+  - mastery.title.3
+  - mastery.title.4
+  - mastery.title.5
+  - mastery.title.6
+  startingCharacterIds:
+  - buster
+  - raven
+  - volt
+  regions:
+  - id: dusty_town
+    nameKey: region.dusty_town
+    stageIds:
+    - dusty_town_1_1
+    - dusty_town_1_2
+    - dusty_town_1_3
+    - dusty_town_boss
+    bossStageId: dusty_town_boss
+    nextRegionId: railroad_canyon
+    bossNameKey: pve.boss.rattlesnake_rex
+    bossBounty: 1000
+  - id: railroad_canyon
+    nameKey: region.railroad_canyon
+    stageIds: []
+    bossStageId: 
+    nextRegionId: silver_mine
+    bossNameKey: boss.baron
+    bossBounty: 2500
+  - id: silver_mine
+    nameKey: region.silver_mine
+    stageIds: []
+    bossStageId: 
+    nextRegionId: border_fort
+    bossNameKey: boss.may
+    bossBounty: 4000
+  - id: border_fort
+    nameKey: region.border_fort
+    stageIds: []
+    bossStageId: 
+    nextRegionId: ghost_town
+    bossNameKey: boss.grimshaw
+    bossBounty: 6000
+  - id: ghost_town
+    nameKey: region.ghost_town
+    stageIds: []
+    bossStageId: 
+    nextRegionId: 
+    bossNameKey: boss.nameless
+    bossBounty: 10000
+  skins:
+  - id: buster_default
+    characterId: buster
+    nameKey: char.buster.name
+    tint: {r: 1, g: 1, b: 1, a: 1}
+    recolorStrength: 0.7
+    unlock: 0
+    cost: 0
+    requirementId: 
+    masteryLevel: 0
+  - id: buster_dusty
+    characterId: buster
+    nameKey: skin.buster.dusty
+    tint: {r: 0.86, g: 0.72, b: 0.52, a: 1}
+    recolorStrength: 0.7
+    unlock: 2
+    cost: 0
+    requirementId: dusty_town
+    masteryLevel: 0
+  - id: buster_gold
+    characterId: buster
+    nameKey: skin.buster.gold
+    tint: {r: 1, g: 0.85, b: 0.35, a: 1}
+    recolorStrength: 0.8
+    unlock: 1
+    cost: 1500
+    requirementId: 
+    masteryLevel: 0
+  - id: buster_veteran
+    characterId: buster
+    nameKey: skin.buster.veteran
+    tint: {r: 0.6, g: 0.75, b: 0.95, a: 1}
+    recolorStrength: 0.7
+    unlock: 3
+    cost: 0
+    requirementId: 
+    masteryLevel: 3
+  - id: raven_default
+    characterId: raven
+    nameKey: char.raven.name
+    tint: {r: 1, g: 1, b: 1, a: 1}
+    recolorStrength: 0.7
+    unlock: 0
+    cost: 0
+    requirementId: 
+    masteryLevel: 0
+  - id: raven_dusty
+    characterId: raven
+    nameKey: skin.raven.dusty
+    tint: {r: 0.86, g: 0.72, b: 0.52, a: 1}
+    recolorStrength: 0.7
+    unlock: 2
+    cost: 0
+    requirementId: dusty_town
+    masteryLevel: 0
+  - id: raven_gold
+    characterId: raven
+    nameKey: skin.raven.gold
+    tint: {r: 1, g: 0.85, b: 0.35, a: 1}
+    recolorStrength: 0.8
+    unlock: 1
+    cost: 1500
+    requirementId: 
+    masteryLevel: 0
+  - id: raven_veteran
+    characterId: raven
+    nameKey: skin.raven.veteran
+    tint: {r: 0.6, g: 0.75, b: 0.95, a: 1}
+    recolorStrength: 0.7
+    unlock: 3
+    cost: 0
+    requirementId: 
+    masteryLevel: 3
+  - id: volt_default
+    characterId: volt
+    nameKey: char.volt.name
+    tint: {r: 1, g: 1, b: 1, a: 1}
+    recolorStrength: 0.7
+    unlock: 0
+    cost: 0
+    requirementId: 
+    masteryLevel: 0
+  - id: volt_dusty
+    characterId: volt
+    nameKey: skin.volt.dusty
+    tint: {r: 0.86, g: 0.72, b: 0.52, a: 1}
+    recolorStrength: 0.7
+    unlock: 2
+    cost: 0
+    requirementId: dusty_town
+    masteryLevel: 0
+  - id: volt_gold
+    characterId: volt
+    nameKey: skin.volt.gold
+    tint: {r: 1, g: 0.85, b: 0.35, a: 1}
+    recolorStrength: 0.8
+    unlock: 1
+    cost: 1500
+    requirementId: 
+    masteryLevel: 0
+  - id: volt_veteran
+    characterId: volt
+    nameKey: skin.volt.veteran
+    tint: {r: 0.6, g: 0.75, b: 0.95, a: 1}
+    recolorStrength: 0.7
+    unlock: 3
+    cost: 0
+    requirementId: 
+    masteryLevel: 3
+  weaponCatalog: {fileID: 11400000, guid: 1fd0bda2558b1445a9f1e001ad3db6f1, type: 2}

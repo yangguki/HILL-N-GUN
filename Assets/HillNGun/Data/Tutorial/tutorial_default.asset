@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b075fdfaef1dc499c9c73b0a6880ec73, type: 3}
+  m_Name: tutorial_default
+  m_EditorClassIdentifier: 
+  enabled: 1
+  stageIndex: 0
+  startDelay: 1
+  steps:
+  - textKey: tutorial.move
+    textKeyDesktop: tutorial.move.pc
+    trigger: 2
+    minSeconds: 1.5
+    maxSeconds: 10
+  - textKey: tutorial.row
+    textKeyDesktop: tutorial.row.pc
+    trigger: 3
+    minSeconds: 1.5
+    maxSeconds: 10
+  - textKey: tutorial.shoot
+    textKeyDesktop: tutorial.shoot.pc
+    trigger: 4
+    minSeconds: 1.5
+    maxSeconds: 12
+  - textKey: tutorial.gauge
+    textKeyDesktop: 
+    trigger: 1
+    minSeconds: 4
+    maxSeconds: 0
+  - textKey: tutorial.roll
+    textKeyDesktop: tutorial.roll.pc
+    trigger: 5
+    minSeconds: 1.5
+    maxSeconds: 10
+  - textKey: tutorial.grenade
+    textKeyDesktop: tutorial.grenade.pc
+    trigger: 6
+    minSeconds: 1.5
+    maxSeconds: 12
+  - textKey: tutorial.skill
+    textKeyDesktop: tutorial.skill.pc
+    trigger: 7
+    minSeconds: 1.5
+    maxSeconds: 12
+  - textKey: tutorial.revive
+    textKeyDesktop: 
+    trigger: 1
+    minSeconds: 5
+    maxSeconds: 0

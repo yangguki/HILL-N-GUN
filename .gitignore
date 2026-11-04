@@ -78,3 +78,6 @@ crashlytics-build.properties
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Android build temp
+/.utmp/

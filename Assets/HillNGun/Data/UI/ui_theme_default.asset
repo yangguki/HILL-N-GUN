@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca3a3af63181a44949b42abb543e4cba, type: 3}
+  m_Name: ui_theme_default
+  m_EditorClassIdentifier: 
+  background: {r: 0.16, g: 0.12, b: 0.09, a: 1}
+  backgroundStripe: {r: 0.2, g: 0.15, b: 0.11, a: 1}
+  panel: {r: 0.25, g: 0.19, b: 0.14, a: 0.97}
+  panelDark: {r: 0.18, g: 0.14, b: 0.1, a: 0.97}
+  panelBorder: {r: 0.58, g: 0.44, b: 0.29, a: 1}
+  accent: {r: 1, g: 0.82, b: 0.35, a: 1}
+  text: {r: 0.96, g: 0.91, b: 0.83, a: 1}
+  textDim: {r: 0.74, g: 0.66, b: 0.56, a: 1}
+  good: {r: 0.55, g: 0.92, b: 0.55, a: 1}
+  bad: {r: 1, g: 0.48, b: 0.42, a: 1}
+  button: {r: 0.45, g: 0.32, b: 0.2, a: 1}
+  buttonHover: {r: 0.62, g: 0.46, b: 0.3, a: 1}
+  buttonDisabled: {r: 0.3, g: 0.27, b: 0.24, a: 1}
+  buttonPrimary: {r: 0.72, g: 0.42, b: 0.16, a: 1}
+  tab: {r: 0.3, g: 0.23, b: 0.16, a: 1}
+  tabActive: {r: 0.66, g: 0.47, b: 0.25, a: 1}
+  locked: {r: 0.36, g: 0.33, b: 0.31, a: 1}
+  stubBadge: {r: 0.42, g: 0.48, b: 0.66, a: 1}
+  overlay: {r: 0, g: 0, b: 0, a: 0.6}
+  fontTitle: 40
+  fontHeader: 26
+  fontBody: 20
+  fontSmall: 16
+  fontButton: 21
+  referenceHeight: 720
+  mobileRenderHeight: 720

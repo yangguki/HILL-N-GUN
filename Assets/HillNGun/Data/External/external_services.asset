@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fcfa7ee4aed14f159546abcb178c559, type: 3}
+  m_Name: external_services
+  m_EditorClassIdentifier: 
+  rewardedAdsEnabled: 1
+  simulateAdSuccess: 1
+  simulatedAdSeconds: 1.5
+  maxContinuesPerRun: 1
+  iapEnabled: 0
+  products:
+  - id: season_pass_premium
+    nameKey: shop.product.season_pass
+    descKey: shop.product.season_pass.desc
+    kind: 0
+    priceLabelKey: shop.price_tbd
+  - id: skin_bundle_launch
+    nameKey: shop.product.skin_bundle
+    descKey: shop.product.skin_bundle.desc
+    kind: 2
+    priceLabelKey: shop.price_tbd
+  - id: rank_pass
+    nameKey: shop.product.rank_pass
+    descKey: shop.product.rank_pass.desc
+    kind: 1
+    priceLabelKey: shop.price_tbd
+  analyticsLocalCsv: 1
+  analyticsFileName: analytics_local.csv
+  onlineMatchmakingEnabled: 0
+  useSpineCharacterViews: 0

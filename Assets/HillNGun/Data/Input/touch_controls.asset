@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c3e4f5a6b7d8e9f0a1b2c3d4e5f6a7b, type: 3}
+  m_Name: touch_controls
+  m_EditorClassIdentifier: 
+  referenceShortSide: 1080
+  tabletAspectMax: 1.62
+  tabletScale: 0.82
+  minScale: 0.55
+  maxScale: 2.4
+  safeAreaPadding: 24
+  topReserved: 170
+  hudGap: 12
+  moveZoneWidth: 0.5
+  moveRadius: 120
+  moveKnobRadius: 50
+  moveDeadzone: 0.12
+  moveStickFollow: 1
+  moveRestOffset: {x: 250, y: 230}
+  attackOffset: {x: 250, y: 230}
+  attackRadius: 118
+  attackKnobRadius: 54
+  attackHitScale: 1.35
+  attackDeadzone: 0.2
+  tapAutoAim: 1
+  tapMaxTime: 0.45
+  autoAimRangeMul: 1.6
+  fireQueueWindow: 0.3
+  arcRadius: 215
+  rollAngle: 150
+  skillAngle: 106
+  grenadeAngle: 194
+  rollRadius: 60
+  skillRadius: 66
+  grenadeRadius: 62
+  buttonHitScale: 1.25
+  grenadeDeadzonePx: 26
+  grenadeDragFull: 240
+  skillDragFull: 240
+  rowChangeThreshold: 0.6
+  rowChangeHoldTime: 0.15
+  opacity: 0.9
+  idleMoveHintAlpha: 0.35
+  baseColor: {r: 0.12, g: 0.09, b: 0.07, a: 0.42}
+  ringColor: {r: 1, g: 0.93, b: 0.8, a: 0.75}
+  knobColor: {r: 1, g: 0.96, b: 0.88, a: 0.95}
+  attackColor: {r: 0.95, g: 0.42, b: 0.22, a: 0.92}
+  rollColor: {r: 0.36, g: 0.66, b: 0.36, a: 0.92}
+  skillColor: {r: 0.98, g: 0.76, b: 0.2, a: 0.95}
+  grenadeColor: {r: 0.86, g: 0.28, b: 0.2, a: 0.92}
+  cooldownColor: {r: 0, g: 0, b: 0, a: 0.55}
+  aimLineColor: {r: 1, g: 0.97, b: 0.85, a: 0.55}
+  chargeLineColor: {r: 1, g: 0.85, b: 0.25, a: 0.7}
+  grenadeAreaColor: {r: 1, g: 0.45, b: 0.18, a: 0.32}
+  aimLineWidth: 0.42

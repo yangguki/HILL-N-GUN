@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34ffa1006478b4e19aadf343f253175d, type: 3}
+  m_Name: feel_default
+  m_EditorClassIdentifier: 
+  hitFlashDuration: 0.06
+  hitstopLight: 0
+  hitstopMedium: 0.03
+  hitstopHeavy: 0.06
+  hitstopGrenade: 0.04
+  hitstopCoverStage: 0.03
+  shakeHeavyAmplitude: 0.08
+  shakeHeavyDuration: 0.1
+  shakeCoverAmplitude: 0.08
+  shakeCoverDuration: 0.15
+  shakeGrenadeAmplitude: 0.12
+  shakeGrenadeDuration: 0.2
+  vibrateBigDamageMs: 40
+  bigDamageThreshold: 500
+  shakeEnabled: 1
+  vibrationEnabled: 1
+  hitStopEnabled: 1
+  bulletHeadSize: 0.62
+  bulletTrailLength: 1.8
+  bulletTrailWidth: 0.28
+  bulletHaloAlpha: 0.5
+  playerBulletColor: {r: 1, g: 0.86, b: 0.25, a: 1}
+  enemyBulletColor: {r: 1, g: 0.36, b: 0.2, a: 1}
+  muzzleFlashSize: 1.05
+  muzzleFlashTime: 0.1
+  muzzleFlashForward: 0.55
+  debrisSplinters: 16
+  debrisLifetime: 0.75

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e8245f250e77494a88756bb5e06cb12, type: 3}
+  m_Name: char_raven
+  m_EditorClassIdentifier: 
+  id: raven
+  nameKey: char.raven.name
+  role: 1
+  maxHp: 2200
+  moveSpeed: 2.6
+  chargingMoveSpeed: 1.6
+  rowChangeSpeedMul: 1.5
+  hitRadius: 0.5
+  weakpointRadius: 0.2
+  grenadeCount: 1
+  weapon: {fileID: 11400000, guid: 067d6fa9c812e449aa81c52c2c9a701f, type: 2}
+  grenade: {fileID: 11400000, guid: 713f7b8f854544647bb2142e2decc348, type: 2}
+  roll: {fileID: 11400000, guid: 66805259291a14107af734ba3482baba, type: 2}
+  skill: {fileID: 11400000, guid: ca22b84e2a5bb43f89bcc88d8e7e0dc2, type: 2}
+  passive: {fileID: 11400000, guid: ec99adc6d82d34a098898d8b5c936da8, type: 2}
