@@ -421,6 +421,7 @@ namespace HillNGun.PvE
             SpawnCovers();
             SpawnHazards();
             SpawnVisualProps();
+            FindFirstObjectByType<HillNGun.Battlefield.BattlefieldRenderer>()?.RefreshStageVisual();
             StartCoroutine(BeginStagePresentation());
 
             // Wave/boss start deferred to BeginStagePresentation so intro/WANTED can play first

@@ -82,6 +82,16 @@ namespace HillNGun.Tests.EditMode
         }
 
         [Test]
+        public void SortingOrders_AboveBackgroundBake()
+        {
+            var v = ScriptableObject.CreateInstance<StageVisualData>();
+            StageVisualData.EnsureFiveLayers(v);
+            // FieldView.BackgroundOrder = -100; concept layers must be higher
+            for (int i = 0; i < 5; i++)
+                Assert.Greater(v.layers[i].sortingOrder, -100);
+        }
+
+        [Test]
         public void DustBudget_CapsAt16()
         {
             var v = ScriptableObject.CreateInstance<StageVisualData>();

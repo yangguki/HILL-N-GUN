@@ -52,7 +52,7 @@ namespace HillNGun.Data
                 }
             }
             float[] para = { 0.12f, 0.35f, 0.55f, 0f, 0.9f };
-            int[] ord = { -50, -40, -30, -20, -10 };
+            int[] ord = { -90, -80, -70, -60, -50 }; // above FieldView.BackgroundOrder (-100)
             for (int i = 0; i < 5; i++)
             {
                 if (v.layers[i] == null) v.layers[i] = new ParallaxLayer();

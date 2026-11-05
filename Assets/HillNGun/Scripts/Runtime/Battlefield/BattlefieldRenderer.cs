@@ -47,6 +47,7 @@ namespace HillNGun.Battlefield
         private ParallaxBackdrop _parallax;
         private HillNGun.PvE.PvEMatchManager _pve;
         private bool _pveSearched;
+        private string _appliedVisualStageId;
 
         /// <summary>Last bake time in ms (perf log).</summary>
         public static float LastBakeMs { get; private set; }
@@ -72,12 +73,30 @@ namespace HillNGun.Battlefield
 
         private void LateUpdate()
         {
+            if (!_pveSearched) { _pve = FindAnyObjectByType<HillNGun.PvE.PvEMatchManager>(); _pveSearched = true; }
+            // Theme may stay "town_street" across 1-1..Rex — still must (re)apply StageVisual when stage starts/changes.
+            string stageId = _pve != null && _pve.CurrentStage != null ? _pve.CurrentStage.id : null;
+            var want = (_pve != null && _pve.CurrentStage != null) ? ThemeContext.Library?.Get(_pve.CurrentStage.themeId) : _theme;
+            if (want != null && want != _theme)
+            {
+                ApplyTheme(want);
+                return;
+            }
+            if (stageId != _appliedVisualStageId)
+            {
+                if (_theme == null && want != null) ApplyTheme(want);
+                else ResolveAndApplyVisual();
+                return;
+            }
             if (_theme == null) return;
             var cam = Camera.main;
             float aspect = cam != null ? cam.aspect : _bakedAspect;
-            var want = (_pve != null && _pve.CurrentStage != null) ? ThemeContext.Library?.Get(_pve.CurrentStage.themeId) : _theme;
-            if (want != null && want != _theme) { ApplyTheme(want); return; }
-            if (Mathf.Abs(aspect - _bakedAspect) > 0.02f || Mathf.Abs(Screen.height - _bakedPxH) > 160) Bake();
+            if (Mathf.Abs(aspect - _bakedAspect) > 0.02f || Mathf.Abs(Screen.height - _bakedPxH) > 160)
+            {
+                Bake();
+                // Keep concept BG on top after rebake
+                ResolveAndApplyVisual();
+            }
         }
 
         private void ApplyTheme(StageThemeData theme)
@@ -262,10 +281,15 @@ namespace HillNGun.Battlefield
             if (_bakedTex != null) Destroy(_bakedTex);
             if (_quadMesh != null) Destroy(_quadMesh);
         }
-        private void ResolveAndApplyVisual()
+        public void RefreshStageVisual() => ResolveAndApplyVisual();
+
+        public void ResolveAndApplyVisual()
         {
+            if (!_pveSearched) { _pve = FindAnyObjectByType<HillNGun.PvE.PvEMatchManager>(); _pveSearched = true; }
             StageVisualData visual = null;
             if (_pve != null && _pve.CurrentStage != null) visual = _pve.CurrentStage.visual;
+            _appliedVisualStageId = _pve != null && _pve.CurrentStage != null ? _pve.CurrentStage.id : null;
+
             if (_parallax == null)
             {
                 var go = new GameObject("ParallaxBackdrop");
@@ -273,9 +297,19 @@ namespace HillNGun.Battlefield
                 _parallax = go.AddComponent<ParallaxBackdrop>();
             }
             _parallax.Apply(visual);
+
+            // When Task I concept layers are present, hide the procedural bake so tablets
+            // cannot keep showing the old Western scenery underneath / instead.
+            bool hasConcept = false;
+            if (visual != null && visual.layers != null)
+            {
+                for (int i = 0; i < visual.layers.Length; i++)
+                    if (visual.layers[i] != null && visual.layers[i].sprite != null) { hasConcept = true; break; }
+            }
+            if (_meshRenderer != null) _meshRenderer.enabled = !hasConcept;
+
             if (_ambient != null && visual != null)
             {
-                // Prefer StageVisualData ambient budgets when present
                 if (_theme != null)
                 {
                     _theme.dustMotes = visual.dustMotes;
@@ -287,6 +321,8 @@ namespace HillNGun.Battlefield
                 _ambient.BanCombatLaneDecor = true;
             }
             _parallax.EnforceNoDecorOnL3();
+            if (hasConcept)
+                Debug.Log($"[Backdrop] StageVisual applied stage={_appliedVisualStageId} timeOfDay={visual.timeOfDay} (procedural bake hidden)");
         }
 
     }
