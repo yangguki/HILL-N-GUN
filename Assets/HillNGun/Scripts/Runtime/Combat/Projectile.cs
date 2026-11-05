@@ -18,6 +18,7 @@ namespace HillNGun.Combat
         /// <summary>Weapon falloff start (0 = none). Applied via EffectiveDamage.</summary>
         public float FalloffStart { get; private set; }
         public float FalloffEndMul { get; private set; } = 1f;
+        public HillNGun.Data.WeaponVfxData Vfx { get; private set; }
         /// <summary>Damage after distance falloff (before weakpoint).</summary>
         public int EffectiveDamage
         {
@@ -77,6 +78,7 @@ namespace HillNGun.Combat
             Range = weapon.range;
             FalloffStart = weapon.damageFalloffStart;
             FalloffEndMul = weapon.damageFalloffEndMul;
+            Vfx = weapon.vfx;
             OwnerTeam = team;
             _distanceTraveled = 0f;
             _piercesRemaining = pierces;
@@ -95,6 +97,7 @@ namespace HillNGun.Combat
             Range = range;
             FalloffStart = 0f;
             FalloffEndMul = 1f;
+            Vfx = null;
             OwnerTeam = team;
             _distanceTraveled = 0f;
             _piercesRemaining = 0;

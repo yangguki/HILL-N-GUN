@@ -38,3 +38,4 @@ MonoBehaviour:
   chargeDamageMul: 1
   muzzleForwardOffset: 1
   coverDamageMul: 1
+  vfx: {fileID: 11400000, guid: ac00813c984a442b0882a69c6c5d8881, type: 2}

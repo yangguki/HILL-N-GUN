@@ -113,21 +113,30 @@ namespace HillNGun.Combat
                     var p = list[i];
                     if (!p.IsActive) continue;
                     n++;
+                    var vfx = p.Vfx;
                     Color col = p.OwnerTeam == Team.Player ? pc : ec;
+                    float useHead = head, useTrail = trailLen, useW = trailW;
+                    if (vfx != null)
+                    {
+                        col = p.OwnerTeam == Team.Player ? vfx.tracerColor : Color.Lerp(vfx.tracerColor, ec, 0.35f);
+                        useHead = vfx.headSize; useTrail = vfx.tracerLength; useW = vfx.tracerWidth;
+                    }
                     float persp = FieldView.PerspectiveScale(p.Position.y);
                     float sizeMul = Mathf.Clamp(p.Radius / 0.25f, 0.75f, 1.35f) * (p.Damage >= 500 ? 1.15f : 1f);
+                    if (vfx != null && vfx.isSlug) sizeMul *= 1.15f;
+                    if (vfx != null && vfx.isNeedle) sizeMul *= 0.85f;
                     Vector3 hw = FieldView.ToWorld(p.Position);
-                    float len = Mathf.Min(trailLen * sizeMul, p.DistanceTraveled + 0.2f);
+                    float len = Mathf.Min(useTrail * sizeMul, p.DistanceTraveled + 0.2f);
                     Vector3 tw = FieldView.ToWorld(p.Position - p.Direction * len);
                     // trail quad
                     Vector3 axis = hw - tw;
                     Vector3 side = axis.sqrMagnitude > 1e-6f ? new Vector3(-axis.y, axis.x, 0f).normalized : Vector3.right;
-                    float w = trailW * sizeMul * persp * 0.5f;
+                    float w = useW * sizeMul * persp * 0.5f;
                     Color tc = new Color(col.r, col.g, col.b, 0.85f);
                     Quad(tw - side * w * 0.35f, tw + side * w * 0.35f, hw + side * w, hw - side * w,
                          new Vector2(0.5f, 0f), new Vector2(0.5f, 1f), new Vector2(1f, 1f), new Vector2(1f, 0f), tc);
                     // head (dark halo first for contrast, then the bright core)
-                    float h = head * sizeMul * persp * 0.5f;
+                    float h = useHead * sizeMul * persp * 0.5f;
                     if (halo > 0f)
                     {
                         float hh = h * 1.6f;

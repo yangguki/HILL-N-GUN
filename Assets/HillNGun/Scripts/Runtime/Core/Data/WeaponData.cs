@@ -90,6 +90,9 @@ namespace HillNGun.Data
         [Tooltip("엄폐물에 대한 피해 배율")]
         public float coverDamageMul = 1f;
 
+        [Header("VFX (view only, 08)")]
+        public WeaponVfxData vfx;
+
         /// <summary>Doc alias for <see cref="range"/> (07_weapon_range.md rangeTiles).</summary>
         public float rangeTiles { get => range; set => range = value; }
 

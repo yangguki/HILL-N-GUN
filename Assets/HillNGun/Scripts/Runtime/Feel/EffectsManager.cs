@@ -63,6 +63,9 @@ namespace HillNGun.Feel
         /// shot (perspective-aware), size/lifetime from FeelData. muzzleForward = WeaponData.muzzleForwardOffset.
         /// </summary>
         public void SpawnMuzzleFlash(Vector2 position, Vector2 direction, bool isShotgun, float muzzleForward)
+            => SpawnMuzzleFlashPattern(position, direction, isShotgun, muzzleForward, null);
+
+        public void SpawnMuzzleFlashPattern(Vector2 position, Vector2 direction, bool isShotgun, float muzzleForward, HillNGun.Data.WeaponVfxData vfx)
         {
             if (_feel == null) _feel = ServiceLocator.Get<HillNGun.Data.FeelData>();
             float size = _feel != null ? _feel.muzzleFlashSize : 1.05f;
@@ -75,7 +78,19 @@ namespace HillNGun.Feel
             Vector2 wd = (Vector2)(w1 - w0);
             if (wd.sqrMagnitude < 1e-8f) wd = d;
             float persp = Battlefield.FieldView.PerspectiveScale(muzzle.y);
-            GetFromPool(_muzzleFlashPool).Spawn(w0, wd.normalized, isShotgun, size * persp * (isShotgun ? 1.25f : 1f), time);
+            float mul = isShotgun || (vfx != null && vfx.isPellet) ? 1.25f : (vfx != null && vfx.isSlug ? 1.15f : 1f);
+            var flash = GetFromPool(_muzzleFlashPool);
+            flash.Spawn(w0, wd.normalized, isShotgun || (vfx != null && vfx.isPellet), size * persp * mul, time);
+            if (vfx != null) flash.Tint = vfx.muzzleColor;
+        }
+
+        public void SpawnPatternImpact(Vector2 position, bool isCover, HillNGun.Data.WeaponVfxData vfx)
+        {
+            VfxPool.Ensure();
+            string id = vfx == null ? (isCover ? "impact_wood" : "impact_stars")
+                : (isCover ? vfx.impactCoverId : vfx.impactEnemyId);
+            VfxPool.Instance?.SpawnImpact(position, id, vfx);
+            if (isCover) SpawnImpact(position, true); // keep existing wood chip GL
         }
 
         private Vector3 ToWorld(Vector2 logic) => _battlefield?.LogicToWorldPosition(logic) ?? Battlefield.FieldView.ToWorld(logic);
@@ -150,6 +165,13 @@ namespace HillNGun.Feel
         }
 
         private static Material _fxMat;
+        public static Material SharedFxMaterial => _fxMat ?? (_fxMat = MakeFxMat());
+        private static Material MakeFxMat()
+        {
+            var m = new Material(Shader.Find("Sprites/Default"));
+            m.SetInt("_ZWrite", 0);
+            return m;
+        }
 
         /// <summary>Active pooled effects (perf diagnostics).</summary>
         public static string ActiveSummary
@@ -184,12 +206,7 @@ namespace HillNGun.Feel
             foreach (var e in _explosionPool) any |= e.IsActive;
             foreach (var b in _debrisPool) any |= b.IsActive;
             if (!any) return;
-            if (_fxMat == null)
-            {
-                _fxMat = new Material(Shader.Find("Sprites/Default"));
-                _fxMat.SetInt("_ZWrite", 0);
-            }
-            _fxMat.SetPass(0);
+            SharedFxMaterial.SetPass(0);
             GL.PushMatrix();
             GL.Begin(GL.TRIANGLES);
             foreach (var b in _debrisPool) b.EmitDust();
@@ -221,6 +238,7 @@ namespace HillNGun.Feel
 
     public class MuzzleFlash : IPooledEffect
     {
+        public Color Tint = new Color(1f, 0.55f, 0.12f, 1f);
         public bool IsActive { get; private set; }
         private Vector3 _position;
         private Vector2 _direction;
@@ -233,6 +251,7 @@ namespace HillNGun.Feel
 
         public void Spawn(Vector3 pos, Vector2 dir, bool shotgun, float size, float life)
         {
+            Tint = new Color(1f, 0.55f, 0.12f, 1f);
             _position = pos;
             _direction = dir.sqrMagnitude > 1e-8f ? dir.normalized : Vector2.up;
             _life = Mathf.Max(0.02f, life);
@@ -262,7 +281,7 @@ namespace HillNGun.Feel
             float s = _size * grow;
 
             // outer flame
-            GL.Color(new Color(1f, 0.55f, 0.12f, alpha * 0.85f));
+            GL.Color(new Color(Tint.r, Tint.g, Tint.b, alpha * 0.85f));
             Tri(_position - f * s * 0.12f, _position + f * s + r * s * 0.16f, _position + f * s - r * s * 0.16f);
             Tri(_position, _position + f * s * 0.45f + r * s * 0.32f, _position + f * s * 0.62f);
             Tri(_position, _position + f * s * 0.45f - r * s * 0.32f, _position + f * s * 0.62f);

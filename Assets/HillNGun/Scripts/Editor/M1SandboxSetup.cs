@@ -121,6 +121,7 @@ namespace HillNGun.Editor
         private static void CreateDataAssets()
         {
             CreateWeaponAssets();
+            CreateWeaponVfxAssets();
             CreateGrenadeAssets();
             CreateRollAssets();
             CreateSkillAssets();
@@ -208,6 +209,31 @@ namespace HillNGun.Editor
             wpnVolt.nameKey = "weapon.wpn_volt"; wpnVolt.descKey = "weapon.wpn_volt.desc";
             wpnVolt.holdToRepeat = false; wpnVolt.cockAnimation = true; // big revolver: one tap, one shot, hammer cock
             EditorUtility.SetDirty(wpnVolt);
+        }
+
+
+        private static void CreateWeaponVfxAssets()
+        {
+            CreateFolderRecursive(DATA_PATH + "Vfx");
+            var fan = CreateOrLoad<WeaponVfxData>(DATA_PATH + "Vfx/vfx_spread_fan.asset");
+            var tmp = WeaponVfxData.Builtin("spread_fan");
+            EditorUtility.CopySerialized(tmp, fan); Object.DestroyImmediate(tmp); fan.name = "vfx_spread_fan";
+            EditorUtility.SetDirty(fan);
+            var beam = CreateOrLoad<WeaponVfxData>(DATA_PATH + "Vfx/vfx_charge_beam.asset");
+            tmp = WeaponVfxData.Builtin("charge_beam");
+            EditorUtility.CopySerialized(tmp, beam); Object.DestroyImmediate(tmp); beam.name = "vfx_charge_beam";
+            EditorUtility.SetDirty(beam);
+            var slug = CreateOrLoad<WeaponVfxData>(DATA_PATH + "Vfx/vfx_heavy_slug.asset");
+            tmp = WeaponVfxData.Builtin("heavy_slug");
+            EditorUtility.CopySerialized(tmp, slug); Object.DestroyImmediate(tmp); slug.name = "vfx_heavy_slug";
+            EditorUtility.SetDirty(slug);
+
+            var wpnBuster = AssetDatabase.LoadAssetAtPath<WeaponData>(DATA_PATH + "Weapons/wpn_buster.asset");
+            var wpnRaven = AssetDatabase.LoadAssetAtPath<WeaponData>(DATA_PATH + "Weapons/wpn_raven.asset");
+            var wpnVolt = AssetDatabase.LoadAssetAtPath<WeaponData>(DATA_PATH + "Weapons/wpn_volt.asset");
+            if (wpnBuster != null) { wpnBuster.vfx = fan; EditorUtility.SetDirty(wpnBuster); }
+            if (wpnRaven != null) { wpnRaven.vfx = beam; EditorUtility.SetDirty(wpnRaven); }
+            if (wpnVolt != null) { wpnVolt.vfx = slug; EditorUtility.SetDirty(wpnVolt); }
         }
 
         private static void CreateGrenadeAssets()

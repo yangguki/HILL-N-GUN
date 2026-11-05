@@ -5,6 +5,7 @@ using HillNGun.Data;
 using HillNGun.Characters;
 using HillNGun.Cover;
 using HillNGun.Battlefield;
+using HillNGun.Feel;
 
 namespace HillNGun.Combat
 {
@@ -456,6 +457,7 @@ namespace HillNGun.Combat
                 OnCoverHit?.Invoke(projectile, hitCover, projectile.Damage);
                 projectile.OnHitCover();
                 ApplyHitFeel(projectile.Damage, false);
+                EffectsManager.Instance?.SpawnPatternImpact(hitCover.Position, true, projectile.Vfx);
             }
             else if (hitCharacter != null)
             {
@@ -473,6 +475,7 @@ namespace HillNGun.Combat
                 OnCharacterHit?.Invoke(projectile, hitCharacter, damage);
                 projectile.OnHitTarget();
                 ApplyHitFeel(damage, true);
+                EffectsManager.Instance?.SpawnPatternImpact(hitCharacter.Position, false, projectile.Vfx);
             }
             else if (hitTarget != null)
             {

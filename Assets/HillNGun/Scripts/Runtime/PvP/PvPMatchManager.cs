@@ -276,7 +276,7 @@ namespace HillNGun.PvP
             character.OnDowned += HandleCharacterDowned;
             character.OnEliminated += HandleCharacterEliminated;
             character.OnFired += (c, dir, dmg) =>
-                EffectsManager.Instance?.SpawnMuzzleFlash(c.Position, dir, (c.Data?.weapon?.projectilesPerShot ?? 1) > 1, c.Data?.weapon?.muzzleForwardOffset ?? 1f);
+                EffectsManager.Instance?.SpawnMuzzleFlashPattern(c.Position, dir, (c.Data?.weapon?.projectilesPerShot ?? 1) > 1, c.Data?.weapon?.muzzleForwardOffset ?? 1f, c.Data?.weapon?.vfx);
             character.OnDamageTaken += (c, dmg, dir) =>
             {
                 if (!_isRoundActive) return;

@@ -1238,6 +1238,8 @@ namespace HillNGun.Editor
 
             var effectsGO = new GameObject("EffectsManager");
             effectsGO.AddComponent<EffectsManager>();
+            var vfxGO = new GameObject("VfxPool");
+            vfxGO.AddComponent<HillNGun.Feel.VfxPool>();
 
             var localizationGO = new GameObject("LocalizationManager");
             AssignStringsFile(localizationGO.AddComponent<LocalizationManager>());
