@@ -43,6 +43,8 @@ namespace HillNGun.DebugTools
 
         // -smoketest-fullpve: play PvE through every stage + boss until the Result scene
         private static bool _fullPvE;
+        /// <summary>-smoketest-start-stage N: PvE run begins at this stage index (0=1-1 … 3=Rex).</summary>
+        private static int _startStage;
         // -smoketest-fullpvp: play a full best-of-3 PvP match (squad autopilot on both sides) until Result
         private static bool _fullPvP;
         // -smoketest-capture: after the PvE match warms up, record a 30fps PNG frame sequence of scripted
@@ -125,6 +127,11 @@ namespace HillNGun.DebugTools
                     float.TryParse(args[i + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float cs))
                 {
                     _captureSeconds = Mathf.Clamp(cs, 1f, 20f);
+                }
+                if (args[i].Equals("-smoketest-start-stage", StringComparison.OrdinalIgnoreCase) &&
+                    int.TryParse(args[i + 1], out int st))
+                {
+                    _startStage = Mathf.Max(0, st);
                 }
             }
 
@@ -461,8 +468,8 @@ namespace HillNGun.DebugTools
                 }
                 else
                 {
-                    Debug.Log("[SmokeTest] Lobby -> stage 1-1");
-                    lobby.StartPvE(0);
+                    Debug.Log($"[SmokeTest] Lobby -> stage index {_startStage}");
+                    lobby.StartPvE(_startStage);
                     SetPhase(SmokeTestPhase.CharacterSelect);
                 }
                 return;
@@ -485,8 +492,8 @@ namespace HillNGun.DebugTools
                 case 9: StartCoroutine(TakeScreenshotDelayed("lobby_settings")); break;
                 case 10:
                     var d = ProgressionService.Instance.Data;
-                    Debug.Log($"[SmokeTest] Lobby tour done (bounty={d.bounty} badge={d.badgeLevel} regions={string.Join(",", d.unlockedRegions)}) -> stage 1-1");
-                    lobby.StartPvE(0);
+                    Debug.Log($"[SmokeTest] Lobby tour done (bounty={d.bounty} badge={d.badgeLevel} regions={string.Join(",", d.unlockedRegions)}) -> stage index {_startStage}");
+                    lobby.StartPvE(_startStage);
                     SetPhase(SmokeTestPhase.CharacterSelect);
                     break;
             }

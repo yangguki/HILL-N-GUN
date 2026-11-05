@@ -114,6 +114,7 @@ namespace HillNGun.UI
             _strings["passive.roll_shot.name"] = "사격 집중";
             _strings["passive.weakpoint.name"] = "약점 사격";
             _strings["passive.fast_revive.name"] = "신속 소생";
+            _strings["pve.boss.rattlesnake_rex"] = "방울뱀 렉스";
         }
 
         public string GetString(string key)

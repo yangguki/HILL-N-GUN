@@ -120,13 +120,13 @@ namespace HillNGun.UI
                 // boss card: deck portrait between the name and the bounty
                 Rect art = new Rect(r.x + 10f, r.y + 114f, r.width - 20f, r.height - 114f - 150f);
                 UIKit.Sprite(art, bossArt, unlocked ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f));
-                UIKit.Label(new Rect(r.x + 8f, r.yMax - 144f, r.width - 16f, 30f), "$" + reg.bossBounty.ToString("N0"), t.fontHeader, t.accent, TextAnchor.MiddleCenter, true);
+                UIKit.Label(new Rect(r.x + 8f, r.yMax - 144f, r.width - 16f, 30f), "$" + reg.bossBounty.ToString("#,0", System.Globalization.CultureInfo.InvariantCulture), t.fontHeader, t.accent, TextAnchor.MiddleCenter, true);
                 UIKit.Label(new Rect(r.x + 8f, r.yMax - 112f, r.width - 16f, 44f), status, t.fontBody, cleared ? t.good : unlocked ? t.text : t.textDim, TextAnchor.MiddleCenter, true, true);
             }
             else
             {
                 if (isBoss)
-                    UIKit.Label(new Rect(r.x + 8f, r.y + 116f, r.width - 16f, 26f), "$" + reg.bossBounty.ToString("N0"), t.fontHeader, t.accent, TextAnchor.MiddleCenter, true);
+                    UIKit.Label(new Rect(r.x + 8f, r.y + 116f, r.width - 16f, 26f), "$" + reg.bossBounty.ToString("#,0", System.Globalization.CultureInfo.InvariantCulture), t.fontHeader, t.accent, TextAnchor.MiddleCenter, true);
                 UIKit.Label(new Rect(r.x + 8f, r.y + 150f, r.width - 16f, 48f), status, t.fontBody, cleared ? t.good : unlocked ? t.text : t.textDim, TextAnchor.MiddleCenter, true, true);
                 // stage theme preview (the real baked field backdrop) + theme name
                 Rect tr = new Rect(r.x + 10f, r.y + 202f, r.width - 20f, r.yMax - 72f - (r.y + 202f));

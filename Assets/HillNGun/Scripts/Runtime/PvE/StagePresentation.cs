@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Globalization;
 using UnityEngine;
 using HillNGun.Data;
 using HillNGun.Core;
@@ -19,7 +21,7 @@ namespace HillNGun.PvE
         private string _wantedTitle = "WANTED";
         private string _wantedName;
         private string _wantedBounty;
-        private Texture2D _wantedTex;
+        private Sprite _wantedPortrait;
 
         private void Awake()
         {
@@ -65,12 +67,14 @@ namespace HillNGun.PvE
             _busy = false; _skip = false;
         }
 
-        public IEnumerator PlayWantedCard(string bossName, int bounty, float duration = 2f)
+        /// <summary>WANTED poster. Bounty always uses comma thousands ($1,000) regardless of locale.</summary>
+        public IEnumerator PlayWantedCard(string bossName, int bounty, Sprite portrait = null, float duration = 2f)
         {
             _busy = true; _skip = false;
             _wanted = true;
             _wantedName = bossName;
-            _wantedBounty = "$" + bounty.ToString("N0");
+            _wantedBounty = FormatBounty(bounty);
+            _wantedPortrait = portrait;
             _wantedUntil = Time.unscaledTime + duration;
             float t = 0f;
             while (t < duration && !_skip)
@@ -82,6 +86,26 @@ namespace HillNGun.PvE
             _busy = false; _skip = false;
         }
 
+        /// <summary>Always "$1,000" style with ASCII comma — never locale period thousands ($1.000).</summary>
+        public static string FormatBounty(int amount)
+        {
+            // Build manually so fonts/locales cannot swap the group separator to '.'.
+            bool neg = amount < 0;
+            long n = Math.Abs((long)amount);
+            string digits = n.ToString(CultureInfo.InvariantCulture);
+            var sb = new System.Text.StringBuilder();
+            if (neg) sb.Append('-');
+            sb.Append('$');
+            int len = digits.Length;
+            for (int i = 0; i < len; i++)
+            {
+                sb.Append(digits[i]);
+                int left = len - i - 1;
+                if (left > 0 && left % 3 == 0) sb.Append(',');
+            }
+            return sb.ToString();
+        }
+
         public void ShowBanner(string text, float seconds = 0.55f)
         {
             _banner = text;
@@ -90,6 +114,8 @@ namespace HillNGun.PvE
 
         public void ShowWave(int n) => ShowBanner("WAVE " + n, 0.6f);
         public void ShowClear() => ShowBanner("CLEAR", 0.5f);
+
+        public bool IsWantedShowing => _wanted;
 
         private void OnGUI()
         {
@@ -105,9 +131,36 @@ namespace HillNGun.PvE
                 GUI.color = Color.white;
                 var style = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, wordWrap = true };
                 style.fontSize = Mathf.RoundToInt(28 * (sw / 1280f));
-                GUI.Label(new Rect(r.x, r.y + 24f, r.width, 40f), _wantedTitle, style);
-                style.fontSize = Mathf.RoundToInt(36 * (sw / 1280f));
-                GUI.Label(new Rect(r.x + 12f, r.y + h * 0.35f, r.width - 24f, 60f), _wantedName ?? "", style);
+                GUI.Label(new Rect(r.x, r.y + 18f, r.width, 36f), _wantedTitle, style);
+
+                // Center portrait between title and name
+                float artH = h * 0.42f;
+                float artW = artH * 0.85f;
+                var art = new Rect(r.x + (r.width - artW) * 0.5f, r.y + 58f, artW, artH);
+                if (_wantedPortrait != null && _wantedPortrait.texture != null)
+                {
+                    GUI.color = Color.white;
+                    Rect tr = _wantedPortrait.textureRect;
+                    Rect uv = new Rect(tr.x / _wantedPortrait.texture.width, tr.y / _wantedPortrait.texture.height,
+                        tr.width / _wantedPortrait.texture.width, tr.height / _wantedPortrait.texture.height);
+                    float aspect = tr.width / Mathf.Max(1f, tr.height);
+                    float aw = art.width, ah = art.width / aspect;
+                    if (ah > art.height) { ah = art.height; aw = ah * aspect; }
+                    var dst = new Rect(art.x + (art.width - aw) * 0.5f, art.y + (art.height - ah) * 0.5f, aw, ah);
+                    GUI.DrawTextureWithTexCoords(dst, _wantedPortrait.texture, uv, true);
+                }
+                else
+                {
+                    GUI.color = new Color(0.25f, 0.18f, 0.12f, 0.9f);
+                    GUI.DrawTexture(art, Texture2D.whiteTexture);
+                    GUI.color = new Color(0.7f, 0.6f, 0.45f, 1f);
+                    style.fontSize = Mathf.RoundToInt(18 * (sw / 1280f));
+                    GUI.Label(art, "?", style);
+                }
+
+                GUI.color = Color.white;
+                style.fontSize = Mathf.RoundToInt(30 * (sw / 1280f));
+                GUI.Label(new Rect(r.x + 12f, art.yMax + 8f, r.width - 24f, 48f), _wantedName ?? "", style);
                 style.fontSize = Mathf.RoundToInt(28 * (sw / 1280f));
                 GUI.color = new Color(1f, 0.85f, 0.3f);
                 GUI.Label(new Rect(r.x, r.yMax - 90f, r.width, 40f), _wantedBounty ?? "", style);

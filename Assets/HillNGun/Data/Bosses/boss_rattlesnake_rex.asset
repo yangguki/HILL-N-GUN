@@ -19,8 +19,9 @@ MonoBehaviour:
   moveSpeed: 1.5
   partyHpMultipliers:
   - 1
-  - 1.7
-  - 4
+  - 1.8
+  - 2.6
+  aiAllyHpAdd: 1
   phases:
   - phase: 0
     hpThresholdPercent: 1

@@ -768,9 +768,10 @@ namespace HillNGun.Editor
             bossRex.entryDuration = 3f;
             bossRex.entryStartPosition = new Vector2(12f, 20f);
             bossRex.battlePosition = new Vector2(12f, 14f);
-            // HP scale by squad size (decision D8/D15). 03 doc: 2인 협동 40,800 (= x1.7).
-            // 3-person squad (player + 2 AI) tuned toward a 90~120s boss fight.
-            bossRex.partyHpMultipliers = new float[] { 1f, 1.7f, 4.0f };
+            // HP scale: human players use partyHpMultipliers; each AI ally adds aiAllyHpAdd.
+            // Default PvE (1 human + 2 AI): 1.0 + 2*1.0 = ×3.0 → 72,000 (tuned for 90~120s autoplay) (target clear 90~120s).
+            bossRex.partyHpMultipliers = new float[] { 1f, 1.8f, 2.6f };
+            bossRex.aiAllyHpAdd = 1.0f;
 
             var pistolMook = AssetDatabase.LoadAssetAtPath<EnemyData>(DATA_PATH + "Enemies/enemy_pistol_mook.asset");
 

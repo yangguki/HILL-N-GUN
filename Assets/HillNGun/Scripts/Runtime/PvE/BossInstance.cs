@@ -10,7 +10,7 @@ namespace HillNGun.PvE
         public BossData Data { get; private set; }
         public Vector2 Position { get; private set; }
         public int CurrentHp { get; private set; }
-        /// <summary>Max HP after party-size scaling (BossData.partyHpMultipliers).</summary>
+        /// <summary>Max HP after human+AI scaling (BossData.partyHpMultipliers + aiAllyHpAdd).</summary>
         public int MaxHp { get; private set; }
         public float HpRatio => MaxHp > 0 ? (float)CurrentHp / MaxHp : 0f;
         /// <summary>1-based index of the volley within the current fan-shot burst.</summary>

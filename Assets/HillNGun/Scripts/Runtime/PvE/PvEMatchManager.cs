@@ -50,7 +50,7 @@ namespace HillNGun.PvE
         public int BossVolleys { get; private set; }
         public int BossPhase3Volleys { get; private set; }
 
-        /// <summary>Squad size used for PvE HP scaling (decision D15).</summary>
+        /// <summary>Living squad size (human + AI). Used for normal enemy HP scaling only — not bosses.</summary>
         public int PartySize
         {
             get
@@ -59,6 +59,35 @@ namespace HillNGun.PvE
                 foreach (var c in _playerTeam)
                     if (c != null && c.OverallState != CharacterOverallState.Eliminated) n++;
                 return Mathf.Max(1, n);
+            }
+        }
+
+        /// <summary>Living human (player-controlled) count for boss HP scaling.</summary>
+        public int HumanPlayerCount
+        {
+            get
+            {
+                if (_playerTeam == null || _playerTeam.Count <= _playerControlledIndex) return 1;
+                var c = _playerTeam[_playerControlledIndex];
+                if (c != null && c.OverallState != CharacterOverallState.Eliminated) return 1;
+                return 1; // scaling baseline stays at least one human seat
+            }
+        }
+
+        /// <summary>Living AI ally count for boss HP scaling (excludes the player-controlled seat).</summary>
+        public int AiAllyCount
+        {
+            get
+            {
+                int n = 0;
+                if (_playerTeam == null) return 0;
+                for (int i = 0; i < _playerTeam.Count; i++)
+                {
+                    if (i == _playerControlledIndex) continue;
+                    var c = _playerTeam[i];
+                    if (c != null && c.OverallState != CharacterOverallState.Eliminated) n++;
+                }
+                return n;
             }
         }
         private readonly List<GameObject> _stageViews = new List<GameObject>();
@@ -477,9 +506,11 @@ namespace HillNGun.PvE
             if (_currentStage?.bossData == null) return;
 
             _activeBoss = new BossInstance();
-            int scaledHp = _currentStage.bossData.GetScaledMaxHp(PartySize);
+            int humans = HumanPlayerCount;
+            int aiAllies = AiAllyCount;
+            int scaledHp = _currentStage.bossData.GetScaledMaxHp(humans, aiAllies);
             _activeBoss.Initialize(_currentStage.bossData, _currentStage.bossData.battlePosition, scaledHp);
-            Debug.Log($"[PvE] Boss {_currentStage.bossData.id} hp={scaledHp} (party {PartySize})");
+            Debug.Log($"[PvE] Boss {_currentStage.bossData.id} hp={scaledHp} (humans={humans} aiAllies={aiAllies} aiAllyHpAdd={_currentStage.bossData.aiAllyHpAdd} partyTotal={PartySize})");
             _combat?.RegisterCombatTarget(_activeBoss);
 
             _activeBoss.OnDefeated += HandleBossDefeated;
@@ -1086,11 +1117,28 @@ namespace HillNGun.PvE
             if (_isBossStage)
             {
                 string bossName = "REX";
+                int bounty = 1000;
+                Sprite portrait = null;
                 if (_currentStage?.bossData != null)
-                    bossName = string.IsNullOrEmpty(_currentStage.bossData.nameKey)
-                        ? _currentStage.bossData.id
-                        : _currentStage.bossData.nameKey;
-                yield return pres.PlayWantedCard(bossName, 1000, 2f);
+                {
+                    string key = _currentStage.bossData.nameKey;
+                    string fallback = string.IsNullOrEmpty(_currentStage.bossData.id) ? "REX" : _currentStage.bossData.id;
+                    if (!string.IsNullOrEmpty(key))
+                    {
+                        var loc = ServiceLocator.Get<HillNGun.UI.LocalizationManager>();
+                        bossName = loc != null && loc.HasString(key) ? loc.GetString(key)
+                            : HillNGun.UI.UIKit.T(key, key == "pve.boss.rattlesnake_rex" ? "방울뱀 렉스" : fallback);
+                    }
+                    else
+                        bossName = fallback;
+                }
+                var assets = RuntimeAssetManager.Instance;
+                var lib = assets != null ? assets.SpriteLibrary : ServiceLocator.Get<SpriteLibrary>();
+                if (lib?.boss != null)
+                    portrait = lib.boss.portrait != null ? lib.boss.portrait : lib.boss.idle;
+                if (portrait == null)
+                    portrait = HillNGun.UI.LobbyUI.BossPortrait();
+                yield return pres.PlayWantedCard(bossName, bounty, portrait, 2f);
                 SpawnBoss();
             }
             else
