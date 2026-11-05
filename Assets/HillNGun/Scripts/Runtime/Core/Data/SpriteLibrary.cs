@@ -20,6 +20,25 @@ namespace HillNGun.Data
 
         [Header("Covers")]
         public CoverSprites[] covers;
+        [Tooltip("손상 단계별 색/투명도 (intact, cracked, damaged, destroyed). 전용 손상 그림이 없을 때 같은 그림에 곱함")]
+        public Color[] coverStageTints =
+        {
+            Color.white,
+            new Color(0.88f, 0.8f, 0.72f, 1f),
+            new Color(0.68f, 0.55f, 0.46f, 0.9f),
+            new Color(0.42f, 0.36f, 0.32f, 0.45f)
+        };
+        [Tooltip("엄폐물 그림을 ScalePreset 폭×높이 상자에 맞출 때 허용하는 가로/세로 늘림 한도 (그림 비율 왜곡 상한). 높이는 항상 정확히 맞춤")]
+        [Min(1f)] public float coverSpriteMaxStretch = 1.35f;
+        [Tooltip("엄폐물 그림을 3D 캐릭터 레이어(깊이 테스트)에 그려서 엄폐물 뒤 캐릭터가 가려지게 함")]
+        public bool coverSpritesOnActorLayer = true;
+
+        /// <summary>Damage-stage tint for cover art (intact → destroyed). White when not configured.</summary>
+        public Color CoverStageTint(HillNGun.Core.CoverStage stage)
+        {
+            int i = (int)stage;
+            return coverStageTints != null && i >= 0 && i < coverStageTints.Length ? coverStageTints[i] : Color.white;
+        }
 
         [Header("Projectiles")]
         public Sprite bullet;

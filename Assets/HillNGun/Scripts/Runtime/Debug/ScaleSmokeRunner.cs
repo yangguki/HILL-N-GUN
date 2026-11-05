@@ -20,6 +20,7 @@ namespace HillNGun.DebugTools
         private static bool _wanted;
         private static float _shotAt = 14f;
         private static int _switchTo;
+        private static int _shotStage;
         private bool _switched;
         private string _dir;
         private PvEMatchManager _pve;
@@ -37,6 +38,8 @@ namespace HillNGun.DebugTools
                     float.TryParse(args[i + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float t)) _shotAt = t;
                 // -scale-switch-to N: after the shot, switch like the pause-menu toggle / F-key (restart current stage), verify, quit
                 if (args[i].Equals("-scale-switch-to", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length && int.TryParse(args[i + 1], out int n)) _switchTo = n;
+                // -scale-shot-stage N: let -smoketest-fullpve auto-play on to stage index N (0 = 1-1 ... 3 = Rex), shoot it, quit
+                if (args[i].Equals("-scale-shot-stage", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length && int.TryParse(args[i + 1], out int st)) _shotStage = Mathf.Max(0, st);
             }
             if (!_wanted) return;
             var go = new GameObject("[ScaleSmokeRunner]");
@@ -73,13 +76,14 @@ namespace HillNGun.DebugTools
                     combat.OnCharacterHit += (p, c, d) => { if (_pve != null && _pve.CurrentStageIndex == 0 && c.Team == Team.Player) _playerHits++; };
                 }
             }
-            if (!_shot && _pve.CurrentStageIndex == 0 && _pve.IsMatchActive && _pve.StageTimer >= _shotAt)
+            if (!_shot && _pve.CurrentStageIndex == _shotStage && _pve.IsMatchActive && _pve.StageTimer >= _shotAt)
             {
                 _shot = true;
-                string path = Path.Combine(_dir, $"opt{ScalePresets.Current}.png");
+                string path = Path.Combine(_dir, _shotStage > 0 ? $"stage{_shotStage}_{_pve.CurrentStageId}_opt{ScalePresets.Current}.png" : $"opt{ScalePresets.Current}.png");
                 ScreenCapture.CaptureScreenshot(path);
                 Debug.Log($"[ScaleSmoke] SHOT {path} at stage t={_pve.StageTimer:F1}s");
                 LogCovers();
+                if (_shotStage > 0) { Finish($"stage {_pve.CurrentStageId} shot"); return; }
                 if (_switchTo > 0)
                 {
                     Debug.Log($"[ScaleSmoke] SWITCH {ScalePresets.Current} -> {_switchTo} mid-fight (stage {_pve.CurrentStageId} t={_pve.StageTimer:F1}s)");
@@ -136,7 +140,7 @@ namespace HillNGun.DebugTools
 
         private void HandleStageComplete(PvERoundResult result)
         {
-            if (_done || _pve == null || _pve.CurrentStageIndex != 0) return;
+            if (_done || _pve == null || _pve.CurrentStageIndex != 0 || _shotStage > 0) return;
             Debug.Log($"[ScaleSmoke] CLEAR option={ScalePresets.Current} stage={_pve.CurrentStageId} result={result} time={_pve.StageTimer:F1}s coverHits={_coverHits} playerHits={_playerHits}");
             Finish("1-1 complete");
         }

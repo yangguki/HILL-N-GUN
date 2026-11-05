@@ -56,25 +56,47 @@ MonoBehaviour:
     portrait: {fileID: 21300000, guid: e6bc84042ff384f9b9f4314b5ecb5b24, type: 3}
   covers:
   - coverId: cover_barrel
-    intact: {fileID: 21300000, guid: 698bfcafb037f4415b429694bc9378da, type: 3}
-    cracked: {fileID: 21300000, guid: 3bebec3ad0a9345dbaabcdbe5cd8a592, type: 3}
-    damaged: {fileID: 21300000, guid: 23aaf0c5477764008972bc8a77fa36d9, type: 3}
-    destroyed: {fileID: 21300000, guid: 2961e573ad68e40acaa323b20b5a5e75, type: 3}
-  - coverId: cover_trough
-    intact: {fileID: 21300000, guid: 1bd94358c3d3b4db2ae0f12a003da16f, type: 3}
-    cracked: {fileID: 21300000, guid: 82fcbf57302514fcd93f211161399eee, type: 3}
-    damaged: {fileID: 21300000, guid: 5f21555a6a320474e9aa49fbf57ef892, type: 3}
-    destroyed: {fileID: 21300000, guid: 40b33e2e500d54a6fb35846eae2e4763, type: 3}
-  - coverId: cover_swing_door
-    intact: {fileID: 21300000, guid: 1bd94358c3d3b4db2ae0f12a003da16f, type: 3}
-    cracked: {fileID: 21300000, guid: 82fcbf57302514fcd93f211161399eee, type: 3}
-    damaged: {fileID: 21300000, guid: 5f21555a6a320474e9aa49fbf57ef892, type: 3}
-    destroyed: {fileID: 21300000, guid: 40b33e2e500d54a6fb35846eae2e4763, type: 3}
+    intact: {fileID: 21300000, guid: bdfcde8e77e94604955a6e3ef91dd271, type: 3}
+    cracked: {fileID: 0}
+    damaged: {fileID: 0}
+    destroyed: {fileID: 0}
+  - coverId: cover_crate
+    intact: {fileID: 21300000, guid: 1523bfb2e45b4699aa91e9241b644fe4, type: 3}
+    cracked: {fileID: 0}
+    damaged: {fileID: 0}
+    destroyed: {fileID: 0}
   - coverId: cover_wagon
-    intact: {fileID: 21300000, guid: 09a4ea01b50f0429bb1f4428c0c638c1, type: 3}
-    cracked: {fileID: 21300000, guid: 529f6b5b4c4ec43cb9d6c0aead32dcd4, type: 3}
-    damaged: {fileID: 21300000, guid: 4ec59fe7792e14683a334aa244803440, type: 3}
-    destroyed: {fileID: 21300000, guid: 2cc197607b7074020871379035beaa29, type: 3}
+    intact: {fileID: 21300000, guid: 406258d54e874b20af945985e99fedff, type: 3}
+    cracked: {fileID: 0}
+    damaged: {fileID: 0}
+    destroyed: {fileID: 0}
+  - coverId: cover_swing_door
+    intact: {fileID: 21300000, guid: 673af7e98a5149d8a0aed1ddeea17396, type: 3}
+    cracked: {fileID: 0}
+    damaged: {fileID: 0}
+    destroyed: {fileID: 0}
+  - coverId: cover_hay
+    intact: {fileID: 21300000, guid: 7a06615fa39349a59e9d0d3a6199ff8f, type: 3}
+    cracked: {fileID: 0}
+    damaged: {fileID: 0}
+    destroyed: {fileID: 0}
+  - coverId: cover_trough
+    intact: {fileID: 21300000, guid: a34da098febf4277aecb5afd21bca75f, type: 3}
+    cracked: {fileID: 0}
+    damaged: {fileID: 0}
+    destroyed: {fileID: 0}
+  - coverId: cover_rock
+    intact: {fileID: 21300000, guid: 7ade69e6649b486bb1f8fa664219a8c9, type: 3}
+    cracked: {fileID: 0}
+    damaged: {fileID: 0}
+    destroyed: {fileID: 0}
+  coverStageTints:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0.88, g: 0.8, b: 0.72, a: 1}
+  - {r: 0.68, g: 0.55, b: 0.46, a: 0.9}
+  - {r: 0.42, g: 0.36, b: 0.32, a: 0.45}
+  coverSpriteMaxStretch: 1.35
+  coverSpritesOnActorLayer: 1
   bullet: {fileID: 21300000, guid: 06cabd993a48941c8b58042eaecd1d67, type: 3}
   bulletHeavy: {fileID: 21300000, guid: 33a46ab1589c54d339cce85eb29b1a04, type: 3}
   grenade: {fileID: 21300000, guid: f60dc372ff53f4f10bb5e56d55547c13, type: 3}

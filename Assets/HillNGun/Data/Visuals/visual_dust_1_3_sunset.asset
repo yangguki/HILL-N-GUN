@@ -14,17 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: visual_dust_1_3_sunset
   timeOfDay: 2
-  gradeTint: {r: 1, g: 0.7, b: 0.45, a: 1}
-  gradeExposure: 0.95
+  gradeTint: {r: 1, g: 1, b: 1, a: 1}
+  gradeExposure: 1
   lanternPositions:
   - {x: 5, y: 10}
   - {x: 19, y: 10}
   lanternColor: {r: 1, g: 0.75, b: 0.35, a: 0.55}
   layers:
   - id: L0
-    sprite: {fileID: 21300000, guid: 39cb115e08634669aec2dc391709f43d, type: 3}
+    sprite: {fileID: 21300000, guid: 75b93b9775c5422a8535f91c44d418f6, type: 3}
     parallax: 0.12
-    tint: {r: 1, g: 0.8, b: 0.6, a: 0.5}
+    tint: {r: 1, g: 1, b: 1, a: 0.5}
     sortingOrder: -50
     combatLane: 0
   - id: L1
@@ -34,7 +34,7 @@ MonoBehaviour:
     sortingOrder: -40
     combatLane: 0
   - id: L2
-    sprite: {fileID: 21300000, guid: 39cb115e08634669aec2dc391709f43d, type: 3}
+    sprite: {fileID: 21300000, guid: 75b93b9775c5422a8535f91c44d418f6, type: 3}
     parallax: 0.55
     tint: {r: 1, g: 1, b: 1, a: 1}
     sortingOrder: -30

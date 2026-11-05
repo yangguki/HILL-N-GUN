@@ -111,12 +111,17 @@ namespace HillNGun.Editor
             library.regionBosses = regionArt.ToArray();
 
             // Keyed by CoverData.id (generated art: barrel / crate / wagon)
+            // Painted cover art (기획 handoff, ArtSource/covers → Art/Covers): intact only; damage stages tint the same
+            // sprite (SpriteLibrary.coverStageTints) until dedicated damage art arrives.
             library.covers = new CoverSprites[]
             {
-                LoadCoverSprites("cover_barrel", "barrel"),
-                LoadCoverSprites("cover_trough", "crate"),
-                LoadCoverSprites("cover_swing_door", "crate"),
-                LoadCoverSprites("cover_wagon", "wagon")
+                LoadCoverArt("cover_barrel", "cover_barrel"),
+                LoadCoverArt("cover_crate", "cover_crate"),
+                LoadCoverArt("cover_wagon", "cover_wagon_small"),
+                LoadCoverArt("cover_swing_door", "cover_door"),
+                LoadCoverArt("cover_hay", "cover_hay"),
+                LoadCoverArt("cover_trough", "cover_trough"),
+                LoadCoverArt("cover_rock", "cover_rock")
             };
 
             library.bullet = LoadSprite("Projectiles/bullet");
@@ -155,6 +160,11 @@ namespace HillNGun.Editor
                 downed = LoadSprite($"Characters/{id}_downed"),
                 portrait = LoadDeckSprite($"Portraits/{id}_portrait")
             };
+        }
+
+        private static CoverSprites LoadCoverArt(string coverId, string file)
+        {
+            return new CoverSprites { coverId = coverId, intact = LoadSpriteAt($"Assets/HillNGun/Art/Covers/{file}.png") };
         }
 
         private static CoverSprites LoadCoverSprites(string coverId, string id)
@@ -678,13 +688,14 @@ namespace HillNGun.Editor
             var v13 = CreateOrLoad<StageVisualData>(DATA_PATH + "Visuals/visual_dust_1_3_sunset.asset");
             StageVisualData.EnsureFiveLayers(v13);
             v13.id = "visual_dust_1_3_sunset"; v13.timeOfDay = TimeOfDay.Sunset;
-            v13.gradeTint = new Color(1f, 0.7f, 0.45f); v13.gradeExposure = 0.95f;
+            // Sunset empty plate is already graded: no extra sunset tint / overlay (would double-warm it)
+            v13.gradeTint = Color.white; v13.gradeExposure = 1f;
             v13.dustMotes = 10; v13.dustMotesLowTier = 3; v13.tumbleweeds = 1; v13.saloonSignSway = true;
             v13.conceptCoverDim = 0.45f;
             v13.lanternPositions = new[] { new Vector2(5f, 10f), new Vector2(19f, 10f) };
-            // Temporary: empty noon plate until sunset empty plate arrives (sunset PNG kept on disk).
-            v13.layers[0].sprite = noon; v13.layers[0].tint = new Color(1f, 0.8f, 0.6f, 0.5f);
-            v13.layers[2].sprite = noon; v13.layers[2].tint = Color.white;
+            // bg_street_dust_sunset_empty (ArtSource/street_bg/empty) lives in stage_visual_dust_1_3_sunset.png
+            v13.layers[0].sprite = sunset; v13.layers[0].tint = new Color(1f, 1f, 1f, 0.5f);
+            v13.layers[2].sprite = sunset; v13.layers[2].tint = Color.white;
             v13.layers[3].sprite = null;
             EditorUtility.SetDirty(v13);
 
