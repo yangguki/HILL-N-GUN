@@ -8,6 +8,7 @@ using HillNGun.Input;
 using HillNGun.Combat;
 using HillNGun.Cover;
 using HillNGun.Feel;
+using HillNGun.Scenery;
 
 namespace HillNGun.PvE
 {
@@ -419,15 +420,11 @@ namespace HillNGun.PvE
             ResetPlayerTeamForStage();
             SpawnCovers();
             SpawnHazards();
+            SpawnVisualProps();
+            StartCoroutine(BeginStagePresentation());
 
-            if (_isBossStage && _currentStage.bossData != null)
-            {
-                SpawnBoss();
-            }
-            else
-            {
-                StartWave(0);
-            }
+            // Wave/boss start deferred to BeginStagePresentation so intro/WANTED can play first
+            // (presentation coroutine kicks combat).
 
             var flowManager = GameFlowManager.Instance;
             if (flowManager != null)
@@ -455,6 +452,7 @@ namespace HillNGun.PvE
 
             _currentWave = waveIndex;
             _currentWaveData = _currentStage.waves[waveIndex];
+            StagePresentation.Instance?.ShowWave(waveIndex + 1);
             _waveTimer = _currentWaveData.delayBeforeWave;
             _nextSpawnIndex = 0;
             _postWaveTimer = -1f;
@@ -566,6 +564,7 @@ namespace HillNGun.PvE
 
             if (_currentGauge >= GaugeMax)
             {
+                StagePresentation.Instance?.ShowClear();
                 CompleteStage(PvERoundResult.StageCleared);
             }
         }
@@ -1043,6 +1042,60 @@ namespace HillNGun.PvE
         public void DamageBoss(int damage, Vector2 direction)
         {
             _activeBoss?.TakeDamage(damage, direction);
+        }
+
+
+        private void SpawnVisualProps()
+        {
+            foreach (var s in FindObjectsByType<SaloonSignSway>(FindObjectsSortMode.None))
+                if (s != null) Destroy(s.gameObject);
+            foreach (var b in FindObjectsByType<ExplosiveBarrelView>(FindObjectsSortMode.None))
+                if (b != null) Destroy(b.gameObject);
+
+            if (_hazards != null)
+            {
+                foreach (var h in _hazards)
+                {
+                    if (h == null) continue;
+                    var go = new GameObject("ExplosiveBarrelView");
+                    go.AddComponent<ExplosiveBarrelView>().Bind(h);
+                }
+            }
+
+            var visual = _currentStage != null ? _currentStage.visual : null;
+            bool wantSign = visual == null || visual.saloonSignSway;
+            if (wantSign && _currentStage != null && !_isBossStage)
+            {
+                var go = new GameObject("SaloonSign");
+                go.AddComponent<SaloonSignSway>().Place(new Vector2(12f, 14.5f));
+            }
+        }
+
+        private System.Collections.IEnumerator BeginStagePresentation()
+        {
+            var pres = StagePresentation.Instance;
+            if (pres == null)
+            {
+                var go = new GameObject("StagePresentation");
+                pres = go.AddComponent<StagePresentation>();
+            }
+
+            yield return pres.PlayIntroPan(1.5f);
+
+            if (_isBossStage)
+            {
+                string bossName = "REX";
+                if (_currentStage?.bossData != null)
+                    bossName = string.IsNullOrEmpty(_currentStage.bossData.nameKey)
+                        ? _currentStage.bossData.id
+                        : _currentStage.bossData.nameKey;
+                yield return pres.PlayWantedCard(bossName, 1000, 2f);
+                SpawnBoss();
+            }
+            else
+            {
+                StartWave(0);
+            }
         }
 
         public void TeamDefeated()

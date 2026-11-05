@@ -44,6 +44,7 @@ namespace HillNGun.Battlefield
         private float _bakedAspect;
         private int _bakedPxH;
         private AmbientFx _ambient;
+        private ParallaxBackdrop _parallax;
         private HillNGun.PvE.PvEMatchManager _pve;
         private bool _pveSearched;
 
@@ -84,6 +85,7 @@ namespace HillNGun.Battlefield
             _theme = theme;
             ThemeContext.Set(theme);
             Bake();
+            ResolveAndApplyVisual();
             if (ThemeContext.NoAmbient) return;
             if (_ambient == null)
             {
@@ -260,5 +262,32 @@ namespace HillNGun.Battlefield
             if (_bakedTex != null) Destroy(_bakedTex);
             if (_quadMesh != null) Destroy(_quadMesh);
         }
+        private void ResolveAndApplyVisual()
+        {
+            StageVisualData visual = null;
+            if (_pve != null && _pve.CurrentStage != null) visual = _pve.CurrentStage.visual;
+            if (_parallax == null)
+            {
+                var go = new GameObject("ParallaxBackdrop");
+                go.transform.SetParent(transform, false);
+                _parallax = go.AddComponent<ParallaxBackdrop>();
+            }
+            _parallax.Apply(visual);
+            if (_ambient != null && visual != null)
+            {
+                // Prefer StageVisualData ambient budgets when present
+                if (_theme != null)
+                {
+                    _theme.dustMotes = visual.dustMotes;
+                    _theme.tumbleweeds = visual.tumbleweeds;
+                }
+                bool low = System.Array.Exists(System.Environment.GetCommandLineArgs(), a => a == "-vfxlow" || a == "-lowfx");
+                if (low && _theme != null) _theme.dustMotes = visual.dustMotesLowTier;
+                _ambient.Configure(_theme, FieldMap.From(_data));
+                _ambient.BanCombatLaneDecor = true;
+            }
+            _parallax.EnforceNoDecorOnL3();
+        }
+
     }
 }

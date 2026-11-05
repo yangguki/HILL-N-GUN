@@ -44,6 +44,9 @@ namespace HillNGun.Scenery
         private readonly List<Vector2> _u = new List<Vector2>();
         private readonly List<int> _tri = new List<int>();
 
+        /// <summary>Task I: when true, ambient never draws in the combat-lane Y band (L3).</summary>
+        public bool BanCombatLaneDecor { get; set; } = true;
+
         public void Configure(StageThemeData theme, FieldMap map)
         {
             _t = theme; _m = map;
@@ -68,7 +71,7 @@ namespace HillNGun.Scenery
             _rnd = new System.Random(theme.seed * 13 + 1);
             for (int i = 0; i < Mathf.Clamp(theme.tumbleweeds, 0, 6); i++)
                 _weeds.Add(new Weed { wait = i * theme.tumbleweedInterval * 0.5f + (float)_rnd.NextDouble() * 2f });
-            int motes = System.Array.Exists(System.Environment.GetCommandLineArgs(), a => a == "-nodust") ? 0 : Mathf.Clamp(theme.dustMotes, 0, 40);
+            int motes = System.Array.Exists(System.Environment.GetCommandLineArgs(), a => a == "-nodust") ? 0 : Mathf.Clamp(theme.dustMotes, 0, 16);
             for (int i = 0; i < motes; i++)
             {
                 var m = new Mote();

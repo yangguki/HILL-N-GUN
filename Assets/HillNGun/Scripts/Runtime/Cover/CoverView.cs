@@ -162,11 +162,23 @@ namespace HillNGun.Cover
         private void Refresh()
         {
             if (_cover == null || _renderer == null) return;
-            Sprite s = _sprites?.GetSpriteForStage(_cover.Stage);
+            Sprite s = StageSprite(_cover.Stage);
             if (s != null) _renderer.sprite = s;
             _renderer.color = _cover.IsDestroyed ? new Color(1f, 1f, 1f, 0.45f) : Color.white;
             PlaceShadow();
             if (_prop3D != null) { _renderer.enabled = false; _prop3D.SetStage(_cover.Stage); }
+        }
+
+
+        private Sprite StageSprite(CoverStage stage)
+        {
+            if (_sprites == null) return null;
+            Sprite s = _sprites.GetSpriteForStage(stage);
+            if (s != null) return s;
+            // 3-state art may omit cracked: fall back along the damage ladder
+            if (stage == CoverStage.Cracked) return _sprites.damaged != null ? _sprites.damaged : _sprites.intact;
+            if (stage == CoverStage.Damaged) return _sprites.cracked != null ? _sprites.cracked : _sprites.intact;
+            return _sprites.intact;
         }
 
         private Sprite CreateFallbackSprite()
