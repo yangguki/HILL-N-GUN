@@ -124,20 +124,43 @@ namespace HillNGun.UI
                 return;
             }
 
+            bool scaleAb = ScalePresets.Data != null;
             float boxWidth = 420f;
-            float boxHeight = 420f;
+            float boxHeight = scaleAb ? 490f : 420f;
             float x = (size.x - boxWidth) / 2f;
             float y = (size.y - boxHeight) / 2f;
             UIKit.Panel(new Rect(x, y, boxWidth, boxHeight));
             UIKit.Title(new Rect(x, y + 14f, boxWidth, 50f), GetLocalizedString("ui.paused", "일시정지"));
 
             float bw = 300f, bh = 52f, bx = x + (boxWidth - bw) / 2f, by = y + 84f, sp = 64f;
+            if (scaleAb)
+            {
+                // A/B scale test (기획 비율 1/2/3안): pick → current stage restarts with that preset
+                DrawScaleToggles(new Rect(bx, by, bw, bh));
+                by += 70f;
+            }
             if (UIKit.Button(new Rect(bx, by, bw, bh), GetLocalizedString("ui.resume", "재개"), true, UIKit.ButtonKind.Primary)) Resume();
             if (UIKit.Button(new Rect(bx, by + sp, bw, bh), GetLocalizedString("ui.restart", "재시작"))) RestartMatch();
             if (UIKit.Button(new Rect(bx, by + sp * 2, bw, bh), GetLocalizedString("lobby.tab.settings", "설정"))) _showSettings = true;
             if (UIKit.Button(new Rect(bx, by + sp * 3, bw, bh), GetLocalizedString("ui.quit_to_lobby", "로비로 나가기"))) QuitToModeSelect();
             if (UIKit.Button(new Rect(bx, by + sp * 4, bw, bh), GetLocalizedString("ui.quit_to_title", "타이틀로 나가기"))) QuitToTitle();
             UIKit.End();
+        }
+
+        private void DrawScaleToggles(Rect r)
+        {
+            float gap = 8f, w = (r.width - gap * 2f) / 3f;
+            int cur = ScalePresets.Current;
+            for (int i = 1; i <= 3; i++)
+            {
+                var br = new Rect(r.x + (i - 1) * (w + gap), r.y, w, r.height);
+                if (UIKit.Button(br, "비율 " + i, ScalePresets.Data.HasOption(i), i == cur ? UIKit.ButtonKind.Primary : UIKit.ButtonKind.Normal, 20) && i != cur)
+                {
+                    _isPaused = false;
+                    _showMenu = false;
+                    ScalePresets.SelectAndRestart(i);
+                }
+            }
         }
 
         private string GetLocalizedString(string key, string fallback)
