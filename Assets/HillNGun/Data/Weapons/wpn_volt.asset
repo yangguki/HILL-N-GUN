@@ -19,9 +19,14 @@ MonoBehaviour:
   damagePerProjectile: 520
   projectilesPerShot: 1
   spreadDeg: 0
-  projectileSpeed: 20
+  projectileSpeed: 22
   projectileRadius: 0.25
-  range: 7
+  range: 10
+  projectileLifetime: 0.45
+  fullPelletRange: 0
+  damageFalloffStart: 0
+  damageFalloffEndMul: 1
+  aimLaser: 0
   fireInterval: 0.7
   holdToRepeat: 0
   cockAnimation: 1

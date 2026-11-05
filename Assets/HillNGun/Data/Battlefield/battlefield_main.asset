@@ -24,7 +24,7 @@ MonoBehaviour:
   coverOffsetMin: 0.35
   coverOffsetMax: 0.85
   startRowIndex: 1
-  assaultStartsFrontRow: 1
+  assaultStartsFrontRow: 0
   startX:
   - 6
   - 12

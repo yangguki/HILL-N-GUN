@@ -21,7 +21,12 @@ MonoBehaviour:
   spreadDeg: 30
   projectileSpeed: 18
   projectileRadius: 0.3
-  range: 5
+  range: 8
+  projectileLifetime: 0.44
+  fullPelletRange: 4
+  damageFalloffStart: 0
+  damageFalloffEndMul: 1
+  aimLaser: 0
   fireInterval: 0.6
   holdToRepeat: 0
   cockAnimation: 0
