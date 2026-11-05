@@ -33,7 +33,7 @@ MonoBehaviour:
     delayBeforeWave: 1
     paceTag: intro
     waitForClear: 0
-    nextWaveDelay: 2
+    nextWaveDelay: 4
   - waveNumber: 1
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
@@ -47,7 +47,7 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: pressure
     waitForClear: 0
-    nextWaveDelay: 2
+    nextWaveDelay: 4
   - waveNumber: 2
     enemies:
     - enemyData: {fileID: 11400000, guid: 23c0bf1acb50d49da91753e8b357f575, type: 2}
@@ -61,7 +61,7 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: peak
     waitForClear: 1
-    nextWaveDelay: 2
+    nextWaveDelay: 4
   - waveNumber: 3
     enemies: []
     delayBeforeWave: 0.2
@@ -81,7 +81,7 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: pressure
     waitForClear: 0
-    nextWaveDelay: 2
+    nextWaveDelay: 4
   - waveNumber: 5
     enemies:
     - enemyData: {fileID: 11400000, guid: 23c0bf1acb50d49da91753e8b357f575, type: 2}
@@ -95,7 +95,7 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: peak
     waitForClear: 1
-    nextWaveDelay: 2
+    nextWaveDelay: 4
   - waveNumber: 6
     enemies:
     - enemyData: {fileID: 11400000, guid: 7ec624a13e38b4196a9b0fe16323b48f, type: 2}
@@ -109,9 +109,9 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: finale
     waitForClear: 1
-    nextWaveDelay: 1
+    nextWaveDelay: 2.5
   timeBetweenWaves: 8
-  timeBetweenSpawns: 0.5
+  timeBetweenSpawns: 0.7
   battlefieldOverride: {fileID: 0}
   themeId: rail_station
   enemySpawnPoints: []

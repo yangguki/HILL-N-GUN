@@ -33,7 +33,7 @@ MonoBehaviour:
     delayBeforeWave: 1
     paceTag: intro
     waitForClear: 0
-    nextWaveDelay: 2
+    nextWaveDelay: 4
   - waveNumber: 1
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
@@ -47,7 +47,7 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: pressure
     waitForClear: 0
-    nextWaveDelay: 2
+    nextWaveDelay: 4
   - waveNumber: 2
     enemies:
     - enemyData: {fileID: 11400000, guid: 23c0bf1acb50d49da91753e8b357f575, type: 2}
@@ -61,17 +61,17 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: peak
     waitForClear: 1
-    nextWaveDelay: 2
+    nextWaveDelay: 4
   - waveNumber: 3
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
       count: 2
       preferredRow: 0
       spawnDelay: 0
-    delayBeforeWave: 5
+    delayBeforeWave: 6
     paceTag: rest
     waitForClear: 0
-    nextWaveDelay: 0.5
+    nextWaveDelay: 1.5
   - waveNumber: 4
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
@@ -85,7 +85,7 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: pressure
     waitForClear: 0
-    nextWaveDelay: 2
+    nextWaveDelay: 4
   - waveNumber: 5
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
@@ -103,9 +103,9 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: finale
     waitForClear: 1
-    nextWaveDelay: 1
+    nextWaveDelay: 2.5
   timeBetweenWaves: 8
-  timeBetweenSpawns: 0.55
+  timeBetweenSpawns: 0.75
   battlefieldOverride: {fileID: 0}
   themeId: canyon_pass
   enemySpawnPoints: []

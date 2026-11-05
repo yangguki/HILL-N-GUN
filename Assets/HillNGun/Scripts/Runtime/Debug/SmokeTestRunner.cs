@@ -777,7 +777,14 @@ namespace HillNGun.DebugTools
                     break;                                                                                          // eased row change
                 case 5:
                     me.OnMoveCommand(new MoveCommand(new Vector2(-centerDir, 0f), 1f, now));                        // strafe while shooting (aim facing)
-                    if (_gunner == null || _gunnerOwner != me) { _gunnerOwner = me; _gunner = new AutoGunner(me, 0.3f); }
+                    if (_gunner == null || _gunnerOwner != me) {
+                        _gunnerOwner = me;
+                        float mul = 1f;
+                        var bot = UnityEngine.Object.FindFirstObjectByType<HillNGun.PvE.PvEMatchManager>() != null
+                            ? HillNGun.Core.RuntimeAssetManager.Instance?.BotBehavior : null;
+                        if (bot != null) mul = bot.pveAllyShotCooldownMul;
+                        _gunner = new AutoGunner(me, 0.3f, mul);
+                    }
                     var pve = FindFirstObjectByType<PvEMatchManager>();
                     _gunner.Tick(Time.deltaTime, pve != null ? pve.FindTargetFor(me.Position, 40f) : (Vector2?)null);
                     break;

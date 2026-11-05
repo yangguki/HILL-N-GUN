@@ -39,4 +39,5 @@ MonoBehaviour:
   useGrenades: 1
   grenadeMinInterval: 4
   pveAllyGrenadeMinInterval: 45
+  pveAllyShotCooldownMul: 2
   reviveAllies: 1

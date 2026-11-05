@@ -13,6 +13,7 @@ namespace HillNGun.AI
     public class AutoGunner
     {
         private readonly CharacterStateMachine _character;
+        private readonly float _cooldownMul;
         private float _cooldown;
         private bool _aiming;
         private float _aimStart;
@@ -21,10 +22,11 @@ namespace HillNGun.AI
         public CharacterStateMachine Character => _character;
         public int ShotsAttempted { get; private set; }
 
-        public AutoGunner(CharacterStateMachine character, float initialDelay = 0f)
+        public AutoGunner(CharacterStateMachine character, float initialDelay = 0f, float cooldownMul = 1f)
         {
             _character = character;
             _cooldown = initialDelay;
+            _cooldownMul = Mathf.Max(0.5f, cooldownMul);
         }
 
         /// <param name="target">World-logic target position, or null when nothing to shoot.</param>
@@ -83,7 +85,7 @@ namespace HillNGun.AI
         {
             _character.OnAimReleaseCommand(new AimReleaseCommand(_lastDir, true, now));
             _aiming = false;
-            _cooldown = Mathf.Max(0.1f, _character.Data.weapon.fireInterval);
+            _cooldown = Mathf.Max(0.1f, _character.Data.weapon.fireInterval * _cooldownMul);
         }
     }
 }

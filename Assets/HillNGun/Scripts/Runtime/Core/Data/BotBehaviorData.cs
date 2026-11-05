@@ -78,6 +78,9 @@ namespace HillNGun.Data
         public float grenadeMinInterval = 4f;
         [Tooltip("PvE AI 아군 수류탄 최소 간격 (초). 수류탄 12초 재충전(t49u 수정) 후에도 스테이지 길이(03 §4)를 지키기 위한 값. 0 이하 = grenadeMinInterval 사용")]
         public float pveAllyGrenadeMinInterval = 45f;
+        [Tooltip("PvE AI 아군 사격 쿨다운 배율 (1=그대로). 스테이지 목표 시간(06) 맞추기용 페이싱 노브. 무기 fireInterval 자체는 변경하지 않음")]
+        [Range(1f, 3f)]
+        public float pveAllyShotCooldownMul = 2.0f;
         [Tooltip("기절한 아군에게 가서 소생")]
         public bool reviveAllies = true;
     }

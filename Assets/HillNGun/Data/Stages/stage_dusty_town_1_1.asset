@@ -33,7 +33,7 @@ MonoBehaviour:
     delayBeforeWave: 1
     paceTag: intro
     waitForClear: 0
-    nextWaveDelay: 2.5
+    nextWaveDelay: 5
   - waveNumber: 1
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
@@ -43,7 +43,7 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: pressure
     waitForClear: 0
-    nextWaveDelay: 2.5
+    nextWaveDelay: 5
   - waveNumber: 2
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
@@ -57,7 +57,7 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: pressure
     waitForClear: 0
-    nextWaveDelay: 2
+    nextWaveDelay: 4.5
   - waveNumber: 3
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
@@ -67,7 +67,7 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: peak
     waitForClear: 0
-    nextWaveDelay: 1.5
+    nextWaveDelay: 4
   - waveNumber: 4
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
@@ -81,9 +81,9 @@ MonoBehaviour:
     delayBeforeWave: 0.5
     paceTag: finale
     waitForClear: 1
-    nextWaveDelay: 1
+    nextWaveDelay: 2.5
   timeBetweenWaves: 10
-  timeBetweenSpawns: 0.6
+  timeBetweenSpawns: 0.85
   battlefieldOverride: {fileID: 0}
   themeId: town_street
   enemySpawnPoints: []
