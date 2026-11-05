@@ -361,6 +361,7 @@ namespace HillNGun.Editor
             M1SandboxSetup.SetupDataOnly();
             CreateEnemyAssets();
             CreateStageAssets();
+            CreateChapterAndVisualAssets();
             CreateBossAsset();
             StageThemeSetup.CreateThemes();
             CreateBotBehaviorAsset();
@@ -488,6 +489,8 @@ namespace HillNGun.Editor
             stage1_1.id = "dusty_town_1_1";
             stage1_1.nameKey = "pve.stage.dusty_town_1";
             stage1_1.stageNumber = 1; stage1_1.subStageNumber = 1;
+            stage1_1.chapterId = "dust_town"; stage1_1.stageIndex = 1;
+            stage1_1.stageType = StageType.Exterminate;
             stage1_1.gaugeMax = 20; stage1_1.waveCount = 5;
             stage1_1.stageTimeMin = 70f; stage1_1.stageTimeMax = 90f;
             stage1_1.starTimeUnderSec = 80f; stage1_1.starRequireNoDowned = true;
@@ -531,6 +534,8 @@ namespace HillNGun.Editor
             stage1_2.id = "dusty_town_1_2";
             stage1_2.nameKey = "pve.stage.dusty_town_2";
             stage1_2.stageNumber = 1; stage1_2.subStageNumber = 2;
+            stage1_2.chapterId = "dust_town"; stage1_2.stageIndex = 2;
+            stage1_2.stageType = StageType.Exterminate;
             stage1_2.gaugeMax = 30; stage1_2.waveCount = 6;
             stage1_2.stageTimeMin = 80f; stage1_2.stageTimeMax = 105f;
             stage1_2.starTimeUnderSec = 95f; stage1_2.starRequireNoDowned = true;
@@ -583,6 +588,8 @@ namespace HillNGun.Editor
             stage1_3.id = "dusty_town_1_3";
             stage1_3.nameKey = "pve.stage.dusty_town_3";
             stage1_3.stageNumber = 1; stage1_3.subStageNumber = 3;
+            stage1_3.chapterId = "dust_town"; stage1_3.stageIndex = 3;
+            stage1_3.stageType = StageType.Exterminate;
             stage1_3.gaugeMax = 40; stage1_3.waveCount = 7;
             stage1_3.stageTimeMin = 95f; stage1_3.stageTimeMax = 120f;
             stage1_3.starTimeUnderSec = 110f; stage1_3.starRequireNoDowned = true; stage1_3.starMinBarrelExplosions = 2;
@@ -633,6 +640,107 @@ namespace HillNGun.Editor
                         new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 1 } } },
             };
             EditorUtility.SetDirty(stage1_3);
+        }
+
+
+        private static void CreateChapterAndVisualAssets()
+        {
+            CreateFolderRecursive(DATA_PATH + "Chapters");
+            CreateFolderRecursive(DATA_PATH + "Visuals");
+            string art = "Assets/HillNGun/Art/StageVisual/Dust/";
+            var noon = LoadSpriteAt(art + "stage_visual_dust_1_1_noon.png");
+            var sunset = LoadSpriteAt(art + "stage_visual_dust_1_3_sunset.png");
+            var night = LoadSpriteAt(art + "stage_visual_rex_night.png");
+
+            var v11 = CreateOrLoad<StageVisualData>(DATA_PATH + "Visuals/visual_dust_1_1_noon.asset");
+            StageVisualData.EnsureFiveLayers(v11);
+            v11.id = "visual_dust_1_1_noon"; v11.timeOfDay = TimeOfDay.Noon;
+            v11.gradeTint = Color.white; v11.gradeExposure = 1f;
+            v11.dustMotes = 12; v11.dustMotesLowTier = 4; v11.tumbleweeds = 1; v11.saloonSignSway = true;
+            v11.conceptCoverDim = 0.4f;
+            // Temp: full concept PNG on L2 (town); L3 empty combat lane
+            v11.layers[0].sprite = noon; v11.layers[0].tint = new Color(0.85f, 0.92f, 1f, 0.55f);
+            v11.layers[2].sprite = noon; v11.layers[2].tint = Color.white;
+            v11.layers[3].sprite = null; // combat lane clear
+            EditorUtility.SetDirty(v11);
+
+            var v12 = CreateOrLoad<StageVisualData>(DATA_PATH + "Visuals/visual_dust_1_2_afternoon.asset");
+            StageVisualData.EnsureFiveLayers(v12);
+            v12.id = "visual_dust_1_2_afternoon"; v12.timeOfDay = TimeOfDay.Afternoon;
+            v12.gradeTint = new Color(1f, 0.92f, 0.75f); v12.gradeExposure = 1.05f;
+            v12.dustMotes = 14; v12.dustMotesLowTier = 5; v12.tumbleweeds = 1; v12.saloonSignSway = true;
+            v12.conceptCoverDim = 0.4f;
+            v12.layers[0].sprite = noon; v12.layers[0].tint = new Color(1f, 0.9f, 0.7f, 0.5f);
+            v12.layers[2].sprite = noon; v12.layers[2].tint = new Color(1f, 0.93f, 0.8f, 1f);
+            v12.layers[3].sprite = null;
+            EditorUtility.SetDirty(v12);
+
+            var v13 = CreateOrLoad<StageVisualData>(DATA_PATH + "Visuals/visual_dust_1_3_sunset.asset");
+            StageVisualData.EnsureFiveLayers(v13);
+            v13.id = "visual_dust_1_3_sunset"; v13.timeOfDay = TimeOfDay.Sunset;
+            v13.gradeTint = new Color(1f, 0.7f, 0.45f); v13.gradeExposure = 0.95f;
+            v13.dustMotes = 10; v13.dustMotesLowTier = 3; v13.tumbleweeds = 1; v13.saloonSignSway = true;
+            v13.conceptCoverDim = 0.45f;
+            v13.lanternPositions = new[] { new Vector2(5f, 10f), new Vector2(19f, 10f) };
+            v13.layers[0].sprite = sunset; v13.layers[0].tint = new Color(1f, 0.8f, 0.6f, 0.5f);
+            v13.layers[2].sprite = sunset; v13.layers[2].tint = Color.white;
+            v13.layers[3].sprite = null;
+            EditorUtility.SetDirty(v13);
+
+            var vBoss = CreateOrLoad<StageVisualData>(DATA_PATH + "Visuals/visual_rex_night.asset");
+            StageVisualData.EnsureFiveLayers(vBoss);
+            vBoss.id = "visual_rex_night"; vBoss.timeOfDay = TimeOfDay.Night;
+            vBoss.gradeTint = new Color(0.55f, 0.65f, 1f); vBoss.gradeExposure = 0.85f;
+            vBoss.dustMotes = 8; vBoss.dustMotesLowTier = 2; vBoss.tumbleweeds = 0; vBoss.saloonSignSway = false;
+            vBoss.conceptCoverDim = 0.35f;
+            vBoss.lanternPositions = new[] { new Vector2(4f, 9f), new Vector2(12f, 11f), new Vector2(20f, 9f) };
+            vBoss.layers[0].sprite = night; vBoss.layers[0].tint = new Color(0.6f, 0.7f, 1f, 0.55f);
+            vBoss.layers[2].sprite = night; vBoss.layers[2].tint = Color.white;
+            vBoss.layers[3].sprite = null;
+            EditorUtility.SetDirty(vBoss);
+
+            var s11 = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_1.asset");
+            var s12 = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_2.asset");
+            var s13 = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_3.asset");
+            var sb = AssetDatabase.LoadAssetAtPath<StageData>(DATA_PATH + "Stages/stage_dusty_town_boss.asset");
+            if (s11) { s11.visual = v11; EditorUtility.SetDirty(s11); }
+            if (s12) { s12.visual = v12; EditorUtility.SetDirty(s12); }
+            if (s13) { s13.visual = v13; EditorUtility.SetDirty(s13); }
+            if (sb) { sb.visual = vBoss; EditorUtility.SetDirty(sb); }
+
+            var chapter = CreateOrLoad<ChapterData>(DATA_PATH + "Chapters/chapter_dust_town.asset");
+            chapter.chapterId = "dust_town";
+            chapter.index = 1;
+            chapter.displayNameKey = "region.dusty_town";
+            chapter.bossId = "boss_rex";
+            chapter.bountyReward = 1000;
+            chapter.paletteId = "sand_saloon";
+            chapter.signatureHazards = new[] { "explosive_barrel", "saloon_sign", "tumbleweed" };
+            chapter.stages = new[] { s11, s12, s13, sb };
+            EditorUtility.SetDirty(chapter);
+            Debug.Log("[GameSetup] Chapter dust_town + StageVisualData linked");
+        }
+
+        private static Sprite LoadSpriteAt(string path)
+        {
+            var spr = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (spr != null) return spr;
+            // Import as sprite if texture exists without sprite type
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if (tex == null)
+            {
+                Debug.LogWarning("[GameSetup] Missing art: " + path);
+                return null;
+            }
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer != null)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.SaveAndReimport();
+                spr = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            }
+            return spr;
         }
 
         private static void CreateBossAsset()
@@ -734,6 +842,8 @@ namespace HillNGun.Editor
 
             var bossStage = CreateOrLoad<StageData>(DATA_PATH + "Stages/stage_dusty_town_boss.asset");
             bossStage.id = "dusty_town_boss";
+            bossStage.chapterId = "dust_town"; bossStage.stageIndex = 10;
+            bossStage.stageType = StageType.Boss;
             bossStage.nameKey = "pve.boss.rattlesnake_rex";
             bossStage.stageNumber = 1;
             bossStage.subStageNumber = 4;

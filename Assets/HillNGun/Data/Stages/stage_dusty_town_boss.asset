@@ -16,6 +16,10 @@ MonoBehaviour:
   nameKey: pve.boss.rattlesnake_rex
   stageNumber: 1
   subStageNumber: 4
+  chapterId: dust_town
+  stageIndex: 10
+  stageType: 5
+  visual: {fileID: 11400000, guid: 6ab505eb978914d72a551bd9556c5355, type: 2}
   gaugeMax: 0
   waveCount: 0
   stageTimeMin: 90

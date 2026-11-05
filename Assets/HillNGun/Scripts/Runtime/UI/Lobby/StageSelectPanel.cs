@@ -102,6 +102,11 @@ namespace HillNGun.UI
 
             string num = sd == null ? "?" : isBoss ? "BOSS" : $"{sd.stageNumber}-{sd.subStageNumber}";
             UIKit.Label(new Rect(r.x, r.y + 12f, r.width, 44f), num, t.fontTitle - 4, unlocked ? t.accent : t.textDim, TextAnchor.MiddleCenter, true);
+            string typeLabel = sd == null ? "" : sd.stageType == StageType.Boss ? UIKit.T("stage.type.boss", "보스")
+                : sd.stageType == StageType.Exterminate ? UIKit.T("stage.type.exterminate", "섬멸")
+                : sd.stageType.ToString();
+            if (!string.IsNullOrEmpty(typeLabel))
+                UIKit.Small(new Rect(r.x + 8f, r.y + 52f, r.width - 16f, 20f), typeLabel);
             string name = sd == null ? "-" : UIKit.T(sd.nameKey, sd.id);
             UIKit.Label(new Rect(r.x + 8f, r.y + 60f, r.width - 16f, 56f), name, t.fontBody, unlocked ? t.text : t.textDim, TextAnchor.MiddleCenter, true, true);
             if (sd != null && !isBoss)

@@ -16,6 +16,10 @@ MonoBehaviour:
   nameKey: pve.stage.dusty_town_1
   stageNumber: 1
   subStageNumber: 1
+  chapterId: dust_town
+  stageIndex: 1
+  stageType: 0
+  visual: {fileID: 11400000, guid: f4fc0080af15f479686803567e5898bd, type: 2}
   gaugeMax: 20
   waveCount: 5
   stageTimeMin: 70

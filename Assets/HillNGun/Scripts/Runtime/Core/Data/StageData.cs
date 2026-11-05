@@ -11,6 +11,13 @@ namespace HillNGun.Data
         public string nameKey;
         public int stageNumber = 1;
         public int subStageNumber = 1;
+        [Tooltip("10 §1 chapter id, e.g. dust_town")]
+        public string chapterId = "dust_town";
+        [Tooltip("1..10 within chapter")]
+        public int stageIndex = 1;
+        public StageType stageType = StageType.Exterminate;
+        [Tooltip("Optional Task I visual (parallax + timeOfDay). Null = procedural theme only.")]
+        public StageVisualData visual;
 
         [Header("Stage Settings")]
         public int gaugeMax = 20;
