@@ -254,8 +254,19 @@ namespace HillNGun.DebugTools
                 Vector3 worldPos = _battlefield?.LogicToWorldPosition(character.Position) ?? 
                                    (Vector3)character.Position;
 
-                Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
-                DrawWireCircle(worldPos, character.Data.weapon.range);
+                var w = character.Data.weapon;
+                Gizmos.color = new Color(1f, 1f, 0f, 0.25f);
+                DrawWireCircle(worldPos, w.range); // v2 radii: Buster 8 / Raven 16 / Volt 10
+                if (w.fullPelletRange > 0f)
+                {
+                    Gizmos.color = new Color(1f, 0.6f, 0f, 0.35f);
+                    DrawWireCircle(worldPos, w.fullPelletRange);
+                }
+                if (w.damageFalloffStart > 0f)
+                {
+                    Gizmos.color = new Color(0.4f, 0.8f, 1f, 0.3f);
+                    DrawWireCircle(worldPos, w.damageFalloffStart);
+                }
             }
         }
 

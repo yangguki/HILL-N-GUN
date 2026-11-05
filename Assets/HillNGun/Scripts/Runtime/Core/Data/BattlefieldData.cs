@@ -27,8 +27,8 @@ namespace HillNGun.Data
         [Tooltip("시작 줄 인덱스 (0=뒤, 1=가운데, 2=앞)")]
         public int startRowIndex = 1;
 
-        [Tooltip("돌격(Assault) 역할은 앞줄에서 시작 (사거리 5타일: 앞줄→상대 앞줄 4타일)")]
-        public bool assaultStartsFrontRow = true;
+        [Tooltip("v1: 돌격 앞줄 강제. v2 D1 폐기 — 기본 off, 중줄(startRowIndex) 시작")]
+        public bool assaultStartsFrontRow = false;
 
         [Tooltip("시작 X 좌표 배열 (3인 기준)")]
         public float[] startX = { 6f, 12f, 18f };

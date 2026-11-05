@@ -34,8 +34,24 @@ namespace HillNGun.Data
         [Tooltip("투사체 반경 (타일)")]
         public float projectileRadius = 0.3f;
 
-        [Tooltip("사거리 (타일)")]
+        [Tooltip("사거리 (타일). v2 alias: rangeTiles")]
         public float range = 5f;
+
+        [Tooltip("투사체 수명(초). 0 = range/projectileSpeed 자동")]
+        public float projectileLifetime = 0f;
+
+        [Tooltip("산탄: 전탄이 모이는 최대 거리 (타일). 0 = 미사용")]
+        public float fullPelletRange = 0f;
+
+        [Tooltip("피해 감쇠 시작 거리 (타일). 0 = 감쇠 없음")]
+        public float damageFalloffStart = 0f;
+
+        [Tooltip("사거리 끝에서의 피해 배율 (레이븐 0.7)")]
+        [Range(0.1f, 1f)]
+        public float damageFalloffEndMul = 1f;
+
+        [Tooltip("조준 레이저 표시 (레이븐)")]
+        public bool aimLaser = false;
 
         [Header("Fire Rate")]
         [Tooltip("발사 간격 (초)")]
@@ -74,7 +90,28 @@ namespace HillNGun.Data
         [Tooltip("엄폐물에 대한 피해 배율")]
         public float coverDamageMul = 1f;
 
-        public float TimeToReachMaxRange => range / projectileSpeed;
+        /// <summary>Doc alias for <see cref="range"/> (07_weapon_range.md rangeTiles).</summary>
+        public float rangeTiles { get => range; set => range = value; }
+
+        public float TimeToReachMaxRange => EffectiveLifetime;
+
+        /// <summary>Lifetime used for travel; 0 field means range/speed.</summary>
+        public float EffectiveLifetime =>
+            projectileLifetime > 0.0001f ? projectileLifetime
+            : (projectileSpeed > 0.0001f ? range / projectileSpeed : 0f);
+
+        /// <summary>Damage multiplier by distance travelled (linear falloff after damageFalloffStart).</summary>
+        public float GetDamageMultiplierAtDistance(float distance)
+        {
+            if (damageFalloffStart <= 0f) return 1f;
+            if (distance <= damageFalloffStart) return 1f;
+            float end = Mathf.Max(range, damageFalloffStart + 0.001f);
+            float t = Mathf.InverseLerp(damageFalloffStart, end, distance);
+            return Mathf.Lerp(1f, damageFalloffEndMul, t);
+        }
+
+        public int GetDamageAtDistance(int baseDamage, float distance) =>
+            Mathf.RoundToInt(baseDamage * GetDamageMultiplierAtDistance(distance));
 
         public int GetChargeDamage(float chargeTime)
         {

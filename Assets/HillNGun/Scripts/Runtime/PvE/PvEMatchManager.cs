@@ -223,7 +223,7 @@ namespace HillNGun.PvE
 
         private BattlefieldData Field => ServiceLocator.Get<Battlefield.BattlefieldSystem>()?.Data;
 
-        /// <summary>Spawn point; assault role starts on the front row when the data toggle is on.</summary>
+        /// <summary>Spawn point. Assault front-row force is off by default (v2 D1 discarded); toggle BattlefieldData.assaultStartsFrontRow.</summary>
         private Vector2 GetSpawnPoint(int index, CharacterData data)
         {
             Vector2 p = _playerSpawnPoints[Mathf.Clamp(index, 0, _playerSpawnPoints.Length - 1)];
@@ -550,10 +550,10 @@ namespace HillNGun.PvE
             return moving;
         }
 
-        /// <summary>
-        /// PvE ally positioning: dodge a telegraphed tail sweep, otherwise advance a row when nothing is
-        /// in weapon range (lets short-range assault reach the enemy line), and strafe toward the nearest enemy X.
-        /// </summary>
+        /// <summary>v2 (07 D1): AI advances a row only when every target is outside weapon range. Also dodges tail sweep and strafes on X.</summary>
+        public static bool ShouldAdvanceForRange(bool hasTargetInWeaponRange, bool advanceWhenOutOfRangeEnabled)
+            => advanceWhenOutOfRangeEnabled && !hasTargetInWeaponRange;
+
         public void DriveAllyMovement(CharacterStateMachine c, Vector2? inRangeTarget)
         {
             if (c.MovementState == MovementState.RowChanging || c.MovementState == MovementState.Rolling) return;
@@ -565,11 +565,10 @@ namespace HillNGun.PvE
                 return;
             }
 
-            if (!inRangeTarget.HasValue)
+            if (ShouldAdvanceForRange(inRangeTarget.HasValue, _botBehavior == null || _botBehavior.advanceWhenOutOfRange))
             {
                 var bf = ServiceLocator.Get<Battlefield.BattlefieldSystem>();
-                bool advance = _botBehavior == null || _botBehavior.advanceWhenOutOfRange;
-                if (advance && bf != null && bf.CanMoveToRow(c.CurrentRowIndex, 1, Team.Player))
+                if (bf != null && bf.CanMoveToRow(c.CurrentRowIndex, 1, Team.Player))
                 {
                     c.OnRowChangeCommand(new RowChangeCommand(1, Time.time));
                     return;

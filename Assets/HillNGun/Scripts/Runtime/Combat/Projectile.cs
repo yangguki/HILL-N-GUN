@@ -15,6 +15,21 @@ namespace HillNGun.Combat
         public float Range { get; private set; }
         public Team OwnerTeam { get; private set; }
         public bool IsActive { get; private set; }
+        /// <summary>Weapon falloff start (0 = none). Applied via EffectiveDamage.</summary>
+        public float FalloffStart { get; private set; }
+        public float FalloffEndMul { get; private set; } = 1f;
+        /// <summary>Damage after distance falloff (before weakpoint).</summary>
+        public int EffectiveDamage
+        {
+            get
+            {
+                if (FalloffStart <= 0f) return Damage;
+                if (_distanceTraveled <= FalloffStart) return Damage;
+                float end = Mathf.Max(Range, FalloffStart + 0.001f);
+                float t = Mathf.InverseLerp(FalloffStart, end, _distanceTraveled);
+                return Mathf.RoundToInt(Damage * Mathf.Lerp(1f, FalloffEndMul, t));
+            }
+        }
 
         // Modifiers (set per shot by CombatSystem; defaults = plain bullet)
         /// <summary>Character that fired this (null for enemy/boss bullets).</summary>
@@ -60,6 +75,8 @@ namespace HillNGun.Combat
             Radius = weapon.projectileRadius;
             Damage = damage;
             Range = weapon.range;
+            FalloffStart = weapon.damageFalloffStart;
+            FalloffEndMul = weapon.damageFalloffEndMul;
             OwnerTeam = team;
             _distanceTraveled = 0f;
             _piercesRemaining = pierces;
@@ -76,6 +93,8 @@ namespace HillNGun.Combat
             Radius = radius;
             Damage = damage;
             Range = range;
+            FalloffStart = 0f;
+            FalloffEndMul = 1f;
             OwnerTeam = team;
             _distanceTraveled = 0f;
             _piercesRemaining = 0;

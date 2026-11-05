@@ -459,7 +459,7 @@ namespace HillNGun.Combat
             }
             else if (hitCharacter != null)
             {
-                int damage = ApplyWeakpoint(projectile, hitCharacter.Position);
+                int damage = ApplyWeakpoint(projectile, hitCharacter.Position, projectile.EffectiveDamage);
 
                 if (hitCharacter.OverallState == CharacterOverallState.Downed)
                 {
@@ -476,14 +476,15 @@ namespace HillNGun.Combat
             }
             else if (hitTarget != null)
             {
-                hitTarget.TakeDamage(projectile.Damage);
-                OnTargetHit?.Invoke(projectile, hitTarget, projectile.Damage);
+                int td = projectile.EffectiveDamage;
+                hitTarget.TakeDamage(td);
+                OnTargetHit?.Invoke(projectile, hitTarget, td);
                 projectile.OnHitTarget();
                 ApplyHitFeel(projectile.Damage, true);
             }
             else if (hitCombatTarget != null)
             {
-                int dmg = ApplyWeakpoint(projectile, hitCombatTarget.Position);
+                int dmg = ApplyWeakpoint(projectile, hitCombatTarget.Position, projectile.EffectiveDamage);
                 hitCombatTarget.ReceiveHit(dmg, projectile.Direction);
                 OnCombatTargetHit?.Invoke(projectile, hitCombatTarget, dmg);
                 projectile.OnHitTarget();
@@ -494,9 +495,9 @@ namespace HillNGun.Combat
         public event System.Action<Projectile, Vector2, int> OnWeakpointHit;
 
         /// <summary>Weak point = centre radius from the shooter's passive; applies to any target (decision D5).</summary>
-        private int ApplyWeakpoint(Projectile projectile, Vector2 targetCenter)
+        private int ApplyWeakpoint(Projectile projectile, Vector2 targetCenter, int baseDamage = -1)
         {
-            int damage = projectile.Damage;
+            int damage = baseDamage >= 0 ? baseDamage : projectile.EffectiveDamage;
             if (projectile.WeakpointMul <= 1f || projectile.WeakpointRadius <= 0f) return damage;
             // closest approach of this frame's sweep to the centre
             Vector2 prev = projectile.Position - projectile.Direction * projectile.Speed * GameTime.DeltaTime;

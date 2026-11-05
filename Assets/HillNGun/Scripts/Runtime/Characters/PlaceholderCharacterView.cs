@@ -515,17 +515,22 @@ namespace HillNGun.Characters
             if (character.AimDirection.magnitude > 0.1f && character.OverallState == CharacterOverallState.Active)
             {
                 _aimLine.enabled = true;
-                float range = character.Data?.weapon?.range ?? 5f;
-                // Aim line shows the real weapon reach (tile space -> world) so short-range assault sees it must advance
+                var wpn = character.Data?.weapon;
+                float range = wpn != null ? wpn.range : 5f;
+                // Aim line shows the real weapon reach (tile space -> world)
                 Vector2 tileEnd = character.Position + character.AimDirection.normalized * range;
                 Vector3 endPos = FieldView.ToWorld(tileEnd);
                 endPos.z = worldPos.z;
                 _aimLine.SetPosition(0, worldPos);
                 _aimLine.SetPosition(1, endPos);
 
-                Color aimColor = character.ActionState == ActionState.Charging ? Color.yellow : Color.white;
+                bool laser = wpn != null && wpn.aimLaser;
+                Color aimColor = character.ActionState == ActionState.Charging ? Color.yellow
+                    : (laser ? new Color(1f, 0.35f, 0.35f, 1f) : Color.white);
                 _aimLine.startColor = aimColor;
-                _aimLine.endColor = new Color(aimColor.r, aimColor.g, aimColor.b, 0.3f);
+                _aimLine.endColor = new Color(aimColor.r, aimColor.g, aimColor.b, laser ? 0.55f : 0.3f);
+                _aimLine.startWidth = laser ? 0.08f : 0.05f;
+                _aimLine.endWidth = laser ? 0.04f : 0.02f;
             }
             else
             {
