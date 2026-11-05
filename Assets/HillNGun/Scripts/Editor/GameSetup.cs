@@ -682,8 +682,9 @@ namespace HillNGun.Editor
             v13.dustMotes = 10; v13.dustMotesLowTier = 3; v13.tumbleweeds = 1; v13.saloonSignSway = true;
             v13.conceptCoverDim = 0.45f;
             v13.lanternPositions = new[] { new Vector2(5f, 10f), new Vector2(19f, 10f) };
-            v13.layers[0].sprite = sunset; v13.layers[0].tint = new Color(1f, 0.8f, 0.6f, 0.5f);
-            v13.layers[2].sprite = sunset; v13.layers[2].tint = Color.white;
+            // Temporary: empty noon plate until sunset empty plate arrives (sunset PNG kept on disk).
+            v13.layers[0].sprite = noon; v13.layers[0].tint = new Color(1f, 0.8f, 0.6f, 0.5f);
+            v13.layers[2].sprite = noon; v13.layers[2].tint = Color.white;
             v13.layers[3].sprite = null;
             EditorUtility.SetDirty(v13);
 

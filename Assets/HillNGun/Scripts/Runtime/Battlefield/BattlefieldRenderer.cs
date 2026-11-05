@@ -288,7 +288,20 @@ namespace HillNGun.Battlefield
             if (!_pveSearched) { _pve = FindAnyObjectByType<HillNGun.PvE.PvEMatchManager>(); _pveSearched = true; }
             StageVisualData visual = null;
             if (_pve != null && _pve.CurrentStage != null) visual = _pve.CurrentStage.visual;
-            _appliedVisualStageId = _pve != null && _pve.CurrentStage != null ? _pve.CurrentStage.id : null;
+            // Temporary: PvP (and any no-stage town_street) uses the empty noon plate until dedicated plates arrive.
+            if (visual == null)
+            {
+                var am = HillNGun.Core.RuntimeAssetManager.Instance;
+                if (am != null && am.StageDatas != null)
+                {
+                    for (int i = 0; i < am.StageDatas.Length; i++)
+                    {
+                        var s = am.StageDatas[i];
+                        if (s != null && s.id == "dusty_town_1_1" && s.visual != null) { visual = s.visual; break; }
+                    }
+                }
+            }
+            _appliedVisualStageId = _pve != null && _pve.CurrentStage != null ? _pve.CurrentStage.id : (_pve == null ? "pvp_town_street" : null);
 
             if (_parallax == null)
             {

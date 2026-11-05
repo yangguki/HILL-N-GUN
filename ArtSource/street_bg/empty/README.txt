@@ -1,0 +1,1 @@
+Source plates for StageVisual swaps (not imported by Unity). Empty noon street: bg_street_dust_noon_empty.jpg (1280x720). Live asset: Assets/HillNGun/Art/StageVisual/Dust/stage_visual_dust_1_1_noon.png
