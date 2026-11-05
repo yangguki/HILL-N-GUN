@@ -124,6 +124,8 @@ namespace HillNGun.Data
         public float coverScale = 1.0f;
         [Tooltip("엄폐물 바닥 위치 (로직 위치 기준 아래로, 타일)")]
         public float coverFootOffset = 0.35f;
+        [Tooltip("엄폐물을 카메라 쪽으로 당겨 바로 뒤 캐릭터 하체가 가려지게 함 (월드 Z). depthPerTile≈0.6일 때 0.75 ≈ 같은 줄 캐릭터보다 앞")]
+        public float coverDepthPull = 0.75f;
         public CoverPalette coverPalette = new CoverPalette();
 
         [Header("Labels")]

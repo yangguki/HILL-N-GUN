@@ -87,6 +87,10 @@ namespace HillNGun.Data
         public float coverMinWidthVsHurtDiameter = 1.0f;
         [Tooltip("그림 높이 최소값 (모델 Y 배율 하한, 너무 납작해지지 않게)")]
         public float minCoverYScale = 0.25f;
+        [Tooltip("엄폐물 그림 크기 배율 (기획 v4: 세 안 모두 1.3). H 배수 크기 위에 곱함")]
+        public float coverVisualMul = 1.3f;
+        [Tooltip("엄폐물 판정 폭 배율 (기획 v4: 폭만 1.15). 바닥 면적 깊이/높이는 그대로")]
+        public float coverFootprintWidthMul = 1.15f;
 
         [Header("Cover classes")]
         public CoverTypeBinding[] coverTypes = new CoverTypeBinding[0];

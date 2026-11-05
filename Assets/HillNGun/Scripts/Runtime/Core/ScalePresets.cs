@@ -158,9 +158,14 @@ namespace HillNGun.Core
             }
             float h = HeightWorldFor(d, o);
             r.fromPreset = true;
-            r.visualWidth = e.widthH * h;
-            r.visualHeight = e.heightH * h;
-            r.logicWidth = Mathf.Max(r.visualWidth, minW);
+            float baseW = e.widthH * h;
+            float baseH = e.heightH * h;
+            // Visual mul (기획 v4 1.3) enlarges the drawn sprite; footprint width mul (1.15) only widens the hit/protection box.
+            float vMul = d.coverVisualMul > 0f ? d.coverVisualMul : 1f;
+            float fMul = d.coverFootprintWidthMul > 0f ? d.coverFootprintWidthMul : 1f;
+            r.visualWidth = baseW * vMul;
+            r.visualHeight = baseH * vMul;
+            r.logicWidth = Mathf.Max(baseW * fMul, minW);
             return r;
         }
 

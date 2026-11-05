@@ -94,7 +94,8 @@ namespace HillNGun.Characters
             if (_actor3D == null) return;
             if (_bodyRenderer != null) _bodyRenderer.enabled = false;
             _lastFireSeen = character.LastFireTime;
-            if (character.Team == Team.Enemy) _actor3D.SetTint(Actor3DStage.Data.pvpOpponentTint);
+            if (character.Team == Team.Enemy)
+                _actor3D.SetTint(HillNGun.Scenery.TimeOfDayGrade.Apply(Actor3DStage.Data.pvpOpponentTint));
             float lh = LabelHeight3D();
             if (_nameLabel != null) _nameLabel.transform.localPosition = new Vector3(0f, lh, 0f);
         }
@@ -134,6 +135,8 @@ namespace HillNGun.Characters
             };
             Color tint = c.Team == Team.Enemy ? d.pvpOpponentTint : Color.white;
             if (c.OverallState == CharacterOverallState.Eliminated) tint = d.defeatedTint;
+            // Time-of-day wash on the body only — name label / team marker / outline stay crisp.
+            tint = HillNGun.Scenery.TimeOfDayGrade.Apply(tint);
             _actor3D.SetTint(tint);
             if (active && c.IsInvulnerable && !rolling) _actor3D.Flash(0.35f * Mathf.PingPong(Time.time * 8f, 1f));
             _actor3D.Tick(GameTime.DeltaTime, pose);

@@ -75,6 +75,26 @@ namespace HillNGun.Tests.EditMode
         }
 
         [Test]
+        public void CoverVisualAndFootprintMuls_ApplyOnTopOfHSizes()
+        {
+            Assert.AreEqual(1.3f, _d.coverVisualMul, 1e-4f);
+            Assert.AreEqual(1.15f, _d.coverFootprintWidthMul, 1e-4f);
+            var covers = AllCovers();
+            Assert.IsTrue(covers.ContainsKey("cover_barrel"));
+            for (int n = 1; n <= 3; n++)
+            {
+                var o = _d.GetOption(n);
+                var e = o.GetSize(CoverSizeType.Barrel);
+                float h = ScalePresets.HeightWorldFor(_d, o);
+                var s = ScalePresets.CoverSizeFor(_d, o, covers["cover_barrel"]);
+                Assert.AreEqual(e.widthH * h * _d.coverVisualMul, s.visualWidth, 1e-4f, $"opt{n} visualW");
+                Assert.AreEqual(e.heightH * h * _d.coverVisualMul, s.visualHeight, 1e-4f, $"opt{n} visualH");
+                float minW = ScalePresets.HurtDiameterFor(_d, o) * _d.coverMinWidthVsHurtDiameter;
+                Assert.AreEqual(Mathf.Max(e.widthH * h * _d.coverFootprintWidthMul, minW), s.logicWidth, 1e-4f, $"opt{n} logicW");
+            }
+        }
+
+        [Test]
         public void Layouts_Keep3Rows_CountsPerSpec_AndIdsResolve()
         {
             var covers = AllCovers();
@@ -201,7 +221,6 @@ namespace HillNGun.Tests.EditMode
                 {
                     var s = ScalePresets.CoverSizeFor(_d, opt, cd);
                     Assert.GreaterOrEqual(s.logicWidth + 1e-5f, ScalePresets.HurtDiameterFor(_d, opt) * _d.coverMinWidthVsHurtDiameter, $"opt{opt.number} {cd.id}");
-                    Assert.GreaterOrEqual(s.logicWidth + 1e-5f, s.visualWidth);
                 }
         }
 

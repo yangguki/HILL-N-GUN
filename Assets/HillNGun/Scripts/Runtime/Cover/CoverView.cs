@@ -96,8 +96,11 @@ namespace HillNGun.Cover
             float targetW = sz.visualWidth > 0.01f ? sz.visualWidth : _cover.Data.width;
             float targetH = sz.visualHeight > 0.01f ? sz.visualHeight : targetW * artH / artW;
             float sy = targetH / artH;
-            float maxStretch = _lib != null ? Mathf.Max(1f, _lib.coverSpriteMaxStretch) : 1f;
-            float sx = Mathf.Clamp(targetW / artW, sy / maxStretch, sy * maxStretch);
+            // SpriteLibrary.coverSpriteMaxStretch (default 1.35) caps non-wagon distortion.
+            // Wagon: wide handoff art (cover_wagon_small.png) must hit ScalePreset width×height exactly — no stretch cap.
+            bool exactBox = _cover != null && _cover.Data != null && _cover.Data.id == "cover_wagon";
+            float maxStretch = exactBox ? 100f : (_lib != null ? Mathf.Max(1f, _lib.coverSpriteMaxStretch) : 1f);
+            float sx = exactBox ? (targetW / artW) : Mathf.Clamp(targetW / artW, sy / maxStretch, sy * maxStretch);
             _artDrawnWidth = sx * artW;
 
             _artOnActorLayer = _lib != null && _lib.coverSpritesOnActorLayer && Actor3DStage.Enabled;
@@ -132,7 +135,8 @@ namespace HillNGun.Cover
             if (_artOnActorLayer)
             {
                 var d = Actor3DStage.Data;
-                transform.position = new Vector3(b.x + jx, b.y, d.depthBase + _cover.Position.y * d.depthPerTile);
+                // Pull toward camera so a character tucked just south is behind the cover in the depth buffer.
+                transform.position = new Vector3(b.x + jx, b.y, d.depthBase + _cover.Position.y * d.depthPerTile - d.coverDepthPull);
                 transform.rotation = Quaternion.Euler(-d.viewTiltDeg, 0f, 0f);
             }
             else
@@ -261,7 +265,9 @@ namespace HillNGun.Cover
             if (_cover == null || _renderer == null) return;
             Sprite s = StageSprite(_cover.Stage);
             if (s != null) _renderer.sprite = s;
-            _renderer.color = _artSprite ? StageTint(_cover.Stage) : (_cover.IsDestroyed ? new Color(1f, 1f, 1f, 0.45f) : Color.white);
+            _renderer.color = _artSprite
+                ? StageTint(_cover.Stage)
+                : HillNGun.Scenery.TimeOfDayGrade.Apply(_cover.IsDestroyed ? new Color(1f, 1f, 1f, 0.45f) : Color.white);
             PlaceShadow();
             if (_prop3D != null) { _renderer.enabled = false; _prop3D.SetStage(_cover.Stage); }
         }
@@ -274,7 +280,8 @@ namespace HillNGun.Cover
             if (_lib == null) return stage == CoverStage.Destroyed ? new Color(1f, 1f, 1f, 0.45f) : Color.white;
             bool dedicated = stage != CoverStage.Intact && _sprites != null && _sprites.GetSpriteForStage(stage) != null;
             var t = _lib.CoverStageTint(stage);
-            return dedicated ? new Color(1f, 1f, 1f, t.a) : t;
+            var c = dedicated ? new Color(1f, 1f, 1f, t.a) : t;
+            return HillNGun.Scenery.TimeOfDayGrade.Apply(c);
         }
 
         private Sprite StageSprite(CoverStage stage)

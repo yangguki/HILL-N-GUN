@@ -28,7 +28,8 @@ namespace HillNGun.Data
             new Color(0.68f, 0.55f, 0.46f, 0.9f),
             new Color(0.42f, 0.36f, 0.32f, 0.45f)
         };
-        [Tooltip("엄폐물 그림을 ScalePreset 폭×높이 상자에 맞출 때 허용하는 가로/세로 늘림 한도 (그림 비율 왜곡 상한). 높이는 항상 정확히 맞춤")]
+        // Stretch cap lives here (CoverView.InitArtSprite). Wagon (cover_wagon) bypasses this and fits the ScalePreset box exactly once the wide cover_wagon_small.png is in.
+        [Tooltip("엄폐물 그림을 ScalePreset 폭×높이 상자에 맞출 때 허용하는 가로/세로 늘림 한도 (그림 비율 왜곡 상한). 높이는 항상 정확히 맞춤. 마차는 CoverView에서 상한 없이 스펙 폭에 맞춤")]
         [Min(1f)] public float coverSpriteMaxStretch = 1.35f;
         [Tooltip("엄폐물 그림을 3D 캐릭터 레이어(깊이 테스트)에 그려서 엄폐물 뒤 캐릭터가 가려지게 함")]
         public bool coverSpritesOnActorLayer = true;

@@ -260,7 +260,8 @@ namespace HillNGun.PvE
                 torsoFollowMove = 0.2f,
                 defeated = !_boss.IsAlive,
             };
-            _actor3D.SetTint(_boss.IsAlive ? Color.white : d.defeatedTint);
+            // Body gets time-of-day wash; name label / HP bar / outline stay untinted.
+            _actor3D.SetTint(HillNGun.Scenery.TimeOfDayGrade.Apply(_boss.IsAlive ? Color.white : d.defeatedTint));
             _actor3D.Tick(dt, pose);
         }
 

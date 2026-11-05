@@ -18,6 +18,8 @@ MonoBehaviour:
   referenceHurtRadius: 0.5
   coverMinWidthVsHurtDiameter: 1
   minCoverYScale: 0.25
+  coverVisualMul: 1.3
+  coverFootprintWidthMul: 1.15
   coverTypes:
   - coverId: cover_barrel
     type: 0

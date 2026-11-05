@@ -310,6 +310,7 @@ namespace HillNGun.Battlefield
                 _parallax = go.AddComponent<ParallaxBackdrop>();
             }
             _parallax.Apply(visual);
+            HillNGun.Scenery.TimeOfDayGrade.Set(visual);
 
             // When Task I concept layers are present, hide the procedural bake so tablets
             // cannot keep showing the old Western scenery underneath / instead.

@@ -36,6 +36,7 @@ MonoBehaviour:
   useCover3D: 1
   coverScale: 1
   coverFootOffset: 0.35
+  coverDepthPull: 0.75
   coverPalette:
     wood: {r: 0.66, g: 0.45, b: 0.25, a: 1}
     woodDark: {r: 0.43, g: 0.27, b: 0.15, a: 1}

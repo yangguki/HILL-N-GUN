@@ -16,7 +16,9 @@ namespace HillNGun.Data
         public float hitRadius = 1.5f;
         public float moveSpeed = 1.5f;
 
-        [Tooltip("살아 있는 파티 인원(1,2,3...)별 체력 배율. 03 문서: 혼자 24,000 / 2인 40,800(×1.7). 3인 AI 분대는 실측으로 조정")]
+        // Solo baseline = maxHp (24000). Default PvE always spawns 3 (1 player + 2 AI) so PartySize=3 → ×4.0 = 96000.
+        // Index = clamp(partySize-1): 1P×1 / 2P×1.7 / 3P+×4.0. Not a debug multiplier.
+        [Tooltip("살아 있는 파티 인원(1,2,3...)별 체력 배율. 03 문서: 혼자 24,000 / 2인 40,800(×1.7). 기본 PvE 3인 분대는 ×4 → 96,000")]
         public float[] partyHpMultipliers = new float[] { 1f, 1.7f, 4.0f };
 
         public int GetScaledMaxHp(int partySize)

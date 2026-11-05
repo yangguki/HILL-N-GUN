@@ -285,7 +285,8 @@ namespace HillNGun.PvE
                 torsoFollowMove = fleeing || _enemy.IsEntering ? 1f : Actor3DStage.Anim.torsoFollowMove,
                 strideMul = fleeing ? Actor3DStage.Anim.fleeStrideMul : 1f,
             };
-            _actor3D.SetTint(fleeing ? d.defeatedTint : Color.white);
+            // Body wash only — name label stays crisp; projectiles never read TimeOfDayGrade.
+            _actor3D.SetTint(HillNGun.Scenery.TimeOfDayGrade.Apply(fleeing ? d.defeatedTint : Color.white));
             _actor3D.Tick(dt, pose);
         }
 

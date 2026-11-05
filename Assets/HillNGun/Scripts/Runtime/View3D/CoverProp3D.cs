@@ -114,7 +114,7 @@ namespace HillNGun.View3D
             var d = Actor3DStage.Data;
             _shake = Mathf.Max(0f, _shake - dt * 4f);
             float jx = _shake > 0f ? Mathf.Sin(Time.time * 70f) * _shake * 0.08f : 0f;
-            Root.position = new Vector3(baseWorld.x + jx, baseWorld.y, d.depthBase + logicY * d.depthPerTile);
+            Root.position = new Vector3(baseWorld.x + jx, baseWorld.y, d.depthBase + logicY * d.depthPerTile - d.coverDepthPull);
             Root.rotation = Quaternion.Euler(-d.viewTiltDeg, 0f, 0f);
             Root.localScale = _sizeMul * scale;
             _flash = Mathf.Max(0f, _flash - dt * 6f);
