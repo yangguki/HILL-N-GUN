@@ -3,14 +3,14 @@ using System.Collections;
 using System.IO;
 using UnityEngine;
 using HillNGun.Core;
-using HillNGun.Data;
 using HillNGun.PvE;
 using HillNGun.UI;
-using HillNGun.DebugTools;
+using HillNGun.Combat;
+using HillNGun.Cover;
 
 namespace HillNGun.DebugTools
 {
-    /// <summary>-smoketest-visual: snap each dust stage with temp BG + covers, optional WANTED, then quit.</summary>
+    /// <summary>-smoketest-visual: snap each dust stage with temp BG + covers, WANTED on boss, cover damage, then quit.</summary>
     public class VisualSmokeRunner : MonoBehaviour
     {
         private static bool _wanted;
@@ -37,36 +37,51 @@ namespace HillNGun.DebugTools
 
             yield return new WaitForSecondsRealtime(1.2f);
             GameFlowManager.Instance?.GoToModeSelect();
-            yield return new WaitForSecondsRealtime(0.8f);
+            yield return new WaitForSecondsRealtime(0.9f);
 
             for (int stage = 0; stage < 4; stage++)
             {
                 var lobby = FindFirstObjectByType<LobbyUI>();
                 if (lobby != null) lobby.StartPvE(stage);
-                else GameFlowManager.Instance?.GoToCharacterSelect(GameMode.PvE);
+                else
+                {
+                    var flow0 = GameFlowManager.Instance;
+                    if (flow0?.CurrentSession != null) flow0.CurrentSession.startStageIndex = stage;
+                    flow0?.GoToCharacterSelect(GameMode.PvE);
+                }
                 yield return new WaitForSecondsRealtime(1.0f);
                 var flow = GameFlowManager.Instance;
                 flow?.SetAllCharacters("buster", "raven", "volt");
-                // startStageIndex for this run
-                if (flow?.CurrentSession != null) flow.CurrentSession.startStageIndex = stage;
                 flow?.StartMatch();
-                yield return new WaitForSecondsRealtime(2.8f); // allow intro pan / wanted
 
-                // Force-skip presentation
-                var pres = StagePresentation.Instance;
-                // wait for match actors
-                for (int i = 0; i < 40; i++)
-                {
-                    var pve = FindFirstObjectByType<PvEMatchManager>();
-                    if (pve != null && pve.CurrentStage != null) break;
-                    yield return new WaitForSecondsRealtime(0.1f);
-                }
-                yield return Shot($"stage_{stage}_bg_covers");
-                if (stage == 3) yield return Shot("wanted_or_boss");
-
-                // return to lobby for next
-                flow?.GoToModeSelect();
+                // Skip intro quickly by advancing realtime; presentation listens for taps — inject skip via timescale
+                Time.timeScale = 8f;
+                yield return new WaitForSecondsRealtime(0.6f);
+                Time.timeScale = 1f;
                 yield return new WaitForSecondsRealtime(0.8f);
+
+                yield return Shot($"stage_{stage}_bg_covers");
+
+                if (stage == 0)
+                {
+                    // Damage first cover through stages for screenshot
+                    var combat = ServiceLocator.Get<CombatSystem>();
+                    if (combat?.Covers != null && combat.Covers.Count > 0)
+                    {
+                        var c = combat.Covers[0];
+                        c.TakeDamage(c.Data.maxHp / 2);
+                        yield return new WaitForSecondsRealtime(0.2f);
+                        yield return Shot("cover_damage_mid");
+                        c.TakeDamage(c.Data.maxHp);
+                        yield return new WaitForSecondsRealtime(0.2f);
+                        yield return Shot("cover_damage_destroyed");
+                    }
+                }
+                if (stage == 3)
+                    yield return Shot("boss_rex_or_wanted");
+
+                flow?.GoToModeSelect();
+                yield return new WaitForSecondsRealtime(0.7f);
             }
 
             UnityEngine.Debug.Log($"[VisualSmoke] done shots={_shot} dir={_dir}");
@@ -82,7 +97,7 @@ namespace HillNGun.DebugTools
             ScreenCapture.CaptureScreenshot(path);
             _shot++;
             UnityEngine.Debug.Log($"[VisualSmoke] {path}");
-            yield return new WaitForSecondsRealtime(0.45f);
+            yield return new WaitForSecondsRealtime(0.4f);
         }
     }
 }
