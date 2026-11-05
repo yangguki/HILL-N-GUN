@@ -32,7 +32,7 @@ MonoBehaviour:
       spawnDelay: 0
     delayBeforeWave: 1
     paceTag: intro
-    waitForClear: 0
+    waitForClear: 1
     nextWaveDelay: 4
   - waveNumber: 1
     enemies:
@@ -46,7 +46,7 @@ MonoBehaviour:
       spawnDelay: 0
     delayBeforeWave: 0.5
     paceTag: pressure
-    waitForClear: 0
+    waitForClear: 1
     nextWaveDelay: 4
   - waveNumber: 2
     enemies:
@@ -66,7 +66,7 @@ MonoBehaviour:
     enemies: []
     delayBeforeWave: 0.2
     paceTag: rest
-    waitForClear: 0
+    waitForClear: 1
     nextWaveDelay: 0.5
   - waveNumber: 4
     enemies:

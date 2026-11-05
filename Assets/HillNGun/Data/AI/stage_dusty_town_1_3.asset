@@ -1,0 +1,168 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 908e1faa5f8d04d089bf1db4b674beef, type: 3}
+  m_Name: stage_dusty_town_1_3
+  m_EditorClassIdentifier: 
+  id: dusty_town_1_3
+  nameKey: pve.stage.dusty_town_3
+  stageNumber: 1
+  subStageNumber: 3
+  gaugeMax: 40
+  waveCount: 7
+  stageTimeMin: 95
+  stageTimeMax: 120
+  starTimeUnderSec: 110
+  starRequireNoDowned: 1
+  starMinBarrelExplosions: 2
+  waves:
+  - waveNumber: 0
+    enemies:
+    - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
+      count: 4
+      preferredRow: 0
+      spawnDelay: 0
+    delayBeforeWave: 1
+    paceTag: intro
+    waitForClear: 1
+    nextWaveDelay: 4
+  - waveNumber: 1
+    enemies:
+    - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
+      count: 3
+      preferredRow: 0
+      spawnDelay: 0
+    - enemyData: {fileID: 11400000, guid: 7ec624a13e38b4196a9b0fe16323b48f, type: 2}
+      count: 2
+      preferredRow: 1
+      spawnDelay: 0
+    delayBeforeWave: 0.5
+    paceTag: pressure
+    waitForClear: 1
+    nextWaveDelay: 4
+  - waveNumber: 2
+    enemies:
+    - enemyData: {fileID: 11400000, guid: 23c0bf1acb50d49da91753e8b357f575, type: 2}
+      count: 1
+      preferredRow: 1
+      spawnDelay: 0
+    - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
+      count: 3
+      preferredRow: 0
+      spawnDelay: 0
+    delayBeforeWave: 0.5
+    paceTag: peak
+    waitForClear: 1
+    nextWaveDelay: 4
+  - waveNumber: 3
+    enemies: []
+    delayBeforeWave: 0.2
+    paceTag: rest
+    waitForClear: 1
+    nextWaveDelay: 0.5
+  - waveNumber: 4
+    enemies:
+    - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
+      count: 4
+      preferredRow: 0
+      spawnDelay: 0
+    - enemyData: {fileID: 11400000, guid: 7ec624a13e38b4196a9b0fe16323b48f, type: 2}
+      count: 1
+      preferredRow: 1
+      spawnDelay: 0
+    delayBeforeWave: 0.5
+    paceTag: pressure
+    waitForClear: 0
+    nextWaveDelay: 4
+  - waveNumber: 5
+    enemies:
+    - enemyData: {fileID: 11400000, guid: 23c0bf1acb50d49da91753e8b357f575, type: 2}
+      count: 1
+      preferredRow: 1
+      spawnDelay: 0
+    - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
+      count: 2
+      preferredRow: 0
+      spawnDelay: 0
+    delayBeforeWave: 0.5
+    paceTag: peak
+    waitForClear: 1
+    nextWaveDelay: 4
+  - waveNumber: 6
+    enemies:
+    - enemyData: {fileID: 11400000, guid: 7ec624a13e38b4196a9b0fe16323b48f, type: 2}
+      count: 2
+      preferredRow: 0
+      spawnDelay: 0
+    - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
+      count: 3
+      preferredRow: 1
+      spawnDelay: 0
+    delayBeforeWave: 0.5
+    paceTag: finale
+    waitForClear: 1
+    nextWaveDelay: 2.5
+  timeBetweenWaves: 8
+  timeBetweenSpawns: 0.7
+  battlefieldOverride: {fileID: 0}
+  themeId: rail_station
+  enemySpawnPoints: []
+  enemyRowsY:
+  - 11
+  - 13.5
+  - 16
+  coverPlacements:
+  - coverId: cover_swing_door
+    rowIndex: 0
+    xPosition: 5
+  - coverId: cover_swing_door
+    rowIndex: 0
+    xPosition: 19
+  - coverId: cover_trough
+    rowIndex: 1
+    xPosition: 6
+  - coverId: cover_barrel
+    rowIndex: 1
+    xPosition: 12
+  - coverId: cover_trough
+    rowIndex: 1
+    xPosition: 18
+  - coverId: cover_barrel
+    rowIndex: 2
+    xPosition: 4
+  - coverId: cover_wagon
+    rowIndex: 2
+    xPosition: 12
+  - coverId: cover_trough
+    rowIndex: 2
+    xPosition: 16
+  - coverId: cover_barrel
+    rowIndex: 2
+    xPosition: 20
+  hazards:
+  - type: 0
+    x: 7
+    rowIndex: 1
+    param: 3
+  - type: 0
+    x: 15
+    rowIndex: 2
+    param: 3
+  - type: 0
+    x: 10
+    rowIndex: 2
+    param: 3
+  - type: 3
+    x: 12
+    rowIndex: 2
+    param: 3
+  isBossStage: 0
+  bossData: {fileID: 0}

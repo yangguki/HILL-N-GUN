@@ -509,15 +509,15 @@ namespace HillNGun.Editor
                 new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 8f, rowIndex = 1 },
             };
             stage1_1.waves = new WaveDefinition[] {
-                new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 5.0f, waitForClear = false,
+                new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 5.0f, waitForClear = true,
                     enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 } } },
-                new WaveDefinition { waveNumber = 1, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 5.0f, waitForClear = false,
+                new WaveDefinition { waveNumber = 1, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 5.0f, waitForClear = true,
                     enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 } } },
-                new WaveDefinition { waveNumber = 2, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 4.5f, waitForClear = false,
+                new WaveDefinition { waveNumber = 2, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 4.5f, waitForClear = true,
                     enemies = new[] {
                         new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 },
                         new EnemySpawnEntry { enemyData = dynamiteBandit, count = 1, preferredRow = 1 } } },
-                new WaveDefinition { waveNumber = 3, paceTag = "peak", delayBeforeWave = 0.5f, nextWaveDelay = 4.0f, waitForClear = false,
+                new WaveDefinition { waveNumber = 3, paceTag = "peak", delayBeforeWave = 0.5f, nextWaveDelay = 4.0f, waitForClear = true,
                     enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 5, preferredRow = 0 } } },
                 new WaveDefinition { waveNumber = 4, paceTag = "finale", delayBeforeWave = 0.5f, nextWaveDelay = 2.5f, waitForClear = true,
                     enemies = new[] {
@@ -554,9 +554,9 @@ namespace HillNGun.Editor
                 new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 17f, rowIndex = 2 },
             };
             stage1_2.waves = new WaveDefinition[] {
-                new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 4f, waitForClear = false,
+                new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 4f, waitForClear = true,
                     enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 } } },
-                new WaveDefinition { waveNumber = 1, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 4f, waitForClear = false,
+                new WaveDefinition { waveNumber = 1, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 4f, waitForClear = true,
                     enemies = new[] {
                         new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 },
                         new EnemySpawnEntry { enemyData = dynamiteBandit, count = 1, preferredRow = 1 } } },
@@ -564,7 +564,7 @@ namespace HillNGun.Editor
                     enemies = new[] {
                         new EnemySpawnEntry { enemyData = mountedRaider, count = 1, preferredRow = 1 },
                         new EnemySpawnEntry { enemyData = pistolMook, count = 2, preferredRow = 0 } } },
-                new WaveDefinition { waveNumber = 3, paceTag = "rest", delayBeforeWave = 6f, nextWaveDelay = 1.5f, waitForClear = false,
+                new WaveDefinition { waveNumber = 3, paceTag = "rest", delayBeforeWave = 6f, nextWaveDelay = 1.5f, waitForClear = true,
                     enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 2, preferredRow = 0 } } },
                 new WaveDefinition { waveNumber = 4, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 4f, waitForClear = false,
                     enemies = new[] {
@@ -607,9 +607,9 @@ namespace HillNGun.Editor
                 new HazardPlacement { type = HazardType.TrainPass, x = 12f, rowIndex = 2, param = 3f },
             };
             stage1_3.waves = new WaveDefinition[] {
-                new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 4f, waitForClear = false,
+                new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 4f, waitForClear = true,
                     enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 } } },
-                new WaveDefinition { waveNumber = 1, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 4f, waitForClear = false,
+                new WaveDefinition { waveNumber = 1, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 4f, waitForClear = true,
                     enemies = new[] {
                         new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 },
                         new EnemySpawnEntry { enemyData = dynamiteBandit, count = 2, preferredRow = 1 } } },
@@ -617,7 +617,7 @@ namespace HillNGun.Editor
                     enemies = new[] {
                         new EnemySpawnEntry { enemyData = mountedRaider, count = 1, preferredRow = 1 },
                         new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 } } },
-                new WaveDefinition { waveNumber = 3, paceTag = "rest", delayBeforeWave = 0.2f, nextWaveDelay = 0.5f, waitForClear = false,
+                new WaveDefinition { waveNumber = 3, paceTag = "rest", delayBeforeWave = 0.2f, nextWaveDelay = 0.5f, waitForClear = true,
                     enemies = new EnemySpawnEntry[0] }, // train pass, spawn gap
                 new WaveDefinition { waveNumber = 4, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 4f, waitForClear = false,
                     enemies = new[] {
@@ -1017,7 +1017,7 @@ namespace HillNGun.Editor
             botBehavior.useGrenades = true;
             botBehavior.grenadeMinInterval = 4f;
             botBehavior.pveAllyGrenadeMinInterval = 45f;
-            botBehavior.pveAllyShotCooldownMul = 2.0f;
+            botBehavior.pveAllyShotCooldownMul = 1.25f;
             botBehavior.reviveAllies = true;
             EditorUtility.SetDirty(botBehavior);
         }

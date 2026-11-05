@@ -80,7 +80,7 @@ namespace HillNGun.Data
         public float pveAllyGrenadeMinInterval = 45f;
         [Tooltip("PvE AI 아군 사격 쿨다운 배율 (1=그대로). 스테이지 목표 시간(06) 맞추기용 페이싱 노브. 무기 fireInterval 자체는 변경하지 않음")]
         [Range(1f, 3f)]
-        public float pveAllyShotCooldownMul = 2.0f;
+        public float pveAllyShotCooldownMul = 1.25f;
         [Tooltip("기절한 아군에게 가서 소생")]
         public bool reviveAllies = true;
     }

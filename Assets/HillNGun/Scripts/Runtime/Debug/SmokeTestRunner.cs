@@ -779,10 +779,13 @@ namespace HillNGun.DebugTools
                     me.OnMoveCommand(new MoveCommand(new Vector2(-centerDir, 0f), 1f, now));                        // strafe while shooting (aim facing)
                     if (_gunner == null || _gunnerOwner != me) {
                         _gunnerOwner = me;
+                        // Pacing mul is PvE-only (06 stage time bands). PvP smoke keeps full fire rate.
                         float mul = 1f;
-                        var bot = UnityEngine.Object.FindFirstObjectByType<HillNGun.PvE.PvEMatchManager>() != null
-                            ? HillNGun.Core.RuntimeAssetManager.Instance?.BotBehavior : null;
-                        if (bot != null) mul = bot.pveAllyShotCooldownMul;
+                        if (_fullPvE)
+                        {
+                            var bot = HillNGun.Core.RuntimeAssetManager.Instance?.BotBehavior;
+                            if (bot != null) mul = bot.pveAllyShotCooldownMul;
+                        }
                         _gunner = new AutoGunner(me, 0.3f, mul);
                     }
                     var pve = FindFirstObjectByType<PvEMatchManager>();
