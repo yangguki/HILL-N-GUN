@@ -75,6 +75,7 @@ namespace HillNGun.UI
 
             DrawBackground();
             DrawResultTitle();
+            DrawStars();
             DrawStats();
             DrawRewards();
             DrawButtons();
@@ -132,6 +133,24 @@ namespace HillNGun.UI
             modeStyle.alignment = TextAnchor.MiddleCenter;
             modeStyle.fontSize = 24;
             GUI.Label(new Rect(0, Screen.height * 0.2f, Screen.width, 40f), modeText, modeStyle);
+        }
+
+
+        private void DrawStars()
+        {
+            if (_session == null || _session.mode != GameMode.PvE || _session.result != MatchResult.Victory) return;
+            var prog = HillNGun.Progression.ProgressionService.Instance;
+            string lastId = _session.clearedStageIds != null && _session.clearedStageIds.Count > 0
+                ? _session.clearedStageIds[_session.clearedStageIds.Count - 1] : null;
+            int stars = prog != null && lastId != null ? prog.GetStageStars(lastId)
+                : HillNGun.Progression.StarRating.ComputeFromSession(null, _session, true);
+            // if ComputeFromSession got null stage, still show from session via Recorded
+            if (stars <= 0 && lastId != null) stars = prog != null ? prog.GetStageStars(lastId) : 0;
+            if (stars <= 0) stars = 1; // victory implies at least ★1
+            string text = new string('★', stars) + new string('☆', 3 - stars);
+            var style = new GUIStyle(GUI.skin.label) { fontSize = 42, alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold };
+            style.normal.textColor = new Color(1f, 0.85f, 0.3f);
+            GUI.Label(new Rect(0, Screen.height * 0.20f, Screen.width, 50f), text, style);
         }
 
         private void DrawStats()

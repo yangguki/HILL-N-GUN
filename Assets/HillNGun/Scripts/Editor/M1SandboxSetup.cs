@@ -431,6 +431,18 @@ namespace HillNGun.Editor
             coverWagon.repairable = true;
             coverWagon.respawnPerRound = true;
             EditorUtility.SetDirty(coverWagon);
+
+            var coverRock = CreateOrLoad<CoverData>(DATA_PATH + "Cover/cover_rock.asset");
+            coverRock.id = "cover_rock";
+            coverRock.nameKey = "cover.rock";
+            coverRock.maxHp = 9999;
+            coverRock.width = 2.0f;
+            coverRock.depth = 0.6f;
+            coverRock.stages = 4;
+            coverRock.repairable = false;
+            coverRock.respawnPerRound = true;
+            coverRock.indestructible = true;
+            EditorUtility.SetDirty(coverRock);
         }
 
         private static void CreateCharacterAssets()

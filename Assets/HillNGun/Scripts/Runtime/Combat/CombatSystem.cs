@@ -296,6 +296,7 @@ namespace HillNGun.Combat
                 float dist = Mathf.Max(0f, CoordinateHelper.Distance(ct.Position, explosionPos) - ct.HitRadius * 0.5f);
                 if (dist <= data.radius)
                 {
+                    if (ct is HazardExplosiveBarrel barrel) { barrel.TriggerByGrenade(); continue; }
                     int damage = data.GetDamageAtDistance(dist);
                     ct.ReceiveHit(damage, (ct.Position - explosionPos).normalized);
                     OnCombatTargetHit?.Invoke(null, ct, damage);
@@ -322,6 +323,42 @@ namespace HillNGun.Combat
             {
                 GameTime.ApplyHitstop(_feelData.hitstopGrenade);
             }
+        }
+
+        /// <summary>Hazard barrel AoE (06 §5): center/edge damage over radius, cover × coverMul.</summary>
+        public void ExplodeHazard(Vector2 explosionPos, float radius, int centerDamage, int edgeDamage, float coverMul)
+        {
+            foreach (var character in _characters)
+            {
+                if (character.OverallState == CharacterOverallState.Eliminated) continue;
+                float dist = CoordinateHelper.Distance(character.Position, explosionPos);
+                if (dist > radius) continue;
+                float t = radius > 0f ? dist / radius : 1f;
+                int damage = Mathf.RoundToInt(Mathf.Lerp(centerDamage, edgeDamage, t));
+                if (character.OverallState == CharacterOverallState.Downed) character.TakeDownedDamage(damage);
+                else character.TakeDamage(damage, (explosionPos - character.Position).normalized);
+            }
+            for (int i = _combatTargets.Count - 1; i >= 0; i--)
+            {
+                if (i >= _combatTargets.Count) continue;
+                var ct = _combatTargets[i];
+                if (ct == null || !ct.CanBeHit || ct is HazardExplosiveBarrel) continue;
+                float dist = Mathf.Max(0f, CoordinateHelper.Distance(ct.Position, explosionPos) - ct.HitRadius * 0.5f);
+                if (dist > radius) continue;
+                float t = radius > 0f ? dist / radius : 1f;
+                int damage = Mathf.RoundToInt(Mathf.Lerp(centerDamage, edgeDamage, t));
+                ct.ReceiveHit(damage, (ct.Position - explosionPos).normalized);
+            }
+            foreach (var cover in _covers)
+            {
+                if (cover.IsDestroyed) continue;
+                float dist = DistanceToRect(explosionPos, cover.GetBounds());
+                if (dist > radius) continue;
+                float t = radius > 0f ? dist / radius : 1f;
+                int damage = Mathf.RoundToInt(Mathf.Lerp(centerDamage, edgeDamage, t));
+                cover.TakeDamage(damage, coverMul * GlobalCoverDamageMul);
+            }
+            if (_feelData != null) GameTime.ApplyHitstop(_feelData.hitstopGrenade);
         }
 
         /// <summary>

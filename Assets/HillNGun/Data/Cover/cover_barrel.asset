@@ -19,4 +19,5 @@ MonoBehaviour:
   depth: 0.5
   stages: 4
   repairable: 1
+  indestructible: 0
   respawnPerRound: 1

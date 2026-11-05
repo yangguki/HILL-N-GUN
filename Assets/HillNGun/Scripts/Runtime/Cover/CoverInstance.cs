@@ -34,6 +34,7 @@ namespace HillNGun.Cover
         public void TakeDamage(int damage, float multiplier = 1f)
         {
             if (IsDestroyed) return;
+            if (Data != null && Data.indestructible) return;
 
             int actualDamage = Mathf.RoundToInt(damage * multiplier);
             CurrentHp = Mathf.Max(0, CurrentHp - actualDamage);

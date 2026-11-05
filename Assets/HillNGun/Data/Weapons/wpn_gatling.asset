@@ -22,6 +22,11 @@ MonoBehaviour:
   projectileSpeed: 20
   projectileRadius: 0.2
   range: 6
+  projectileLifetime: 0
+  fullPelletRange: 0
+  damageFalloffStart: 0
+  damageFalloffEndMul: 1
+  aimLaser: 0
   fireInterval: 0.1
   holdToRepeat: 1
   cockAnimation: 0

@@ -483,110 +483,154 @@ namespace HillNGun.Editor
             var dynamiteBandit = AssetDatabase.LoadAssetAtPath<EnemyData>(DATA_PATH + "Enemies/enemy_dynamite_bandit.asset");
             var mountedRaider = AssetDatabase.LoadAssetAtPath<EnemyData>(DATA_PATH + "Enemies/enemy_mounted_raider.asset");
 
+            // --- 1-1 (06 §7-1) target 70–90s, gauge 20, stars ★2≤80s ★3 no downed ---
             var stage1_1 = CreateOrLoad<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_1.asset");
             stage1_1.id = "dusty_town_1_1";
             stage1_1.nameKey = "pve.stage.dusty_town_1";
-            stage1_1.stageNumber = 1;
-            stage1_1.subStageNumber = 1;
-            stage1_1.gaugeMax = 20;
-            stage1_1.waveCount = 4;
-            stage1_1.stageTimeMin = 60f;
-            stage1_1.stageTimeMax = 90f;
-            stage1_1.timeBetweenWaves = 10f;
+            stage1_1.stageNumber = 1; stage1_1.subStageNumber = 1;
+            stage1_1.gaugeMax = 20; stage1_1.waveCount = 5;
+            stage1_1.stageTimeMin = 70f; stage1_1.stageTimeMax = 90f;
+            stage1_1.starTimeUnderSec = 80f; stage1_1.starRequireNoDowned = true;
+            stage1_1.timeBetweenSpawns = 0.6f;
+            stage1_1.themeId = "town_street";
             stage1_1.enemyRowsY = new float[] { 11f, 13.5f, 16f };
-            stage1_1.waves = new WaveDefinition[]
-            {
-                new WaveDefinition { waveNumber = 1, delayBeforeWave = 2f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 }
-                }},
-                new WaveDefinition { waveNumber = 2, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 1 },
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 2, preferredRow = 0 }
-                }},
-                new WaveDefinition { waveNumber = 3, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 2, preferredRow = 0 },
-                    new EnemySpawnEntry { enemyData = dynamiteBandit, count = 1, preferredRow = 1 }
-                }},
-                new WaveDefinition { waveNumber = 4, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 },
-                    new EnemySpawnEntry { enemyData = dynamiteBandit, count = 2, preferredRow = 1 }
-                }}
+            // covers: back 2 / mid 3 / front 3, wagon front-center
+            stage1_1.coverPlacements = new CoverPlacement[] {
+                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 6f },
+                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 18f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 5f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 12f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 19f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 4f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 2, xPosition = 12f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 20f },
+            };
+            stage1_1.hazards = new HazardPlacement[] {
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 8f, rowIndex = 1 },
+            };
+            stage1_1.waves = new WaveDefinition[] {
+                new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 2.5f, waitForClear = false,
+                    enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 } } },
+                new WaveDefinition { waveNumber = 1, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 2.5f, waitForClear = false,
+                    enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 } } },
+                new WaveDefinition { waveNumber = 2, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 2f, waitForClear = false,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 },
+                        new EnemySpawnEntry { enemyData = dynamiteBandit, count = 1, preferredRow = 1 } } },
+                new WaveDefinition { waveNumber = 3, paceTag = "peak", delayBeforeWave = 0.5f, nextWaveDelay = 1.5f, waitForClear = false,
+                    enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 5, preferredRow = 0 } } },
+                new WaveDefinition { waveNumber = 4, paceTag = "finale", delayBeforeWave = 0.5f, nextWaveDelay = 1f, waitForClear = true,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 2, preferredRow = 0 },
+                        new EnemySpawnEntry { enemyData = dynamiteBandit, count = 1, preferredRow = 1 } } },
             };
             EditorUtility.SetDirty(stage1_1);
 
+            // --- 1-2 (06 §7-2) gauge 30, 80–105s ---
             var stage1_2 = CreateOrLoad<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_2.asset");
             stage1_2.id = "dusty_town_1_2";
             stage1_2.nameKey = "pve.stage.dusty_town_2";
-            stage1_2.stageNumber = 1;
-            stage1_2.subStageNumber = 2;
-            stage1_2.gaugeMax = 30;
-            stage1_2.waveCount = 5;
-            stage1_2.stageTimeMin = 75f;
-            stage1_2.stageTimeMax = 105f;
-            stage1_2.timeBetweenWaves = 8f;
+            stage1_2.stageNumber = 1; stage1_2.subStageNumber = 2;
+            stage1_2.gaugeMax = 30; stage1_2.waveCount = 6;
+            stage1_2.stageTimeMin = 80f; stage1_2.stageTimeMax = 105f;
+            stage1_2.starTimeUnderSec = 95f; stage1_2.starRequireNoDowned = true;
+            stage1_2.timeBetweenSpawns = 0.55f;
+            stage1_2.themeId = "canyon_pass";
             stage1_2.enemyRowsY = new float[] { 11f, 13.5f, 16f };
-            stage1_2.waves = new WaveDefinition[]
-            {
-                new WaveDefinition { waveNumber = 1, delayBeforeWave = 2f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 }
-                }},
-                new WaveDefinition { waveNumber = 2, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 1 },
-                    new EnemySpawnEntry { enemyData = dynamiteBandit, count = 2, preferredRow = 0 }
-                }},
-                new WaveDefinition { waveNumber = 3, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = mountedRaider, count = 1, preferredRow = 1 },
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 2, preferredRow = 0 }
-                }},
-                new WaveDefinition { waveNumber = 4, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = dynamiteBandit, count = 2, preferredRow = 0 },
-                    new EnemySpawnEntry { enemyData = dynamiteBandit, count = 2, preferredRow = 1 }
-                }},
-                new WaveDefinition { waveNumber = 5, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = mountedRaider, count = 2, preferredRow = 1 },
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 }
-                }}
+            stage1_2.coverPlacements = new CoverPlacement[] {
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 0, xPosition = 4f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 0, xPosition = 12f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 0, xPosition = 20f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 5f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 10f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 14f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 19f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 6f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 12f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 18f },
+            };
+            stage1_2.hazards = new HazardPlacement[] {
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 7f, rowIndex = 1 },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 17f, rowIndex = 2 },
+            };
+            stage1_2.waves = new WaveDefinition[] {
+                new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 2f, waitForClear = false,
+                    enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 } } },
+                new WaveDefinition { waveNumber = 1, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 2f, waitForClear = false,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 },
+                        new EnemySpawnEntry { enemyData = dynamiteBandit, count = 1, preferredRow = 1 } } },
+                new WaveDefinition { waveNumber = 2, paceTag = "peak", delayBeforeWave = 0.5f, nextWaveDelay = 2f, waitForClear = true,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = mountedRaider, count = 1, preferredRow = 1 },
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 2, preferredRow = 0 } } },
+                new WaveDefinition { waveNumber = 3, paceTag = "rest", delayBeforeWave = 5f, nextWaveDelay = 0.5f, waitForClear = false,
+                    enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 2, preferredRow = 0 } } },
+                new WaveDefinition { waveNumber = 4, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 2f, waitForClear = false,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 },
+                        new EnemySpawnEntry { enemyData = dynamiteBandit, count = 1, preferredRow = 1 } } },
+                new WaveDefinition { waveNumber = 5, paceTag = "finale", delayBeforeWave = 0.5f, nextWaveDelay = 1f, waitForClear = true,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 },
+                        new EnemySpawnEntry { enemyData = dynamiteBandit, count = 1, preferredRow = 1 },
+                        new EnemySpawnEntry { enemyData = mountedRaider, count = 1, preferredRow = 1 } } },
             };
             EditorUtility.SetDirty(stage1_2);
 
+            // --- 1-3 (06 §7-3) gauge 40, train rest stub ---
             var stage1_3 = CreateOrLoad<StageData>(DATA_PATH + "Stages/stage_dusty_town_1_3.asset");
             stage1_3.id = "dusty_town_1_3";
             stage1_3.nameKey = "pve.stage.dusty_town_3";
-            stage1_3.stageNumber = 1;
-            stage1_3.subStageNumber = 3;
-            stage1_3.gaugeMax = 40;
-            stage1_3.waveCount = 6;
-            stage1_3.stageTimeMin = 90f;
-            stage1_3.stageTimeMax = 120f;
-            stage1_3.timeBetweenWaves = 8f;
+            stage1_3.stageNumber = 1; stage1_3.subStageNumber = 3;
+            stage1_3.gaugeMax = 40; stage1_3.waveCount = 7;
+            stage1_3.stageTimeMin = 95f; stage1_3.stageTimeMax = 120f;
+            stage1_3.starTimeUnderSec = 110f; stage1_3.starRequireNoDowned = true; stage1_3.starMinBarrelExplosions = 2;
+            stage1_3.timeBetweenSpawns = 0.5f;
+            stage1_3.themeId = "rail_station";
             stage1_3.enemyRowsY = new float[] { 11f, 13.5f, 16f };
-            stage1_3.waves = new WaveDefinition[]
-            {
-                new WaveDefinition { waveNumber = 1, delayBeforeWave = 2f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 },
-                    new EnemySpawnEntry { enemyData = dynamiteBandit, count = 1, preferredRow = 1 }
-                }},
-                new WaveDefinition { waveNumber = 2, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = mountedRaider, count = 1, preferredRow = 1 },
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 }
-                }},
-                new WaveDefinition { waveNumber = 3, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = dynamiteBandit, count = 3, preferredRow = 0 },
-                    new EnemySpawnEntry { enemyData = dynamiteBandit, count = 2, preferredRow = 1 }
-                }},
-                new WaveDefinition { waveNumber = 4, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = mountedRaider, count = 2, preferredRow = 1 },
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 }
-                }},
-                new WaveDefinition { waveNumber = 5, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = dynamiteBandit, count = 2, preferredRow = 0 },
-                    new EnemySpawnEntry { enemyData = mountedRaider, count = 2, preferredRow = 1 }
-                }},
-                new WaveDefinition { waveNumber = 6, delayBeforeWave = 3f, enemies = new EnemySpawnEntry[] {
-                    new EnemySpawnEntry { enemyData = mountedRaider, count = 3, preferredRow = 1 },
-                    new EnemySpawnEntry { enemyData = dynamiteBandit, count = 3, preferredRow = 0 },
-                    new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 2 }
-                }}
+            stage1_3.coverPlacements = new CoverPlacement[] {
+                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 5f },
+                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 19f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 6f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 12f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 18f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 4f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 2, xPosition = 12f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 16f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 20f },
+            };
+            stage1_3.hazards = new HazardPlacement[] {
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 7f, rowIndex = 1 },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 15f, rowIndex = 2 },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 10f, rowIndex = 2 },
+                new HazardPlacement { type = HazardType.TrainPass, x = 12f, rowIndex = 2, param = 3f },
+            };
+            stage1_3.waves = new WaveDefinition[] {
+                new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 2f, waitForClear = false,
+                    enemies = new[] { new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 } } },
+                new WaveDefinition { waveNumber = 1, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 2f, waitForClear = false,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 },
+                        new EnemySpawnEntry { enemyData = dynamiteBandit, count = 2, preferredRow = 1 } } },
+                new WaveDefinition { waveNumber = 2, paceTag = "peak", delayBeforeWave = 0.5f, nextWaveDelay = 2f, waitForClear = true,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = mountedRaider, count = 1, preferredRow = 1 },
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 0 } } },
+                new WaveDefinition { waveNumber = 3, paceTag = "rest", delayBeforeWave = 0.2f, nextWaveDelay = 0.5f, waitForClear = false,
+                    enemies = new EnemySpawnEntry[0] }, // train pass, spawn gap
+                new WaveDefinition { waveNumber = 4, paceTag = "pressure", delayBeforeWave = 0.5f, nextWaveDelay = 2f, waitForClear = false,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 4, preferredRow = 0 },
+                        new EnemySpawnEntry { enemyData = dynamiteBandit, count = 1, preferredRow = 1 } } },
+                new WaveDefinition { waveNumber = 5, paceTag = "peak", delayBeforeWave = 0.5f, nextWaveDelay = 2f, waitForClear = true,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = mountedRaider, count = 1, preferredRow = 1 },
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 2, preferredRow = 0 } } },
+                new WaveDefinition { waveNumber = 6, paceTag = "finale", delayBeforeWave = 0.5f, nextWaveDelay = 1f, waitForClear = true,
+                    enemies = new[] {
+                        new EnemySpawnEntry { enemyData = dynamiteBandit, count = 2, preferredRow = 0 },
+                        new EnemySpawnEntry { enemyData = pistolMook, count = 3, preferredRow = 1 } } },
             };
             EditorUtility.SetDirty(stage1_3);
         }
@@ -697,9 +741,28 @@ namespace HillNGun.Editor
             bossStage.bossData = bossRex;
             bossStage.gaugeMax = 0;
             bossStage.waveCount = 0;
-            bossStage.stageTimeMin = 180f;
-            bossStage.stageTimeMax = 300f;
+            bossStage.stageTimeMin = 90f;
+            bossStage.stageTimeMax = 120f;
+            bossStage.starTimeUnderSec = 110f;
+            bossStage.starRequireNoDowned = true;
+            bossStage.themeId = "sunset_showdown";
             bossStage.enemyRowsY = new float[] { 11f, 13.5f, 16f };
+            // 06 §7-4: wagon+troughs front, barrels mid, doors back, rocks L/R fixed
+            bossStage.coverPlacements = new CoverPlacement[] {
+                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 5f },
+                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 19f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 7f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 17f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 6f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 2, xPosition = 12f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 18f },
+                new CoverPlacement { coverId = "cover_rock", rowIndex = 2, xPosition = 2f },
+                new CoverPlacement { coverId = "cover_rock", rowIndex = 2, xPosition = 22f },
+            };
+            bossStage.hazards = new HazardPlacement[] {
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 9f, rowIndex = 2 },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 15f, rowIndex = 2 },
+            };
             EditorUtility.SetDirty(bossStage);
         }
 
@@ -1159,6 +1222,7 @@ namespace HillNGun.Editor
             var coverTrough = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Cover/cover_trough.asset");
             var coverSwingDoor = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Cover/cover_swing_door.asset");
             var coverWagon = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Cover/cover_wagon.asset");
+            var coverRock = AssetDatabase.LoadAssetAtPath<CoverData>(DATA_PATH + "Cover/cover_rock.asset");
             
             var botBehavior = AssetDatabase.LoadAssetAtPath<BotBehaviorData>(DATA_PATH + "AI/bot_behavior_default.asset");
             var battlefieldData = AssetDatabase.LoadAssetAtPath<BattlefieldData>(DATA_PATH + "Battlefield/battlefield_main.asset");
@@ -1185,7 +1249,7 @@ namespace HillNGun.Editor
             SetPrivateField(assetManager, "_enemyDatas", new EnemyData[] { enemyPistol, enemyDynamite, enemyMounted });
             SetPrivateField(assetManager, "_bossDatas", bossData != null ? new BossData[] { bossData } : new BossData[0]);
             SetPrivateField(assetManager, "_stageDatas", new StageData[] { stage1, stage2, stage3, bossStage });
-            SetPrivateField(assetManager, "_coverDatas", new CoverData[] { coverBarrel, coverTrough, coverSwingDoor, coverWagon });
+            SetPrivateField(assetManager, "_coverDatas", new CoverData[] { coverBarrel, coverTrough, coverSwingDoor, coverWagon, coverRock });
             SetPrivateField(assetManager, "_botBehavior", botBehavior);
             SetPrivateField(assetManager, "_battlefieldData", battlefieldData);
             SetPrivateField(assetManager, "_downedData", downedData);

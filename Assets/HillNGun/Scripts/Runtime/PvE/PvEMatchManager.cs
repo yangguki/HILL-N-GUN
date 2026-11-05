@@ -79,6 +79,13 @@ namespace HillNGun.PvE
         private float _waveTimer;
         private int _nextSpawnIndex;
         private WaveDefinition _currentWaveData;
+        private readonly System.Collections.Generic.List<HillNGun.Combat.HazardExplosiveBarrel> _hazards = new System.Collections.Generic.List<HillNGun.Combat.HazardExplosiveBarrel>();
+        private float _postWaveTimer = -1f;
+        private float _trainBlockTimer;
+        public int BarrelExplosions { get; private set; }
+        public int TeamDownedCount { get; private set; }
+        public bool TrainBlockingSpawns => _trainBlockTimer > 0f;
+
 
         private PvERoundResult _roundResult = PvERoundResult.InProgress;
 
@@ -165,7 +172,39 @@ namespace HillNGun.PvE
             var am = RuntimeAssetManager.Instance;
             var field = am?.BattlefieldData ?? ServiceLocator.Get<BattlefieldData>();
             if (field == null || !field.spawnCoversInPvE) return;
-            CoverFieldSpawner.Spawn(field, am?.CoverDatas, false);
+            var overrides = _currentStage != null ? _currentStage.coverPlacements : null;
+            CoverFieldSpawner.Spawn(field, am?.CoverDatas, false, overrides);
+        }
+
+        private void SpawnHazards()
+        {
+            ClearHazards();
+            BarrelExplosions = 0;
+            if (_currentStage?.hazards == null || _combat == null) return;
+            var field = Field;
+            foreach (var h in _currentStage.hazards)
+            {
+                if (h == null) continue;
+                if (h.type == HazardType.ExplosiveBarrel)
+                {
+                    float y = field != null ? field.GetOurRowY(h.rowIndex) : 4.5f;
+                    var b = new HazardExplosiveBarrel();
+                    b.Initialize(new Vector2(h.x, y), _combat);
+                    b.OnExploded += _ => { BarrelExplosions++; };
+                    _hazards.Add(b);
+                }
+                else if (h.type == HazardType.TrainPass)
+                {
+                    // armed by rest wave paceTag; duration from param
+                }
+            }
+        }
+
+        private void ClearHazards()
+        {
+            foreach (var h in _hazards)
+                if (h != null && !h.Exploded) _combat?.UnregisterCombatTarget(h);
+            _hazards.Clear();
         }
 
         private void SpawnPlayerTeam()
@@ -362,8 +401,15 @@ namespace HillNGun.PvE
 
             CleanupStageActors(true);
             HillNGun.Combat.DropDirector.Instance?.ClearField();
+            ClearHazards();
+            TeamDownedCount = 0;
+            BarrelExplosions = 0;
+            _postWaveTimer = -1f;
+            _trainBlockTimer = 0f;
 
             ResetPlayerTeamForStage();
+            SpawnCovers();
+            SpawnHazards();
 
             if (_isBossStage && _currentStage.bossData != null)
             {
@@ -402,6 +448,18 @@ namespace HillNGun.PvE
             _currentWaveData = _currentStage.waves[waveIndex];
             _waveTimer = _currentWaveData.delayBeforeWave;
             _nextSpawnIndex = 0;
+            _postWaveTimer = -1f;
+
+            if (_currentWaveData.paceTag == "rest")
+            {
+                // 1-3 train stub: block top spawns for ~3s (visual bar drawn by TrainPassView)
+                float dur = 3f;
+                if (_currentStage.hazards != null)
+                    foreach (var h in _currentStage.hazards)
+                        if (h != null && h.type == HazardType.TrainPass) { dur = h.param > 0f ? h.param : 3f; break; }
+                _trainBlockTimer = dur;
+                TrainPassView.Ensure().Show(dur);
+            }
 
             OnWaveChanged?.Invoke(_currentWave + 1);
         }
@@ -478,18 +536,24 @@ namespace HillNGun.PvE
         {
             if (_currentWaveData == null) return;
 
-            _waveTimer -= Time.deltaTime;
+            if (_trainBlockTimer > 0f) _trainBlockTimer -= Time.deltaTime;
 
-            if (_waveTimer <= 0f && _nextSpawnIndex < _currentWaveData.enemies.Length)
+            _waveTimer -= Time.deltaTime;
+            int enemyEntries = _currentWaveData.enemies != null ? _currentWaveData.enemies.Length : 0;
+
+            if (_waveTimer <= 0f && _nextSpawnIndex < enemyEntries && !TrainBlockingSpawns)
             {
                 SpawnEnemy(_currentWaveData.enemies[_nextSpawnIndex]);
                 _nextSpawnIndex++;
 
-                if (_nextSpawnIndex < _currentWaveData.enemies.Length)
-                {
+                if (_nextSpawnIndex < enemyEntries)
                     _waveTimer = _currentStage.timeBetweenSpawns;
-                }
             }
+
+            // empty / finished spawn list → wave progress (rest waves advance after delay)
+            if (_nextSpawnIndex >= enemyEntries)
+                CheckWaveProgress();
+            AdvanceWaveIfReady();
 
             if (_currentGauge >= GaugeMax)
             {
@@ -708,20 +772,30 @@ namespace HillNGun.PvE
         {
             if (_currentWaveData == null) return;
 
-            bool waveComplete = _nextSpawnIndex >= _currentWaveData.enemies.Length;
+            int enemyEntries = _currentWaveData.enemies != null ? _currentWaveData.enemies.Length : 0;
+            bool waveComplete = _nextSpawnIndex >= enemyEntries;
             if (!waveComplete) return;
 
-            bool allEnemiesGone = true;
-            foreach (var enemy in _activeEnemies)
+            bool waitClear = _currentWaveData.waitForClear;
+            if (waitClear && enemyEntries > 0)
             {
-                if (enemy.IsAlive && !enemy.IsFleeing)
+                foreach (var enemy in _activeEnemies)
                 {
-                    allEnemiesGone = false;
-                    break;
+                    if (enemy.IsAlive && !enemy.IsFleeing) return;
                 }
             }
 
-            if (!allEnemiesGone) return;
+            // schedule next wave after nextWaveDelay (rest waves use delayBeforeWave via StartWave)
+            if (_postWaveTimer < 0f)
+                _postWaveTimer = Mathf.Max(0f, _currentWaveData.nextWaveDelay);
+        }
+
+        private void AdvanceWaveIfReady()
+        {
+            if (_postWaveTimer < 0f) return;
+            _postWaveTimer -= Time.deltaTime;
+            if (_postWaveTimer > 0f) return;
+            _postWaveTimer = -1f;
 
             int lastWave = Mathf.Min(_currentStage.waveCount, _currentStage.waves?.Length ?? 0) - 1;
             if (_currentWave < lastWave)
@@ -730,7 +804,6 @@ namespace HillNGun.PvE
             }
             else if (_currentGauge < GaugeMax && lastWave >= 0)
             {
-                // Clear condition is the enemy gauge: keep sending the final wave until it is full
                 Debug.Log($"[PvE] All waves spent with gauge {_currentGauge}/{GaugeMax} - repeating final wave");
                 StartWave(lastWave);
             }
@@ -910,6 +983,11 @@ namespace HillNGun.PvE
             {
                 flowManager.CurrentSession.clearedStageIds.Add(_currentStage.id);
                 if (result == PvERoundResult.BossDefeated) flowManager.CurrentSession.bossDefeated = true;
+                flowManager.CurrentSession.pveDownedCount = TeamDownedCount;
+                flowManager.CurrentSession.pveBarrelExplosions = BarrelExplosions;
+                flowManager.CurrentSession.pveStageClearTime = _stageTimer;
+                int stars = HillNGun.Progression.StarRating.Compute(_currentStage, true, _stageTimer, TeamDownedCount, BarrelExplosions);
+                HillNGun.Progression.ProgressionService.Instance?.RecordStageStars(_currentStage.id, stars);
             }
             if (flowManager != null)
             {
@@ -933,6 +1011,9 @@ namespace HillNGun.PvE
                         session.playerKills = PlayerKills;
                         session.coversDestroyed = CoversDestroyed;
                         session.currentStageIndex = _currentStageIndex;
+                        session.pveDownedCount = TeamDownedCount;
+                        session.pveBarrelExplosions = BarrelExplosions;
+                        session.pveStageClearTime = _stageTimer;
                     }
                     flowManager.EndMatch(matchResult);
                 }

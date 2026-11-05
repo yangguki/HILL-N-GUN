@@ -12,17 +12,18 @@ namespace HillNGun.Cover
     /// </summary>
     public static class CoverFieldSpawner
     {
-        public static List<CoverInstance> Spawn(BattlefieldData field, CoverData[] coverDatas, bool mirrorToEnemySide)
+        public static List<CoverInstance> Spawn(BattlefieldData field, CoverData[] coverDatas, bool mirrorToEnemySide, CoverPlacement[] placementsOverride = null)
         {
             var result = new List<CoverInstance>();
-            if (field == null || field.covers == null || coverDatas == null) return result;
+            var placements = placementsOverride != null && placementsOverride.Length > 0 ? placementsOverride : field?.covers;
+            if (field == null || placements == null || coverDatas == null) return result;
 
             var combat = ServiceLocator.Get<CombatSystem>();
             float offset = (field.coverOffsetMin + field.coverOffsetMax) * 0.5f;
             int ourRows = field.OurRowCount;
             int enemyRows = field.EnemyRowCount;
 
-            foreach (var placement in field.covers)
+            foreach (var placement in placements)
             {
                 CoverData data = Find(coverDatas, placement.coverId);
                 if (data == null)

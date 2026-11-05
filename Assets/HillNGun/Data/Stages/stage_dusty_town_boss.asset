@@ -18,8 +18,11 @@ MonoBehaviour:
   subStageNumber: 4
   gaugeMax: 0
   waveCount: 0
-  stageTimeMin: 180
-  stageTimeMax: 300
+  stageTimeMin: 90
+  stageTimeMax: 120
+  starTimeUnderSec: 110
+  starRequireNoDowned: 1
+  starMinBarrelExplosions: 0
   waves: []
   timeBetweenWaves: 10
   timeBetweenSpawns: 1
@@ -30,5 +33,42 @@ MonoBehaviour:
   - 11
   - 13.5
   - 16
+  coverPlacements:
+  - coverId: cover_swing_door
+    rowIndex: 0
+    xPosition: 5
+  - coverId: cover_swing_door
+    rowIndex: 0
+    xPosition: 19
+  - coverId: cover_barrel
+    rowIndex: 1
+    xPosition: 7
+  - coverId: cover_barrel
+    rowIndex: 1
+    xPosition: 17
+  - coverId: cover_trough
+    rowIndex: 2
+    xPosition: 6
+  - coverId: cover_wagon
+    rowIndex: 2
+    xPosition: 12
+  - coverId: cover_trough
+    rowIndex: 2
+    xPosition: 18
+  - coverId: cover_rock
+    rowIndex: 2
+    xPosition: 2
+  - coverId: cover_rock
+    rowIndex: 2
+    xPosition: 22
+  hazards:
+  - type: 0
+    x: 9
+    rowIndex: 2
+    param: 3
+  - type: 0
+    x: 15
+    rowIndex: 2
+    param: 3
   isBossStage: 1
   bossData: {fileID: 11400000, guid: ae19e24f479db459d9347e22c20670e9, type: 2}

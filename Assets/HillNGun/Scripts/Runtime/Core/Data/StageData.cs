@@ -18,6 +18,13 @@ namespace HillNGun.Data
         public float stageTimeMin = 60f;
         public float stageTimeMax = 90f;
 
+        [Header("Stars (06 §6) — no stat growth")]
+        [Tooltip("★2: clear under this many seconds")]
+        public float starTimeUnderSec = 80f;
+        [Tooltip("★3: no knockdowns (and optional barrel uses for 1-3)")]
+        public bool starRequireNoDowned = true;
+        public int starMinBarrelExplosions;
+
         [Header("Enemy Spawning")]
         public WaveDefinition[] waves;
         public float timeBetweenWaves = 10f;
@@ -29,6 +36,10 @@ namespace HillNGun.Data
         public string themeId = "town_street";
         public Vector2[] enemySpawnPoints;
         public float[] enemyRowsY;
+        [Tooltip("Optional cover layout for this stage; null = BattlefieldData.covers")]
+        public CoverPlacement[] coverPlacements;
+        [Tooltip("Hazards (explosive barrels, etc.)")]
+        public HazardPlacement[] hazards;
 
         [Header("Boss Stage")]
         public bool isBossStage = false;
@@ -41,6 +52,12 @@ namespace HillNGun.Data
         public int waveNumber;
         public EnemySpawnEntry[] enemies;
         public float delayBeforeWave = 2f;
+        [Tooltip("intro / pressure / peak / rest / finale")]
+        public string paceTag = "pressure";
+        [Tooltip("If true, wait until living enemies are gone before next wave")]
+        public bool waitForClear = true;
+        [Tooltip("After last spawn (or after clear), delay before next wave")]
+        public float nextWaveDelay = 2f;
     }
 
     [Serializable]
@@ -50,5 +67,17 @@ namespace HillNGun.Data
         public int count = 1;
         public int preferredRow = 0;
         public float spawnDelay = 0f;
+    }
+
+    public enum HazardType { ExplosiveBarrel, SaloonSign, Tumbleweed, TrainPass }
+
+    [Serializable]
+    public class HazardPlacement
+    {
+        public HazardType type = HazardType.ExplosiveBarrel;
+        public float x = 12f;
+        public int rowIndex = 1;
+        [Tooltip("For train_pass: duration seconds")]
+        public float param = 3f;
     }
 }

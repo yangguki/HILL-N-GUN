@@ -106,7 +106,9 @@ namespace HillNGun.UI
             UIKit.Label(new Rect(r.x + 8f, r.y + 60f, r.width - 16f, 56f), name, t.fontBody, unlocked ? t.text : t.textDim, TextAnchor.MiddleCenter, true, true);
             if (sd != null && !isBoss)
                 UIKit.Label(new Rect(r.x + 8f, r.y + 116f, r.width - 16f, 26f), UIKit.TF("stage.target_time", "목표 {0:0}~{1:0}초", sd.stageTimeMin, sd.stageTimeMax), t.fontSmall, t.textDim, TextAnchor.MiddleCenter);
-            string status = cleared ? UIKit.T("stage.cleared", "★ 클리어") : unlocked ? UIKit.T("stage.open", "도전 가능") : UIKit.T("stage.locked", "잠김: 이전 스테이지 클리어 필요");
+            int best = sd != null ? p.GetStageStars(sd.id) : 0;
+            string starText = best > 0 ? new string('★', best) + new string('☆', 3 - best) : "☆☆☆";
+            string status = cleared ? starText + "  " + UIKit.T("stage.cleared", "클리어") : unlocked ? UIKit.T("stage.open", "도전 가능") : UIKit.T("stage.locked", "잠김: 이전 스테이지 클리어 필요");
             var bossArt = isBoss ? LobbyUI.RegionPortrait(reg.id) : null;
             if (bossArt != null)
             {

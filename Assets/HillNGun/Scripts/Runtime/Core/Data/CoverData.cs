@@ -29,6 +29,9 @@ namespace HillNGun.Data
         [Tooltip("수리 가능 여부")]
         public bool repairable = true;
 
+        [Tooltip("보스 바위 등: 피해 무시, 파괴 불가")]
+        public bool indestructible = false;
+
         [Tooltip("라운드마다 재생성 여부")]
         public bool respawnPerRound = true;
 

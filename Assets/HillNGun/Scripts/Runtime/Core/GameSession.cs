@@ -44,6 +44,11 @@ namespace HillNGun.Core
         public int bonusBounty;
         /// <summary>PvE: rewarded-ad continues used in this run (reset when a run starts from the lobby).</summary>
         public int continuesUsed;
+        /// <summary>PvE last-stage knockdowns (for ★3).</summary>
+        public int pveDownedCount;
+        public int pveBarrelExplosions;
+        public float pveStageClearTime;
+
 
         public void ResetMatchProgress()
         {
@@ -74,6 +79,7 @@ namespace HillNGun.Core
             selectedCharacterIds = new string[3];
             currentStageIndex = 0;
             continuesUsed = 0;
+            pveDownedCount = 0; pveBarrelExplosions = 0; pveStageClearTime = 0f;
             currentRound = 0;
             result = MatchResult.None;
             playerKills = 0;

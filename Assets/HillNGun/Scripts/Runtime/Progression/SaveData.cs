@@ -13,6 +13,9 @@ namespace HillNGun.Progression
         public int badgeXp;
         public List<string> unlockedCharacters = new List<string>();
         public List<string> clearedStages = new List<string>();
+        /// <summary>Best ★ per stage id (1–3). No gameplay power.</summary>
+        public List<StageStarSave> stageStars = new List<StageStarSave>();
+
         public List<string> unlockedRegions = new List<string>();
         public List<string> ownedSkins = new List<string>();
         public List<string> ownedWeapons = new List<string>();
@@ -32,6 +35,13 @@ namespace HillNGun.Progression
             characters.Add(n);
             return n;
         }
+    }
+
+    [Serializable]
+    public class StageStarSave
+    {
+        public string stageId;
+        public int stars;
     }
 
     [Serializable]

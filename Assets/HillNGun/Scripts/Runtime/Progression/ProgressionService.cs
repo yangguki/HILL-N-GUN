@@ -255,6 +255,29 @@ namespace HillNGun.Progression
             return true;
         }
 
+        public int GetStageStars(string stageId)
+        {
+            if (Data?.stageStars == null || string.IsNullOrEmpty(stageId)) return 0;
+            foreach (var e in Data.stageStars) if (e != null && e.stageId == stageId) return e.stars;
+            return 0;
+        }
+
+        public void RecordStageStars(string stageId, int stars)
+        {
+            if (Data == null || string.IsNullOrEmpty(stageId) || stars <= 0) return;
+            if (Data.stageStars == null) Data.stageStars = new System.Collections.Generic.List<StageStarSave>();
+            foreach (var e in Data.stageStars)
+            {
+                if (e != null && e.stageId == stageId)
+                {
+                    if (stars > e.stars) { e.stars = stars; Save(); }
+                    return;
+                }
+            }
+            Data.stageStars.Add(new StageStarSave { stageId = stageId, stars = stars });
+            Save();
+        }
+
         /// <summary>Grant everything a finished match earns. Called once per match by GameFlowManager.EndMatch.</summary>
         public RewardSummary GrantMatchRewards(GameSession s)
         {
@@ -268,8 +291,15 @@ namespace HillNGun.Progression
                 var stages = RuntimeAssetManager.Instance?.StageDatas;
                 foreach (var id in s.clearedStageIds)
                 {
+                    StageData stData = null;
                     bool isBoss = false;
-                    if (stages != null) foreach (var st in stages) if (st != null && st.id == id) isBoss = st.isBossStage;
+                    if (stages != null) foreach (var st in stages) if (st != null && st.id == id) { stData = st; isBoss = st.isBossStage; }
+                    if (win && stData != null)
+                    {
+                        int stars = StarRating.ComputeFromSession(stData, s, true);
+                        RecordStageStars(id, stars);
+                        if (stars > 0) r.lines.Add(new RewardLine("reward.stars", stars.ToString()));
+                    }
                     bool first = AddUnique(Data.clearedStages, id);
                     if (first || cfg.stageBountyEveryClear)
                         r.bountyGained += isBoss ? cfg.bountyPerBossDefeat : cfg.bountyPerStageClear;

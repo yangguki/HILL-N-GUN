@@ -17,29 +17,58 @@ MonoBehaviour:
   stageNumber: 1
   subStageNumber: 1
   gaugeMax: 20
-  waveCount: 4
-  stageTimeMin: 60
+  waveCount: 5
+  stageTimeMin: 70
   stageTimeMax: 90
+  starTimeUnderSec: 80
+  starRequireNoDowned: 1
+  starMinBarrelExplosions: 0
   waves:
-  - waveNumber: 1
+  - waveNumber: 0
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
       count: 3
       preferredRow: 0
       spawnDelay: 0
-    delayBeforeWave: 2
+    delayBeforeWave: 1
+    paceTag: intro
+    waitForClear: 0
+    nextWaveDelay: 2.5
+  - waveNumber: 1
+    enemies:
+    - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
+      count: 4
+      preferredRow: 0
+      spawnDelay: 0
+    delayBeforeWave: 0.5
+    paceTag: pressure
+    waitForClear: 0
+    nextWaveDelay: 2.5
   - waveNumber: 2
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
       count: 3
-      preferredRow: 1
-      spawnDelay: 0
-    - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
-      count: 2
       preferredRow: 0
       spawnDelay: 0
-    delayBeforeWave: 3
+    - enemyData: {fileID: 11400000, guid: 7ec624a13e38b4196a9b0fe16323b48f, type: 2}
+      count: 1
+      preferredRow: 1
+      spawnDelay: 0
+    delayBeforeWave: 0.5
+    paceTag: pressure
+    waitForClear: 0
+    nextWaveDelay: 2
   - waveNumber: 3
+    enemies:
+    - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
+      count: 5
+      preferredRow: 0
+      spawnDelay: 0
+    delayBeforeWave: 0.5
+    paceTag: peak
+    waitForClear: 0
+    nextWaveDelay: 1.5
+  - waveNumber: 4
     enemies:
     - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
       count: 2
@@ -49,20 +78,12 @@ MonoBehaviour:
       count: 1
       preferredRow: 1
       spawnDelay: 0
-    delayBeforeWave: 3
-  - waveNumber: 4
-    enemies:
-    - enemyData: {fileID: 11400000, guid: d0033fc1489e14a9faefc64c9df51e30, type: 2}
-      count: 3
-      preferredRow: 0
-      spawnDelay: 0
-    - enemyData: {fileID: 11400000, guid: 7ec624a13e38b4196a9b0fe16323b48f, type: 2}
-      count: 2
-      preferredRow: 1
-      spawnDelay: 0
-    delayBeforeWave: 3
+    delayBeforeWave: 0.5
+    paceTag: finale
+    waitForClear: 1
+    nextWaveDelay: 1
   timeBetweenWaves: 10
-  timeBetweenSpawns: 1
+  timeBetweenSpawns: 0.6
   battlefieldOverride: {fileID: 0}
   themeId: town_street
   enemySpawnPoints: []
@@ -70,5 +91,35 @@ MonoBehaviour:
   - 11
   - 13.5
   - 16
+  coverPlacements:
+  - coverId: cover_swing_door
+    rowIndex: 0
+    xPosition: 6
+  - coverId: cover_swing_door
+    rowIndex: 0
+    xPosition: 18
+  - coverId: cover_barrel
+    rowIndex: 1
+    xPosition: 5
+  - coverId: cover_trough
+    rowIndex: 1
+    xPosition: 12
+  - coverId: cover_barrel
+    rowIndex: 1
+    xPosition: 19
+  - coverId: cover_barrel
+    rowIndex: 2
+    xPosition: 4
+  - coverId: cover_wagon
+    rowIndex: 2
+    xPosition: 12
+  - coverId: cover_barrel
+    rowIndex: 2
+    xPosition: 20
+  hazards:
+  - type: 0
+    x: 8
+    rowIndex: 1
+    param: 3
   isBossStage: 0
   bossData: {fileID: 0}
