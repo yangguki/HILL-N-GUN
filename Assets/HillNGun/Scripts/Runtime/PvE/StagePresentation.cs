@@ -74,6 +74,7 @@ namespace HillNGun.PvE
             _wanted = true;
             _wantedName = bossName;
             _wantedBounty = FormatBounty(bounty);
+            Debug.Log($"[WANTED] bounty='{_wantedBounty}' codes={string.Join(",", Array.ConvertAll(_wantedBounty.ToCharArray(), c => ((int)c).ToString("x")))}");
             _wantedPortrait = portrait;
             _wantedUntil = Time.unscaledTime + duration;
             float t = 0f;
@@ -89,21 +90,17 @@ namespace HillNGun.PvE
         /// <summary>Always "$1,000" style with ASCII comma — never locale period thousands ($1.000).</summary>
         public static string FormatBounty(int amount)
         {
-            // Build manually so fonts/locales cannot swap the group separator to '.'.
-            bool neg = amount < 0;
-            long n = Math.Abs((long)amount);
-            string digits = n.ToString(CultureInfo.InvariantCulture);
-            var sb = new System.Text.StringBuilder();
-            if (neg) sb.Append('-');
-            sb.Append('$');
-            int len = digits.Length;
-            for (int i = 0; i < len; i++)
-            {
-                sb.Append(digits[i]);
-                int left = len - i - 1;
-                if (left > 0 && left % 3 == 0) sb.Append(',');
-            }
-            return sb.ToString();
+            // InvariantCulture forces ',' thousands sep (ko-KR would emit '.').
+            return string.Format(CultureInfo.InvariantCulture, "${0:N0}", amount);
+        }
+
+        static Font _latinFont;
+        static Font LatinFont()
+        {
+            if (_latinFont != null) return _latinFont;
+            try { _latinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); } catch { /* ignore */ }
+            if (_latinFont == null) try { _latinFont = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch { /* ignore */ }
+            return _latinFont;
         }
 
         public void ShowBanner(string text, float seconds = 0.55f)
@@ -161,9 +158,23 @@ namespace HillNGun.PvE
                 GUI.color = Color.white;
                 style.fontSize = Mathf.RoundToInt(30 * (sw / 1280f));
                 GUI.Label(new Rect(r.x + 12f, art.yMax + 8f, r.width - 24f, 48f), _wantedName ?? "", style);
-                style.fontSize = Mathf.RoundToInt(28 * (sw / 1280f));
+                // Bounty: Latin font + tall overflow rect so ',' descender is not clipped into a '.' lookalike.
+                var bountyStyle = new GUIStyle(style)
+                {
+                    fontSize = Mathf.RoundToInt(26 * (sw / 1280f)),
+                    clipping = TextClipping.Overflow,
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold
+                };
+                var latin = LatinFont();
+                if (latin != null)
+                {
+                    bountyStyle.font = latin;
+                    latin.RequestCharactersInTexture("$0123456789,", bountyStyle.fontSize, FontStyle.Bold);
+                    latin.RequestCharactersInTexture("$0123456789,", bountyStyle.fontSize, FontStyle.Normal);
+                }
                 GUI.color = new Color(1f, 0.85f, 0.3f);
-                GUI.Label(new Rect(r.x, r.yMax - 90f, r.width, 40f), _wantedBounty ?? "", style);
+                GUI.Label(new Rect(r.x, r.yMax - 108f, r.width, 56f), _wantedBounty ?? "", bountyStyle);
                 GUI.color = new Color(0.7f, 0.7f, 0.7f);
                 style.fontSize = Mathf.RoundToInt(16 * (sw / 1280f));
                 GUI.Label(new Rect(r.x, r.yMax - 44f, r.width, 28f), "TAP TO SKIP", style);
