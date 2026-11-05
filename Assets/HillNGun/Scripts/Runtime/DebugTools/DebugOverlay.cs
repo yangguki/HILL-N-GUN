@@ -26,6 +26,8 @@ namespace HillNGun.DebugTools
         private BattlefieldSystem _battlefield;
         private List<CharacterStateMachine> _characters = new List<CharacterStateMachine>();
 
+        public void ForceShowRanges(bool on) => _showRanges = on;
+
         public bool Invincible
         {
             get => _invincible;

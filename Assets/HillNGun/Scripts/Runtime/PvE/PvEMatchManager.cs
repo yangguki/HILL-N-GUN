@@ -117,7 +117,7 @@ namespace HillNGun.PvE
         {
             LoadDataFromAssetManager();
             _combat = ServiceLocator.Get<CombatSystem>();
-            SpawnCovers();
+            // Covers spawn in StartStage with stage-specific placements (avoid double-registering battlefield defaults).
             ProjectileView.Ensure();
             CombatFeedback.Ensure();
             SpawnPlayerTeam();
@@ -169,6 +169,14 @@ namespace HillNGun.PvE
 
         private void SpawnCovers()
         {
+            // Destroy previous cover views + unregister so stage layouts do not stack.
+            var existing = FindObjectsByType<CoverView>(FindObjectsSortMode.None);
+            for (int i = 0; i < existing.Length; i++)
+            {
+                if (existing[i] != null) Destroy(existing[i].gameObject);
+            }
+            _combat?.ClearCovers();
+
             var am = RuntimeAssetManager.Instance;
             var field = am?.BattlefieldData ?? ServiceLocator.Get<BattlefieldData>();
             if (field == null || !field.spawnCoversInPvE) return;

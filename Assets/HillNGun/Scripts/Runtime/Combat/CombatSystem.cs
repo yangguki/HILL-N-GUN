@@ -584,11 +584,13 @@ namespace HillNGun.Combat
         {
             _projectilePool.Clear();
             _grenades.Clear();
+            _covers.Clear();
+        }
 
-            foreach (var cover in _covers)
-            {
-                cover.Reset();
-            }
+        /// <summary>Drop registered covers without touching projectiles (stage re-layout).</summary>
+        public void ClearCovers()
+        {
+            _covers.Clear();
         }
     }
 
