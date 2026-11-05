@@ -12,6 +12,18 @@ namespace HillNGun.Cover
     /// </summary>
     public static class CoverFieldSpawner
     {
+        /// <summary>
+        /// Spawn with the current scale preset: the preset's layout for <paramref name="layoutKey"/> (StageData.id or the
+        /// PvP key) replaces the stage / field layout when the preset has one; every cover gets its preset size.
+        /// </summary>
+        public static List<CoverInstance> SpawnWithPreset(BattlefieldData field, CoverData[] coverDatas, bool mirrorToEnemySide, string layoutKey, CoverPlacement[] stagePlacements = null)
+        {
+            var fallback = stagePlacements != null && stagePlacements.Length > 0 ? stagePlacements : field?.covers;
+            var placements = ScalePresets.LayoutFor(layoutKey, fallback);
+            Debug.Log($"[CoverFieldSpawner] scale option {ScalePresets.Current} layout '{layoutKey}' -> {(placements == fallback ? "stage default" : "preset set")} ({placements?.Length ?? 0} placements)");
+            return Spawn(field, coverDatas, mirrorToEnemySide, placements);
+        }
+
         public static List<CoverInstance> Spawn(BattlefieldData field, CoverData[] coverDatas, bool mirrorToEnemySide, CoverPlacement[] placementsOverride = null)
         {
             var result = new List<CoverInstance>();
@@ -61,7 +73,7 @@ namespace HillNGun.Cover
         private static CoverInstance Create(CoverData data, Vector2 pos, int row, Team team, CombatSystem combat)
         {
             var cover = new CoverInstance();
-            cover.Initialize(data, pos, row, team);
+            cover.Initialize(data, pos, row, team, ScalePresets.CoverSizeOf(data));
             combat?.RegisterCover(cover);
 
             var go = new GameObject($"Cover_{data.id}_{team}_{pos.x:F0}");
@@ -74,7 +86,7 @@ namespace HillNGun.Cover
         {
             foreach (var d in datas)
                 if (d != null && d.id == id) return d;
-            return null;
+            return ScalePresets.FindExtraCover(id); // preset-only covers (crate, hay) live in ScalePresetData
         }
     }
 }

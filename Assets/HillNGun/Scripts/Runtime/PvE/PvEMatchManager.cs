@@ -182,7 +182,7 @@ namespace HillNGun.PvE
             var field = am?.BattlefieldData ?? ServiceLocator.Get<BattlefieldData>();
             if (field == null || !field.spawnCoversInPvE) return;
             var overrides = _currentStage != null ? _currentStage.coverPlacements : null;
-            CoverFieldSpawner.Spawn(field, am?.CoverDatas, false, overrides);
+            CoverFieldSpawner.SpawnWithPreset(field, am?.CoverDatas, false, _currentStage != null ? _currentStage.id : null, overrides);
         }
 
         private void SpawnHazards()

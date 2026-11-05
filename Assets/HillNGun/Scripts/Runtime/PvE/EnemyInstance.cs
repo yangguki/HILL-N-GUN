@@ -14,7 +14,7 @@ namespace HillNGun.PvE
         public bool IsAlive => CurrentHp > 0 && !IsFleeing && !IsDefeated;
         public bool IsFleeing { get; private set; }
         public bool IsDefeated { get; private set; }
-        public float HitRadius => Data?.hitRadius ?? 0.5f;
+        public float HitRadius => (Data?.hitRadius ?? 0.5f) * ScalePresets.CharacterMul; // scale preset
         /// <summary>True while walking in from off-screen to the first row (cannot attack yet).</summary>
         public bool IsEntering => CurrentRowIndex < 0;
 

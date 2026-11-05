@@ -13,6 +13,10 @@ namespace HillNGun.Cover
         public int CurrentHp { get; private set; }
         public CoverStage Stage { get; private set; }
         public bool IsDestroyed => Stage == CoverStage.Destroyed;
+        /// <summary>Collision width (tiles). = CoverData.width unless a scale preset set it at spawn.</summary>
+        public float Width { get; private set; }
+        /// <summary>Resolved preset size (view reads visualWidth / visualHeight); fromPreset = false when unscaled.</summary>
+        public CoverSize Size { get; private set; }
 
         private CoverStage _previousStage;
 
@@ -21,8 +25,13 @@ namespace HillNGun.Cover
         public event System.Action<CoverInstance> OnDestroyed;
 
         public void Initialize(CoverData data, Vector2 position, int rowIndex, Team team)
+            => Initialize(data, position, rowIndex, team, new CoverSize { logicWidth = data.width, visualWidth = data.width, visualHeight = -1f });
+
+        public void Initialize(CoverData data, Vector2 position, int rowIndex, Team team, CoverSize size)
         {
             Data = data;
+            Size = size;
+            Width = size.logicWidth > 0f ? size.logicWidth : data.width;
             Position = position;
             RowIndex = rowIndex;
             Team = team;
@@ -79,16 +88,16 @@ namespace HillNGun.Cover
 
         public bool ContainsX(float x)
         {
-            float halfWidth = Data.width / 2f;
+            float halfWidth = Width / 2f;
             return x >= Position.x - halfWidth && x <= Position.x + halfWidth;
         }
 
         public Rect GetBounds()
         {
             return new Rect(
-                Position.x - Data.width / 2f,
+                Position.x - Width / 2f,
                 Position.y - Data.depth / 2f,
-                Data.width,
+                Width,
                 Data.depth
             );
         }

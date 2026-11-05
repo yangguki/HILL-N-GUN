@@ -16,7 +16,7 @@ namespace HillNGun.Scenery
         public void Bind(HazardExplosiveBarrel barrel)
         {
             _barrel = barrel;
-            FieldView.Place(transform, barrel.Position, 1f);
+            FieldView.Place(transform, barrel.Position, HillNGun.Core.ScalePresets.CharacterMul);
             _sr = gameObject.GetComponent<SpriteRenderer>() ?? gameObject.AddComponent<SpriteRenderer>();
             _sr.sprite = BarrelSprite();
             _sr.sortingOrder = FieldView.DepthOrder(barrel.Position.y) + 2;

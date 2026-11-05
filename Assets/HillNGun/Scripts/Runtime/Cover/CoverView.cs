@@ -39,7 +39,7 @@ namespace HillNGun.Cover
 
             // Scale sprite so its width matches the logical cover width
             float spriteWidth = s.bounds.size.x;
-            _baseScale = spriteWidth > 0.01f ? cover.Data.width / spriteWidth : 1f;
+            _baseScale = spriteWidth > 0.01f ? cover.Size.visualWidth / spriteWidth : 1f; // scale preset drawn width
             _baseScale = Mathf.Clamp(_baseScale, 0.3f, 4f);
 
             FieldView.Place(transform, cover.Position, _baseScale);
@@ -49,6 +49,8 @@ namespace HillNGun.Cover
             {
                 Actor3DStage.Ensure();
                 _prop3D = new CoverProp3D(cover.Data.id, cover.Data.width, Actor3DStage.Data.actorLayer, Actor3DStage.Material);
+                var sz = cover.Size;
+                _prop3D.SetTargetSize(sz.visualWidth, sz.visualHeight, ScalePresets.Data != null ? ScalePresets.Data.minCoverYScale : 0.25f);
                 _prop3D.SetStage(cover.Stage);
                 _lastStage = cover.Stage;
                 _renderer.enabled = false;
@@ -140,7 +142,7 @@ namespace HillNGun.Cover
             _shadowEntry = new CoverShadowLayer.Entry
             {
                 center = basePos + new Vector3(0.1f * s, 0.03f * s, 0f),
-                size = new Vector2(_cover.Data.width * s * 1.12f, 0.42f * s),
+                size = new Vector2(_cover.Size.visualWidth * s * 1.12f, 0.42f * s * ScalePresets.CharacterMul),
                 color = c,
                 visible = true
             };

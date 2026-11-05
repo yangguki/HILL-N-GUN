@@ -221,6 +221,7 @@ namespace HillNGun.Characters
             var labelGo = new GameObject("NameLabel");
             labelGo.transform.SetParent(transform);
             labelGo.transform.localPosition = new Vector3(0f, 1.0f, 0f);
+            labelGo.transform.localScale = Vector3.one / Mathf.Max(0.1f, ScalePresets.CharacterMul); // keep name text readable at every scale preset
             _nameLabel = labelGo.AddComponent<TextMesh>();
             _nameLabel.text = character.Data?.id ?? "Player";
             _nameLabel.fontSize = 32;
@@ -343,7 +344,7 @@ namespace HillNGun.Characters
         {
             if (character == null) return;
 
-            FieldView.Place(transform, character.Position);
+            FieldView.Place(transform, character.Position, ScalePresets.CharacterMul); // scale preset: body, shadow, foot ring
             Vector3 worldPos = transform.position;
             FieldView.ApplySorting(_bodyRenderer, character.Position.y);
             if (_teamMarker != null) _teamMarker.sortingOrder = FieldView.GroundDecalOrder;

@@ -114,7 +114,7 @@ namespace HillNGun.PvP
             var field = am?.BattlefieldData ?? ServiceLocator.Get<BattlefieldData>();
             if (field != null)
             {
-                CoverFieldSpawner.Spawn(field, am?.CoverDatas, field.mirrorCoversToEnemySideInPvP);
+                CoverFieldSpawner.SpawnWithPreset(field, am?.CoverDatas, field.mirrorCoversToEnemySideInPvP, ScalePresets.PvpLayoutKey);
             }
             ProjectileView.Ensure();
             CombatFeedback.Ensure();

@@ -19,7 +19,7 @@ namespace HillNGun.PvE
         private float _burstTimer;
         public bool IsAlive => CurrentHp > 0;
         public bool IsDefeated => CurrentHp <= 0;
-        public float HitRadius => Data?.hitRadius ?? 1.5f;
+        public float HitRadius => (Data?.hitRadius ?? 1.5f) * ScalePresets.CharacterMul; // scale preset
         public Team Team => Team.Enemy;
         public bool CanBeHit => IsAlive && !IsInEntryPhase();
         public void ReceiveHit(int damage, Vector2 direction) => TakeDamage(damage, direction);

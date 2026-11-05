@@ -215,7 +215,7 @@ namespace HillNGun.PvE
 
         private void UpdatePosition()
         {
-            FieldView.Place(transform, _boss.Position, 2f);
+            FieldView.Place(transform, _boss.Position, 2f * ScalePresets.CharacterMul);
             FieldView.ApplySorting(_spriteRenderer, _boss.Position.y);
             UpdateMotion();
             if (_hpBarBg != null) _hpBarBg.sortingOrder = FieldView.OverlayOrder;

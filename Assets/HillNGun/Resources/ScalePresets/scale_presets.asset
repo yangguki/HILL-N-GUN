@@ -1,0 +1,534 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6cf390afb12491f9932bcd98d4d9313, type: 3}
+  m_Name: scale_presets
+  m_EditorClassIdentifier: 
+  defaultOption: 3
+  screenHeightWorld: 20
+  baselineCharacterHeightFrac: 0.127
+  referenceHurtRadius: 0.5
+  coverMinWidthVsHurtDiameter: 1
+  minCoverYScale: 0.25
+  coverTypes:
+  - coverId: cover_barrel
+    type: 0
+  - coverId: cover_crate
+    type: 1
+  - coverId: cover_wagon
+    type: 2
+  - coverId: cover_swing_door
+    type: 3
+  - coverId: cover_hay
+    type: 4
+  - coverId: cover_trough
+    type: 5
+  - coverId: cover_rock
+    type: 6
+  extraCovers:
+  - {fileID: 11400000, guid: 9c1c72bb549647ca90d98f881b2888c2, type: 2}
+  - {fileID: 11400000, guid: 4d30c433d2604335975e719a5b795bb1, type: 2}
+  options:
+  - number: 1
+    characterHeightFrac: 0.1
+    coverSizes:
+    - type: 0
+      heightH: 0.6
+      widthH: 0.45
+    - type: 1
+      heightH: 0.55
+      widthH: 0.8
+    - type: 2
+      heightH: 0.75
+      widthH: 1.7
+    - type: 3
+      heightH: 0.75
+      widthH: 0.9
+    - type: 4
+      heightH: 0.45
+      widthH: 0.8
+    - type: 5
+      heightH: 0.4
+      widthH: 1
+    - type: 6
+      heightH: 0.6
+      widthH: 1.2
+    layouts:
+    - stageKey: dusty_town_1_1
+      placements:
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 6
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 13
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 18.5
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 5
+      - coverId: cover_wagon
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 19
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 7
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 17
+    - stageKey: dusty_town_1_2
+      placements:
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 4
+      - coverId: cover_crate
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 20
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_wagon
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 7
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 17
+    - stageKey: dusty_town_1_3
+      placements:
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 5
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 19
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 4
+      - coverId: cover_wagon
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 20
+    - stageKey: dusty_town_boss
+      placements:
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 5
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 19
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 7
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 17
+      - coverId: cover_rock
+        rowIndex: 2
+        xPosition: 2
+      - coverId: cover_wagon
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_rock
+        rowIndex: 2
+        xPosition: 22
+    - stageKey: pvp_town_street
+      placements:
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 4
+      - coverId: cover_crate
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 20
+      - coverId: cover_swing_door
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_wagon
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_swing_door
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 5
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 19
+  - number: 2
+    characterHeightFrac: 0.09
+    coverSizes:
+    - type: 0
+      heightH: 0.6
+      widthH: 0.45
+    - type: 1
+      heightH: 0.55
+      widthH: 0.8
+    - type: 2
+      heightH: 0.75
+      widthH: 1.7
+    - type: 3
+      heightH: 0.75
+      widthH: 0.9
+    - type: 4
+      heightH: 0.45
+      widthH: 0.8
+    - type: 5
+      heightH: 0.4
+      widthH: 1
+    - type: 6
+      heightH: 0.6
+      widthH: 1.2
+    layouts:
+    - stageKey: dusty_town_1_1
+      placements:
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 6
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 18
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_wagon
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 6
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 18
+    - stageKey: dusty_town_1_2
+      placements:
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 6
+      - coverId: cover_crate
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 18
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_wagon
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 6
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 18
+    - stageKey: dusty_town_1_3
+      placements:
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 6
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 18
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 6
+      - coverId: cover_wagon
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 18
+    - stageKey: dusty_town_boss
+      placements:
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 6
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 18
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_rock
+        rowIndex: 2
+        xPosition: 2
+      - coverId: cover_wagon
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_rock
+        rowIndex: 2
+        xPosition: 22
+    - stageKey: pvp_town_street
+      placements:
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 6
+      - coverId: cover_crate
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 18
+      - coverId: cover_swing_door
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_wagon
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_swing_door
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 6
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 2
+        xPosition: 18
+  - number: 3
+    characterHeightFrac: 0.08
+    coverSizes:
+    - type: 0
+      heightH: 0.5
+      widthH: 0.4
+    - type: 1
+      heightH: 0.4
+      widthH: 0.6
+    - type: 2
+      heightH: 0.55
+      widthH: 1.1
+    - type: 3
+      heightH: 0.65
+      widthH: 0.7
+    - type: 4
+      heightH: 0.35
+      widthH: 0.6
+    - type: 5
+      heightH: 0.3
+      widthH: 0.8
+    - type: 6
+      heightH: 0.5
+      widthH: 1
+    layouts:
+    - stageKey: dusty_town_1_1
+      placements:
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 5
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 19
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_trough
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_hay
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_hay
+        rowIndex: 2
+        xPosition: 5
+      - coverId: cover_wagon
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 19
+    - stageKey: dusty_town_1_2
+      placements:
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 5
+      - coverId: cover_trough
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 19
+      - coverId: cover_hay
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_hay
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 5
+      - coverId: cover_wagon
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 19
+    - stageKey: dusty_town_1_3
+      placements:
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 5
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 19
+      - coverId: cover_trough
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_trough
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 5
+      - coverId: cover_wagon
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_hay
+        rowIndex: 2
+        xPosition: 19
+    - stageKey: dusty_town_boss
+      placements:
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 5
+      - coverId: cover_hay
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_swing_door
+        rowIndex: 0
+        xPosition: 19
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_crate
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_rock
+        rowIndex: 2
+        xPosition: 2
+      - coverId: cover_wagon
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_rock
+        rowIndex: 2
+        xPosition: 22
+    - stageKey: pvp_town_street
+      placements:
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 4
+      - coverId: cover_trough
+        rowIndex: 0
+        xPosition: 12
+      - coverId: cover_barrel
+        rowIndex: 0
+        xPosition: 20
+      - coverId: cover_swing_door
+        rowIndex: 1
+        xPosition: 6
+      - coverId: cover_wagon
+        rowIndex: 1
+        xPosition: 12
+      - coverId: cover_swing_door
+        rowIndex: 1
+        xPosition: 18
+      - coverId: cover_hay
+        rowIndex: 2
+        xPosition: 5
+      - coverId: cover_crate
+        rowIndex: 2
+        xPosition: 12
+      - coverId: cover_hay
+        rowIndex: 2
+        xPosition: 19
+  pvpLayoutKey: pvp_town_street
+  cornerLabelFormat: "\uBE44\uC728 {0}"
+  cornerLabelFontSize: 16

@@ -76,7 +76,7 @@ namespace HillNGun.Characters
         public float HpRatio => (float)_currentHp / MaxHp;
         public bool IsInvulnerable => _movementState == MovementState.Rolling && 
                                        _data?.roll?.IsInvulnerable(_rollTimer) == true;
-        public float HitRadius => _data?.hitRadius ?? 0.5f;
+        public float HitRadius => (_data?.hitRadius ?? 0.5f) * ScalePresets.CharacterMul; // hit size follows the drawn size (scale preset)
         public bool IsCharging => _actionState == ActionState.Charging;
         public Vector2 AimDirection => _lastAimDirection;
         public AmmoGauge AmmoGauge => _ammoGauge;

@@ -231,7 +231,7 @@ namespace HillNGun.DebugTools
                                    (Vector3)cover.Position;
 
                 Gizmos.color = GetCoverStageColor(cover.Stage);
-                Gizmos.DrawWireCube(worldPos, new Vector3(cover.Data.width, cover.Data.depth, 0.1f));
+                Gizmos.DrawWireCube(worldPos, new Vector3(cover.Width, cover.Data.depth, 0.1f));
             }
         }
 

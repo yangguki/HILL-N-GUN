@@ -70,7 +70,9 @@ namespace HillNGun.Feel
             if (_feel == null) _feel = ServiceLocator.Get<HillNGun.Data.FeelData>();
             float size = _feel != null ? _feel.muzzleFlashSize : 1.05f;
             float time = _feel != null ? _feel.muzzleFlashTime : 0.1f;
-            float fwd = (_feel != null ? _feel.muzzleFlashForward : 0.55f) * Mathf.Max(0f, muzzleForward);
+            float charMul = ScalePresets.CharacterMul; // muzzle sits on the drawn gun: follows the character scale preset
+            size *= charMul;
+            float fwd = (_feel != null ? _feel.muzzleFlashForward : 0.55f) * Mathf.Max(0f, muzzleForward) * charMul;
             Vector2 d = direction.sqrMagnitude > 1e-6f ? direction.normalized : Vector2.up;
             Vector2 muzzle = position + d * fwd;
             Vector3 w0 = ToWorld(muzzle);

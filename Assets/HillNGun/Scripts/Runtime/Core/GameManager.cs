@@ -321,14 +321,14 @@ namespace HillNGun.Core
             {
                 go = new GameObject($"Cover_{cover.Data.id}");
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = CreatePlaceholderSprite(cover.Data.width);
+                sr.sprite = CreatePlaceholderSprite(cover.Width);
                 sr.color = new Color(0.6f, 0.4f, 0.2f);
             }
 
             Vector3 worldPos = _battlefieldSystem?.LogicToWorldPosition(cover.Position) ?? 
                               new Vector3(cover.Position.x, cover.Position.y, 0f);
             go.transform.position = worldPos;
-            go.transform.localScale = new Vector3(cover.Data.width, cover.Data.depth * 2f, 1f);
+            go.transform.localScale = new Vector3(cover.Width, cover.Data.depth * 2f, 1f);
         }
 
         private void SpawnTargets()

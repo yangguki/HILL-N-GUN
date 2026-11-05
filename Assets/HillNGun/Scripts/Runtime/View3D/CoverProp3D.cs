@@ -26,6 +26,10 @@ namespace HillNGun.View3D
         private Color _tint = Color.white;
         private CoverStage _stage = (CoverStage)(-1);
         private float _flash, _shake, _lastFlash = -1f;
+        // scale preset: target drawn size (world units at perspective 1); <= 0 = mesh as built
+        private float _targetW = -1f, _targetH = -1f, _minYScale = 0.25f;
+        private Vector3 _sizeMul = Vector3.one;
+        public Vector3 SizeMul => _sizeMul;
 
         public CoverProp3D(string id, float width, int layer, Material mat)
         {
@@ -63,6 +67,43 @@ namespace HillNGun.View3D
             _visualKey = key;
             _tint = tint;
             if ((int)_stage >= 0) _filter.sharedMesh = GetMesh(_visualKey, _width, _stage, _tint);
+            RecomputeSize();
+        }
+
+        /// <summary>
+        /// Scale preset size (view only): the prop is stretched so its on-screen footprint is width × height
+        /// (height measured after the camera tilt, i.e. front face + visible top). Collision stays in CoverInstance.
+        /// </summary>
+        public void SetTargetSize(float width, float height, float minYScale)
+        {
+            _targetW = width;
+            _targetH = height;
+            _minYScale = minYScale;
+            RecomputeSize();
+        }
+
+        private void RecomputeSize()
+        {
+            _sizeMul = ComputeSizeMul(GetMesh(_visualKey, _width, CoverStage.Intact, _tint).bounds.size, _width, _targetW, _targetH,
+                Actor3DStage.Data.viewTiltDeg, _minYScale);
+        }
+
+        /// <summary>Per-axis model scale that makes a mesh of <paramref name="meshSize"/> draw targetW wide and targetH tall
+        /// under a <paramref name="tiltDeg"/> view tilt. targetH &lt;= 0 keeps proportions (uniform targetW / builtWidth).</summary>
+        public static Vector3 ComputeSizeMul(Vector3 meshSize, float builtWidth, float targetW, float targetH, float tiltDeg, float minYScale)
+        {
+            if (targetW <= 0f) return Vector3.one;
+            if (targetH <= 0f || meshSize.x <= 1e-4f || meshSize.y <= 1e-4f)
+            {
+                float u = targetW / Mathf.Max(0.01f, builtWidth);
+                return new Vector3(u, u, u);
+            }
+            float sx = targetW / meshSize.x;
+            float sz = sx;
+            float t = tiltDeg * Mathf.Deg2Rad;
+            float sy = (targetH - meshSize.z * sz * Mathf.Sin(t)) / (meshSize.y * Mathf.Cos(t));
+            sy = Mathf.Max(sy, minYScale * sx);
+            return new Vector3(sx, sy, sz);
         }
 
         public void Hit(float flash, float shake) { _flash = Mathf.Max(_flash, flash); _shake = Mathf.Max(_shake, shake); }
@@ -75,7 +116,7 @@ namespace HillNGun.View3D
             float jx = _shake > 0f ? Mathf.Sin(Time.time * 70f) * _shake * 0.08f : 0f;
             Root.position = new Vector3(baseWorld.x + jx, baseWorld.y, d.depthBase + logicY * d.depthPerTile);
             Root.rotation = Quaternion.Euler(-d.viewTiltDeg, 0f, 0f);
-            Root.localScale = Vector3.one * scale;
+            Root.localScale = _sizeMul * scale;
             _flash = Mathf.Max(0f, _flash - dt * 6f);
             if (Mathf.Abs(_flash - _lastFlash) > 0.002f)
             {
@@ -107,6 +148,8 @@ namespace HillNGun.View3D
                 case "cover_trough": Trough(b, width, s, rnd); break;
                 case "cover_swing_door": SwingDoor(b, width, s, rnd); break;
                 case "cover_wagon": Wagon(b, width, s, rnd); break;
+                case "cover_hay": HayBale(b, width, s, rnd); break;
+                case "cover_crate": Crate(b, width, s, rnd); break;
                 case "v_Barrel": Barrel(b, width, s, rnd); break;
                 case "v_Trough": Trough(b, width, s, rnd); break;
                 case "v_SwingDoor": SwingDoor(b, width, s, rnd); break;

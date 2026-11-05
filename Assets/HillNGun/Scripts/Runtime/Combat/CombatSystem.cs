@@ -181,7 +181,7 @@ namespace HillNGun.Combat
             foreach (var cover in _covers)
             {
                 if (cover.IsDestroyed || cover.Team != character.Team) continue;
-                if (Vector2.Distance(cover.Position, character.Position) > range + cover.Data.width * 0.5f) continue;
+                if (Vector2.Distance(cover.Position, character.Position) > range + cover.Width * 0.5f) continue;
                 float d = DistanceToRect(aim, cover.GetBounds());
                 if (d < bestDist) { bestDist = d; best = cover; }
             }

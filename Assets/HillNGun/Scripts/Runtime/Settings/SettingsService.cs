@@ -22,6 +22,8 @@ namespace HillNGun.Settings
         public int buttonSizeIndex = 1;   // 02 §1: 버튼 크기 3단계
         public string language = "ko";
         public bool tutorialDone;
+        /// <summary>Scale A/B test (ScalePresetData option 1/2/3); 0 = data default.</summary>
+        public int scalePreset;
     }
 
     /// <summary>Loads, applies and saves SettingsData. Applies to audio, feel (shake/vibration), input scale and language.</summary>
