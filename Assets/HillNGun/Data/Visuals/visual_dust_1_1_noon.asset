@@ -22,7 +22,7 @@ MonoBehaviour:
   - id: L0
     sprite: {fileID: 21300000, guid: 39cb115e08634669aec2dc391709f43d, type: 3}
     parallax: 0.12
-    tint: {r: 0.85, g: 0.92, b: 1, a: 0.55}
+    tint: {r: 1, g: 1, b: 1, a: 0.55}
     sortingOrder: -50
     combatLane: 0
   - id: L1
@@ -52,5 +52,5 @@ MonoBehaviour:
   dustMotes: 12
   dustMotesLowTier: 4
   tumbleweeds: 1
-  saloonSignSway: 1
+  saloonSignSway: 0
   conceptCoverDim: 0.4

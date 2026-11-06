@@ -69,7 +69,7 @@ namespace HillNGun.PvE
                 _spriteRenderer.sprite = CreatePlaceholderSprite();
             }
 
-            _spriteRenderer.color = enemySprite != null ? Color.white : (_enemy.Data?.baseColor ?? new Color(0.7f, 0.5f, 0.3f));
+            _spriteRenderer.color = HillNGun.Scenery.TimeOfDayGrade.Apply(enemySprite != null ? Color.white : (_enemy.Data?.baseColor ?? new Color(0.7f, 0.5f, 0.3f)));
 
             var labelGo = new GameObject("Label");
             labelGo.transform.SetParent(transform);

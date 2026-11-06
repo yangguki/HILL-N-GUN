@@ -54,5 +54,5 @@ MonoBehaviour:
   dustMotes: 10
   dustMotesLowTier: 3
   tumbleweeds: 1
-  saloonSignSway: 1
+  saloonSignSway: 0
   conceptCoverDim: 0.45

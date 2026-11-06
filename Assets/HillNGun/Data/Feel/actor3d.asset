@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05063334f6d34fe3be3ed7c2080ae27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  useActor3D: 1
+  useActor3D: 0
   lobbyPreview3D: 1
   actorLayer: 8
   viewTiltDeg: 28

@@ -69,6 +69,7 @@ namespace HillNGun.PvE
             }
 
             _spriteRenderer.sortingOrder = 10;
+            _spriteRenderer.color = HillNGun.Scenery.TimeOfDayGrade.Apply(Color.white); // style-4 sprite: TOD body wash
 
             var labelGo = new GameObject("Label");
             labelGo.transform.SetParent(transform);

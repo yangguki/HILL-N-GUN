@@ -659,6 +659,10 @@ namespace HillNGun.Editor
             CreateFolderRecursive(DATA_PATH + "Visuals");
             string art = "Assets/HillNGun/Art/StageVisual/Dust/";
             var noon = LoadSpriteAt(art + "stage_visual_dust_1_1_noon.png");
+            // Style lock 4 (bright 2D cartoon street, ArtSource/street_bg/style4): each TOD has its own pre-lit plate,
+            // so L0/L2 tints and the grade overlay stay white (no double tint).
+            var afternoon = LoadSpriteAt(art + "stage_visual_dust_1_2_afternoon.png");
+            if (afternoon == null) afternoon = LoadSpriteAt(art + "stage_visual_dust_1_1_noon.png");
             var sunset = LoadSpriteAt(art + "stage_visual_dust_1_3_sunset.png");
             var night = LoadSpriteAt(art + "stage_visual_rex_night.png");
 
@@ -666,10 +670,10 @@ namespace HillNGun.Editor
             StageVisualData.EnsureFiveLayers(v11);
             v11.id = "visual_dust_1_1_noon"; v11.timeOfDay = TimeOfDay.Noon;
             v11.gradeTint = Color.white; v11.gradeExposure = 1f;
-            v11.dustMotes = 12; v11.dustMotesLowTier = 4; v11.tumbleweeds = 1; v11.saloonSignSway = true;
+            v11.dustMotes = 12; v11.dustMotesLowTier = 4; v11.tumbleweeds = 1; v11.saloonSignSway = false; // style-4 plate has its own gate; procedural sign box read as a patch
             v11.conceptCoverDim = 0.4f;
             // Temp: full concept PNG on L2 (town); L3 empty combat lane
-            v11.layers[0].sprite = noon; v11.layers[0].tint = new Color(0.85f, 0.92f, 1f, 0.55f);
+            v11.layers[0].sprite = noon; v11.layers[0].tint = new Color(1f, 1f, 1f, 0.55f);
             v11.layers[2].sprite = noon; v11.layers[2].tint = Color.white;
             v11.layers[3].sprite = null; // combat lane clear
             EditorUtility.SetDirty(v11);
@@ -677,11 +681,11 @@ namespace HillNGun.Editor
             var v12 = CreateOrLoad<StageVisualData>(DATA_PATH + "Visuals/visual_dust_1_2_afternoon.asset");
             StageVisualData.EnsureFiveLayers(v12);
             v12.id = "visual_dust_1_2_afternoon"; v12.timeOfDay = TimeOfDay.Afternoon;
-            v12.gradeTint = new Color(1f, 0.92f, 0.75f); v12.gradeExposure = 1.05f;
-            v12.dustMotes = 14; v12.dustMotesLowTier = 5; v12.tumbleweeds = 1; v12.saloonSignSway = true;
+            v12.gradeTint = Color.white; v12.gradeExposure = 1f;
+            v12.dustMotes = 14; v12.dustMotesLowTier = 5; v12.tumbleweeds = 1; v12.saloonSignSway = false; // style-4 plate has its own gate; procedural sign box read as a patch
             v12.conceptCoverDim = 0.4f;
-            v12.layers[0].sprite = noon; v12.layers[0].tint = new Color(1f, 0.9f, 0.7f, 0.5f);
-            v12.layers[2].sprite = noon; v12.layers[2].tint = new Color(1f, 0.93f, 0.8f, 1f);
+            v12.layers[0].sprite = afternoon; v12.layers[0].tint = new Color(1f, 1f, 1f, 0.5f);
+            v12.layers[2].sprite = afternoon; v12.layers[2].tint = Color.white;
             v12.layers[3].sprite = null;
             EditorUtility.SetDirty(v12);
 
@@ -690,7 +694,7 @@ namespace HillNGun.Editor
             v13.id = "visual_dust_1_3_sunset"; v13.timeOfDay = TimeOfDay.Sunset;
             // Sunset empty plate is already graded: no extra sunset tint / overlay (would double-warm it)
             v13.gradeTint = Color.white; v13.gradeExposure = 1f;
-            v13.dustMotes = 10; v13.dustMotesLowTier = 3; v13.tumbleweeds = 1; v13.saloonSignSway = true;
+            v13.dustMotes = 10; v13.dustMotesLowTier = 3; v13.tumbleweeds = 1; v13.saloonSignSway = false; // style-4 plate has its own gate; procedural sign box read as a patch
             v13.conceptCoverDim = 0.45f;
             v13.lanternPositions = new[] { new Vector2(5f, 10f), new Vector2(19f, 10f) };
             // bg_street_dust_sunset_empty (ArtSource/street_bg/empty) lives in stage_visual_dust_1_3_sunset.png
@@ -702,11 +706,11 @@ namespace HillNGun.Editor
             var vBoss = CreateOrLoad<StageVisualData>(DATA_PATH + "Visuals/visual_rex_night.asset");
             StageVisualData.EnsureFiveLayers(vBoss);
             vBoss.id = "visual_rex_night"; vBoss.timeOfDay = TimeOfDay.Night;
-            vBoss.gradeTint = new Color(0.55f, 0.65f, 1f); vBoss.gradeExposure = 0.85f;
+            vBoss.gradeTint = Color.white; vBoss.gradeExposure = 1f; // night plate is pre-lit (lanterns/windows); no blue overlay
             vBoss.dustMotes = 8; vBoss.dustMotesLowTier = 2; vBoss.tumbleweeds = 0; vBoss.saloonSignSway = false;
             vBoss.conceptCoverDim = 0.35f;
             vBoss.lanternPositions = new[] { new Vector2(4f, 9f), new Vector2(12f, 11f), new Vector2(20f, 9f) };
-            vBoss.layers[0].sprite = night; vBoss.layers[0].tint = new Color(0.6f, 0.7f, 1f, 0.55f);
+            vBoss.layers[0].sprite = night; vBoss.layers[0].tint = new Color(1f, 1f, 1f, 0.55f);
             vBoss.layers[2].sprite = night; vBoss.layers[2].tint = Color.white;
             vBoss.layers[3].sprite = null;
             EditorUtility.SetDirty(vBoss);
@@ -1086,7 +1090,7 @@ namespace HillNGun.Editor
             EditorUtility.SetDirty(m);
 
             var v = CreateOrLoad<MotionViewData>(DATA_PATH + "Feel/motion_view.asset");
-            v.heroArtFacesRight = false; // deck hero art faces left
+            v.heroArtFacesRight = true; // style-4 chibi deck hero art faces right
             v.enemyArtFacesRight = false;
             EditorUtility.SetDirty(v);
         }
@@ -1099,6 +1103,9 @@ namespace HillNGun.Editor
             EditorUtility.CopySerialized(fresh, a);
             Object.DestroyImmediate(fresh);
             a.models = Actor3DDefaults.Models();
+            // Style lock 4: combatants use 2D chibi stand-in sprites (SpriteLibrary / Art/Deck) until Spine rigs arrive.
+            // The 3D toon path stays in code (flip back here or via the asset) but is off in gameplay and lobby.
+            a.useActor3D = false;
             EditorUtility.SetDirty(a);
 
             var an = CreateOrLoad<Actor3DAnimData>(DATA_PATH + "Feel/actor3d_anim.asset");

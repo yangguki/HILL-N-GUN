@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db7bcd66d846d4cc688286982aef6c54, type: 3}
   m_Name: motion_view
   m_EditorClassIdentifier: 
-  heroArtFacesRight: 0
+  heroArtFacesRight: 1
   enemyArtFacesRight: 0
   heroFootOffset: -0.88
   aimFacingHold: 0.45

@@ -583,7 +583,8 @@ namespace HillNGun.Characters
                     
                     if (!_isFlashing)
                     {
-                        _bodyRenderer.color = _originalColor;
+                        // Style-4 sprite view: same time-of-day actor wash as the 3D path (body only)
+                        _bodyRenderer.color = HillNGun.Scenery.TimeOfDayGrade.Apply(_originalColor);
                     }
                     break;
             }
@@ -591,7 +592,7 @@ namespace HillNGun.Characters
             if (character.IsInvulnerable)
             {
                 float flash = Mathf.PingPong(Time.time * 20f, 1f);
-                _bodyRenderer.color = Color.Lerp(_originalColor, Color.white, flash * 0.5f);
+                _bodyRenderer.color = Color.Lerp(HillNGun.Scenery.TimeOfDayGrade.Apply(_originalColor), Color.white, flash * 0.5f);
             }
         }
 

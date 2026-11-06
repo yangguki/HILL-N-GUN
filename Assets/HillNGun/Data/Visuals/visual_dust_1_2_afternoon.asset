@@ -14,15 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: visual_dust_1_2_afternoon
   timeOfDay: 1
-  gradeTint: {r: 1, g: 0.92, b: 0.75, a: 1}
-  gradeExposure: 1.05
+  gradeTint: {r: 1, g: 1, b: 1, a: 1}
+  gradeExposure: 1
   lanternPositions: []
   lanternColor: {r: 1, g: 0.75, b: 0.35, a: 0.55}
   layers:
   - id: L0
-    sprite: {fileID: 21300000, guid: 39cb115e08634669aec2dc391709f43d, type: 3}
+    sprite: {fileID: 21300000, guid: 1b49f8c7f01e441fabd0981c5cefcae0, type: 3}
     parallax: 0.12
-    tint: {r: 1, g: 0.9, b: 0.7, a: 0.5}
+    tint: {r: 1, g: 1, b: 1, a: 0.5}
     sortingOrder: -50
     combatLane: 0
   - id: L1
@@ -32,9 +32,9 @@ MonoBehaviour:
     sortingOrder: -40
     combatLane: 0
   - id: L2
-    sprite: {fileID: 21300000, guid: 39cb115e08634669aec2dc391709f43d, type: 3}
+    sprite: {fileID: 21300000, guid: 1b49f8c7f01e441fabd0981c5cefcae0, type: 3}
     parallax: 0.55
-    tint: {r: 1, g: 0.93, b: 0.8, a: 1}
+    tint: {r: 1, g: 1, b: 1, a: 1}
     sortingOrder: -30
     combatLane: 0
   - id: L3
@@ -52,5 +52,5 @@ MonoBehaviour:
   dustMotes: 14
   dustMotesLowTier: 5
   tumbleweeds: 1
-  saloonSignSway: 1
+  saloonSignSway: 0
   conceptCoverDim: 0.4

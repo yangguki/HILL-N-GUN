@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: visual_rex_night
   timeOfDay: 3
-  gradeTint: {r: 0.55, g: 0.65, b: 1, a: 1}
-  gradeExposure: 0.85
+  gradeTint: {r: 1, g: 1, b: 1, a: 1}
+  gradeExposure: 1
   lanternPositions:
   - {x: 4, y: 9}
   - {x: 12, y: 11}
@@ -25,7 +25,7 @@ MonoBehaviour:
   - id: L0
     sprite: {fileID: 21300000, guid: 39a4a226096145f683416644c45188a0, type: 3}
     parallax: 0.12
-    tint: {r: 0.6, g: 0.7, b: 1, a: 0.55}
+    tint: {r: 1, g: 1, b: 1, a: 0.55}
     sortingOrder: -50
     combatLane: 0
   - id: L1
