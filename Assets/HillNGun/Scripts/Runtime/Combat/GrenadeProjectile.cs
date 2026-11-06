@@ -16,6 +16,12 @@ namespace HillNGun.Combat
         public bool IsActive { get; private set; }
         public float HeightOffset { get; private set; }
 
+        /// <summary>Arc position used by the view (ground lerp + parabola height).</summary>
+        public Vector2 VisualPosition => CurrentPosition + new Vector2(0f, HeightOffset);
+
+        /// <summary>0..1 flight progress.</summary>
+        public float Progress => FlightTime > 0f ? Mathf.Clamp01(ElapsedTime / FlightTime) : 1f;
+
         public void Initialize(Vector2 start, Vector2 target, GrenadeData data, Team team)
         {
             StartPosition = start;

@@ -240,6 +240,21 @@ namespace HillNGun.Characters
         /// <summary>Advance cooldown/recharge timers only (same path Update uses). Public for tests.</summary>
         public void TickTimers(float dt) => UpdateCooldowns(dt);
 
+        /// <summary>Advance movement + timers + input buffer (EditMode / smoke). Mirrors Update without the view.</summary>
+        public void TickSimulation(float dt)
+        {
+            if (_overallState == CharacterOverallState.Eliminated) return;
+            _clock += dt;
+            Vector2 before = _position;
+            UpdateCooldowns(dt);
+            UpdateMovement(dt);
+            UpdateAmmoRecharge(dt);
+            UpdateDowned(dt);
+            UpdatePassive(dt);
+            UpdateInputBuffer();
+            if (dt > 0f) _velocity = (_position - before) / dt;
+        }
+
         private void UpdateCooldowns(float dt)
         {
             // grenade recharge (01 §8: one grenade every GrenadeData.rechargeTime). Was never ticked before t49u.
@@ -569,9 +584,11 @@ namespace HillNGun.Characters
         {
             if (_overallState != CharacterOverallState.Active) return;
             bool rolling = _movementState == MovementState.Rolling;
-            if (rolling || _recoveryTimer > 0f || _rollCooldownTimer > 0f)
+            // Consecutive rolls: recovery no longer blocks a new roll. Only an active roll or
+            // remaining RollData.cooldown does (cooldown is 0 for chainable rolls).
+            if (rolling || _rollCooldownTimer > 0f)
             {
-                float wait = Mathf.Max(rolling ? (_data.roll.duration - _rollTimer) + Feel.rollRecoveryTime : _recoveryTimer, _rollCooldownTimer);
+                float wait = Mathf.Max(rolling && _data?.roll != null ? (_data.roll.duration - _rollTimer) : 0f, _rollCooldownTimer);
                 if (wait <= BufferWindow) { _bufRoll = true; _bufRollDir = cmd.Direction; _bufRollTime = _clock; }
                 return;
             }
@@ -651,7 +668,7 @@ namespace HillNGun.Characters
             if (_bufRoll)
             {
                 if (_clock - _bufRollTime > expire) _bufRoll = false;
-                else if (_movementState != MovementState.Rolling && _recoveryTimer <= 0f && _rollCooldownTimer <= 0f)
+                else if (_movementState != MovementState.Rolling && _rollCooldownTimer <= 0f)
                 {
                     _bufRoll = false;
                     StartRoll(_bufRollDir);
@@ -797,7 +814,7 @@ namespace HillNGun.Characters
         public float SkillCooldownRatio => _data?.skill != null 
             ? Mathf.Clamp01(_skillCooldownTimer / _data.skill.cooldown) 
             : 0f;
-        public float RollCooldownRatio => _data?.roll != null 
+        public float RollCooldownRatio => _data?.roll != null && _data.roll.cooldown > 0f
             ? Mathf.Clamp01(_rollCooldownTimer / _data.roll.cooldown) 
             : 0f;
 

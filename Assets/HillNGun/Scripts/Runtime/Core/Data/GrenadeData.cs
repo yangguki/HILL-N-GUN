@@ -50,6 +50,10 @@ namespace HillNGun.Data
         [Tooltip("1개 충전 시간 (초)")]
         public float rechargeTime = 12f;
 
+        [Header("View / VFX")]
+        [Tooltip("Flight spin, trail, cartoon explode. Null = GrenadeVfxData.Builtin")]
+        public GrenadeVfxData vfx;
+
         public float GetFlightTime(float distance)
         {
             return flightTimeBase + flightTimePerTile * distance;

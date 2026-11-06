@@ -149,6 +149,7 @@ namespace HillNGun.PvE
             _combat = ServiceLocator.Get<CombatSystem>();
             // Covers spawn in StartStage with stage-specific placements (avoid double-registering battlefield defaults).
             ProjectileView.Ensure();
+            GrenadeView.Ensure();
             CombatFeedback.Ensure();
             SpawnPlayerTeam();
             if (_combat != null)

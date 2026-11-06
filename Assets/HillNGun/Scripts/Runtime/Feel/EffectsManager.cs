@@ -17,6 +17,7 @@ namespace HillNGun.Feel
         private List<ImpactEffect> _impactPool = new List<ImpactEffect>();
         private List<DamageNumber> _damageNumberPool = new List<DamageNumber>();
         private List<ExplosionRing> _explosionPool = new List<ExplosionRing>();
+        private List<CartoonExplosion> _cartoonBoomPool = new List<CartoonExplosion>();
         private List<DebrisBurst> _debrisPool = new List<DebrisBurst>();
         private HillNGun.Data.FeelData _feel;
 
@@ -51,6 +52,7 @@ namespace HillNGun.Feel
                 dn.Bind(transform, i);
                 _damageNumberPool.Add(dn);
                 _explosionPool.Add(new ExplosionRing());
+                if (i < 8) _cartoonBoomPool.Add(new CartoonExplosion());
                 if (i < 6) _debrisPool.Add(new DebrisBurst());
             }
         }
@@ -145,6 +147,18 @@ namespace HillNGun.Feel
             explosion.Spawn(worldPos, radius);
         }
 
+        /// <summary>12+ cartoon grenade burst: ring + stars + sparks + smoke. No blood.</summary>
+        public void SpawnCartoonExplosion(Vector2 position, float radius, HillNGun.Data.GrenadeVfxData vfx = null)
+        {
+            vfx = vfx != null ? vfx : HillNGun.Data.GrenadeVfxData.Builtin;
+            Vector3 worldPos = _battlefield?.LogicToWorldPosition(position) ?? Battlefield.FieldView.ToWorld(position);
+            float persp = Battlefield.FieldView.PerspectiveScale(position.y);
+            float worldR = Mathf.Max(0.4f, radius) * persp;
+            GetFromPool(_cartoonBoomPool).Spawn(worldPos, worldR, vfx);
+            // keep legacy ring for readability on tiny screens
+            GetFromPool(_explosionPool).Spawn(worldPos, worldR);
+        }
+
         private T GetFromPool<T>(List<T> pool) where T : IPooledEffect
         {
             foreach (var item in pool)
@@ -163,6 +177,7 @@ namespace HillNGun.Feel
             foreach (var i in _impactPool) i.Update(dt);
             foreach (var d in _damageNumberPool) d.Update(dt);
             foreach (var e in _explosionPool) e.Update(dt);
+            foreach (var c in _cartoonBoomPool) c.Update(dt);
             foreach (var b in _debrisPool) b.Update(dt);
         }
 
@@ -206,18 +221,21 @@ namespace HillNGun.Feel
             foreach (var t in _tracerPool) any |= t.IsActive;
             foreach (var i in _impactPool) any |= i.IsActive;
             foreach (var e in _explosionPool) any |= e.IsActive;
+            foreach (var c in _cartoonBoomPool) any |= c.IsActive;
             foreach (var b in _debrisPool) any |= b.IsActive;
             if (!any) return;
             SharedFxMaterial.SetPass(0);
             GL.PushMatrix();
             GL.Begin(GL.TRIANGLES);
             foreach (var b in _debrisPool) b.EmitDust();
+            foreach (var c in _cartoonBoomPool) c.EmitTris();
             foreach (var f in _muzzleFlashPool) f.Emit();
             foreach (var b in _debrisPool) b.EmitSplinters();
             GL.End();
             GL.Begin(GL.LINES);
             foreach (var t in _tracerPool) t.Emit();
             foreach (var e in _explosionPool) e.Emit();
+            foreach (var c in _cartoonBoomPool) c.EmitLines();
             GL.End();
             GL.Begin(GL.QUADS);
             foreach (var i in _impactPool) i.Emit();
@@ -664,4 +682,140 @@ namespace HillNGun.Feel
 
         }
     }
+
+    /// <summary>Cartoon grenade boom: expanding flame disc, star burst, sparks, smoke puffs. Never blood-red.</summary>
+    public class CartoonExplosion : IPooledEffect
+    {
+        public bool IsActive { get; private set; }
+        private Vector3 _origin;
+        private float _timer, _life, _radius;
+        private Color _flame, _spark, _star, _smoke;
+        private int _stars, _sparks, _smokes;
+        private readonly Vector3[] _sparkP = new Vector3[16];
+        private readonly Vector3[] _sparkV = new Vector3[16];
+        private readonly float[] _starAng = new float[12];
+        private readonly Vector3[] _smokeP = new Vector3[8];
+        private readonly float[] _smokeR = new float[8];
+
+        public void Spawn(Vector3 pos, float radius, HillNGun.Data.GrenadeVfxData vfx)
+        {
+            _origin = pos;
+            _radius = Mathf.Max(0.3f, radius);
+            _life = Mathf.Max(0.2f, vfx.explodeDuration);
+            _timer = _life;
+            _flame = vfx.flameColor;
+            _spark = vfx.sparkColor;
+            _star = vfx.starColor;
+            _smoke = vfx.smokeColor;
+            _stars = Mathf.Clamp(vfx.starCount, 4, 12);
+            _sparks = Mathf.Clamp(vfx.sparkCount, 4, 16);
+            _smokes = Mathf.Clamp(vfx.smokePuffs, 2, 8);
+            for (int i = 0; i < _sparks; i++)
+            {
+                float a = Random.Range(0f, Mathf.PI * 2f);
+                float sp = Random.Range(2.2f, 5.5f) * _radius;
+                _sparkP[i] = pos;
+                _sparkV[i] = new Vector3(Mathf.Cos(a), Mathf.Sin(a) * 0.85f + 0.6f, 0f) * sp;
+            }
+            for (int i = 0; i < _stars; i++)
+                _starAng[i] = (i / (float)_stars) * 360f + Random.Range(-8f, 8f);
+            for (int i = 0; i < _smokes; i++)
+            {
+                float a = (i / (float)_smokes) * Mathf.PI * 2f;
+                _smokeP[i] = pos + new Vector3(Mathf.Cos(a), Mathf.Sin(a) * 0.6f, 0f) * _radius * 0.25f;
+                _smokeR[i] = _radius * Random.Range(0.2f, 0.4f);
+            }
+            IsActive = true;
+        }
+
+        public void Update(float dt)
+        {
+            if (!IsActive) return;
+            _timer -= dt;
+            for (int i = 0; i < _sparks; i++)
+            {
+                _sparkV[i].y -= 9f * dt;
+                _sparkP[i] += _sparkV[i] * dt;
+                _sparkV[i] *= 0.96f;
+            }
+            for (int i = 0; i < _smokes; i++)
+            {
+                _smokeP[i] += Vector3.up * (0.6f * dt);
+                _smokeR[i] += _radius * 0.55f * dt;
+            }
+            if (_timer <= 0f) IsActive = false;
+        }
+
+        public void EmitTris()
+        {
+            if (!IsActive) return;
+            float k = 1f - _timer / _life; // 0..1
+            float pop = Mathf.Sin(Mathf.Clamp01(k * 1.4f) * Mathf.PI); // pop then fade
+            float a = Mathf.Clamp01((_timer / _life) * 1.5f);
+
+            // flame disc
+            GL.Color(new Color(_flame.r, _flame.g, _flame.b, a * 0.85f));
+            float fr = _radius * (0.35f + 0.75f * pop);
+            const int seg = 14;
+            for (int j = 0; j < seg; j++)
+            {
+                float a0 = j * Mathf.PI * 2f / seg, a1 = (j + 1) * Mathf.PI * 2f / seg;
+                GL.Vertex(_origin);
+                GL.Vertex(_origin + new Vector3(Mathf.Cos(a0), Mathf.Sin(a0), 0f) * fr);
+                GL.Vertex(_origin + new Vector3(Mathf.Cos(a1), Mathf.Sin(a1), 0f) * fr);
+            }
+            // hot core
+            GL.Color(new Color(1f, 0.97f, 0.7f, a));
+            float cr = fr * 0.35f;
+            for (int j = 0; j < seg; j++)
+            {
+                float a0 = j * Mathf.PI * 2f / seg, a1 = (j + 1) * Mathf.PI * 2f / seg;
+                GL.Vertex(_origin);
+                GL.Vertex(_origin + new Vector3(Mathf.Cos(a0), Mathf.Sin(a0), 0f) * cr);
+                GL.Vertex(_origin + new Vector3(Mathf.Cos(a1), Mathf.Sin(a1), 0f) * cr);
+            }
+            // stars
+            GL.Color(new Color(_star.r, _star.g, _star.b, a));
+            float reach = _radius * (0.55f + 0.55f * pop);
+            for (int i = 0; i < _stars; i++)
+            {
+                float ang = _starAng[i] * Mathf.Deg2Rad;
+                Vector3 tip = _origin + new Vector3(Mathf.Cos(ang), Mathf.Sin(ang), 0f) * reach;
+                Vector3 side = new Vector3(-Mathf.Sin(ang), Mathf.Cos(ang), 0f) * (_radius * 0.08f);
+                GL.Vertex(_origin + (tip - _origin) * 0.25f);
+                GL.Vertex(tip + side);
+                GL.Vertex(tip - side);
+            }
+            // smoke
+            float sa = a * 0.55f;
+            GL.Color(new Color(_smoke.r, _smoke.g, _smoke.b, sa));
+            for (int i = 0; i < _smokes; i++)
+            {
+                Vector3 c = _smokeP[i];
+                float r = _smokeR[i];
+                for (int j = 0; j < 10; j++)
+                {
+                    float a0 = j * Mathf.PI * 2f / 10f, a1 = (j + 1) * Mathf.PI * 2f / 10f;
+                    GL.Vertex(c);
+                    GL.Vertex(c + new Vector3(Mathf.Cos(a0), Mathf.Sin(a0) * 0.7f, 0f) * r);
+                    GL.Vertex(c + new Vector3(Mathf.Cos(a1), Mathf.Sin(a1) * 0.7f, 0f) * r);
+                }
+            }
+        }
+
+        public void EmitLines()
+        {
+            if (!IsActive) return;
+            float a = Mathf.Clamp01(_timer / _life * 1.4f);
+            GL.Color(new Color(_spark.r, _spark.g, _spark.b, a));
+            for (int i = 0; i < _sparks; i++)
+            {
+                Vector3 p = _sparkP[i];
+                Vector3 d = _sparkV[i].normalized * (_radius * 0.12f);
+                GL.Vertex(p - d);
+                GL.Vertex(p + d);
+            }
+        }
+    }
+
 }

@@ -17,7 +17,7 @@ MonoBehaviour:
   duration: 0.4
   invulnStart: 0
   invulnDuration: 0.35
-  cooldown: 4
+  cooldown: 0
   canFireDuring: 0
   inputBuffer: 0.1
   allowRowRoll: 1

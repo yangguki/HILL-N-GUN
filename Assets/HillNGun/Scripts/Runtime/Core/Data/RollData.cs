@@ -24,7 +24,7 @@ namespace HillNGun.Data
 
         [Header("Cooldown")]
         [Tooltip("재사용 대기 시간 (초)")]
-        public float cooldown = 4f;
+        public float cooldown = 0f; // 0 = consecutive rolls (i-frames only while Rolling)
 
         [Header("Behavior Options")]
         [Tooltip("구르기 중 사격 가능 여부")]

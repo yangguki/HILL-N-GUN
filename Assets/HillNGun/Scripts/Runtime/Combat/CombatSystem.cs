@@ -30,7 +30,9 @@ namespace HillNGun.Combat
         public event System.Action<Projectile, CharacterStateMachine, int> OnCharacterHit;
         public event System.Action<Projectile, CoverInstance, int> OnCoverHit;
         public event System.Action<Projectile, TargetInstance, int> OnTargetHit;
+        public event System.Action<GrenadeProjectile, Vector2> OnGrenadeThrown;
         public event System.Action<GrenadeProjectile, Vector2> OnGrenadeExploded;
+        public IReadOnlyList<GrenadeProjectile> ActiveGrenades => _grenades;
         public event System.Action<Projectile, ICombatTarget, int> OnCombatTargetHit;
 
         private void Awake()
@@ -212,6 +214,7 @@ namespace HillNGun.Combat
             var grenade = new GrenadeProjectile();
             grenade.Initialize(start, target, data, team);
             _grenades.Add(grenade);
+            OnGrenadeThrown?.Invoke(grenade, start);
         }
 
         public void SpawnEnemyProjectile(Vector2 start, Vector2 direction, float speed, float radius, int damage, float range, Team team, float coverDamageMul = 1f)
