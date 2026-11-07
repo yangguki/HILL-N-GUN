@@ -39,14 +39,14 @@ namespace HillNGun.Tests.EditMode
         }
 
         [Test]
-        public void Default_IsOption3_AndHeightsMatchSpec()
+        public void Default_IsOption2_AndHeightsMatchSpec()
         {
-            Assert.AreEqual(3, _d.defaultOption);
+            Assert.AreEqual(2, _d.defaultOption); // v8: visual 14/13/12%, default 2 (gameplay fracs below unchanged)
             Assert.AreEqual(0.10f, _d.GetOption(1).characterHeightFrac, 1e-4f);
             Assert.AreEqual(0.09f, _d.GetOption(2).characterHeightFrac, 1e-4f);
             Assert.AreEqual(0.08f, _d.GetOption(3).characterHeightFrac, 1e-4f);
             ScalePresets.SetDataForTests(_d, 0); // unknown option -> data default
-            Assert.AreEqual(3, ScalePresets.Current);
+            Assert.AreEqual(2, ScalePresets.Current);
         }
 
         [Test]
@@ -77,7 +77,7 @@ namespace HillNGun.Tests.EditMode
         [Test]
         public void CoverVisualAndFootprintMuls_ApplyOnTopOfHSizes()
         {
-            Assert.AreEqual(1.3f, _d.coverVisualMul, 1e-4f);
+            Assert.AreEqual(1.15f, _d.coverVisualMul, 1e-4f); // v8: drawn width = footprint width (12 §3)
             Assert.AreEqual(1.15f, _d.coverFootprintWidthMul, 1e-4f);
             var covers = AllCovers();
             Assert.IsTrue(covers.ContainsKey("cover_barrel"));
@@ -88,7 +88,7 @@ namespace HillNGun.Tests.EditMode
                 float h = ScalePresets.HeightWorldFor(_d, o);
                 var s = ScalePresets.CoverSizeFor(_d, o, covers["cover_barrel"]);
                 Assert.AreEqual(e.widthH * h * _d.coverVisualMul, s.visualWidth, 1e-4f, $"opt{n} visualW");
-                Assert.AreEqual(e.heightH * h * _d.coverVisualMul, s.visualHeight, 1e-4f, $"opt{n} visualH");
+                Assert.AreEqual(_d.CoverHeightOfActor(CoverSizeType.Barrel) * ScalePresets.VisualHeightWorldFor(_d, o), s.visualHeight, 1e-4f, $"opt{n} visualH (proposal: barrel = 0.60 x drawn actor)");
                 float minW = ScalePresets.HurtDiameterFor(_d, o) * _d.coverMinWidthVsHurtDiameter;
                 Assert.AreEqual(Mathf.Max(e.widthH * h * _d.coverFootprintWidthMul, minW), s.logicWidth, 1e-4f, $"opt{n} logicW");
             }

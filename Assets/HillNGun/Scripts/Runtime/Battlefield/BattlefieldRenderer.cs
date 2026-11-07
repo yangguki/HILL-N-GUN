@@ -75,7 +75,9 @@ namespace HillNGun.Battlefield
         {
             if (!_pveSearched) { _pve = FindAnyObjectByType<HillNGun.PvE.PvEMatchManager>(); _pveSearched = true; }
             // Theme may stay "town_street" across 1-1..Rex — still must (re)apply StageVisual when stage starts/changes.
-            string stageId = _pve != null && _pve.CurrentStage != null ? _pve.CurrentStage.id : null;
+            // Same key ResolveAndApplyVisual stores (PvP = "pvp_town_street"). Perf pass fix: the old null key never matched in
+            // PvP, so the stage visual (parallax, TOD grade, ambient reconfigure + a log line) was re-applied EVERY frame.
+            string stageId = StageVisualKey();
             var want = (_pve != null && _pve.CurrentStage != null) ? ThemeContext.Library?.Get(_pve.CurrentStage.themeId) : _theme;
             if (want != null && want != _theme)
             {
@@ -283,9 +285,15 @@ namespace HillNGun.Battlefield
         }
         public void RefreshStageVisual() => ResolveAndApplyVisual();
 
+        private string StageVisualKey() => _pve != null && _pve.CurrentStage != null ? _pve.CurrentStage.id : (_pve == null ? "pvp_town_street" : null);
+
+        /// <summary>Perf diagnostics: how many times the stage visual was (re)applied this session.</summary>
+        public static int VisualApplyCount;
+
         public void ResolveAndApplyVisual()
         {
             if (!_pveSearched) { _pve = FindAnyObjectByType<HillNGun.PvE.PvEMatchManager>(); _pveSearched = true; }
+            VisualApplyCount++;
             StageVisualData visual = null;
             if (_pve != null && _pve.CurrentStage != null) visual = _pve.CurrentStage.visual;
             // Temporary: PvP (and any no-stage town_street) uses the empty noon plate until dedicated plates arrive.
@@ -301,7 +309,7 @@ namespace HillNGun.Battlefield
                     }
                 }
             }
-            _appliedVisualStageId = _pve != null && _pve.CurrentStage != null ? _pve.CurrentStage.id : (_pve == null ? "pvp_town_street" : null);
+            _appliedVisualStageId = StageVisualKey();
 
             if (_parallax == null)
             {

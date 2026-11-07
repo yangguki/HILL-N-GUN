@@ -20,6 +20,14 @@ namespace HillNGun.Cover
 
         private CoverStage _previousStage;
 
+        /// <summary>Stable per-layout id (stage/PvP key + team + row + x), for logs and duplicate-spawn validation.</summary>
+        public string InstanceId { get; set; }
+        public int LayoutVersion { get; set; }
+        /// <summary>Pose / occlusion class only (12 §2.2); never changes collision or damage.</summary>
+        public CoverHeightClass HeightClass => Data != null ? TerrainRules.Data.ClassOf(Data.id) : CoverHeightClass.Half;
+        /// <summary>Times OnDestroyed fired (must stay 0 or 1 per life).</summary>
+        public int DestroyedEvents { get; private set; }
+
         public event System.Action<CoverInstance, int> OnDamaged;
         public event System.Action<CoverInstance, CoverStage> OnStageChanged;
         public event System.Action<CoverInstance> OnDestroyed;
@@ -40,7 +48,10 @@ namespace HillNGun.Cover
             _previousStage = Stage;
         }
 
-        public void TakeDamage(int damage, float multiplier = 1f)
+        public void TakeDamage(int damage, float multiplier = 1f) => TakeDamage(damage, multiplier, null);
+
+        /// <param name="source">damage context for logs (bullet / grenade / barrel / skill)</param>
+        public void TakeDamage(int damage, float multiplier, string source)
         {
             if (IsDestroyed) return;
             if (Data != null && Data.indestructible) return;
@@ -56,17 +67,19 @@ namespace HillNGun.Cover
             {
                 OnStageChanged?.Invoke(this, Stage);
                 _previousStage = Stage;
+                Debug.Log($"[Terrain] {(Stage == CoverStage.Destroyed ? "cover_destroyed" : "cover_damaged")} id={Data.id} instance={InstanceId} state={Stage} hp={CurrentHp}/{Data.maxHp} row={RowIndex} team={Team} source={source ?? "unknown"} layoutVersion={LayoutVersion}");
 
                 if (Stage == CoverStage.Destroyed)
                 {
-                    OnDestroyed?.Invoke(this);
+                    DestroyedEvents++;
+                    OnDestroyed?.Invoke(this); // once: further hits return early (IsDestroyed)
                 }
             }
         }
 
         public void Repair(float repairPercent)
         {
-            if (!Data.repairable || IsDestroyed) return;
+            if (!Data.repairable || Data.indestructible || IsDestroyed) return; // living, repairable covers only
 
             int healAmount = Mathf.RoundToInt(Data.maxHp * repairPercent);
             CurrentHp = Mathf.Min(Data.maxHp, CurrentHp + healAmount);
@@ -79,11 +92,13 @@ namespace HillNGun.Cover
             }
         }
 
+        /// <summary>Stage entry / PvP round start restore (no regeneration between waves / mid-round).</summary>
         public void Reset()
         {
             CurrentHp = Data.maxHp;
             Stage = CoverStage.Intact;
             _previousStage = Stage;
+            DestroyedEvents = 0;
         }
 
         public bool ContainsX(float x)

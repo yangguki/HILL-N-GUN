@@ -73,8 +73,9 @@ namespace HillNGun.PvE
 
             var labelGo = new GameObject("Label");
             labelGo.transform.SetParent(transform);
-            labelGo.transform.localPosition = new Vector3(0f, 0.8f, 0f);
-            labelGo.transform.localScale = Vector3.one / Mathf.Max(0.1f, ScalePresets.CharacterMul);
+            float headTop = MotionFx.MeasureTop(enemySprite, 0.6f);
+            labelGo.transform.localPosition = new Vector3(0f, headTop + 0.22f, 0f); // above the enlarged head
+            labelGo.transform.localScale = Vector3.one / Mathf.Max(0.1f, ScalePresets.VisualMul);
             _nameLabel = labelGo.AddComponent<TextMesh>();
             _nameLabel.text = _enemy.Data?.id ?? "Enemy";
             _nameLabel.fontSize = 28;
@@ -86,7 +87,7 @@ namespace HillNGun.PvE
 
             var warningGo = new GameObject("Warning");
             warningGo.transform.SetParent(transform);
-            warningGo.transform.localPosition = new Vector3(0f, 1.2f, 0f);
+            warningGo.transform.localPosition = new Vector3(0f, headTop + 0.6f, 0f);
             var warnSr = warningGo.AddComponent<SpriteRenderer>();
             warnSr.sprite = CreateWarningSprite();
             warnSr.sortingOrder = 15;
@@ -242,7 +243,7 @@ namespace HillNGun.PvE
 
         private void UpdatePosition()
         {
-            FieldView.Place(transform, _enemy.Position, (_enemy.Data != null ? _enemy.Data.scale : 1f) * ScalePresets.CharacterMul);
+            FieldView.Place(transform, _enemy.Position, (_enemy.Data != null ? _enemy.Data.scale : 1f) * ScalePresets.VisualMul); // view only; HitRadius uses CharacterMul
             FieldView.ApplySorting(_spriteRenderer, _enemy.Position.y);
             UpdateMotion();
             if (_labelRenderer != null) _labelRenderer.sortingOrder = FieldView.OverlayOrder;

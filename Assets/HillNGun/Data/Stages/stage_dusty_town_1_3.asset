@@ -124,48 +124,56 @@ MonoBehaviour:
   - 13.5
   - 16
   coverPlacements:
-  - coverId: cover_swing_door
-    rowIndex: 0
-    xPosition: 5
-  - coverId: cover_swing_door
-    rowIndex: 0
-    xPosition: 19
-  - coverId: cover_trough
-    rowIndex: 1
-    xPosition: 6
-  - coverId: cover_barrel
-    rowIndex: 1
-    xPosition: 12
-  - coverId: cover_trough
-    rowIndex: 1
-    xPosition: 18
-  - coverId: cover_barrel
-    rowIndex: 2
-    xPosition: 4
   - coverId: cover_wagon
-    rowIndex: 2
+    rowIndex: 0
+    xPosition: 6
+  - coverId: cover_wagon
+    rowIndex: 0
+    xPosition: 18
+  - coverId: cover_trough
+    rowIndex: 1
+    xPosition: 4
+  - coverId: cover_trough
+    rowIndex: 1
     xPosition: 12
+  - coverId: cover_trough
+    rowIndex: 1
+    xPosition: 20
+  - coverId: cover_barrel
+    rowIndex: 2
+    xPosition: 3
+  - coverId: cover_trough
+    rowIndex: 2
+    xPosition: 8
   - coverId: cover_trough
     rowIndex: 2
     xPosition: 16
-  - coverId: cover_barrel
+  - coverId: cover_wagon
     rowIndex: 2
-    xPosition: 20
+    xPosition: 21
   hazards:
   - type: 0
-    x: 7
+    mode: 1
+    x: 3
+    y: 12
     rowIndex: 1
     param: 3
   - type: 0
-    x: 15
-    rowIndex: 2
+    mode: 1
+    x: 12
+    y: 14
+    rowIndex: 1
     param: 3
   - type: 0
-    x: 10
-    rowIndex: 2
+    mode: 1
+    x: 21
+    y: 12
+    rowIndex: 1
     param: 3
   - type: 3
+    mode: 0
     x: 12
+    y: 12
     rowIndex: 2
     param: 3
   isBossStage: 0

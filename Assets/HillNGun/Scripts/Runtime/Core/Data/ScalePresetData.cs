@@ -17,6 +17,18 @@ namespace HillNGun.Data
         public float widthH = 0.4f;
     }
 
+    /// <summary>
+    /// Drawn cover height as a fraction of the drawn actor height at the same depth (12_terrain_props §3/§4 —
+    /// PROPOSAL defaults, not user-confirmed). View only: collision width / HP / protection never read it.
+    /// </summary>
+    [Serializable]
+    public class CoverVisualHeightEntry
+    {
+        public CoverSizeType type = CoverSizeType.Barrel;
+        [Tooltip("그림 높이 = 같은 깊이 캐릭터 표시 키 × 이 값 (제안값)")]
+        public float ofActorHeight = 0.6f;
+    }
+
     /// <summary>Which size class a CoverData id belongs to (logic id → size class; theme looks never change it).</summary>
     [Serializable]
     public class CoverTypeBinding
@@ -39,8 +51,13 @@ namespace HillNGun.Data
     {
         [Tooltip("표시 번호 (1/2/3)")]
         public int number = 3;
-        [Tooltip("캐릭터 키 H = 화면 세로 비율 (1080p 세로 기준, 원근 1.0 = 가장 앞줄)")]
+        [Tooltip("게임플레이 기준 키 (화면 세로 비율). 피격 반지름·엄폐 판정 폭·보호 규칙은 이 값만 읽음 — 그림 확대와 분리")]
         public float characterHeightFrac = 0.08f;
+        [Tooltip("표시 키 = 화면 세로 비율 (1080p, 원근 1.0 = 가장 앞줄 기준). 0 = characterHeightFrac. 그림·라벨·엄폐 그림 높이만 읽음")]
+        public float visualHeightFrac = 0f;
+
+        /// <summary>Drawn character height fraction (falls back to the gameplay fraction).</summary>
+        public float VisualHeightFrac => visualHeightFrac > 0f ? visualHeightFrac : characterHeightFrac;
         public CoverSizeEntry[] coverSizes = new CoverSizeEntry[0];
         public StageCoverSet[] layouts = new StageCoverSet[0];
 
@@ -72,7 +89,7 @@ namespace HillNGun.Data
 
         [Header("Default")]
         [Tooltip("저장된 선택이 없을 때 쓰는 안 번호")]
-        public int defaultOption = 3;
+        public int defaultOption = 2;
 
         [Header("Reference (the build the hit radii / cover widths were tuned for)")]
         [Tooltip("화면 세로 = 월드 유닛 (메인 카메라 orthographicSize × 2)")]
@@ -87,8 +104,17 @@ namespace HillNGun.Data
         public float coverMinWidthVsHurtDiameter = 1.0f;
         [Tooltip("그림 높이 최소값 (모델 Y 배율 하한, 너무 납작해지지 않게)")]
         public float minCoverYScale = 0.25f;
-        [Tooltip("엄폐물 그림 크기 배율 (기획 v4: 세 안 모두 1.3). H 배수 크기 위에 곱함")]
-        public float coverVisualMul = 1.3f;
+        [Tooltip("엄폐물 그림 폭 배율 (게임플레이 H 배수 폭 위에 곱함). 1.15 = 판정 폭과 같은 그림 폭 (12 §3). 높이는 coverVisualHeights")]
+        public float coverVisualMul = 1.15f;
+        [Tooltip("엄폐물 그림 높이 = 표시 캐릭터 키 × 비율 (12_terrain_props 제안값). 없는 종류는 heightH × 표시 H × coverVisualMul")]
+        public CoverVisualHeightEntry[] coverVisualHeights = new CoverVisualHeightEntry[0];
+
+        public float CoverHeightOfActor(CoverSizeType t)
+        {
+            if (coverVisualHeights != null)
+                foreach (var e in coverVisualHeights) if (e != null && e.type == t && e.ofActorHeight > 0f) return e.ofActorHeight;
+            return -1f;
+        }
         [Tooltip("엄폐물 판정 폭 배율 (기획 v4: 폭만 1.15). 바닥 면적 깊이/높이는 그대로")]
         public float coverFootprintWidthMul = 1.15f;
 
@@ -101,6 +127,8 @@ namespace HillNGun.Data
         public ScalePresetOption[] options = new ScalePresetOption[0];
         [Tooltip("PvP 마을 큰길 배치 키")]
         public string pvpLayoutKey = "pvp_town_street";
+        [Tooltip("12_terrain_props P0: 배치 권위는 StageData/BattlefieldData 한 곳. 켜면 (구) 안별 배치가 덮어씀 — 기본 꺼짐")]
+        public bool layoutsOverrideStageData = false;
 
         [Header("HUD")]
         [Tooltip("화면 구석 표시 형식 ({0} = 안 번호)")]

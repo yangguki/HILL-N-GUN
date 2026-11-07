@@ -12,13 +12,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6cf390afb12491f9932bcd98d4d9313, type: 3}
   m_Name: scale_presets
   m_EditorClassIdentifier: 
-  defaultOption: 3
+  defaultOption: 2
   screenHeightWorld: 20
   baselineCharacterHeightFrac: 0.127
   referenceHurtRadius: 0.5
   coverMinWidthVsHurtDiameter: 1
   minCoverYScale: 0.25
-  coverVisualMul: 1.3
+  coverVisualMul: 1.15
+  coverVisualHeights:
+  - type: 0
+    ofActorHeight: 0.6
+  - type: 1
+    ofActorHeight: 0.55
+  - type: 2
+    ofActorHeight: 0.9
+  - type: 3
+    ofActorHeight: 0.65
+  - type: 4
+    ofActorHeight: 0.45
+  - type: 5
+    ofActorHeight: 0.55
+  - type: 6
+    ofActorHeight: 0.85
   coverFootprintWidthMul: 1.15
   coverTypes:
   - coverId: cover_barrel
@@ -41,6 +56,7 @@ MonoBehaviour:
   options:
   - number: 1
     characterHeightFrac: 0.1
+    visualHeightFrac: 0.14
     coverSizes:
     - type: 0
       heightH: 0.6
@@ -193,6 +209,7 @@ MonoBehaviour:
         xPosition: 19
   - number: 2
     characterHeightFrac: 0.09
+    visualHeightFrac: 0.13
     coverSizes:
     - type: 0
       heightH: 0.6
@@ -363,6 +380,7 @@ MonoBehaviour:
         xPosition: 18
   - number: 3
     characterHeightFrac: 0.08
+    visualHeightFrac: 0.12
     coverSizes:
     - type: 0
       heightH: 0.5

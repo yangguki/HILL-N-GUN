@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f53dadf113a5403caf69d04900ecbcfe, type: 3}
+  m_Name: terrain_rules
+  m_EditorClassIdentifier: 
+  layoutId: town_street_proposalA
+  layoutVersion: 1
+  coverCenterOffset: 0.6
+  frontRowCoverOffset: 0.35
+  noCoverMinY: 7.6
+  noCoverMaxY: 10.4
+  minimumVisualGap: 1.6
+  pairedPropIds:
+  - cover_barrel
+  pairedPropMinGap: 0.2
+  minBarrelSpacing: 4
+  intactMin: 0.67
+  crackedMin: 0.34
+  repairPercent: 0.4
+  barrelTriggerDamage: 400
+  barrelWarningSec: 0.4
+  barrelCenterDamage: 700
+  barrelEdgeDamage: 350
+  barrelRadius: 2
+  barrelInnerRadius: 0.5
+  barrelCoverDamageMul: 1.5
+  barrelFriendlyDamage: 1
+  barrelChainEnabled: 1
+  barrelGrenadeTriggers: 1
+  barrelHitRadius: 0.45
+  pvpCoverDropsEnabled: 0
+  classes:
+  - coverId: cover_wagon
+    heightClass: 3
+  - coverId: cover_rock
+    heightClass: 3
+  - coverId: cover_swing_door
+    heightClass: 2
+  - coverId: cover_barrel
+    heightClass: 2
+  - coverId: cover_trough
+    heightClass: 2
+  - coverId: cover_crate
+    heightClass: 2
+  - coverId: cover_hay
+    heightClass: 1

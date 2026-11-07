@@ -96,33 +96,35 @@ MonoBehaviour:
   - 13.5
   - 16
   coverPlacements:
-  - coverId: cover_swing_door
+  - coverId: cover_wagon
     rowIndex: 0
     xPosition: 6
-  - coverId: cover_swing_door
+  - coverId: cover_wagon
     rowIndex: 0
     xPosition: 18
-  - coverId: cover_barrel
+  - coverId: cover_trough
     rowIndex: 1
-    xPosition: 5
+    xPosition: 4
   - coverId: cover_trough
     rowIndex: 1
     xPosition: 12
-  - coverId: cover_barrel
+  - coverId: cover_trough
     rowIndex: 1
-    xPosition: 19
-  - coverId: cover_barrel
+    xPosition: 20
+  - coverId: cover_trough
     rowIndex: 2
-    xPosition: 4
+    xPosition: 5
   - coverId: cover_wagon
     rowIndex: 2
     xPosition: 12
-  - coverId: cover_barrel
+  - coverId: cover_trough
     rowIndex: 2
-    xPosition: 20
+    xPosition: 19
   hazards:
   - type: 0
-    x: 8
+    mode: 1
+    x: 3
+    y: 12
     rowIndex: 1
     param: 3
   isBossStage: 0

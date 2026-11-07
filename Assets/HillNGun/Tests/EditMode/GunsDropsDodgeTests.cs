@@ -20,12 +20,17 @@ namespace HillNGun.Tests.EditMode
             w.projectileSpeed = 22f; w.range = 7.5f; w.projectileRadius = 0.25f;
             var p = new Projectile();
             p.Initialize(new Vector2(12f, 4.5f), Vector2.up, w, 380, Team.Player);
+            // runtime speed = base 22 x global factor (default 0.8 -> 17.6); range 7.5 unchanged
+            float v = 22f * WeaponData.GlobalProjectileSpeedMul;
             p.Update(0.1f);
-            Assert.AreEqual(4.5f + 2.2f, p.Position.y, 0.001f, "visible travel, not hitscan");
-            Assert.AreEqual(2.2f, p.DistanceTraveled, 0.001f);
+            Assert.AreEqual(4.5f + v * 0.1f, p.Position.y, 0.001f, "visible travel, not hitscan");
+            Assert.AreEqual(v * 0.1f, p.DistanceTraveled, 0.001f);
             Assert.IsTrue(p.IsActive);
-            for (int i = 0; i < 3; i++) p.Update(0.1f);
-            Assert.IsFalse(p.IsActive, "gone after range / speed = 0.34 s");
+            int steps = Mathf.CeilToInt(7.5f / v / 0.1f) - 1;
+            for (int i = 0; i < steps - 1; i++) p.Update(0.1f);
+            Assert.IsTrue(p.IsActive, "still flying just before range / effective speed");
+            p.Update(0.1f);
+            Assert.IsFalse(p.IsActive, "gone after range / effective speed (0.43 s at x0.8)");
             Object.DestroyImmediate(w);
         }
     }

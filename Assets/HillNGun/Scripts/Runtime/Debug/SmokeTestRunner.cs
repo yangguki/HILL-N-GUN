@@ -379,6 +379,7 @@ namespace HillNGun.DebugTools
                 var sb = new System.Text.StringBuilder();
                 foreach (var kv in _sceneMax) sb.Append(kv.Key).Append('=').Append(kv.Value).Append(' ');
                 Debug.Log($"[SmokeTest] PERF sceneMax: {sb}");
+                Debug.Log($"[SmokeTest] PERF vfx: impactParticlesPeak={HillNGun.Feel.VfxPool.PeakLiveParticles} (cap {HillNGun.Feel.VfxPool.MaxLiveParticles}) cappedSpawns={HillNGun.Feel.VfxPool.CappedSpawns} stageVisualApplies={HillNGun.Battlefield.BattlefieldRenderer.VisualApplyCount}");
                 if (_playN > 0)
                     Debug.Log($"[SmokeTest] PERF gameplay: drawCalls avg={_playSum / (double)_playN:F0} p95<={Percentile(_playHist, 0.95)} p99<={Percentile(_playHist, 0.99)} max={_playMax} setPass avg={_playSetPassSum / (double)_playN:F0} frames={_playN}");
             }
@@ -859,7 +860,10 @@ namespace HillNGun.DebugTools
                     if (_fullPvP)
                     {
                         var rules = RuntimeAssetManager.Instance?.MatchRules;
-                        if (rules != null)
+                        // 12 §8 P0: optional PvP systems stay at their data default (OFF) unless explicitly asked
+                        bool forceOptional = Array.Exists(Environment.GetCommandLineArgs(), a => a.Equals("-smoketest-pvp-optional", StringComparison.OrdinalIgnoreCase));
+                        if (!forceOptional) Debug.Log($"[SmokeTest] PvP optional systems at data default: supply={rules?.supplyCrateEnabled} lateDecay={rules?.lateCoverDecayEnabled} (pass -smoketest-pvp-optional to force on)");
+                        if (rules != null && forceOptional)
                         {
                             // TEST: proposals (04 B-4) default off; force on so the run verifies them.
                             rules.supplyCrateEnabled = true;

@@ -55,7 +55,7 @@ namespace HillNGun.Feel
             if (_instance == this) _instance = null;
         }
 
-        private static readonly Dictionary<Sprite, Vector2> _measureCache = new Dictionary<Sprite, Vector2>();
+        private static readonly Dictionary<Sprite, Vector3> _measureCache = new Dictionary<Sprite, Vector3>();
 
         /// <summary>
         /// Opaque-area foot line (local Y, sprite space) and opaque width, measured once per sprite.
@@ -66,10 +66,25 @@ namespace HillNGun.Feel
             footY = fallbackFoot; width = fallbackWidth;
             if (s == null || !Data.autoFootFromSprite) return;
             if (_measureCache.TryGetValue(s, out var cached)) { footY = cached.x; width = cached.y; return; }
+            Measure(s, ref footY, ref width, out _);
+        }
+
+        /// <summary>Opaque top (head) line in local sprite units; used to hang name labels / bars above enlarged bodies.</summary>
+        public static float MeasureTop(Sprite s, float fallbackTop)
+        {
+            if (s == null) return fallbackTop;
+            if (_measureCache.TryGetValue(s, out var cached)) return float.IsNaN(cached.z) ? fallbackTop : cached.z;
+            float f = 0f, w = 0f;
+            return Measure(s, ref f, ref w, out float top) ? top : fallbackTop;
+        }
+
+        private static bool Measure(Sprite s, ref float footY, ref float width, out float topY)
+        {
+            topY = float.NaN;
             try
             {
                 var tex = s.texture;
-                if (tex == null || !tex.isReadable) return;
+                if (tex == null || !tex.isReadable) return false;
                 Rect r = s.textureRect;
                 int x0 = Mathf.FloorToInt(r.x), y0 = Mathf.FloorToInt(r.y), w = Mathf.FloorToInt(r.width), h = Mathf.FloorToInt(r.height);
                 var px = tex.GetPixels(x0, y0, w, h);
@@ -88,15 +103,18 @@ namespace HillNGun.Feel
                     }
                     if (cnt > 2) { if (minRow < 0) minRow = y; maxRow = y; }
                 }
-                if (minRow < 0 || maxX < minX) return;
+                if (minRow < 0 || maxX < minX) return false;
                 float ppu = s.pixelsPerUnit;
                 float opaqueH = maxRow - minRow;
                 float pivotY = s.pivot.y; // pixels from rect bottom
-                footY = (minRow + opaqueH * Data.footInset - pivotY) / ppu;
-                width = (maxX - minX) / ppu;
-                _measureCache[s] = new Vector2(footY, width);
+                float fy = (minRow + opaqueH * Data.footInset - pivotY) / ppu;
+                float wd = (maxX - minX) / ppu;
+                topY = (maxRow - pivotY) / ppu;
+                _measureCache[s] = new Vector3(fy, wd, topY);
+                if (Data.autoFootFromSprite) { footY = fy; width = wd; }
+                return true;
             }
-            catch (System.Exception) { }
+            catch (System.Exception) { return false; }
         }
 
         /// <summary>Soft elliptical drop shadow (radial falloff), white so it can be tinted.</summary>

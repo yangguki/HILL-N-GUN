@@ -35,6 +35,7 @@ namespace HillNGun.Characters
         private float _rollDustTimer;
         public SpriteRenderer BodyRenderer => _bodyRenderer;
         private float _footY = -0.85f;
+        private float _headTop = 0.85f;
         private float _facingHold;
 
         // 3D actor view (Actor3DData.useActor3D); sprite body stays as hidden fallback
@@ -223,8 +224,9 @@ namespace HillNGun.Characters
 
             var labelGo = new GameObject("NameLabel");
             labelGo.transform.SetParent(transform);
-            labelGo.transform.localPosition = new Vector3(0f, 1.0f, 0f);
-            labelGo.transform.localScale = Vector3.one / Mathf.Max(0.1f, ScalePresets.CharacterMul); // keep name text readable at every scale preset
+            _headTop = MotionFx.MeasureTop(_idleSprite, 0.85f);
+            labelGo.transform.localPosition = new Vector3(0f, _headTop + 0.22f, 0f); // above the (enlarged) head, not inside it
+            labelGo.transform.localScale = Vector3.one / Mathf.Max(0.1f, ScalePresets.VisualMul); // keep name text readable at every scale preset
             _nameLabel = labelGo.AddComponent<TextMesh>();
             _nameLabel.text = character.Data?.id ?? "Player";
             _nameLabel.fontSize = 32;
@@ -347,7 +349,7 @@ namespace HillNGun.Characters
         {
             if (character == null) return;
 
-            FieldView.Place(transform, character.Position, ScalePresets.CharacterMul); // scale preset: body, shadow, foot ring
+            FieldView.Place(transform, character.Position, ScalePresets.VisualMul); // scale preset (view only): body, shadow, foot ring — HitRadius stays on CharacterMul
             Vector3 worldPos = transform.position;
             FieldView.ApplySorting(_bodyRenderer, character.Position.y);
             if (_teamMarker != null) _teamMarker.sortingOrder = FieldView.GroundDecalOrder;
@@ -365,6 +367,49 @@ namespace HillNGun.Characters
             UpdateFlash();
             UpdateStateVisuals(character);
             UpdateStatusBar(character);
+            UpdateFullCoverSilhouette(character);
+        }
+
+        // 12 §4.2: an actor drawn behind a Full cover (wagon / rock) gets a team-tinted silhouette above the cover so
+        // its position, hat and outline stay readable. Labels / HP bars already sit on OverlayOrder above every cover.
+        private SpriteRenderer _silhouette;
+        public bool SilhouetteVisible => _silhouette != null && _silhouette.enabled;
+
+        public static bool IsBehindFullCover(CharacterStateMachine c, System.Collections.Generic.IReadOnlyList<HillNGun.Cover.CoverInstance> covers)
+        {
+            if (c == null || covers == null) return false;
+            float halfW = 0.5f * ScalePresets.VisualMul; // drawn body half-width (approx.)
+            foreach (var cv in covers)
+            {
+                if (cv == null || cv.IsDestroyed || cv.HeightClass != HillNGun.Data.CoverHeightClass.Full) continue;
+                float dy = c.Position.y - cv.Position.y; // cover lower on screen than the actor => drawn on top of it
+                if (dy <= 0f || dy > 1.0f) continue;
+                if (Mathf.Abs(cv.Position.x - c.Position.x) < cv.Width * 0.5f + halfW) return true;
+            }
+            return false;
+        }
+
+        private void UpdateFullCoverSilhouette(CharacterStateMachine c)
+        {
+            if (_bodyRenderer == null) return;
+            var combat = ServiceLocator.Get<HillNGun.Combat.CombatSystem>();
+            bool on = combat != null && c.OverallState != CharacterOverallState.Eliminated && IsBehindFullCover(c, combat.Covers);
+            if (!on) { if (_silhouette != null) _silhouette.enabled = false; return; }
+            if (_silhouette == null)
+            {
+                var go = new GameObject("FullCoverSilhouette");
+                go.transform.SetParent(_bodyRenderer.transform, false);
+                _silhouette = go.AddComponent<SpriteRenderer>();
+                _silhouette.sharedMaterial = _bodyRenderer.sharedMaterial;
+            }
+            _silhouette.enabled = true;
+            _silhouette.sprite = _bodyRenderer.sprite;
+            _silhouette.flipX = _bodyRenderer.flipX;
+            _silhouette.flipY = _bodyRenderer.flipY;
+            Color tint = c.Team == Team.Player ? new Color(0.45f, 0.8f, 1f) : new Color(1f, 0.55f, 0.45f);
+            tint.a = 0.5f;
+            _silhouette.color = tint;
+            _silhouette.sortingOrder = FieldView.OverlayOrder - 40;
         }
 
         /// <summary>View-only motion: facing (aim priority while shooting), walk bounce, lean, squash, hop, roll tumble, afterimages, dust.</summary>
@@ -471,7 +516,7 @@ namespace HillNGun.Characters
 
             const float w = 1.2f, h = 0.16f;
             _barRoot.rotation = Quaternion.identity;
-            _barRoot.position = transform.position + new Vector3(-w * 0.5f, 0.85f, 0f);
+            _barRoot.position = transform.position + new Vector3(-w * 0.5f, (_headTop + 0.1f) * transform.lossyScale.y, 0f);
             _barBg.transform.localScale = new Vector3(w, h, 1f);
             float ratio;
             if (character.ReviveProgress > 0f)

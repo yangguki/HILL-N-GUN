@@ -39,20 +39,22 @@ namespace HillNGun.Data
         {
             if (maxHp <= 0) return CoverStage.Destroyed;
             
+            if (currentHp <= 0) return CoverStage.Destroyed;
+            // 12 §3.1 (제안): continuous bounds >= .67 Intact / >= .34 Cracked / > 0 Damaged / = 0 Destroyed (no 66.5% gap)
+            var r = TerrainRules.Data;
+            float intact = r != null ? r.intactMin : 0.67f, cracked = r != null ? r.crackedMin : 0.34f;
             float ratio = (float)currentHp / maxHp;
-            
-            if (ratio <= 0f) return CoverStage.Destroyed;
-            if (ratio <= 0.33f) return CoverStage.Damaged;
-            if (ratio <= 0.66f) return CoverStage.Cracked;
-            return CoverStage.Intact;
+            if (ratio >= intact - 1e-6f) return CoverStage.Intact;
+            if (ratio >= cracked - 1e-6f) return CoverStage.Cracked;
+            return CoverStage.Damaged;
         }
 
         public float GetStageThreshold(CoverStage stage)
         {
             switch (stage)
             {
-                case CoverStage.Intact: return 0.67f;
-                case CoverStage.Cracked: return 0.34f;
+                case CoverStage.Intact: return TerrainRules.Data != null ? TerrainRules.Data.intactMin : 0.67f;
+                case CoverStage.Cracked: return TerrainRules.Data != null ? TerrainRules.Data.crackedMin : 0.34f;
                 case CoverStage.Damaged: return 0.01f;
                 default: return 0f;
             }

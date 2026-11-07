@@ -226,10 +226,11 @@ namespace HillNGun.PvE
                 if (h == null) continue;
                 if (h.type == HazardType.ExplosiveBarrel)
                 {
-                    float y = field != null ? field.GetOurRowY(h.rowIndex) : 4.5f;
+                    var pos = h.PositionOn(field);
                     var b = new HazardExplosiveBarrel();
-                    b.Initialize(new Vector2(h.x, y), _combat);
-                    b.OnExploded += _ => { BarrelExplosions++; };
+                    b.Initialize(pos, _combat, $"{_currentStage.id}:barrel:{pos.x:0.#},{pos.y:0.#}");
+                    // 1-3 star: count UNIQUE exploded barrel ids (a barrel explodes at most once)
+                    b.OnExploded += eb => { if (_explodedBarrelIds.Add(eb.InstanceId)) BarrelExplosions = _explodedBarrelIds.Count; };
                     _hazards.Add(b);
                 }
                 else if (h.type == HazardType.TrainPass)
@@ -239,8 +240,13 @@ namespace HillNGun.PvE
             }
         }
 
+        private readonly System.Collections.Generic.HashSet<string> _explodedBarrelIds = new System.Collections.Generic.HashSet<string>();
+        public System.Collections.Generic.IReadOnlyList<HillNGun.Combat.HazardExplosiveBarrel> Hazards => _hazards;
+
         private void ClearHazards()
         {
+            _explodedBarrelIds.Clear();
+            _combat?.ClearArmedHazards();
             foreach (var h in _hazards)
                 if (h != null && !h.Exploded) _combat?.UnregisterCombatTarget(h);
             _hazards.Clear();
@@ -876,7 +882,7 @@ namespace HillNGun.PvE
             if (_combat == null || enemy?.Data == null) return;
             var d = enemy.Data;
             float speed = d.attackRange / Mathf.Max(0.1f, d.explosiveFlightTime);
-            _combat.SpawnEnemyProjectile(enemy.Position + direction * 0.6f, direction, speed, d.explosiveRadius * 0.25f, damage, d.attackRange, Team.Enemy);
+            _combat.SpawnEnemyProjectile(enemy.Position + direction * 0.6f, direction, speed, d.explosiveRadius * 0.25f, damage, d.attackRange, Team.Enemy, 1f, applyGlobalSpeedMul: false); // thrown dynamite: fixed flight time, NOT bullet-speed scaled
         }
 
         private void HandleBossDefeated(BossInstance boss)

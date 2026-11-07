@@ -9,6 +9,7 @@ namespace HillNGun.PvE
 {
     public class BossView : MonoBehaviour
     {
+        private float _headTop = 1.4f;
         private BossInstance _boss;
         private SpriteRenderer _spriteRenderer;
         private SpriteRenderer _hpBarBg;
@@ -73,7 +74,8 @@ namespace HillNGun.PvE
 
             var labelGo = new GameObject("Label");
             labelGo.transform.SetParent(transform);
-            labelGo.transform.localPosition = new Vector3(0f, 2f, 0f);
+            _headTop = MotionFx.MeasureTop(bossSprite, 1.4f);
+            labelGo.transform.localPosition = new Vector3(0f, _headTop + 0.12f, 0f);
             _nameLabel = labelGo.AddComponent<TextMesh>();
             var loc = ServiceLocator.Get<HillNGun.UI.LocalizationManager>();
             string key = _boss.Data?.nameKey;
@@ -104,7 +106,7 @@ namespace HillNGun.PvE
         {
             var bgGo = new GameObject("HpBarBg");
             bgGo.transform.SetParent(transform);
-            bgGo.transform.localPosition = new Vector3(0f, 2.5f, 0f);
+            bgGo.transform.localPosition = new Vector3(0f, _headTop + 0.32f, 0f);
             _hpBarBg = bgGo.AddComponent<SpriteRenderer>();
             _hpBarBg.sprite = CreateBarSprite();
             _hpBarBg.color = new Color(0.2f, 0.2f, 0.2f);
@@ -216,7 +218,7 @@ namespace HillNGun.PvE
 
         private void UpdatePosition()
         {
-            FieldView.Place(transform, _boss.Position, 2f * ScalePresets.CharacterMul);
+            FieldView.Place(transform, _boss.Position, 2f * ScalePresets.VisualMul); // boss special ratio (2x) preserved on the visual scale
             FieldView.ApplySorting(_spriteRenderer, _boss.Position.y);
             UpdateMotion();
             if (_hpBarBg != null) _hpBarBg.sortingOrder = FieldView.OverlayOrder;

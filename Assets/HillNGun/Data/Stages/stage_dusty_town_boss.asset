@@ -40,39 +40,43 @@ MonoBehaviour:
   coverPlacements:
   - coverId: cover_swing_door
     rowIndex: 0
-    xPosition: 5
+    xPosition: 6
   - coverId: cover_swing_door
     rowIndex: 0
-    xPosition: 19
+    xPosition: 18
+  - coverId: cover_rock
+    rowIndex: 1
+    xPosition: 1.5
   - coverId: cover_barrel
     rowIndex: 1
-    xPosition: 7
+    xPosition: 6
   - coverId: cover_barrel
     rowIndex: 1
-    xPosition: 17
+    xPosition: 18
+  - coverId: cover_rock
+    rowIndex: 1
+    xPosition: 22.5
   - coverId: cover_trough
     rowIndex: 2
-    xPosition: 6
+    xPosition: 5
   - coverId: cover_wagon
     rowIndex: 2
     xPosition: 12
   - coverId: cover_trough
     rowIndex: 2
-    xPosition: 18
-  - coverId: cover_rock
-    rowIndex: 2
-    xPosition: 2
-  - coverId: cover_rock
-    rowIndex: 2
-    xPosition: 22
+    xPosition: 19
   hazards:
   - type: 0
-    x: 9
-    rowIndex: 2
+    mode: 1
+    x: 3
+    y: 12
+    rowIndex: 1
     param: 3
   - type: 0
-    x: 15
-    rowIndex: 2
+    mode: 1
+    x: 21
+    y: 12
+    rowIndex: 1
     param: 3
   isBossStage: 1
   bossData: {fileID: 11400000, guid: ae19e24f479db459d9347e22c20670e9, type: 2}

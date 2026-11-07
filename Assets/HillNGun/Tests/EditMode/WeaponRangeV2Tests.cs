@@ -78,9 +78,11 @@ namespace HillNGun.Tests.EditMode
         {
             foreach (var w in new[] { Buster(), Raven(), Volt() })
             {
-                float expected = w.range / w.projectileSpeed;
-                Assert.AreEqual(expected, w.EffectiveLifetime, 0.02f, w.id);
-                Assert.AreEqual(w.projectileLifetime, w.EffectiveLifetime, 0.02f, w.id + " explicit lifetime");
+                // authored lifetime = range / BASE speed; runtime lifetime = range / (base x global factor 0.8)
+                Assert.AreEqual(w.range / w.projectileSpeed, w.projectileLifetime, 0.02f, w.id + " authored base lifetime");
+                float expected = w.range / (w.projectileSpeed * WeaponData.GlobalProjectileSpeedMul);
+                Assert.AreEqual(expected, w.EffectiveLifetime, 1e-4f, w.id);
+                Assert.AreEqual(w.projectileLifetime / WeaponData.GlobalProjectileSpeedMul, w.EffectiveLifetime, 0.03f, w.id + " explicit lifetime / mul");
                 Object.DestroyImmediate(w);
             }
         }

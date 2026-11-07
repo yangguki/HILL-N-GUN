@@ -156,6 +156,8 @@ namespace HillNGun.PvP
             _stylesInitialized = true;
         }
 
+        private GUIStyle _scoreTint, _timerTint, _nameTint;
+
         private void OnGUI()
         {
             if (HillNGun.DebugTools.SmokeTestRunner.NoGui) return;
@@ -186,15 +188,14 @@ namespace HillNGun.PvP
             Color playerColor = new Color(0.4f, 0.6f, 0.8f);
             Color enemyColor = new Color(0.8f, 0.4f, 0.4f);
 
-            GUIStyle playerStyle = new GUIStyle(_scoreStyle);
+            var playerStyle = _scoreTint ??= new GUIStyle(_scoreStyle); // cached (perf pass: no per-frame GUIStyle allocs)
             playerStyle.normal.textColor = playerColor;
             GUI.Label(new Rect(centerX - 100f, y, 60f, 60f), _matchManager.PlayerRoundsWon.ToString(), playerStyle);
 
             GUI.Label(new Rect(centerX - 20f, y, 40f, 60f), "-", _scoreStyle);
 
-            GUIStyle enemyStyle = new GUIStyle(_scoreStyle);
-            enemyStyle.normal.textColor = enemyColor;
-            GUI.Label(new Rect(centerX + 40f, y, 60f, 60f), _matchManager.EnemyRoundsWon.ToString(), enemyStyle);
+            playerStyle.normal.textColor = enemyColor;
+            GUI.Label(new Rect(centerX + 40f, y, 60f, 60f), _matchManager.EnemyRoundsWon.ToString(), playerStyle);
 
             string roundText = $"{GetLocalizedString("pvp.ui.round", "라운드")} {_matchManager.CurrentRound}";
             _teamLabelStyle.alignment = TextAnchor.MiddleCenter;
@@ -213,7 +214,7 @@ namespace HillNGun.PvP
                 ? new Color(1f, 0.4f, 0.3f) 
                 : new Color(1f, 0.9f, 0.7f);
 
-            GUIStyle style = new GUIStyle(_timerStyle);
+            var style = _timerTint ??= new GUIStyle(_timerStyle);
             style.normal.textColor = timerColor;
 
             string timeText = seconds.ToString();
@@ -257,7 +258,8 @@ namespace HillNGun.PvP
                 bool isDowned = character.OverallState == CharacterOverallState.Downed ||
                                character.OverallState == CharacterOverallState.BeingRevived;
 
-                GUIStyle style = new GUIStyle(_playerNameStyle);
+                var style = _nameTint ??= new GUIStyle(_playerNameStyle);
+                style.normal.textColor = _playerNameStyle.normal.textColor;
                 if (!isAlive && !isDowned)
                 {
                     style.normal.textColor = new Color(0.5f, 0.4f, 0.4f);

@@ -6,6 +6,32 @@ namespace HillNGun.Data
     [CreateAssetMenu(fileName = "WeaponData", menuName = "HillNGun/Data/Weapon")]
     public class WeaponData : ScriptableObject
     {
+        // ---- Global projectile speed (12_terrain_props §1): ONE authoritative runtime factor --------------------
+        /// <summary>Default global bullet-speed factor: every direct projectile (player / ally / enemy / boss) flies at base x 0.8.</summary>
+        public const float DefaultGlobalProjectileSpeedMul = 0.8f;
+        /// <summary>Debug selector values (pause menu).</summary>
+        public static readonly float[] GlobalProjectileSpeedMulOptions = { 0.7f, 0.8f, 1.0f };
+        private static float _globalProjectileSpeedMul = DefaultGlobalProjectileSpeedMul;
+        /// <summary>
+        /// Shared runtime factor applied exactly once when a projectile is spawned (Projectile.Initialize / InitializeSimple).
+        /// Asset speeds stay base values; range is unchanged, so lifetime = range / (base x mul). Grenades / thrown dynamite
+        /// do not read it (parabolic flight time unchanged). Not saved: each launch starts at the default.
+        /// </summary>
+        public static float GlobalProjectileSpeedMul
+        {
+            get => _globalProjectileSpeedMul;
+            set => _globalProjectileSpeedMul = Mathf.Clamp(value, 0.1f, 2f);
+        }
+        public static void ResetGlobalProjectileSpeedMul() => _globalProjectileSpeedMul = DefaultGlobalProjectileSpeedMul;
+        /// <summary>Runtime speed for a base (asset) speed.</summary>
+        public static float GlobalSpeed(float baseSpeed) => baseSpeed * _globalProjectileSpeedMul;
+        /// <summary>Range-preserving lifetime for a base speed under the current global factor.</summary>
+        public static float LifetimeFor(float range, float baseSpeed)
+        {
+            float v = GlobalSpeed(baseSpeed);
+            return v > 0.0001f ? range / v : 0f;
+        }
+
         [Header("Identification")]
         public string id;
         [Tooltip("Localized display name key (shop / loadout)")]
@@ -98,10 +124,15 @@ namespace HillNGun.Data
 
         public float TimeToReachMaxRange => EffectiveLifetime;
 
-        /// <summary>Lifetime used for travel; 0 field means range/speed.</summary>
+        /// <summary>Runtime projectile speed = base asset speed x global factor (applied once at spawn).</summary>
+        public float EffectiveProjectileSpeed => GlobalSpeed(projectileSpeed);
+
+        /// <summary>
+        /// Lifetime used for travel = range / effective speed (range preserved under the global speed factor).
+        /// projectileLifetime is the authored base-speed value (range / base speed) and is only a fallback when speed is 0.
+        /// </summary>
         public float EffectiveLifetime =>
-            projectileLifetime > 0.0001f ? projectileLifetime
-            : (projectileSpeed > 0.0001f ? range / projectileSpeed : 0f);
+            projectileSpeed > 0.0001f ? LifetimeFor(range, projectileSpeed) : projectileLifetime;
 
         /// <summary>Damage multiplier by distance travelled (linear falloff after damageFalloffStart).</summary>
         public float GetDamageMultiplierAtDistance(float distance)

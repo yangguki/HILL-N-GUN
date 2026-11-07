@@ -9,7 +9,12 @@ namespace HillNGun.Combat
     {
         public Vector2 Position { get; private set; }
         public Vector2 Direction { get; private set; }
+        /// <summary>Runtime speed (base x WeaponData.GlobalProjectileSpeedMul, fixed at spawn).</summary>
         public float Speed { get; private set; }
+        /// <summary>Base (asset) speed before the global factor.</summary>
+        public float BaseSpeed { get; private set; }
+        /// <summary>Range-limited lifetime of this projectile = Range / Speed (recomputed per projectile).</summary>
+        public float Lifetime => Speed > 0.0001f ? Range / Speed : 0f;
         public float Radius { get; private set; }
         public int Damage { get; private set; }
         public float Range { get; private set; }
@@ -72,7 +77,8 @@ namespace HillNGun.Combat
             Position = startPos;
             _startPosition = startPos;
             Direction = direction.normalized;
-            Speed = weapon.projectileSpeed;
+            BaseSpeed = weapon.projectileSpeed;
+            Speed = weapon.EffectiveProjectileSpeed; // global factor applied once, here
             Radius = weapon.projectileRadius;
             Damage = damage;
             Range = weapon.range;
@@ -82,16 +88,20 @@ namespace HillNGun.Combat
             OwnerTeam = team;
             _distanceTraveled = 0f;
             _piercesRemaining = pierces;
+            LastPiercedCover = null;
             ClearModifiers();
             IsActive = true;
         }
 
-        public void InitializeSimple(Vector2 startPos, Vector2 direction, float speed, float radius, int damage, float range, Team team)
+        /// <param name="speed">BASE speed (data value). The global factor is applied here once unless applyGlobalSpeedMul is false
+        /// (thrown dynamite, whose speed is derived from a fixed flight time).</param>
+        public void InitializeSimple(Vector2 startPos, Vector2 direction, float speed, float radius, int damage, float range, Team team, bool applyGlobalSpeedMul = true)
         {
             Position = startPos;
             _startPosition = startPos;
             Direction = direction.normalized;
-            Speed = speed;
+            BaseSpeed = speed;
+            Speed = applyGlobalSpeedMul ? WeaponData.GlobalSpeed(speed) : speed;
             Radius = radius;
             Damage = damage;
             Range = range;
@@ -101,6 +111,7 @@ namespace HillNGun.Combat
             OwnerTeam = team;
             _distanceTraveled = 0f;
             _piercesRemaining = 0;
+            LastPiercedCover = null;
             ClearModifiers();
             IsActive = true;
         }
@@ -157,10 +168,20 @@ namespace HillNGun.Combat
             );
         }
 
-        public void OnHitCover()
+        /// <summary>Cover just pierced (skipped by the collision pass so the same cover is not hit twice).</summary>
+        public object LastPiercedCover { get; private set; }
+
+        public void OnHitCover() => OnHitCover(null);
+
+        /// <summary>
+        /// Pierce: first cover takes damage and is passed (damage x afterPierceMul), the next one stops it. Indestructible
+        /// rock: TakeDamage is ignored (0) but the pierce is still consumed (12 §3.1 제안 — same as existing behaviour).
+        /// </summary>
+        public void OnHitCover(object cover)
         {
             if (_piercesRemaining > 0)
             {
+                LastPiercedCover = cover;
                 _piercesRemaining--;
                 Damage = Mathf.RoundToInt(Damage * AfterPierceMul);
             }

@@ -51,6 +51,12 @@ namespace HillNGun.Tests.EditMode
             Assert.IsFalse(b.Exploded);
             Assert.IsTrue(b.Cracked);
             b.ReceiveHit(200, Vector2.up);
+            // 12 §6.1: 400 accumulated arms the barrel; it explodes after the 0.4 s warning
+            Assert.IsTrue(b.Armed);
+            Assert.IsFalse(b.Exploded);
+            b.Tick(0.39f);
+            Assert.IsFalse(b.Exploded);
+            b.Tick(0.02f);
             Assert.IsTrue(b.Exploded);
             Assert.AreEqual(HazardExplosiveBarrel.CenterDamage, 700);
             Assert.AreEqual(HazardExplosiveBarrel.EdgeDamage, 350);
@@ -59,6 +65,8 @@ namespace HillNGun.Tests.EditMode
             var b2 = new HazardExplosiveBarrel();
             b2.Initialize(Vector2.one, null);
             b2.TriggerByGrenade();
+            Assert.IsTrue(b2.Armed);
+            b2.Tick(0.41f);
             Assert.IsTrue(b2.Exploded);
         }
 

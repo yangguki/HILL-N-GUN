@@ -38,35 +38,47 @@ MonoBehaviour:
   boundaryMinX: 0.5
   boundaryMaxX: 23.5
   covers:
-  - coverId: cover_barrel
-    rowIndex: 0
-    xPosition: 4
-  - coverId: cover_trough
-    rowIndex: 0
-    xPosition: 12
-  - coverId: cover_barrel
-    rowIndex: 0
-    xPosition: 20
-  - coverId: cover_swing_door
-    rowIndex: 1
-    xPosition: 6
   - coverId: cover_wagon
-    rowIndex: 1
-    xPosition: 12
-  - coverId: cover_swing_door
-    rowIndex: 1
-    xPosition: 18
-  - coverId: cover_barrel
-    rowIndex: 2
+    rowIndex: 0
     xPosition: 3
   - coverId: cover_trough
-    rowIndex: 2
-    xPosition: 9
+    rowIndex: 0
+    xPosition: 8
   - coverId: cover_trough
-    rowIndex: 2
-    xPosition: 15
+    rowIndex: 0
+    xPosition: 16
+  - coverId: cover_wagon
+    rowIndex: 0
+    xPosition: 21
+  - coverId: cover_swing_door
+    rowIndex: 1
+    xPosition: 3
+  - coverId: cover_wagon
+    rowIndex: 1
+    xPosition: 8
+  - coverId: cover_wagon
+    rowIndex: 1
+    xPosition: 16
+  - coverId: cover_swing_door
+    rowIndex: 1
+    xPosition: 21
   - coverId: cover_barrel
     rowIndex: 2
-    xPosition: 21
+    xPosition: 2.5
+  - coverId: cover_barrel
+    rowIndex: 2
+    xPosition: 3.8
+  - coverId: cover_hay
+    rowIndex: 2
+    xPosition: 8
+  - coverId: cover_hay
+    rowIndex: 2
+    xPosition: 16
+  - coverId: cover_barrel
+    rowIndex: 2
+    xPosition: 20.2
+  - coverId: cover_barrel
+    rowIndex: 2
+    xPosition: 21.5
   spawnCoversInPvE: 1
   mirrorCoversToEnemySideInPvP: 1

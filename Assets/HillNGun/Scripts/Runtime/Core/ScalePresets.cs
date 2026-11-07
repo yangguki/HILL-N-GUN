@@ -48,6 +48,7 @@ namespace HillNGun.Core
             _loaded = data != null; // null = back to the Resources asset on next access
             _current = data != null && data.HasOption(option) ? option : (data != null ? data.defaultOption : -1);
             _mulFor = int.MinValue;
+            _vmulFor = int.MinValue;
         }
 
         public static int CliOverride
@@ -89,7 +90,10 @@ namespace HillNGun.Core
 
         // ------------------------------------------------------------ derived values (current option)
 
-        /// <summary>Uniform multiplier for every character / enemy / boss view and hit radius (1 = previous build).</summary>
+        /// <summary>
+        /// GAMEPLAY multiplier (hit radius, cover footprint, protection) from <see cref="ScalePresetOption.characterHeightFrac"/>.
+        /// Views must use <see cref="VisualMul"/>: enlarging the drawn actor never changes collision.
+        /// </summary>
         public static float CharacterMul
         {
             get
@@ -101,6 +105,22 @@ namespace HillNGun.Core
         }
         private static float _mul = 1f;
         private static int _mulFor = int.MinValue;
+
+        /// <summary>VIEW multiplier for every character / enemy / boss sprite, label offset and muzzle (drawn height only).</summary>
+        public static float VisualMul
+        {
+            get
+            {
+                int cur = Current;
+                if (_vmulFor != cur) { _vmul = VisualMulFor(Data, CurrentOption); _vmulFor = cur; }
+                return _vmul;
+            }
+        }
+        private static float _vmul = 1f;
+        private static int _vmulFor = int.MinValue;
+
+        /// <summary>Drawn character height in world units (perspective 1 = front row).</summary>
+        public static float VisualHeightWorld => VisualHeightWorldFor(Data, CurrentOption);
 
         /// <summary>Character height H in world units (perspective 1).</summary>
         public static float CharacterHeightWorld => HeightWorldFor(Data, CurrentOption);
@@ -136,6 +156,15 @@ namespace HillNGun.Core
         public static float HeightWorldFor(ScalePresetData d, ScalePresetOption o)
             => d == null || o == null ? 0f : o.characterHeightFrac * d.screenHeightWorld;
 
+        public static float VisualMulFor(ScalePresetData d, ScalePresetOption o)
+        {
+            if (d == null || o == null || d.baselineCharacterHeightFrac <= 0f) return 1f;
+            return o.VisualHeightFrac / d.baselineCharacterHeightFrac;
+        }
+
+        public static float VisualHeightWorldFor(ScalePresetData d, ScalePresetOption o)
+            => d == null || o == null ? 0f : o.VisualHeightFrac * d.screenHeightWorld;
+
         /// <summary>Hurt diameter (tiles) of a reference character (hitRadius = referenceHurtRadius) under the option.</summary>
         public static float HurtDiameterFor(ScalePresetData d, ScalePresetOption o)
             => d == null ? 1f : 2f * d.referenceHurtRadius * CharacterMulFor(d, o);
@@ -152,8 +181,8 @@ namespace HillNGun.Core
             if (e == null)
             {
                 // class not sized by this option: shrink with the characters, keep proportions
-                r.visualWidth = dataWidth * mul;
-                r.logicWidth = Mathf.Max(r.visualWidth, minW);
+                r.visualWidth = dataWidth * VisualMulFor(d, o);
+                r.logicWidth = Mathf.Max(dataWidth * mul, minW); // gameplay scale only
                 return r;
             }
             float h = HeightWorldFor(d, o);
@@ -163,8 +192,11 @@ namespace HillNGun.Core
             // Visual mul (기획 v4 1.3) enlarges the drawn sprite; footprint width mul (1.15) only widens the hit/protection box.
             float vMul = d.coverVisualMul > 0f ? d.coverVisualMul : 1f;
             float fMul = d.coverFootprintWidthMul > 0f ? d.coverFootprintWidthMul : 1f;
+            // Width: gameplay H (drawn width tracks the footprint, 12 §3). Height: drawn actor H x per-type ratio (12 §4 proposal).
+            float hv = VisualHeightWorldFor(d, o);
+            float ofActor = d.CoverHeightOfActor(r.type);
             r.visualWidth = baseW * vMul;
-            r.visualHeight = baseH * vMul;
+            r.visualHeight = ofActor > 0f ? ofActor * hv : e.heightH * hv * vMul;
             r.logicWidth = Mathf.Max(baseW * fMul, minW);
             return r;
         }
@@ -179,6 +211,7 @@ namespace HillNGun.Core
             bool changed = number != Current;
             _current = number;
             _mulFor = int.MinValue;
+            _vmulFor = int.MinValue;
             if (persist)
             {
                 try

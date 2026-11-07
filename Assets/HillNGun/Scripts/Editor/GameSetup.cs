@@ -509,17 +509,18 @@ namespace HillNGun.Editor
             stage1_1.enemyRowsY = new float[] { 11f, 13.5f, 16f };
             // covers: back 2 / mid 3 / front 3, wagon front-center
             stage1_1.coverPlacements = new CoverPlacement[] {
-                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 6f },
-                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 18f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 5f },
+                // 12_terrain_props §5.3 제안 A (개수·HP·폭 보존) — 실제 권위는 StageData 에셋
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 0, xPosition = 6f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 0, xPosition = 18f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 4f },
                 new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 12f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 19f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 4f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 20f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 5f },
                 new CoverPlacement { coverId = "cover_wagon", rowIndex = 2, xPosition = 12f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 20f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 19f },
             };
             stage1_1.hazards = new HazardPlacement[] {
-                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 8f, rowIndex = 1 },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, mode = PlacementMode.Free, x = 3f, y = 12f },
             };
             stage1_1.waves = new WaveDefinition[] {
                 new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 5.0f, waitForClear = true,
@@ -553,20 +554,21 @@ namespace HillNGun.Editor
             stage1_2.themeId = "canyon_pass";
             stage1_2.enemyRowsY = new float[] { 11f, 13.5f, 16f };
             stage1_2.coverPlacements = new CoverPlacement[] {
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 0, xPosition = 4f },
+                // 12_terrain_props §5.3 제안 A (개수·HP·폭 보존) — 실제 권위는 StageData 에셋
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 0, xPosition = 4f },
                 new CoverPlacement { coverId = "cover_trough", rowIndex = 0, xPosition = 12f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 0, xPosition = 20f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 5f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 10f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 14f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 19f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 6f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 0, xPosition = 20f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 3f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 8f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 16f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 21f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 4f },
                 new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 12f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 18f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 20f },
             };
             stage1_2.hazards = new HazardPlacement[] {
-                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 7f, rowIndex = 1 },
-                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 17f, rowIndex = 2 },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, mode = PlacementMode.Free, x = 3f, y = 12f },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, mode = PlacementMode.Free, x = 21f, y = 15f },
             };
             stage1_2.waves = new WaveDefinition[] {
                 new WaveDefinition { waveNumber = 0, paceTag = "intro", delayBeforeWave = 1f, nextWaveDelay = 4f, waitForClear = true,
@@ -607,20 +609,21 @@ namespace HillNGun.Editor
             stage1_3.themeId = "rail_station";
             stage1_3.enemyRowsY = new float[] { 11f, 13.5f, 16f };
             stage1_3.coverPlacements = new CoverPlacement[] {
-                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 5f },
-                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 19f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 6f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 12f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 18f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 4f },
-                new CoverPlacement { coverId = "cover_wagon", rowIndex = 2, xPosition = 12f },
+                // 12_terrain_props §5.3 제안 A (개수·HP·폭 보존) — 실제 권위는 StageData 에셋
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 0, xPosition = 6f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 0, xPosition = 18f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 4f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 12f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 20f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 3f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 8f },
                 new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 16f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 20f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 2, xPosition = 21f },
             };
             stage1_3.hazards = new HazardPlacement[] {
-                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 7f, rowIndex = 1 },
-                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 15f, rowIndex = 2 },
-                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 10f, rowIndex = 2 },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, mode = PlacementMode.Free, x = 3f, y = 12f },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, mode = PlacementMode.Free, x = 12f, y = 14f },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, mode = PlacementMode.Free, x = 21f, y = 12f },
                 new HazardPlacement { type = HazardType.TrainPass, x = 12f, rowIndex = 2, param = 3f },
             };
             stage1_3.waves = new WaveDefinition[] {
@@ -876,19 +879,20 @@ namespace HillNGun.Editor
             bossStage.enemyRowsY = new float[] { 11f, 13.5f, 16f };
             // 06 §7-4: wagon+troughs front, barrels mid, doors back, rocks L/R fixed
             bossStage.coverPlacements = new CoverPlacement[] {
-                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 5f },
-                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 19f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 7f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 17f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 6f },
+                // 12_terrain_props §5.3 제안 A (개수·HP·폭 보존) — 실제 권위는 StageData 에셋
+                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 6f },
+                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 0, xPosition = 18f },
+                new CoverPlacement { coverId = "cover_rock", rowIndex = 1, xPosition = 1.5f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 6f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 1, xPosition = 18f },
+                new CoverPlacement { coverId = "cover_rock", rowIndex = 1, xPosition = 22.5f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 5f },
                 new CoverPlacement { coverId = "cover_wagon", rowIndex = 2, xPosition = 12f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 18f },
-                new CoverPlacement { coverId = "cover_rock", rowIndex = 2, xPosition = 2f },
-                new CoverPlacement { coverId = "cover_rock", rowIndex = 2, xPosition = 22f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 19f },
             };
             bossStage.hazards = new HazardPlacement[] {
-                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 9f, rowIndex = 2 },
-                new HazardPlacement { type = HazardType.ExplosiveBarrel, x = 15f, rowIndex = 2 },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, mode = PlacementMode.Free, x = 3f, y = 12f },
+                new HazardPlacement { type = HazardType.ExplosiveBarrel, mode = PlacementMode.Free, x = 21f, y = 12f },
             };
             EditorUtility.SetDirty(bossStage);
         }

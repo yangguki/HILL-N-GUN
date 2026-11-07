@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: cover_hay
   nameKey: cover.hay.name
-  maxHp: 1200
-  width: 1
+  maxHp: 1000
+  width: 1.5
   depth: 0.5
   stages: 4
   repairable: 1

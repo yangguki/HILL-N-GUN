@@ -96,7 +96,8 @@ namespace HillNGun.DebugTools
             {
                 var b = new HazardExplosiveBarrel();
                 b.Initialize(new Vector2(12f, 9f), combat);
-                b.TriggerByGrenade();
+                b.TriggerByGrenade(); // arms (0.4 s warning, 12 §6.1)
+                b.Tick(TerrainRules.Data.barrelWarningSec + 0.01f); // finish the warning even if timeScale is 0 here
                 yield return new WaitForSecondsRealtime(0.45f);
                 yield return Shot("03_barrel_explode");
             }

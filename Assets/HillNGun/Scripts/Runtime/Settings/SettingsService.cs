@@ -24,6 +24,11 @@ namespace HillNGun.Settings
         public bool tutorialDone;
         /// <summary>Scale A/B test (ScalePresetData option 1/2/3); 0 = data default.</summary>
         public int scalePreset;
+        /// <summary>
+        /// Scale-preset schema the saved <see cref="scalePreset"/> belongs to. 0/1 = old 10/9/8% presets (default 3);
+        /// 2 = 14/13/12% visual presets (default 2). Missing in old JSON -> 0 -> migrated once on load.
+        /// </summary>
+        public int scalePresetSchema;
     }
 
     /// <summary>Loads, applies and saves SettingsData. Applies to audio, feel (shake/vibration), input scale and language.</summary>
@@ -72,7 +77,8 @@ namespace HillNGun.Settings
         public void Load()
         {
             Data = null;
-            if (_storage.TryRead(out string json))
+            bool hadFile = _storage.TryRead(out string json);
+            if (hadFile)
             {
                 try { Data = JsonUtility.FromJson<SettingsData>(json); }
                 catch (Exception e) { Debug.LogWarning($"[Settings] Corrupt settings, using defaults: {e.Message}"); }
@@ -80,6 +86,24 @@ namespace HillNGun.Settings
             if (Data == null) Data = new SettingsData();
             if (Array.IndexOf(Languages, Data.language) < 0) Data.language = "ko";
             Data.buttonSizeIndex = Mathf.Clamp(Data.buttonSizeIndex, 0, 2);
+            // persist the migration only for an existing save (a fresh install keeps writing nothing until the first Commit)
+            if (MigrateScalePreset(Data) && hadFile) Save();
+        }
+
+        public const int CurrentScalePresetSchema = 2;
+
+        /// <summary>
+        /// One-time migration: a stale saved preset from the old 10/9/8% table (usually 3) is reset to 0 = data default
+        /// (option 2 = 13%). Only scalePreset / scalePresetSchema change; volumes, language, tutorial, etc. are kept.
+        /// Progress / skins live in other save files and are never touched. Returns true when Data changed.
+        /// </summary>
+        public static bool MigrateScalePreset(SettingsData d)
+        {
+            if (d == null || d.scalePresetSchema >= CurrentScalePresetSchema) return false;
+            if (d.scalePreset != 0) Debug.Log($"[Settings] scale preset migration: saved option {d.scalePreset} (schema {d.scalePresetSchema}) -> data default");
+            d.scalePreset = 0;
+            d.scalePresetSchema = CurrentScalePresetSchema;
+            return true;
         }
 
         public void Save()

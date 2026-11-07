@@ -88,6 +88,8 @@ namespace HillNGun.Combat
             var bounds = cover.GetBounds();
             EffectsManager.Instance?.SpawnCoverDebris(cover.Position, bounds.width, true);
             if (_system == null) return;
+            // 12 §3 제안: PvP random cover drops off by default (TerrainRulesData.pvpCoverDropsEnabled). PvE keeps its drops.
+            if (_mode == GameMode.PvP && !HillNGun.Core.TerrainRules.Data.pvpCoverDropsEnabled) return;
             var bf = ServiceLocator.Get<BattlefieldSystem>();
             Team to = _mode == GameMode.PvP ? (cover.Team == Team.Player ? Team.Enemy : Team.Player) : Team.Player;
             float y;

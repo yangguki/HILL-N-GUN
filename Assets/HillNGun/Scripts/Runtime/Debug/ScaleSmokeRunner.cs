@@ -51,7 +51,8 @@ namespace HillNGun.DebugTools
         {
             _dir = Path.Combine(Application.persistentDataPath, "scale_smoke");
             Directory.CreateDirectory(_dir);
-            Debug.Log($"[ScaleSmoke] option={ScalePresets.Current} mul={ScalePresets.CharacterMul:F3} H={ScalePresets.CharacterHeightWorld:F2}wu dir={_dir}");
+            HillNGun.Settings.SettingsService.Instance.Data.tutorialDone = true; // in-memory only: clean scale shots without the 1-1 tutorial banner
+            Debug.Log($"[ScaleSmoke] option={ScalePresets.Current} mul={ScalePresets.CharacterMul:F3} visualMul={ScalePresets.VisualMul:F3} H={ScalePresets.CharacterHeightWorld:F2}wu visH={ScalePresets.VisualHeightWorld:F2}wu dir={_dir}");
         }
 
         private void Update()
@@ -83,6 +84,8 @@ namespace HillNGun.DebugTools
                 ScreenCapture.CaptureScreenshot(path);
                 Debug.Log($"[ScaleSmoke] SHOT {path} at stage t={_pve.StageTimer:F1}s");
                 LogCovers();
+                LogActorPixels();
+                LogProjectiles();
                 if (_shotStage > 0) { Finish($"stage {_pve.CurrentStageId} shot"); return; }
                 if (_switchTo > 0)
                 {
@@ -93,6 +96,63 @@ namespace HillNGun.DebugTools
                     ScalePresets.SelectAndRestart(_switchTo);
                 }
             }
+        }
+
+        /// <summary>v8 metric: drawn (opaque) body height of every actor in screen pixels / fraction of screen height.</summary>
+        private void LogActorPixels()
+        {
+            var cam = Camera.main;
+            if (cam == null) return;
+            var views = new System.Collections.Generic.List<(string kind, MonoBehaviour v)>();
+            foreach (var v in FindObjectsByType<HillNGun.Characters.PlaceholderCharacterView>(FindObjectsSortMode.None)) views.Add(("hero", v));
+            foreach (var v in FindObjectsByType<EnemyView>(FindObjectsSortMode.None)) views.Add(("enemy", v));
+            foreach (var v in FindObjectsByType<BossView>(FindObjectsSortMode.None)) views.Add(("boss", v));
+            foreach (var (kind, v) in views)
+            {
+                foreach (var sr in v.GetComponentsInChildren<SpriteRenderer>())
+                {
+                    if (sr.sprite == null || !sr.enabled || sr.gameObject.name.ToLower().Contains("shadow") || sr.sprite.texture == null || !sr.sprite.texture.isReadable) continue;
+                    if (sr.sprite.rect.width < 128) continue; // markers / bars
+                    if (!OpaqueRows(sr.sprite, out float bottom, out float top)) continue;
+                    Vector3 a = cam.WorldToScreenPoint(sr.transform.TransformPoint(new Vector3(0f, bottom, 0f)));
+                    Vector3 b = cam.WorldToScreenPoint(sr.transform.TransformPoint(new Vector3(0f, top, 0f)));
+                    float px = Mathf.Abs(b.y - a.y);
+                    Debug.Log($"[ScaleSmoke] ACTOR {kind} {v.gameObject.name} sprite={sr.sprite.name} footScreenY={a.y:F0} bodyPx={px:F1} frac={px / Screen.height:P1} screenH={Screen.height} order={sr.sortingOrder}");
+                    break;
+                }
+            }
+        }
+
+        private static bool OpaqueRows(Sprite s, out float bottom, out float top)
+        {
+            bottom = top = 0f;
+            Rect rr = s.textureRect;
+            int w = (int)rr.width, h = (int)rr.height;
+            var px = s.texture.GetPixels((int)rr.x, (int)rr.y, w, h);
+            int minRow = -1, maxRow = -1;
+            for (int y = 0; y < h; y++)
+            {
+                int cnt = 0;
+                for (int x = 0; x < w; x++) if (px[y * w + x].a > 0.35f) cnt++;
+                if (cnt > 2) { if (minRow < 0) minRow = y; maxRow = y; }
+            }
+            if (minRow < 0) return false;
+            bottom = (minRow - s.pivot.y) / s.pixelsPerUnit;
+            top = (maxRow - s.pivot.y) / s.pixelsPerUnit;
+            return true;
+        }
+
+        private void LogProjectiles()
+        {
+            var combat = ServiceLocator.Get<CombatSystem>();
+            if (combat == null) return;
+            int n = 0;
+            foreach (var p in combat.ProjectilePool.ActiveProjectiles)
+            {
+                if (p == null || !p.IsActive || n++ > 12) continue;
+                Debug.Log($"[ScaleSmoke] PROJECTILE team={p.OwnerTeam} base={p.BaseSpeed:F2} speed={p.Speed:F2} range={p.Range:F2} lifetime={p.Lifetime:F3}s flown={p.DistanceTraveled:F2}");
+            }
+            Debug.Log($"[ScaleSmoke] BULLET SPEED MUL {HillNGun.Data.WeaponData.GlobalProjectileSpeedMul:0.00} active={n}");
         }
 
         private void LogCovers()

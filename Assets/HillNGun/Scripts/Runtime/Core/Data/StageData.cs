@@ -78,13 +78,24 @@ namespace HillNGun.Data
 
     public enum HazardType { ExplosiveBarrel, SaloonSign, Tumbleweed, TrainPass }
 
+    /// <summary>12 §7: exactly one positioning mode is valid per placement.</summary>
+    public enum PlacementMode { OurRow, Free }
+
     [Serializable]
     public class HazardPlacement
     {
         public HazardType type = HazardType.ExplosiveBarrel;
+        [Tooltip("OurRow = x + 우리 줄 y (구 형식). Free = 평면 (x, y) 직접 (12 §5.3 제안 좌표)")]
+        public PlacementMode mode = PlacementMode.OurRow;
         public float x = 12f;
+        [Tooltip("mode = Free 일 때만 사용")]
+        public float y = 12f;
+        [Tooltip("mode = OurRow 일 때만 사용")]
         public int rowIndex = 1;
         [Tooltip("For train_pass: duration seconds")]
         public float param = 3f;
+
+        public Vector2 PositionOn(BattlefieldData field)
+            => mode == PlacementMode.Free ? new Vector2(x, y) : new Vector2(x, field != null ? field.GetOurRowY(rowIndex) : 4.5f);
     }
 }

@@ -18,10 +18,21 @@ namespace HillNGun.UI
         private static void Install()
         {
             if (_instance != null) return;
+            ApplyBulletSpeedCli();
             var go = new GameObject("[ScalePresetHud]");
             _instance = go.AddComponent<ScalePresetHud>();
             DontDestroyOnLoad(go);
-            Debug.Log($"[ScalePreset] current option {ScalePresets.Current} (default {ScalePresets.Data?.defaultOption}, cli {ScalePresets.CliOverride}) mul={ScalePresets.CharacterMul:F3}");
+            Debug.Log($"[ScalePreset] current option {ScalePresets.Current} (default {ScalePresets.Data?.defaultOption}, cli {ScalePresets.CliOverride}) mul={ScalePresets.CharacterMul:F3} visualMul={ScalePresets.VisualMul:F3}");
+        }
+
+        /// <summary>Smoke/debug: -bullet-speed-mul 0.7|0.8|1.0 overrides the global projectile speed factor.</summary>
+        private static void ApplyBulletSpeedCli()
+        {
+            var args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+                if (args[i] == "-bullet-speed-mul" && float.TryParse(args[i + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float v))
+                    HillNGun.Data.WeaponData.GlobalProjectileSpeedMul = v;
+            Debug.Log($"[BulletSpeed] global projectile speed mul = {HillNGun.Data.WeaponData.GlobalProjectileSpeedMul:0.00}");
         }
 
         private void Update()
@@ -41,6 +52,8 @@ namespace HillNGun.UI
             var r = new Rect(size.x - 132f, 124f, 116f, 22f);
             UIKit.Label(r, string.Format(d.cornerLabelFormat, ScalePresets.Current), d.cornerLabelFontSize,
                 new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleRight, true);
+            UIKit.Label(new Rect(r.x - 40f, r.yMax + 2f, r.width + 40f, r.height), "탄속 ×" + HillNGun.Data.WeaponData.GlobalProjectileSpeedMul.ToString("0.0"),
+                d.cornerLabelFontSize, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleRight, true);
             UIKit.End();
         }
     }

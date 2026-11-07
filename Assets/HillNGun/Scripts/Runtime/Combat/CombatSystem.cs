@@ -59,6 +59,28 @@ namespace HillNGun.Combat
             _projectilePool.Update(dt);
             UpdateGrenades(dt);
             ProcessCollisions();
+            TickHazards(dt);
+        }
+
+        // ------------------------------------------------------------------ armed hazards (12 §3.2 queue)
+        private readonly List<HazardExplosiveBarrel> _armedHazards = new List<HazardExplosiveBarrel>(8);
+        private readonly List<HazardExplosiveBarrel> _armedScratch = new List<HazardExplosiveBarrel>(8);
+        public IReadOnlyList<HazardExplosiveBarrel> ArmedHazards => _armedHazards;
+
+        /// <summary>Called by a barrel when it arms. A barrel is queued at most once.</summary>
+        public void QueueArmedHazard(HazardExplosiveBarrel b)
+        {
+            if (b != null && !_armedHazards.Contains(b)) _armedHazards.Add(b);
+        }
+
+        /// <summary>Advance every armed barrel's warning; explosions only arm others (chain = queue, no recursion).</summary>
+        public void TickHazards(float dt)
+        {
+            if (_armedHazards.Count == 0) return;
+            _armedScratch.Clear();
+            _armedScratch.AddRange(_armedHazards);
+            foreach (var b in _armedScratch) b.Tick(dt);
+            _armedHazards.RemoveAll(b => b == null || b.Exploded);
         }
 
         public void RegisterCharacter(CharacterStateMachine character)
@@ -217,11 +239,13 @@ namespace HillNGun.Combat
             OnGrenadeThrown?.Invoke(grenade, start);
         }
 
-        public void SpawnEnemyProjectile(Vector2 start, Vector2 direction, float speed, float radius, int damage, float range, Team team, float coverDamageMul = 1f)
+        /// <param name="speed">Base speed; the global projectile speed factor is applied once inside the pool (see WeaponData).</param>
+        public Projectile SpawnEnemyProjectile(Vector2 start, Vector2 direction, float speed, float radius, int damage, float range, Team team, float coverDamageMul = 1f, bool applyGlobalSpeedMul = true)
         {
-            var p = _projectilePool.SpawnSimple(start, direction, speed, radius, damage, range, team);
+            var p = _projectilePool.SpawnSimple(start, direction, speed, radius, damage, range, team, applyGlobalSpeedMul);
             if (p != null && !Mathf.Approximately(coverDamageMul, 1f))
                 p.SetModifiers(null, coverDamageMul, 0.8f, 1f, 0f);
+            return p;
         }
 
         private void UpdateGrenades(float dt)
@@ -299,7 +323,7 @@ namespace HillNGun.Combat
                 float dist = Mathf.Max(0f, CoordinateHelper.Distance(ct.Position, explosionPos) - ct.HitRadius * 0.5f);
                 if (dist <= data.radius)
                 {
-                    if (ct is HazardExplosiveBarrel barrel) { barrel.TriggerByGrenade(); continue; }
+                    if (ct is HazardExplosiveBarrel barrel) { barrel.TriggerByGrenade(grenade.OwnerTeam); continue; } // arms; 0.4 s warning still runs
                     int damage = data.GetDamageAtDistance(dist);
                     ct.ReceiveHit(damage, (ct.Position - explosionPos).normalized);
                     OnCombatTargetHit?.Invoke(null, ct, damage);
@@ -318,7 +342,7 @@ namespace HillNGun.Combat
                 if (dist <= data.radius)
                 {
                     int damage = data.GetDamageAtDistance(dist);
-                    cover.TakeDamage(damage, data.coverDamageMul * GlobalCoverDamageMul);
+                    cover.TakeDamage(damage, data.coverDamageMul * GlobalCoverDamageMul, "grenade");
                 }
             }
 
@@ -330,37 +354,57 @@ namespace HillNGun.Combat
 
         /// <summary>Hazard barrel AoE (06 §5): center/edge damage over radius, cover × coverMul.</summary>
         public void ExplodeHazard(Vector2 explosionPos, float radius, int centerDamage, int edgeDamage, float coverMul)
+            => ExplodeHazard(explosionPos, radius, centerDamage, edgeDamage, coverMul, null);
+
+        /// <summary>
+        /// Barrel blast: flat AoE that ignores cover for characters (12 §3.2). Characters of every team are hit
+        /// (barrelFriendlyDamage) unless Rolling-invulnerable (TakeDamage checks it); covers always take damage x coverMul.
+        /// Other barrels in range are only ARMED (each runs its own warning) — never exploded recursively here.
+        /// </summary>
+        public void ExplodeHazard(Vector2 explosionPos, float radius, int centerDamage, int edgeDamage, float coverMul, HazardExplosiveBarrel source)
         {
+            var rules = TerrainRules.Data;
+            float inner = rules != null ? rules.barrelInnerRadius : 0f;
+            bool friendly = rules == null || rules.barrelFriendlyDamage;
+            Team? srcTeam = source?.TriggerTeam;
+            int hitChars = 0, hitCovers = 0, armed = 0;
             foreach (var character in _characters)
             {
                 if (character.OverallState == CharacterOverallState.Eliminated) continue;
+                if (!friendly && srcTeam.HasValue && character.Team == srcTeam.Value) continue;
                 float dist = CoordinateHelper.Distance(character.Position, explosionPos);
                 if (dist > radius) continue;
-                float t = radius > 0f ? dist / radius : 1f;
-                int damage = Mathf.RoundToInt(Mathf.Lerp(centerDamage, edgeDamage, t));
+                int damage = HazardExplosiveBarrel.DamageAt(dist, radius, inner, centerDamage, edgeDamage);
                 if (character.OverallState == CharacterOverallState.Downed) character.TakeDownedDamage(damage);
-                else character.TakeDamage(damage, (explosionPos - character.Position).normalized);
+                else character.TakeDamage(damage, (explosionPos - character.Position).normalized); // Rolling i-frames handled inside
+                hitChars++;
             }
             for (int i = _combatTargets.Count - 1; i >= 0; i--)
             {
                 if (i >= _combatTargets.Count) continue;
                 var ct = _combatTargets[i];
-                if (ct == null || !ct.CanBeHit || ct is HazardExplosiveBarrel) continue;
+                if (ct == null || !ct.CanBeHit || ReferenceEquals(ct, source)) continue;
                 float dist = Mathf.Max(0f, CoordinateHelper.Distance(ct.Position, explosionPos) - ct.HitRadius * 0.5f);
                 if (dist > radius) continue;
-                float t = radius > 0f ? dist / radius : 1f;
-                int damage = Mathf.RoundToInt(Mathf.Lerp(centerDamage, edgeDamage, t));
+                if (ct is HazardExplosiveBarrel other)
+                {
+                    if (rules == null || rules.barrelChainEnabled) { if (other.Arm(srcTeam, "chain")) armed++; }
+                    continue;
+                }
+                int damage = HazardExplosiveBarrel.DamageAt(dist, radius, inner, centerDamage, edgeDamage);
                 ct.ReceiveHit(damage, (ct.Position - explosionPos).normalized);
+                OnCombatTargetHit?.Invoke(null, ct, damage);
             }
             foreach (var cover in _covers)
             {
                 if (cover.IsDestroyed) continue;
                 float dist = DistanceToRect(explosionPos, cover.GetBounds());
                 if (dist > radius) continue;
-                float t = radius > 0f ? dist / radius : 1f;
-                int damage = Mathf.RoundToInt(Mathf.Lerp(centerDamage, edgeDamage, t));
-                cover.TakeDamage(damage, coverMul * GlobalCoverDamageMul);
+                int damage = HazardExplosiveBarrel.DamageAt(dist, radius, inner, centerDamage, edgeDamage);
+                cover.TakeDamage(damage, coverMul * GlobalCoverDamageMul, "barrel");
+                hitCovers++;
             }
+            Debug.Log($"[Terrain] barrel_blast instance={source?.InstanceId} at=({explosionPos.x:F1},{explosionPos.y:F1}) chars={hitChars} covers={hitCovers} chainArmed={armed}");
             if (_feelData != null) GameTime.ApplyHitstop(_feelData.hitstopGrenade);
         }
 
@@ -420,6 +464,7 @@ namespace HillNGun.Combat
             {
                 if (cover.IsDestroyed) continue;
                 if (!ownCoverBlocks && cover.Team == projectile.OwnerTeam) continue;
+                if (ReferenceEquals(cover, projectile.LastPiercedCover)) continue; // pierced once: do not re-hit the same cover next frame
 
                 Rect bounds = cover.GetBounds();
                 if (projectile.CheckRectHit(bounds.center, bounds.width, bounds.height, out float t))
@@ -493,9 +538,9 @@ namespace HillNGun.Combat
 
             if (hitCover != null)
             {
-                hitCover.TakeDamage(projectile.Damage, projectile.CoverDamageMul * GlobalCoverDamageMul);
+                hitCover.TakeDamage(projectile.Damage, projectile.CoverDamageMul * GlobalCoverDamageMul, projectile.HasPierce ? "pierce" : "bullet");
                 OnCoverHit?.Invoke(projectile, hitCover, projectile.Damage);
-                projectile.OnHitCover();
+                projectile.OnHitCover(hitCover);
                 ApplyHitFeel(projectile.Damage, false);
                 EffectsManager.Instance?.SpawnPatternImpact(hitCover.Position, true, projectile.Vfx);
             }
@@ -528,7 +573,8 @@ namespace HillNGun.Combat
             else if (hitCombatTarget != null)
             {
                 int dmg = ApplyWeakpoint(projectile, hitCombatTarget.Position, projectile.EffectiveDamage);
-                hitCombatTarget.ReceiveHit(dmg, projectile.Direction);
+                if (hitCombatTarget is HazardExplosiveBarrel hb) hb.ReceiveHit(dmg, projectile.Direction, projectile.OwnerTeam); // attribution
+                else hitCombatTarget.ReceiveHit(dmg, projectile.Direction);
                 OnCombatTargetHit?.Invoke(projectile, hitCombatTarget, dmg);
                 projectile.OnHitTarget();
                 ApplyHitFeel(dmg, true);
@@ -588,7 +634,11 @@ namespace HillNGun.Combat
             _projectilePool.Clear();
             _grenades.Clear();
             _covers.Clear();
+            _armedHazards.Clear();
         }
+
+        /// <summary>Stage end / re-layout: forget queued barrel warnings.</summary>
+        public void ClearArmedHazards() => _armedHazards.Clear();
 
         /// <summary>Drop registered covers without touching projectiles (stage re-layout).</summary>
         public void ClearCovers()

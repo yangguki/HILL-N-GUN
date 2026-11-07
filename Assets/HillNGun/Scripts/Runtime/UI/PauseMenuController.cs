@@ -126,7 +126,7 @@ namespace HillNGun.UI
 
             bool scaleAb = ScalePresets.Data != null;
             float boxWidth = 420f;
-            float boxHeight = scaleAb ? 490f : 420f;
+            float boxHeight = (scaleAb ? 490f : 420f) + 140f; // + debug bullet-speed row + cover debug row
             float x = (size.x - boxWidth) / 2f;
             float y = (size.y - boxHeight) / 2f;
             UIKit.Panel(new Rect(x, y, boxWidth, boxHeight));
@@ -139,6 +139,14 @@ namespace HillNGun.UI
                 DrawScaleToggles(new Rect(bx, by, bw, bh));
                 by += 70f;
             }
+            // Debug: global projectile speed factor (12 §1). Applies to newly fired bullets; no restart.
+            DrawBulletSpeedToggles(new Rect(bx, by, bw, bh));
+            by += 70f;
+            // Debug (12 §4.3): cover collider / guaranteed-safe width overlay. Also F4 or -cover-debug.
+            if (UIKit.Button(new Rect(bx, by, bw, bh), "엄폐 디버그 " + (TerrainRules.CoverDebug ? "ON" : "OFF"), true,
+                    TerrainRules.CoverDebug ? UIKit.ButtonKind.Primary : UIKit.ButtonKind.Normal, 20))
+                TerrainRules.CoverDebug = !TerrainRules.CoverDebug;
+            by += 70f;
             if (UIKit.Button(new Rect(bx, by, bw, bh), GetLocalizedString("ui.resume", "재개"), true, UIKit.ButtonKind.Primary)) Resume();
             if (UIKit.Button(new Rect(bx, by + sp, bw, bh), GetLocalizedString("ui.restart", "재시작"))) RestartMatch();
             if (UIKit.Button(new Rect(bx, by + sp * 2, bw, bh), GetLocalizedString("lobby.tab.settings", "설정"))) _showSettings = true;
@@ -159,6 +167,23 @@ namespace HillNGun.UI
                     _isPaused = false;
                     _showMenu = false;
                     ScalePresets.SelectAndRestart(i);
+                }
+            }
+        }
+
+        private void DrawBulletSpeedToggles(Rect r)
+        {
+            var opts = HillNGun.Data.WeaponData.GlobalProjectileSpeedMulOptions;
+            float gap = 8f, w = (r.width - gap * (opts.Length - 1)) / opts.Length;
+            float cur = HillNGun.Data.WeaponData.GlobalProjectileSpeedMul;
+            for (int i = 0; i < opts.Length; i++)
+            {
+                var br = new Rect(r.x + i * (w + gap), r.y, w, r.height);
+                bool active = Mathf.Approximately(cur, opts[i]);
+                if (UIKit.Button(br, "탄속 " + opts[i].ToString("0.0"), true, active ? UIKit.ButtonKind.Primary : UIKit.ButtonKind.Normal, 20) && !active)
+                {
+                    HillNGun.Data.WeaponData.GlobalProjectileSpeedMul = opts[i];
+                    Debug.Log($"[BulletSpeed] global projectile speed mul -> {opts[i]:0.0}");
                 }
             }
         }

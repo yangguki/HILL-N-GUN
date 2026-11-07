@@ -236,7 +236,7 @@ namespace HillNGun.Cover
             _shadowEntry = new CoverShadowLayer.Entry
             {
                 center = basePos + new Vector3(0.1f * s, 0.03f * s, 0f),
-                size = new Vector2((_artSprite ? _artDrawnWidth : _cover.Size.visualWidth) * s * 1.12f, 0.42f * s * ScalePresets.CharacterMul),
+                size = new Vector2((_artSprite ? _artDrawnWidth : _cover.Size.visualWidth) * s * 1.12f, 0.42f * s * ScalePresets.VisualMul),
                 color = c,
                 visible = true
             };

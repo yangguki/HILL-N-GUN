@@ -67,9 +67,27 @@ namespace HillNGun.Feel
                 case "impact_flash": palette = StarColors; break;
                 default: palette = StarColors; break; // stars / dust — never blood
             }
+            // perf pass: cosmetic impact sparks capped at MaxLiveParticles alive at once (they are 1 GL batch either way;
+            // the cap bounds CPU / overdraw). Hits keep their damage numbers / impact quads / flashes from EffectsManager.
+            int live = LiveParticles();
+            int room = MaxLiveParticles - live;
+            if (room <= 0) { CappedSpawns++; return; }
+            budget = Mathf.Min(budget, room);
             var b = Get();
             Vector3 w = Battlefield.FieldView.ToWorld(logicPos);
             b.Spawn(w, palette, budget, impactId == "impact_wood" ? 0.35f : 0.22f);
+            PeakLiveParticles = Mathf.Max(PeakLiveParticles, live + budget);
+        }
+
+        public const int MaxLiveParticles = 16;
+        /// <summary>Perf diagnostics: highest number of live impact particles seen, spawns skipped by the cap.</summary>
+        public static int PeakLiveParticles, CappedSpawns;
+
+        public int LiveParticles()
+        {
+            int n = 0;
+            foreach (var b in _bursts) if (b.Active) n += b.LiveCount;
+            return n;
         }
 
         private Burst Get()
@@ -108,6 +126,7 @@ namespace HillNGun.Feel
             private struct P { public Vector3 p, v; public Color c; public float life, max; public float size; }
             private P[] _ps = new P[16];
             private int _n;
+            public int LiveCount { get { int c = 0; for (int i = 0; i < _n; i++) if (_ps[i].life < _ps[i].max) c++; return c; } }
 
             public void Spawn(Vector3 pos, Color[] palette, int count, float speed)
             {

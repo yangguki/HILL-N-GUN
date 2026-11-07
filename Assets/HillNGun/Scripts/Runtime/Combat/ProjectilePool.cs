@@ -41,13 +41,13 @@ namespace HillNGun.Combat
             return null;
         }
 
-        public Projectile SpawnSimple(Vector2 startPos, Vector2 direction, float speed, float radius, int damage, float range, Team team)
+        public Projectile SpawnSimple(Vector2 startPos, Vector2 direction, float speed, float radius, int damage, float range, Team team, bool applyGlobalSpeedMul = true)
         {
             for (int i = 0; i < _projectiles.Count; i++)
             {
                 if (!_projectiles[i].IsActive)
                 {
-                    _projectiles[i].InitializeSimple(startPos, direction, speed, radius, damage, range, team);
+                    _projectiles[i].InitializeSimple(startPos, direction, speed, radius, damage, range, team, applyGlobalSpeedMul);
                     ActiveCount++;
                     return _projectiles[i];
                 }

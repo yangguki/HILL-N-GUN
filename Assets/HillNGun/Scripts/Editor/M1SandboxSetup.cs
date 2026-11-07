@@ -541,17 +541,22 @@ namespace HillNGun.Editor
             battlefield.boundaryMinX = 0.5f;
             battlefield.boundaryMaxX = 23.5f;
 
+            // PvP town props (planner provisional, 2026-11-07): 한 팀; 상대 = (24-x, 18-y) 회전 복제. 실제 권위는 battlefield_main 에셋
             battlefield.covers = new CoverPlacement[] {
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 0, xPosition = 4f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 0, xPosition = 12f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 0, xPosition = 20f },
-                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 1, xPosition = 6f },
-                new CoverPlacement { coverId = "cover_wagon", rowIndex = 1, xPosition = 12f },
-                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 1, xPosition = 18f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 3f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 9f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 15f },
-                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 21f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 0, xPosition = 3f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 0, xPosition = 8f },
+                new CoverPlacement { coverId = "cover_trough", rowIndex = 0, xPosition = 16f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 0, xPosition = 21f },
+                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 1, xPosition = 3f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 1, xPosition = 8f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 1, xPosition = 16f },
+                new CoverPlacement { coverId = "cover_swing_door", rowIndex = 1, xPosition = 21f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 2.5f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 3.8f },
+                new CoverPlacement { coverId = "cover_hay", rowIndex = 2, xPosition = 8f },
+                new CoverPlacement { coverId = "cover_hay", rowIndex = 2, xPosition = 16f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 20.2f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 2, xPosition = 21.5f },
             };
 
             EditorUtility.SetDirty(battlefield);
