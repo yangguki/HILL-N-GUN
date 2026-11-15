@@ -1,0 +1,20 @@
+{
+    "name": "HillNGun.Proto.Frontline.Editor",
+    "rootNamespace": "HillNGun.Proto.Frontline.Editor",
+    "references": [
+        "HillNGun.Proto.Frontline",
+        "HillNGun.Proto.TopDown",
+        "HillNGun.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

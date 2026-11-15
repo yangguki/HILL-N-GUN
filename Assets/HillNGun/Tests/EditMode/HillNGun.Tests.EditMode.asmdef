@@ -3,6 +3,8 @@
     "rootNamespace": "HillNGun.Tests.EditMode",
     "references": [
         "HillNGun.Runtime",
+        "HillNGun.Proto.TopDown",
+        "HillNGun.Proto.Frontline",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.2D.Animation.Runtime"
