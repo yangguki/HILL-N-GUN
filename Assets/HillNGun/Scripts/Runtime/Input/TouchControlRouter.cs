@@ -187,7 +187,7 @@ namespace HillNGun.Input
                 if (!_ctx.IsChargeWeapon) _rx?.OnAimStartCommand(new AimStartCommand(_atkStart, now)); // keep aiming
             }
 
-            if (MoveActive && _rowDir != 0 && !_rowSent)
+            if (MoveActive && _rowDir != 0 && !_rowSent && !_ctx.FreeMove)
             {
                 _rowHold += dt;
                 if (_rowHold >= _d.rowChangeHoldTime)
@@ -243,7 +243,7 @@ namespace HillNGun.Input
                 }
             }
             Vector2 stick = MoveDir * MoveMag;
-            int rdir = stick.y >= _d.rowChangeThreshold ? 1 : (stick.y <= -_d.rowChangeThreshold ? -1 : 0);
+            int rdir = _ctx.FreeMove ? 0 : (stick.y >= _d.rowChangeThreshold ? 1 : (stick.y <= -_d.rowChangeThreshold ? -1 : 0));
             if (rdir != _rowDir) { _rowDir = rdir; _rowHold = 0f; _rowSent = false; }
         }
 
@@ -302,6 +302,7 @@ namespace HillNGun.Input
         {
             if (_atkRepeats > 0) _rx?.OnAimReleaseCommand(new AimReleaseCommand(AimDir, false, Now)); // repeat fire stops on release
             else if (AttackAiming) Fire(AimDir, false);
+            else if (!_atkAimedOut && _ctx.FreeMove && Now - _atkDown <= _d.tapMaxTime) Fire(AimDir, false); // FreeMove: tap = last aim direction, never auto-aim
             else if (!_atkAimedOut && _d.tapAutoAim && Now - _atkDown <= _d.tapMaxTime) Fire(AutoAimDirection(), true);
             else _rx?.OnAimReleaseCommand(new AimReleaseCommand(AimDir, false, Now)); // dragged back to centre = cancel
             ResetAttack();

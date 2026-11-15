@@ -84,6 +84,38 @@ namespace HillNGun.Scenery
             BuildLanterns(visual);
             // Hard guard: strip any decor mistakenly parented under L3
             EnforceNoDecorOnL3();
+            _doorwayBg = false;
+            RefreshDoorwayBackground();
+        }
+
+        private bool _doorwayBg;
+        public bool DoorwayBackgroundActive => _doorwayBg;
+        public SpriteRenderer BaseLayer => _layerSr[2];
+        /// <summary>v15 doorways v2: while layered storefront doors are up (PvE FreeMove), the data-mapped SCREEN-SPACE 1920x1080
+        /// background replaces the concept plate: drawn 1:1 (import PPU 54, scale 1, centred, no FitToCamera 1.02 overscan, no
+        /// second translucent copy), so the doorway layers cut from the same pixels register exactly. Otherwise the plate is restored.</summary>
+        public void RefreshDoorwayBackground()
+        {
+            if (_visual == null || _layerSr[2] == null) return;
+            var eng = HillNGun.PvE.EntranceDoors.Engine;
+            var bg = HillNGun.PvE.EntranceDoors.ActiveBackground(HillNGun.PvE.EntranceDoors.ActiveTod); // == visual TOD (PvE); PvP diag may override
+            if (bg == null || eng == null)
+            {
+                if (_doorwayBg) { _doorwayBg = false; Apply(_visual); }
+                return;
+            }
+            _cam = Camera.main;
+            float upp = _cam != null ? 2f * _cam.orthographicSize / 1080f : 1f / 54f;
+            var sr = _layerSr[2];
+            sr.enabled = true; sr.sprite = bg;
+            sr.color = eng.backgroundOpaqueSingleLayer ? Color.white : sr.color;
+            float sc = eng.backgroundScale * (bg.pixelsPerUnit * upp); // PPU 54 at 1080p -> 1.0
+            sr.transform.localScale = new Vector3(sc, sc, 1f);
+            sr.transform.localPosition = Vector3.zero; _basePos[2] = Vector3.zero;
+            if (eng.backgroundOpaqueSingleLayer && _layerSr[0] != null) _layerSr[0].enabled = false; // no translucent double plate
+            if (eng.backgroundDisablesRuntimeLanternGlow) ClearLanterns(); // lit lanterns are painted at their relocated spots
+            if (!_doorwayBg) Debug.Log($"[Backdrop] doorway BG {bg.name} {bg.rect.width}x{bg.rect.height} ppu={bg.pixelsPerUnit} scale={sc:F4} worldSize=({bg.bounds.size.x * sc:F3},{bg.bounds.size.y * sc:F3}) L0={(_layerSr[0] != null && _layerSr[0].enabled)} lanterns={(_lanternRoot != null ? _lanternRoot.childCount : 0)}");
+            _doorwayBg = true;
         }
 
         public static void EnforceNoDecorOnLayer(Transform layerRoot, int layerIndex)

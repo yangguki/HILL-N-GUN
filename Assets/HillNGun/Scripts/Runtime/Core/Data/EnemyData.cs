@@ -46,6 +46,22 @@ namespace HillNGun.Data
         public bool movesBetweenRows = false;
         public float rowChangeInterval = 5f;
 
+        [Header("FreeMove PvE")]
+        [Tooltip("Never walks (balcony sniper): fires from its spawn post")]
+        public bool stationary = false;
+        [Tooltip("Keeps at least this far from the nearest player when picking a post (tiles)")]
+        public float keepDistance = 4f;
+        [Tooltip("Seconds between post changes (randomised x0.7..1.3). movesBetweenRows enemies use rowChangeInterval")]
+        public float repositionInterval = 3.5f;
+        [Tooltip("Sprite set id override (empty = id). Lets a role reuse existing art")]
+        public string artId;
+        [Tooltip("Body tint for a role that reuses art (white = none)")]
+        public Color roleTint = Color.white;
+        [Tooltip("Draw an aim sight line during the wind-up (sniper telegraph)")]
+        public bool sightLineTelegraph = false;
+
+        public string ArtId => string.IsNullOrEmpty(artId) ? id : artId;
+
         [Header("Scoring")]
         public int gaugeValue = 1;
         public int scoreValue = 100;

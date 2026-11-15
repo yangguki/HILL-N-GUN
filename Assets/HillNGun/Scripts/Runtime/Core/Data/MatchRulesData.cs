@@ -12,6 +12,26 @@ namespace HillNGun.Data
         [Tooltip("자기 팀 엄폐물이 자기 팀 탄환을 막는지 여부 (false = 아군 엄폐물 너머로 사격 가능)")]
         public bool ownCoverBlocksOwnShots = false;
 
+        [Header("Movement mode per mode (data flag)")]
+        [Tooltip("PvE: FreeMove (360 stick, street walk area, cover colliders, no auto-aim)")]
+        public HillNGun.Core.MoveMode pveMoveMode = HillNGun.Core.MoveMode.FreeMove;
+        [Tooltip("PvP: RowLane (unchanged row lanes + cover pass-through)")]
+        public HillNGun.Core.MoveMode pvpMoveMode = HillNGun.Core.MoveMode.RowLane;
+
+        [Header("FreeMove PvE enemy pacing")]
+        [Tooltip("Max enemies winding up / firing at the same time (fair FIFO token scheduler). The boss keeps one reserved slot while alive")]
+        public int pveMaxConcurrentEnemyFire = 3;
+        [Tooltip("Spawn points closer than this to any active player are skipped when choosing")]
+        public float pveSpawnSafeRadius = 3f;
+        [Tooltip("After an entrance ends the enemy may not attack for this long")]
+        public float pveEntranceAttackDelay = 0.8f;
+        [Tooltip("Delay between enemies of the same wave entry (they use different points)")]
+        public float pveSpawnStagger = 0.3f;
+        [Tooltip("Retry interval while every candidate point is unsafe / busy (deterministic deferral)")]
+        public float pveSpawnRetryInterval = 0.25f;
+        [Tooltip("After deferring this long, any safe point of any non-sniper type is allowed")]
+        public float pveSpawnRelaxAfter = 2f;
+
         [Header("PvE Party Scaling")]
         [Tooltip("PvE 파티 인원별 일반 적 체력 배율. 03 문서: 2인 협동 적 체력 1.5배")]
         public float[] pveEnemyHpMultipliers = new float[] { 1f, 1.5f, 3.4f };

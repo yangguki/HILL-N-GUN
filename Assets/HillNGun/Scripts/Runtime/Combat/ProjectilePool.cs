@@ -7,6 +7,8 @@ namespace HillNGun.Combat
 {
     public class ProjectilePool
     {
+        /// <summary>v14 logic A/B diagnostic hook (null in normal play): logical spawn origin/velocity stream.</summary>
+        public static System.Action<Projectile> DiagSpawned;
         private readonly List<Projectile> _projectiles;
         private readonly int _maxProjectiles;
 
@@ -34,6 +36,7 @@ namespace HillNGun.Combat
                 {
                     _projectiles[i].Initialize(startPos, direction, weapon, damage, team, pierces);
                     ActiveCount++;
+                    DiagSpawned?.Invoke(_projectiles[i]);
                     return _projectiles[i];
                 }
             }

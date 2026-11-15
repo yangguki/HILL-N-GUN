@@ -41,8 +41,13 @@ namespace HillNGun.AI
         /// <param name="target">Enemy target in weapon range (null if none).</param>
         /// <param name="team">Own team (for revive).</param>
         /// <returns>True when the pilot took over movement this tick (moving to revive).</returns>
+        /// <summary>DIAGNOSTIC ONLY (-rig-throwtakes): this actor's autopilot (pilot skill/grenade, AutoGunner fire, ally
+        /// movement) is held so a scripted throw take is readable. Always null in normal play.</summary>
+        public static CharacterStateMachine DiagHoldActor;
+
         public bool Tick(float dt, Vector2? target, IReadOnlyList<CharacterStateMachine> team)
         {
+            if (_c != null && _c == DiagHoldActor) return false;
             if (_c == null || _c.OverallState != CharacterOverallState.Active)
             {
                 _holding = false;
@@ -89,6 +94,13 @@ namespace HillNGun.AI
                 return true;
             }
             if (_c.MovementState == MovementState.RowChanging || _c.MovementState == MovementState.Rolling) return true;
+
+            if (_c.IsFreeMove)
+            {
+                // FreeMove: walk straight (2D, colliders slide) to the downed ally
+                _c.OnMoveCommand(new MoveCommand((best.Position - _c.Position).normalized, 1f, now));
+                return true;
+            }
 
             if (best.CurrentRowIndex != _c.CurrentRowIndex && Mathf.Abs(best.Position.y - _c.Position.y) > range * 0.5f)
             {
@@ -163,8 +175,8 @@ namespace HillNGun.AI
             float d = Vector2.Distance(target.Value, _c.Position);
             if (d < g.minRange || d > g.maxRange) return;
 
-            _c.OnGrenadeAimStartCommand(new GrenadeAimStartCommand(Vector2.zero, now));
-            _c.OnGrenadeReleaseCommand(new GrenadeReleaseCommand(target.Value, true, now));
+            // v17: common AI anticipation (aim locked at the decision, release after BotBehaviorData.aiGrenadeWindup)
+            if (!_c.BeginAiGrenadeThrow(target.Value, _b != null ? _b.aiGrenadeWindup : 0.15f)) return;
             _grenadeTimer = _grenadeIntervalOverride > 0f ? _grenadeIntervalOverride : (_b != null ? _b.grenadeMinInterval : 4f);
             GrenadesThrown++;
         }

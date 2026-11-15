@@ -1,0 +1,169 @@
+{
+  "canvas": [
+    256,
+    320
+  ],
+  "anchor_px": [
+    128,
+    300
+  ],
+  "anchor_desc": "문틀(문턱) 아래 중앙. y=300 아래 20px(300~319)은 투명 여백",
+  "frame_outer_px": [
+    40,
+    40,
+    216,
+    300
+  ],
+  "opening_px": [
+    58,
+    62,
+    198,
+    292
+  ],
+  "frames": {
+    "door_saloon_day_closed.png": {
+      "kind": "saloon",
+      "time": "day",
+      "state": "closed",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_saloon_day_swingA.png": {
+      "kind": "saloon",
+      "time": "day",
+      "state": "swingA",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_saloon_day_swingB.png": {
+      "kind": "saloon",
+      "time": "day",
+      "state": "swingB",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_saloon_day_open.png": {
+      "kind": "saloon",
+      "time": "day",
+      "state": "open",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_saloon_night_closed.png": {
+      "kind": "saloon",
+      "time": "night",
+      "state": "closed",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_saloon_night_swingA.png": {
+      "kind": "saloon",
+      "time": "night",
+      "state": "swingA",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_saloon_night_swingB.png": {
+      "kind": "saloon",
+      "time": "night",
+      "state": "swingB",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_saloon_night_open.png": {
+      "kind": "saloon",
+      "time": "night",
+      "state": "open",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_shop_day_closed.png": {
+      "kind": "shop",
+      "time": "day",
+      "state": "closed",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_shop_day_swingA.png": {
+      "kind": "shop",
+      "time": "day",
+      "state": "swingA",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_shop_day_swingB.png": {
+      "kind": "shop",
+      "time": "day",
+      "state": "swingB",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_shop_day_open.png": {
+      "kind": "shop",
+      "time": "day",
+      "state": "open",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_shop_night_closed.png": {
+      "kind": "shop",
+      "time": "night",
+      "state": "closed",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_shop_night_swingA.png": {
+      "kind": "shop",
+      "time": "night",
+      "state": "swingA",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_shop_night_swingB.png": {
+      "kind": "shop",
+      "time": "night",
+      "state": "swingB",
+      "anchor": [
+        128,
+        300
+      ]
+    },
+    "door_shop_night_open.png": {
+      "kind": "shop",
+      "time": "night",
+      "state": "open",
+      "anchor": [
+        128,
+        300
+      ]
+    }
+  }
+}

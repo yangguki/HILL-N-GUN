@@ -285,6 +285,22 @@ namespace HillNGun.Battlefield
         }
         public void RefreshStageVisual() => ResolveAndApplyVisual();
 
+        /// <summary>Diagnostic only (-pvp-tod name): PvP doorway BG / doors for another TOD; default = the match visual's TOD.</summary>
+        public static TimeOfDay PvpDiagTod(TimeOfDay current)
+        {
+            var args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i + 1 < args.Length; i++)
+                if (args[i] == "-pvp-tod")
+                    switch (args[i + 1].ToLowerInvariant())
+                    {
+                        case "day": case "noon": return TimeOfDay.Noon;
+                        case "afternoon": return TimeOfDay.Afternoon;
+                        case "sunset": return TimeOfDay.Sunset;
+                        case "night": return TimeOfDay.Night;
+                    }
+            return current;
+        }
+
         private string StageVisualKey() => _pve != null && _pve.CurrentStage != null ? _pve.CurrentStage.id : (_pve == null ? "pvp_town_street" : null);
 
         /// <summary>Perf diagnostics: how many times the stage visual was (re)applied this session.</summary>
@@ -319,6 +335,9 @@ namespace HillNGun.Battlefield
             }
             _parallax.Apply(visual);
             HillNGun.Scenery.TimeOfDayGrade.Set(visual);
+            // v16 PvP: same western street with the doorway kit (screen-space BG for the TOD + static CLOSED door layers).
+            // The match keeps its selected TOD (visual); -pvp-tod <day|afternoon|sunset|night> is a diagnostic override only.
+            if (_pve == null && visual != null) HillNGun.PvE.EntranceDoors.SetupStaticClosed(visual.streetLayout, PvpDiagTod(visual.timeOfDay));
 
             // When Task I concept layers are present, hide the procedural bake so tablets
             // cannot keep showing the old Western scenery underneath / instead.

@@ -43,6 +43,17 @@ namespace HillNGun.PvE
 
         private bool _isEntering = true;
         private float _entryTimer;
+        private Vector2 _entryStart;
+        /// <summary>Wind-up or volley in progress (FreeMove fire-slot accounting).</summary>
+        public bool IsAttacking => _isWarning || _burstRemaining > 0;
+        public Vector2 EntryStart => _entryStart;
+
+        /// <summary>FreeMove: walk in from the street layout's boss entrance instead of BossData.entryStartPosition.</summary>
+        public void SetEntryStart(Vector2 start)
+        {
+            _entryStart = start;
+            if (_isEntering) Position = start;
+        }
 
         private bool _isWarning;
         private float _warningTimer;
@@ -63,6 +74,7 @@ namespace HillNGun.PvE
         {
             Data = data;
             Position = data.entryStartPosition;
+            _entryStart = data.entryStartPosition;
             SweepTargetX = data.battlePosition.x;
             MaxHp = maxHpOverride > 0 ? maxHpOverride : data.maxHp;
             CurrentHp = MaxHp;
@@ -142,7 +154,7 @@ namespace HillNGun.PvE
             float t = 1f - (_entryTimer / Data.entryDuration);
             t = Mathf.Clamp01(t);
 
-            Position = Vector2.Lerp(Data.entryStartPosition, Data.battlePosition, t);
+            Position = Vector2.Lerp(_entryStart, Data.battlePosition, t);
 
             if (_entryTimer <= 0f)
             {

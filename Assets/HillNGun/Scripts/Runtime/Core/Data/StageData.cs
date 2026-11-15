@@ -43,6 +43,8 @@ namespace HillNGun.Data
         public string themeId = "town_street";
         public Vector2[] enemySpawnPoints;
         public float[] enemyRowsY;
+        [Tooltip("FreeMove spawn director seed (deterministic point choice / deferral order)")]
+        public int spawnSeed = 1;
         [Tooltip("Optional cover layout for this stage; null = BattlefieldData.covers")]
         public CoverPlacement[] coverPlacements;
         [Tooltip("Hazards (explosive barrels, etc.)")]
@@ -74,6 +76,10 @@ namespace HillNGun.Data
         public int count = 1;
         public int preferredRow = 0;
         public float spawnDelay = 0f;
+        [Tooltip("FreeMove: explicit StageSpawnPoint id (StreetLayoutData). Empty = pick by spawnType with the stage seed")]
+        public string spawnPointId;
+        [Tooltip("FreeMove: entrance kind when no explicit id (Any = director picks a safe point, alternating sides)")]
+        public HillNGun.Core.SpawnPointType spawnType = HillNGun.Core.SpawnPointType.Any;
     }
 
     public enum HazardType { ExplosiveBarrel, SaloonSign, Tumbleweed, TrainPass }

@@ -1,0 +1,2093 @@
+{
+ "character": "buster",
+ "atlas": "buster_rig_atlas.png",
+ "atlasSize": [
+  1024,
+  1024
+ ],
+ "packScale": 0.5,
+ "source": "designer handoff v2 rig_parts/hillandgun_rig_parts_3chars.zip buster/ (working prototype; Spine import not verified by designer)",
+ "status": "working prototype (v2) - concept only, Spine import NOT verified",
+ "readmeHead": "# Buster: \ubd84\ub9ac \ud30c\uce20 \ub9ac\uadf8 \ucee8\uc149 \uc138\ud2b8 (down_3q / side / up_3q) v2.1: \uc791\uc5c5\uc6a9 \ud504\ub85c\ud1a0\ud0c0\uc785",
+ "zipSha256": "b5008ccf3a94b892",
+ "directions": [
+  {
+   "name": "down_3q",
+   "canvas": [
+    864,
+    1152
+   ],
+   "figureBBox": [
+    141,
+    61,
+    782,
+    1054
+   ],
+   "groundX": 416.2,
+   "joints": [
+    {
+     "name": "hip_c",
+     "x": 416.2,
+     "y": 680.6
+    },
+    {
+     "name": "waist",
+     "x": 416.2,
+     "y": 641.2
+    },
+    {
+     "name": "neck",
+     "x": 410.6,
+     "y": 382.5
+    },
+    {
+     "name": "head_c",
+     "x": 405.0,
+     "y": 258.8
+    },
+    {
+     "name": "shoulder_r",
+     "x": 241.9,
+     "y": 444.4
+    },
+    {
+     "name": "elbow_r",
+     "x": 168.8,
+     "y": 551.2
+    },
+    {
+     "name": "wrist_r",
+     "x": 281.2,
+     "y": 624.4
+    },
+    {
+     "name": "shoulder_l",
+     "x": 568.1,
+     "y": 444.4
+    },
+    {
+     "name": "elbow_l",
+     "x": 601.9,
+     "y": 528.8
+    },
+    {
+     "name": "wrist_l",
+     "x": 613.1,
+     "y": 590.6
+    },
+    {
+     "name": "hip_r",
+     "x": 331.9,
+     "y": 697.5
+    },
+    {
+     "name": "knee_r",
+     "x": 281.2,
+     "y": 866.2
+    },
+    {
+     "name": "ankle_r",
+     "x": 270.0,
+     "y": 956.2
+    },
+    {
+     "name": "hip_l",
+     "x": 495.0,
+     "y": 697.5
+    },
+    {
+     "name": "knee_l",
+     "x": 517.5,
+     "y": 866.2
+    },
+    {
+     "name": "ankle_l",
+     "x": 500.6,
+     "y": 956.2
+    },
+    {
+     "name": "grip",
+     "x": 331.9,
+     "y": 646.9
+    },
+    {
+     "name": "forend_support",
+     "x": 607.5,
+     "y": 556.9
+    }
+   ],
+   "drawOrder": [
+    "upper_arm_l",
+    "forearm_l",
+    "thigh_l",
+    "shin_l",
+    "foot_l",
+    "thigh_r",
+    "shin_r",
+    "foot_r",
+    "pelvis",
+    "torso",
+    "scarf",
+    "head",
+    "hat",
+    "weapon",
+    "hand_l",
+    "upper_arm_r",
+    "forearm_r",
+    "hand_r"
+   ],
+   "supportIK": true,
+   "supportVisible": true,
+   "parts": [
+    {
+     "name": "head",
+     "sprite": "down_3q__head",
+     "rect": [
+      819,
+      440,
+      158,
+      96
+     ],
+     "pivot": [
+      0.5225396825396825,
+      0.04450261780104714
+     ],
+     "pivotCanvas": [
+      410.6,
+      382.5
+     ],
+     "posTopLeft": [
+      246,
+      200
+     ],
+     "size": [
+      315,
+      191
+     ],
+     "joint": "neck",
+     "parent": "torso",
+     "zorder": 11,
+     "far": false
+    },
+    {
+     "name": "hat",
+     "sprite": "down_3q__hat",
+     "rect": [
+      321,
+      547,
+      232,
+      126
+     ],
+     "pivot": [
+      0.4956896551724138,
+      0.21818181818181814
+     ],
+     "pivotCanvas": [
+      405.0,
+      258.8
+     ],
+     "posTopLeft": [
+      175,
+      61
+     ],
+     "size": [
+      464,
+      253
+     ],
+     "joint": "head_c",
+     "parent": "head",
+     "zorder": 12,
+     "far": false
+    },
+    {
+     "name": "torso",
+     "sprite": "down_3q__torso",
+     "rect": [
+      727,
+      855,
+      197,
+      166
+     ],
+     "pivot": [
+      0.5436548223350254,
+      0.0294294294294295
+     ],
+     "pivotCanvas": [
+      416.2,
+      641.2
+     ],
+     "posTopLeft": [
+      202,
+      318
+     ],
+     "size": [
+      394,
+      333
+     ],
+     "joint": "waist",
+     "parent": "pelvis",
+     "zorder": 9,
+     "far": false
+    },
+    {
+     "name": "pelvis",
+     "sprite": "down_3q__pelvis",
+     "rect": [
+      670,
+      338,
+      158,
+      81
+     ],
+     "pivot": [
+      0.46898734177215184,
+      0.7061728395061728
+     ],
+     "pivotCanvas": [
+      416.2,
+      680.6
+     ],
+     "posTopLeft": [
+      268,
+      633
+     ],
+     "size": [
+      316,
+      162
+     ],
+     "joint": "hip_c",
+     "parent": "root",
+     "zorder": 8,
+     "far": false
+    },
+    {
+     "name": "upper_arm_l",
+     "sprite": "down_3q__upper_arm_l",
+     "rect": [
+      66,
+      242,
+      53,
+      78
+     ],
+     "pivot": [
+      0.3405660377358491,
+      0.7681528662420383
+     ],
+     "pivotCanvas": [
+      568.1,
+      444.4
+     ],
+     "posTopLeft": [
+      532,
+      408
+     ],
+     "size": [
+      106,
+      157
+     ],
+     "joint": "shoulder_l",
+     "parent": "torso",
+     "zorder": 0,
+     "far": true
+    },
+    {
+     "name": "upper_arm_r",
+     "sprite": "down_3q__upper_arm_r",
+     "rect": [
+      558,
+      428,
+      78,
+      108
+     ],
+     "pivot": [
+      0.6509677419354839,
+      0.7481481481481482
+     ],
+     "pivotCanvas": [
+      241.9,
+      444.4
+     ],
+     "posTopLeft": [
+      141,
+      390
+     ],
+     "size": [
+      155,
+      216
+     ],
+     "joint": "shoulder_r",
+     "parent": "torso",
+     "zorder": 15,
+     "far": false
+    },
+    {
+     "name": "forearm_l",
+     "sprite": "down_3q__forearm_l",
+     "rect": [
+      610,
+      336,
+      57,
+      83
+     ],
+     "pivot": [
+      0.3675438596491228,
+      0.7481927710843373
+     ],
+     "pivotCanvas": [
+      601.9,
+      528.8
+     ],
+     "posTopLeft": [
+      560,
+      487
+     ],
+     "size": [
+      114,
+      166
+     ],
+     "joint": "elbow_l",
+     "parent": "upper_arm_l",
+     "zorder": 1,
+     "far": true
+    },
+    {
+     "name": "forearm_r",
+     "sprite": "down_3q__forearm_r",
+     "rect": [
+      511,
+      335,
+      96,
+      84
+     ],
+     "pivot": [
+      0.14554973821989528,
+      0.7325443786982249
+     ],
+     "pivotCanvas": [
+      168.8,
+      551.2
+     ],
+     "posTopLeft": [
+      141,
+      506
+     ],
+     "size": [
+      191,
+      169
+     ],
+     "joint": "elbow_r",
+     "parent": "upper_arm_r",
+     "zorder": 16,
+     "far": false
+    },
+    {
+     "name": "hand_l",
+     "sprite": "down_3q__hand_l",
+     "rect": [
+      170,
+      189,
+      64,
+      48
+     ],
+     "pivot": [
+      0.50078125,
+      0.2042105263157895
+     ],
+     "pivotCanvas": [
+      613.1,
+      590.6
+     ],
+     "posTopLeft": [
+      549,
+      515
+     ],
+     "size": [
+      128,
+      95
+     ],
+     "joint": "wrist_l",
+     "parent": "forearm_l",
+     "zorder": 14,
+     "far": true
+    },
+    {
+     "name": "hand_r",
+     "sprite": "down_3q__hand_r",
+     "rect": [
+      237,
+      189,
+      50,
+      48
+     ],
+     "pivot": [
+      -0.008,
+      0.7326315789473684
+     ],
+     "pivotCanvas": [
+      281.2,
+      624.4
+     ],
+     "posTopLeft": [
+      282,
+      599
+     ],
+     "size": [
+      100,
+      95
+     ],
+     "joint": "wrist_r",
+     "parent": "forearm_r",
+     "zorder": 17,
+     "far": false
+    },
+    {
+     "name": "thigh_l",
+     "sprite": "down_3q__thigh_l",
+     "rect": [
+      102,
+      678,
+      96,
+      152
+     ],
+     "pivot": [
+      0.35602094240837695,
+      0.7779605263157895
+     ],
+     "pivotCanvas": [
+      495.0,
+      697.5
+     ],
+     "posTopLeft": [
+      427,
+      630
+     ],
+     "size": [
+      191,
+      304
+     ],
+     "joint": "hip_l",
+     "parent": "pelvis",
+     "zorder": 2,
+     "far": true
+    },
+    {
+     "name": "thigh_r",
+     "sprite": "down_3q__thigh_r",
+     "rect": [
+      3,
+      676,
+      96,
+      154
+     ],
+     "pivot": [
+      0.6329842931937173,
+      0.7743506493506493
+     ],
+     "pivotCanvas": [
+      331.9,
+      697.5
+     ],
+     "posTopLeft": [
+      211,
+      628
+     ],
+     "size": [
+      191,
+      308
+     ],
+     "joint": "hip_r",
+     "parent": "pelvis",
+     "zorder": 5,
+     "far": false
+    },
+    {
+     "name": "shin_l",
+     "sprite": "down_3q__shin_l",
+     "rect": [
+      719,
+      555,
+      81,
+      118
+     ],
+     "pivot": [
+      0.27469135802469136,
+      0.6869198312236287
+     ],
+     "pivotCanvas": [
+      517.5,
+      866.2
+     ],
+     "posTopLeft": [
+      473,
+      792
+     ],
+     "size": [
+      162,
+      237
+     ],
+     "joint": "knee_l",
+     "parent": "thigh_l",
+     "zorder": 3,
+     "far": true
+    },
+    {
+     "name": "shin_r",
+     "sprite": "down_3q__shin_r",
+     "rect": [
+      625,
+      553,
+      91,
+      120
+     ],
+     "pivot": [
+      0.5450549450549451,
+      0.6838174273858921
+     ],
+     "pivotCanvas": [
+      281.2,
+      866.2
+     ],
+     "posTopLeft": [
+      182,
+      790
+     ],
+     "size": [
+      182,
+      241
+     ],
+     "joint": "knee_r",
+     "parent": "thigh_r",
+     "zorder": 6,
+     "far": false
+    },
+    {
+     "name": "foot_l",
+     "sprite": "down_3q__foot_l",
+     "rect": [
+      360,
+      248,
+      102,
+      72
+     ],
+     "pivot": [
+      0.06699507389162561,
+      0.5958333333333333
+     ],
+     "pivotCanvas": [
+      500.6,
+      956.2
+     ],
+     "posTopLeft": [
+      487,
+      898
+     ],
+     "size": [
+      203,
+      144
+     ],
+     "joint": "ankle_l",
+     "parent": "shin_l",
+     "zorder": 4,
+     "far": true
+    },
+    {
+     "name": "foot_r",
+     "sprite": "down_3q__foot_r",
+     "rect": [
+      83,
+      188,
+      84,
+      49
+     ],
+     "pivot": [
+      0.6287425149700598,
+      0.9979591836734694
+     ],
+     "pivotCanvas": [
+      270.0,
+      956.2
+     ],
+     "posTopLeft": [
+      165,
+      956
+     ],
+     "size": [
+      167,
+      98
+     ],
+     "joint": "ankle_r",
+     "parent": "shin_r",
+     "zorder": 7,
+     "far": false
+    },
+    {
+     "name": "weapon",
+     "sprite": "down_3q__weapon",
+     "rect": [
+      252,
+      844,
+      294,
+      177
+     ],
+     "pivot": [
+      0.23321976149914822,
+      0.3562146892655367
+     ],
+     "pivotCanvas": [
+      331.9,
+      646.9
+     ],
+     "posTopLeft": [
+      195,
+      419
+     ],
+     "size": [
+      587,
+      354
+     ],
+     "joint": "grip",
+     "parent": "hand_r",
+     "zorder": 13,
+     "far": false
+    },
+    {
+     "name": "scarf",
+     "sprite": "down_3q__scarf",
+     "rect": [
+      324,
+      331,
+      184,
+      88
+     ],
+     "pivot": [
+      0.5653116531165312,
+      0.78125
+     ],
+     "pivotCanvas": [
+      410.6,
+      382.5
+     ],
+     "posTopLeft": [
+      202,
+      344
+     ],
+     "size": [
+      369,
+      176
+     ],
+     "joint": "neck",
+     "parent": "torso",
+     "zorder": 10,
+     "far": false
+    }
+   ]
+  },
+  {
+   "name": "side",
+   "canvas": [
+    864,
+    1152
+   ],
+   "figureBBox": [
+    147,
+    71,
+    804,
+    1054
+   ],
+   "groundX": 382.5,
+   "joints": [
+    {
+     "name": "hip_c",
+     "x": 382.5,
+     "y": 697.5
+    },
+    {
+     "name": "waist",
+     "x": 371.2,
+     "y": 663.8
+    },
+    {
+     "name": "neck",
+     "x": 348.8,
+     "y": 376.9
+    },
+    {
+     "name": "head_c",
+     "x": 360.0,
+     "y": 258.8
+    },
+    {
+     "name": "shoulder_r",
+     "x": 253.1,
+     "y": 461.2
+    },
+    {
+     "name": "elbow_r",
+     "x": 225.0,
+     "y": 585.0
+    },
+    {
+     "name": "wrist_r",
+     "x": 337.5,
+     "y": 630.0
+    },
+    {
+     "name": "shoulder_l",
+     "x": 472.5,
+     "y": 472.5
+    },
+    {
+     "name": "elbow_l",
+     "x": 511.9,
+     "y": 562.5
+    },
+    {
+     "name": "wrist_l",
+     "x": 585.0,
+     "y": 630.0
+    },
+    {
+     "name": "hip_r",
+     "x": 320.6,
+     "y": 720.0
+    },
+    {
+     "name": "knee_r",
+     "x": 270.0,
+     "y": 877.5
+    },
+    {
+     "name": "ankle_r",
+     "x": 253.1,
+     "y": 961.9
+    },
+    {
+     "name": "hip_l",
+     "x": 438.8,
+     "y": 720.0
+    },
+    {
+     "name": "knee_l",
+     "x": 433.1,
+     "y": 877.5
+    },
+    {
+     "name": "ankle_l",
+     "x": 427.5,
+     "y": 961.9
+    },
+    {
+     "name": "grip",
+     "x": 365.6,
+     "y": 641.2
+    },
+    {
+     "name": "forend_support",
+     "x": 624.4,
+     "y": 630.0
+    }
+   ],
+   "drawOrder": [
+    "upper_arm_l",
+    "forearm_l",
+    "thigh_l",
+    "shin_l",
+    "foot_l",
+    "thigh_r",
+    "shin_r",
+    "foot_r",
+    "pelvis",
+    "torso",
+    "scarf",
+    "head",
+    "hat",
+    "weapon",
+    "hand_l",
+    "upper_arm_r",
+    "forearm_r",
+    "hand_r"
+   ],
+   "supportIK": true,
+   "supportVisible": true,
+   "parts": [
+    {
+     "name": "head",
+     "sprite": "side__head",
+     "rect": [
+      3,
+      323,
+      150,
+      96
+     ],
+     "pivot": [
+      0.4279069767441861,
+      0.1098958333333333
+     ],
+     "pivotCanvas": [
+      348.8,
+      376.9
+     ],
+     "posTopLeft": [
+      220,
+      206
+     ],
+     "size": [
+      301,
+      192
+     ],
+     "joint": "neck",
+     "parent": "torso",
+     "zorder": 11,
+     "far": false
+    },
+    {
+     "name": "hat",
+     "sprite": "side__hat",
+     "rect": [
+      561,
+      692,
+      222,
+      138
+     ],
+     "pivot": [
+      0.4786516853932584,
+      0.3195652173913043
+     ],
+     "pivotCanvas": [
+      360.0,
+      258.8
+     ],
+     "posTopLeft": [
+      147,
+      71
+     ],
+     "size": [
+      445,
+      276
+     ],
+     "joint": "head_c",
+     "parent": "head",
+     "zorder": 12,
+     "far": false
+    },
+    {
+     "name": "torso",
+     "sprite": "side__torso",
+     "rect": [
+      3,
+      833,
+      153,
+      188
+     ],
+     "pivot": [
+      0.5333333333333333,
+      0.06702127659574464
+     ],
+     "pivotCanvas": [
+      371.2,
+      663.8
+     ],
+     "posTopLeft": [
+      208,
+      313
+     ],
+     "size": [
+      306,
+      376
+     ],
+     "joint": "waist",
+     "parent": "pelvis",
+     "zorder": 9,
+     "far": false
+    },
+    {
+     "name": "pelvis",
+     "sprite": "side__pelvis",
+     "rect": [
+      605,
+      260,
+      122,
+      60
+     ],
+     "pivot": [
+      0.4670781893004115,
+      0.6074380165289256
+     ],
+     "pivotCanvas": [
+      382.5,
+      697.5
+     ],
+     "posTopLeft": [
+      269,
+      650
+     ],
+     "size": [
+      243,
+      121
+     ],
+     "joint": "hip_c",
+     "parent": "root",
+     "zorder": 8,
+     "far": false
+    },
+    {
+     "name": "upper_arm_l",
+     "sprite": "side__upper_arm_l",
+     "rect": [
+      199,
+      244,
+      50,
+      76
+     ],
+     "pivot": [
+      0.305,
+      0.7980132450331126
+     ],
+     "pivotCanvas": [
+      472.5,
+      472.5
+     ],
+     "posTopLeft": [
+      442,
+      442
+     ],
+     "size": [
+      100,
+      151
+     ],
+     "joint": "shoulder_l",
+     "parent": "torso",
+     "zorder": 0,
+     "far": true
+    },
+    {
+     "name": "upper_arm_r",
+     "sprite": "side__upper_arm_r",
+     "rect": [
+      556,
+      549,
+      66,
+      124
+     ],
+     "pivot": [
+      0.5503816793893129,
+      0.7643724696356275
+     ],
+     "pivotCanvas": [
+      253.1,
+      461.2
+     ],
+     "posTopLeft": [
+      181,
+      403
+     ],
+     "size": [
+      131,
+      247
+     ],
+     "joint": "shoulder_r",
+     "parent": "torso",
+     "zorder": 15,
+     "far": false
+    },
+    {
+     "name": "forearm_l",
+     "sprite": "side__forearm_l",
+     "rect": [
+      122,
+      242,
+      74,
+      78
+     ],
+     "pivot": [
+      0.23061224489795917,
+      0.7838709677419355
+     ],
+     "pivotCanvas": [
+      511.9,
+      562.5
+     ],
+     "posTopLeft": [
+      478,
+      529
+     ],
+     "size": [
+      147,
+      155
+     ],
+     "joint": "elbow_l",
+     "parent": "upper_arm_l",
+     "zorder": 1,
+     "far": true
+    },
+    {
+     "name": "forearm_r",
+     "sprite": "side__forearm_r",
+     "rect": [
+      252,
+      244,
+      105,
+      76
+     ],
+     "pivot": [
+      0.20952380952380953,
+      0.6490066225165563
+     ],
+     "pivotCanvas": [
+      225.0,
+      585.0
+     ],
+     "posTopLeft": [
+      181,
+      532
+     ],
+     "size": [
+      210,
+      151
+     ],
+     "joint": "elbow_r",
+     "parent": "upper_arm_r",
+     "zorder": 16,
+     "far": false
+    },
+    {
+     "name": "hand_l",
+     "sprite": "side__hand_l",
+     "rect": [
+      387,
+      190,
+      64,
+      47
+     ],
+     "pivot": [
+      0.11023622047244094,
+      0.6382978723404256
+     ],
+     "pivotCanvas": [
+      585.0,
+      630.0
+     ],
+     "posTopLeft": [
+      571,
+      596
+     ],
+     "size": [
+      127,
+      94
+     ],
+     "joint": "wrist_l",
+     "parent": "forearm_l",
+     "zorder": 14,
+     "far": true
+    },
+    {
+     "name": "hand_r",
+     "sprite": "side__hand_r",
+     "rect": [
+      907,
+      270,
+      50,
+      50
+     ],
+     "pivot": [
+      0.21717171717171718,
+      0.6161616161616161
+     ],
+     "pivotCanvas": [
+      337.5,
+      630.0
+     ],
+     "posTopLeft": [
+      316,
+      592
+     ],
+     "size": [
+      99,
+      99
+     ],
+     "joint": "wrist_r",
+     "parent": "forearm_r",
+     "zorder": 17,
+     "far": false
+    },
+    {
+     "name": "thigh_l",
+     "sprite": "side__thigh_l",
+     "rect": [
+      476,
+      688,
+      82,
+      142
+     ],
+     "pivot": [
+      0.4834355828220859,
+      0.778169014084507
+     ],
+     "pivotCanvas": [
+      438.8,
+      720.0
+     ],
+     "posTopLeft": [
+      360,
+      657
+     ],
+     "size": [
+      163,
+      284
+     ],
+     "joint": "hip_l",
+     "parent": "pelvis",
+     "zorder": 2,
+     "far": true
+    },
+    {
+     "name": "thigh_r",
+     "sprite": "side__thigh_r",
+     "rect": [
+      289,
+      684,
+      79,
+      146
+     ],
+     "pivot": [
+      0.5734177215189873,
+      0.7679180887372014
+     ],
+     "pivotCanvas": [
+      320.6,
+      720.0
+     ],
+     "posTopLeft": [
+      230,
+      652
+     ],
+     "size": [
+      158,
+      293
+     ],
+     "joint": "hip_r",
+     "parent": "pelvis",
+     "zorder": 5,
+     "far": false
+    },
+    {
+     "name": "shin_l",
+     "sprite": "side__shin_l",
+     "rect": [
+      639,
+      428,
+      92,
+      108
+     ],
+     "pivot": [
+      0.4704918032786885,
+      0.6797235023041475
+     ],
+     "pivotCanvas": [
+      433.1,
+      877.5
+     ],
+     "posTopLeft": [
+      347,
+      808
+     ],
+     "size": [
+      183,
+      217
+     ],
+     "joint": "knee_l",
+     "parent": "thigh_l",
+     "zorder": 3,
+     "far": true
+    },
+    {
+     "name": "shin_r",
+     "sprite": "side__shin_r",
+     "rect": [
+      890,
+      558,
+      69,
+      115
+     ],
+     "pivot": [
+      0.36231884057971014,
+      0.6804347826086956
+     ],
+     "pivotCanvas": [
+      270.0,
+      877.5
+     ],
+     "posTopLeft": [
+      220,
+      804
+     ],
+     "size": [
+      138,
+      230
+     ],
+     "joint": "knee_r",
+     "parent": "thigh_r",
+     "zorder": 6,
+     "far": false
+    },
+    {
+     "name": "foot_l",
+     "sprite": "side__foot_l",
+     "rect": [
+      813,
+      268,
+      91,
+      52
+     ],
+     "pivot": [
+      0.12362637362637363,
+      0.6390476190476191
+     ],
+     "pivotCanvas": [
+      427.5,
+      961.9
+     ],
+     "posTopLeft": [
+      405,
+      924
+     ],
+     "size": [
+      182,
+      105
+     ],
+     "joint": "ankle_l",
+     "parent": "shin_l",
+     "zorder": 4,
+     "far": true
+    },
+    {
+     "name": "foot_r",
+     "sprite": "side__foot_r",
+     "rect": [
+      3,
+      187,
+      77,
+      50
+     ],
+     "pivot": [
+      0.20844155844155846,
+      0.9118811881188119
+     ],
+     "pivotCanvas": [
+      253.1,
+      961.9
+     ],
+     "posTopLeft": [
+      221,
+      953
+     ],
+     "size": [
+      154,
+      101
+     ],
+     "joint": "ankle_r",
+     "parent": "shin_r",
+     "zorder": 7,
+     "far": false
+    },
+    {
+     "name": "weapon",
+     "sprite": "side__weapon",
+     "rect": [
+      162,
+      424,
+      296,
+      112
+     ],
+     "pivot": [
+      0.26070826306913997,
+      0.5660714285714286
+     ],
+     "pivotCanvas": [
+      365.6,
+      641.2
+     ],
+     "posTopLeft": [
+      211,
+      544
+     ],
+     "size": [
+      593,
+      224
+     ],
+     "joint": "grip",
+     "parent": "hand_r",
+     "zorder": 13,
+     "far": false
+    },
+    {
+     "name": "scarf",
+     "sprite": "side__scarf",
+     "rect": [
+      156,
+      325,
+      165,
+      94
+     ],
+     "pivot": [
+      0.56,
+      0.8196808510638298
+     ],
+     "pivotCanvas": [
+      348.8,
+      376.9
+     ],
+     "posTopLeft": [
+      164,
+      343
+     ],
+     "size": [
+      330,
+      188
+     ],
+     "joint": "neck",
+     "parent": "torso",
+     "zorder": 10,
+     "far": false
+    }
+   ]
+  },
+  {
+   "name": "up_3q",
+   "canvas": [
+    864,
+    1152
+   ],
+   "figureBBox": [
+    177,
+    61,
+    748,
+    1073
+   ],
+   "groundX": 427.5,
+   "joints": [
+    {
+     "name": "hip_c",
+     "x": 427.5,
+     "y": 720.0
+    },
+    {
+     "name": "waist",
+     "x": 427.5,
+     "y": 680.6
+    },
+    {
+     "name": "neck",
+     "x": 427.5,
+     "y": 421.9
+    },
+    {
+     "name": "head_c",
+     "x": 416.2,
+     "y": 258.8
+    },
+    {
+     "name": "shoulder_r",
+     "x": 556.9,
+     "y": 483.8
+    },
+    {
+     "name": "elbow_r",
+     "x": 582.8,
+     "y": 624.4
+    },
+    {
+     "name": "wrist_r",
+     "x": 650.2,
+     "y": 609.8
+    },
+    {
+     "name": "shoulder_l",
+     "x": 292.5,
+     "y": 483.8
+    },
+    {
+     "name": "elbow_l",
+     "x": 234.0,
+     "y": 607.5
+    },
+    {
+     "name": "wrist_l",
+     "x": 261.0,
+     "y": 669.4
+    },
+    {
+     "name": "hip_l",
+     "x": 371.2,
+     "y": 753.8
+    },
+    {
+     "name": "knee_l",
+     "x": 303.8,
+     "y": 911.2
+    },
+    {
+     "name": "ankle_l",
+     "x": 281.2,
+     "y": 1001.2
+    },
+    {
+     "name": "hip_r",
+     "x": 483.8,
+     "y": 753.8
+    },
+    {
+     "name": "knee_r",
+     "x": 506.2,
+     "y": 922.5
+    },
+    {
+     "name": "ankle_r",
+     "x": 528.8,
+     "y": 1012.5
+    },
+    {
+     "name": "grip",
+     "x": 677.2,
+     "y": 571.5
+    },
+    {
+     "name": "forend_support",
+     "x": 720.5,
+     "y": 491.5
+    }
+   ],
+   "drawOrder": [
+    "upper_arm_l",
+    "forearm_l",
+    "hand_l",
+    "thigh_l",
+    "shin_l",
+    "foot_l",
+    "weapon",
+    "thigh_r",
+    "shin_r",
+    "foot_r",
+    "pelvis",
+    "head",
+    "torso",
+    "scarf",
+    "hat",
+    "upper_arm_r",
+    "forearm_r",
+    "hand_r"
+   ],
+   "supportIK": true,
+   "supportVisible": false,
+   "parts": [
+    {
+     "name": "head",
+     "sprite": "up_3q__head",
+     "rect": [
+      3,
+      422,
+      156,
+      114
+     ],
+     "pivot": [
+      0.5415335463258786,
+      -0.003964757709251199
+     ],
+     "pivotCanvas": [
+      427.5,
+      421.9
+     ],
+     "posTopLeft": [
+      258,
+      194
+     ],
+     "size": [
+      313,
+      227
+     ],
+     "joint": "neck",
+     "parent": "torso",
+     "zorder": 11,
+     "far": false
+    },
+    {
+     "name": "hat",
+     "sprite": "up_3q__hat",
+     "rect": [
+      3,
+      539,
+      236,
+      134
+     ],
+     "pivot": [
+      0.505708245243129,
+      0.25917602996254674
+     ],
+     "pivotCanvas": [
+      416.2,
+      258.8
+     ],
+     "posTopLeft": [
+      177,
+      61
+     ],
+     "size": [
+      473,
+      267
+     ],
+     "joint": "head_c",
+     "parent": "head",
+     "zorder": 14,
+     "far": false
+    },
+    {
+     "name": "torso",
+     "sprite": "up_3q__torso",
+     "rect": [
+      549,
+      853,
+      175,
+      168
+     ],
+     "pivot": [
+      0.5042857142857143,
+      0.03988095238095235
+     ],
+     "pivotCanvas": [
+      427.5,
+      680.6
+     ],
+     "posTopLeft": [
+      251,
+      358
+     ],
+     "size": [
+      350,
+      336
+     ],
+     "joint": "waist",
+     "parent": "pelvis",
+     "zorder": 12,
+     "far": false
+    },
+    {
+     "name": "pelvis",
+     "sprite": "up_3q__pelvis",
+     "rect": [
+      831,
+      339,
+      170,
+      80
+     ],
+     "pivot": [
+      0.5058997050147492,
+      0.6540880503144655
+     ],
+     "pivotCanvas": [
+      427.5,
+      720.0
+     ],
+     "posTopLeft": [
+      256,
+      665
+     ],
+     "size": [
+      339,
+      159
+     ],
+     "joint": "hip_c",
+     "parent": "root",
+     "zorder": 10,
+     "far": false
+    },
+    {
+     "name": "upper_arm_l",
+     "sprite": "up_3q__upper_arm_l",
+     "rect": [
+      803,
+      557,
+      84,
+      116
+     ],
+     "pivot": [
+      0.6775147928994083,
+      0.7648068669527897
+     ],
+     "pivotCanvas": [
+      292.5,
+      483.8
+     ],
+     "posTopLeft": [
+      178,
+      429
+     ],
+     "size": [
+      169,
+      233
+     ],
+     "joint": "shoulder_l",
+     "parent": "torso",
+     "zorder": 0,
+     "far": true
+    },
+    {
+     "name": "upper_arm_r",
+     "sprite": "up_3q__upper_arm_r",
+     "rect": [
+      242,
+      544,
+      76,
+      129
+     ],
+     "pivot": [
+      0.42317880794701984,
+      0.7527131782945736
+     ],
+     "pivotCanvas": [
+      556.9,
+      483.8
+     ],
+     "posTopLeft": [
+      493,
+      420
+     ],
+     "size": [
+      151,
+      258
+     ],
+     "joint": "shoulder_r",
+     "parent": "torso",
+     "zorder": 15,
+     "far": false
+    },
+    {
+     "name": "forearm_l",
+     "sprite": "up_3q__forearm_l",
+     "rect": [
+      3,
+      240,
+      60,
+      80
+     ],
+     "pivot": [
+      0.3949579831932773,
+      0.6886792452830188
+     ],
+     "pivotCanvas": [
+      234.0,
+      607.5
+     ],
+     "posTopLeft": [
+      187,
+      558
+     ],
+     "size": [
+      119,
+      159
+     ],
+     "joint": "elbow_l",
+     "parent": "upper_arm_l",
+     "zorder": 1,
+     "far": true
+    },
+    {
+     "name": "forearm_r",
+     "sprite": "up_3q__forearm_r",
+     "rect": [
+      730,
+      264,
+      80,
+      56
+     ],
+     "pivot": [
+      0.31124999999999997,
+      0.44684684684684683
+     ],
+     "pivotCanvas": [
+      582.8,
+      624.4
+     ],
+     "posTopLeft": [
+      533,
+      563
+     ],
+     "size": [
+      160,
+      111
+     ],
+     "joint": "elbow_r",
+     "parent": "upper_arm_r",
+     "zorder": 16,
+     "far": false
+    },
+    {
+     "name": "hand_l",
+     "sprite": "up_3q__hand_l",
+     "rect": [
+      493,
+      203,
+      42,
+      34
+     ],
+     "pivot": [
+      0.27380952380952384,
+      0.7441176470588236
+     ],
+     "pivotCanvas": [
+      261.0,
+      669.4
+     ],
+     "posTopLeft": [
+      238,
+      652
+     ],
+     "size": [
+      84,
+      68
+     ],
+     "joint": "wrist_l",
+     "parent": "forearm_l",
+     "zorder": 2,
+     "far": true
+    },
+    {
+     "name": "hand_r",
+     "sprite": "up_3q__hand_r",
+     "rect": [
+      454,
+      194,
+      36,
+      43
+     ],
+     "pivot": [
+      0.18082191780821916,
+      0.013953488372093092
+     ],
+     "pivotCanvas": [
+      650.2,
+      609.8
+     ],
+     "posTopLeft": [
+      637,
+      525
+     ],
+     "size": [
+      73,
+      86
+     ],
+     "joint": "wrist_r",
+     "parent": "forearm_r",
+     "zorder": 17,
+     "far": false
+    },
+    {
+     "name": "thigh_l",
+     "sprite": "up_3q__thigh_l",
+     "rect": [
+      371,
+      684,
+      102,
+      146
+     ],
+     "pivot": [
+      0.6692682926829268,
+      0.7686006825938567
+     ],
+     "pivotCanvas": [
+      371.2,
+      753.8
+     ],
+     "posTopLeft": [
+      234,
+      686
+     ],
+     "size": [
+      205,
+      293
+     ],
+     "joint": "hip_l",
+     "parent": "pelvis",
+     "zorder": 3,
+     "far": true
+    },
+    {
+     "name": "thigh_r",
+     "sprite": "up_3q__thigh_r",
+     "rect": [
+      201,
+      678,
+      85,
+      152
+     ],
+     "pivot": [
+      0.3988235294117647,
+      0.7769736842105264
+     ],
+     "pivotCanvas": [
+      483.8,
+      753.8
+     ],
+     "posTopLeft": [
+      416,
+      686
+     ],
+     "size": [
+      170,
+      304
+     ],
+     "joint": "hip_r",
+     "parent": "pelvis",
+     "zorder": 7,
+     "far": false
+    },
+    {
+     "name": "shin_l",
+     "sprite": "up_3q__shin_l",
+     "rect": [
+      734,
+      428,
+      82,
+      108
+     ],
+     "pivot": [
+      0.629090909090909,
+      0.6641860465116278
+     ],
+     "pivotCanvas": [
+      303.8,
+      911.2
+     ],
+     "posTopLeft": [
+      200,
+      839
+     ],
+     "size": [
+      165,
+      215
+     ],
+     "joint": "knee_l",
+     "parent": "thigh_l",
+     "zorder": 4,
+     "far": true
+    },
+    {
+     "name": "shin_r",
+     "sprite": "up_3q__shin_r",
+     "rect": [
+      461,
+      424,
+      94,
+      112
+     ],
+     "pivot": [
+      0.38074866310160427,
+      0.6688888888888889
+     ],
+     "pivotCanvas": [
+      506.2,
+      922.5
+     ],
+     "posTopLeft": [
+      435,
+      848
+     ],
+     "size": [
+      187,
+      225
+     ],
+     "joint": "knee_r",
+     "parent": "thigh_r",
+     "zorder": 8,
+     "far": false
+    },
+    {
+     "name": "foot_l",
+     "sprite": "up_3q__foot_l",
+     "rect": [
+      538,
+      207,
+      77,
+      30
+     ],
+     "pivot": [
+      0.5207792207792208,
+      0.8655737704918033
+     ],
+     "pivotCanvas": [
+      281.2,
+      1001.2
+     ],
+     "posTopLeft": [
+      201,
+      993
+     ],
+     "size": [
+      154,
+      61
+     ],
+     "joint": "ankle_l",
+     "parent": "shin_l",
+     "zorder": 5,
+     "far": true
+    },
+    {
+     "name": "foot_r",
+     "sprite": "up_3q__foot_r",
+     "rect": [
+      290,
+      189,
+      94,
+      48
+     ],
+     "pivot": [
+      0.3216931216931217,
+      0.6263157894736842
+     ],
+     "pivotCanvas": [
+      528.8,
+      1012.5
+     ],
+     "posTopLeft": [
+      468,
+      977
+     ],
+     "size": [
+      189,
+      95
+     ],
+     "joint": "ankle_r",
+     "parent": "shin_r",
+     "zorder": 9,
+     "far": false
+    },
+    {
+     "name": "weapon",
+     "sprite": "up_3q__weapon",
+     "rect": [
+      159,
+      835,
+      90,
+      186
+     ],
+     "pivot": [
+      0.6044692737430167,
+      0.6626344086021505
+     ],
+     "pivotCanvas": [
+      677.2,
+      571.5
+     ],
+     "posTopLeft": [
+      569,
+      446
+     ],
+     "size": [
+      179,
+      372
+     ],
+     "joint": "grip",
+     "parent": "hand_r",
+     "zorder": 6,
+     "far": false
+    },
+    {
+     "name": "scarf",
+     "sprite": "up_3q__scarf",
+     "rect": [
+      465,
+      256,
+      137,
+      64
+     ],
+     "pivot": [
+      0.5529197080291971,
+      0.74296875
+     ],
+     "pivotCanvas": [
+      427.5,
+      421.9
+     ],
+     "posTopLeft": [
+      276,
+      389
+     ],
+     "size": [
+      274,
+      128
+     ],
+     "joint": "neck",
+     "parent": "torso",
+     "zorder": 13,
+     "far": false
+    }
+   ]
+  }
+ ],
+ "secondaryPart": "scarf",
+ "secondaryGain": 1.6,
+ "secondaryMaxDeg": 22.0,
+ "hatMaxDeg": 10.0,
+ "limits": [
+  {
+   "prefix": "thigh",
+   "maxDeg": 30
+  },
+  {
+   "prefix": "shin",
+   "maxDeg": 45
+  },
+  {
+   "prefix": "foot",
+   "maxDeg": 12
+  },
+  {
+   "prefix": "torso",
+   "maxDeg": 12
+  },
+  {
+   "prefix": "head",
+   "maxDeg": 12
+  },
+  {
+   "prefix": "upper_arm_l",
+   "maxDeg": 100
+  },
+  {
+   "prefix": "forearm",
+   "maxDeg": 35
+  },
+  {
+   "prefix": "upper_arm_r",
+   "maxDeg": 40
+  }
+ ],
+ "fullLimits": [
+  {
+   "prefix": "thigh",
+   "maxDeg": 85
+  },
+  {
+   "prefix": "shin",
+   "maxDeg": 95
+  },
+  {
+   "prefix": "torso",
+   "maxDeg": 30
+  },
+  {
+   "prefix": "head",
+   "maxDeg": 28
+  },
+  {
+   "prefix": "upper_arm",
+   "maxDeg": 35
+  },
+  {
+   "prefix": "forearm",
+   "maxDeg": 60
+  },
+  {
+   "prefix": "foot",
+   "maxDeg": 25
+  }
+ ]
+}

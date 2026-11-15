@@ -12,9 +12,9 @@ namespace HillNGun.Data
     {
         [Header("Horizontal acceleration")]
         [Tooltip("정지 → 최고 속도까지 걸리는 시간 (초). 0이면 즉시")]
-        public float accelTime = 0.09f;
+        public float accelTime = 0.08f;
         [Tooltip("최고 속도 → 정지까지 걸리는 시간 (초). 0이면 즉시")]
-        public float decelTime = 0.07f;
+        public float decelTime = 0.06f;
         [Tooltip("반대 방향 입력 시 감속 배수 (방향 전환이 미끄러지지 않게)")]
         public float turnDecelMul = 1.8f;
         [Tooltip("가속 곡선 (x = 현재 속도/최고 속도, y = 가속 배율). 출발이 빠르고 끝이 부드럽게")]
@@ -45,6 +45,12 @@ namespace HillNGun.Data
         [Range(0f, 1f)] public float rollExitCarry = 0.35f;
         [Tooltip("구르기 중 대각선 입력은 좌우 구르기로 처리 (줄 밖으로 밀려나지 않음)")]
         public bool horizontalRollOnly = true;
+
+        [Header("FreeMove (PvE)")]
+        [Tooltip("Body collider radius vs covers / walk area (actor centre; NOT the hit radius)")]
+        public float freeMoveBodyRadius = 0.3f;
+        [Tooltip("Enemy body collider radius (x EnemyData.scale)")]
+        public float freeMoveEnemyRadius = 0.3f;
 
         [Header("Input buffer")]
         [Tooltip("구르기/회복/쿨 끝나기 이 시간 전 안에 누른 구르기·사격·수류탄·줄 이동을 기억했다 실행. <0이면 RollData.inputBuffer 사용")]

@@ -1,0 +1,144 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f558a78d261749d481ab2d3d0cdc9a9, type: 3}
+  m_Name: street_layout_dust
+  m_EditorClassIdentifier: 
+  id: street_layout_dust
+  walkPolygon:
+  - {x: -3.6, y: 1.7}
+  - {x: 28.4, y: 1.7}
+  - {x: 24.95, y: 8.1}
+  - {x: 21.86, y: 11.93}
+  - {x: 21.45, y: 13.9}
+  - {x: 1.72, y: 13.9}
+  - {x: 1.35, y: 11.78}
+  - {x: -1.6, y: 7.39}
+  - {x: -2.38, y: 6.54}
+  - {x: -3.65, y: 2.01}
+  footOffset: 0.8
+  enemyPostZone:
+    serializedVersion: 2
+    x: 1
+    y: 8.6
+    width: 22
+    height: 5
+  enemyPostEdgeMargin: 0.8
+  spawnPoints:
+  - id: door_L
+    type: 1
+    side: 0
+    position: {x: 2.7, y: 11.3}
+    entranceStart: {x: 0.5, y: 11.6}
+    direction: {x: 0.9805807, y: -0.19611615}
+    telegraphTime: 0.8
+    entranceTime: 0.5
+    telegraphPosition: {x: 0, y: 0}
+  - id: door_R
+    type: 1
+    side: 1
+    position: {x: 21.2, y: 11.3}
+    entranceStart: {x: 23.9, y: 11.5}
+    direction: {x: -0.9805807, y: -0.19611615}
+    telegraphTime: 0.8
+    entranceTime: 0.5
+    telegraphPosition: {x: 0, y: 0}
+  - id: alley_L
+    type: 2
+    side: 0
+    position: {x: 0.9, y: 8.9}
+    entranceStart: {x: -1.8, y: 9.1}
+    direction: {x: 1, y: 0}
+    telegraphTime: 0.35
+    entranceTime: 0.7
+    telegraphPosition: {x: 0, y: 0}
+  - id: alley_R
+    type: 2
+    side: 1
+    position: {x: 22.5, y: 9.9}
+    entranceStart: {x: 25.9, y: 10.2}
+    direction: {x: -1, y: 0}
+    telegraphTime: 0.35
+    entranceTime: 0.7
+    telegraphPosition: {x: 0, y: 0}
+  - id: street_L
+    type: 3
+    side: 0
+    position: {x: -1.6, y: 3.4}
+    entranceStart: {x: -8.5, y: 3.2}
+    direction: {x: 1, y: 0}
+    telegraphTime: 0
+    entranceTime: 1.5
+    telegraphPosition: {x: 0, y: 0}
+  - id: street_R
+    type: 3
+    side: 1
+    position: {x: 25.4, y: 3.4}
+    entranceStart: {x: 32.5, y: 3.2}
+    direction: {x: -1, y: 0}
+    telegraphTime: 0
+    entranceTime: 1.5
+    telegraphPosition: {x: 0, y: 0}
+  - id: fence_1
+    type: 4
+    side: 2
+    position: {x: 2.5, y: 2.6}
+    entranceStart: {x: 2.5, y: 0.6}
+    direction: {x: 0, y: 1}
+    telegraphTime: 0.4
+    entranceTime: 0.7
+    telegraphPosition: {x: 0, y: 0}
+  - id: fence_2
+    type: 4
+    side: 2
+    position: {x: 9, y: 2.6}
+    entranceStart: {x: 9, y: 0.6}
+    direction: {x: 0, y: 1}
+    telegraphTime: 0.4
+    entranceTime: 0.7
+    telegraphPosition: {x: 0, y: 0}
+  - id: fence_3
+    type: 4
+    side: 2
+    position: {x: 15, y: 2.6}
+    entranceStart: {x: 15, y: 0.6}
+    direction: {x: 0, y: 1}
+    telegraphTime: 0.4
+    entranceTime: 0.7
+    telegraphPosition: {x: 0, y: 0}
+  - id: fence_4
+    type: 4
+    side: 2
+    position: {x: 21.5, y: 2.6}
+    entranceStart: {x: 21.5, y: 0.6}
+    direction: {x: 0, y: 1}
+    telegraphTime: 0.4
+    entranceTime: 0.7
+    telegraphPosition: {x: 0, y: 0}
+  - id: window_L
+    type: 5
+    side: 0
+    position: {x: -2.6, y: 15.5}
+    entranceStart: {x: -2.6, y: 14.9}
+    direction: {x: 0, y: -1}
+    telegraphTime: 0.6
+    entranceTime: 0.4
+    telegraphPosition: {x: -2.6, y: 15.5}
+  - id: window_R
+    type: 5
+    side: 1
+    position: {x: 24.66, y: 15.5}
+    entranceStart: {x: 24.66, y: 14.9}
+    direction: {x: 0, y: -1}
+    telegraphTime: 0.6
+    entranceTime: 0.4
+    telegraphPosition: {x: 24.66, y: 15.5}
+  bossEntryStart: {x: 11.6, y: 19.5}

@@ -33,6 +33,7 @@ namespace HillNGun.AI
         public void Tick(float dt, Vector2? target)
         {
             if (_character == null || _character.Data?.weapon == null) return;
+            if (_character == AbilityPilot.DiagHoldActor) return; // diagnostic throw take only (null in play)
 
             if (_character.OverallState != CharacterOverallState.Active)
             {

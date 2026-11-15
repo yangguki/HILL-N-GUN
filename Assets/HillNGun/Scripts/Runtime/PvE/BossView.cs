@@ -227,6 +227,8 @@ namespace HillNGun.PvE
             if (lr != null) lr.sortingOrder = FieldView.OverlayOrder;
         }
 
+        private float _entryDustTimer;
+
         private void UpdateMotion()
         {
             if (_rig == null) return;
@@ -240,7 +242,15 @@ namespace HillNGun.PvE
             var md = MotionFx.Data;
             // slow idle breathe/sway (snake coil) + lean into horizontal moves; no flip (boss faces the players)
             float breathe = _boss.IsAlive ? Mathf.Sin(_t * 2.1f) * md.bossBreathe * 2f : 0f;
-            _rig.Tick(dt, Mathf.Abs(v.x) > 0.05f ? v.x : 0f, 3f, _boss.IsAlive, md.enemyBobHeight * 0.5f, md.enemyLeanMaxDeg * 0.5f, breathe, 0f, false);
+            bool entering = _boss.IsInEntryPhase();
+            if (entering)
+            {
+                // walk-in through the gate: 2D gait with footfall dust (no drop from the sky)
+                _rig.Tick(dt, v, 2.5f, true, md.enemyBobHeight * 0.6f, md.enemyLeanMaxDeg * 0.5f, 0f, 0f, true);
+                _entryDustTimer -= dt;
+                if (_entryDustTimer <= 0f) { _entryDustTimer = 0.32f; _rig.Dust(new Vector2(0f, 0.4f), 2); }
+            }
+            else _rig.Tick(dt, Mathf.Abs(v.x) > 0.05f ? v.x : 0f, 3f, _boss.IsAlive, md.enemyBobHeight * 0.5f, md.enemyLeanMaxDeg * 0.5f, breathe, 0f, false);
             Update3D(dt, v);
         }
 

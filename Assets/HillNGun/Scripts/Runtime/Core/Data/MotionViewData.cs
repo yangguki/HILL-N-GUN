@@ -19,7 +19,7 @@ namespace HillNGun.Data
         [Tooltip("사격 후 이 시간 동안은 이동 방향 대신 조준 방향을 본다 (초)")]
         public float aimFacingHold = 0.45f;
         [Tooltip("좌우 뒤집기 시간 (초) — 0이면 즉시")]
-        public float flipTime = 0.06f;
+        public float flipTime = 0.08f;
         [Tooltip("뒤집는 도중 최소 가로 폭 (0이면 종이처럼 사라짐)")]
         [Range(0f, 1f)] public float flipMinWidth = 0.35f;
         [Tooltip("조준/속도로 인한 방향 전환은 이 시간 이상 유지될 때만 (떨림 방지, 초)")]
@@ -29,13 +29,13 @@ namespace HillNGun.Data
 
         [Header("Walk")]
         [Tooltip("걸음 튐 높이 (로컬 단위)")]
-        public float bobHeight = 0.07f;
+        public float bobHeight = 0.12f;
         [Tooltip("타일당 걸음 수")]
         public float stepsPerTile = 1.25f;
         [Tooltip("걸을 때 세로 늘어남 (걸음에 맞춰)")]
         public float walkStretch = 0.035f;
         [Tooltip("이동 방향으로 기울기 최대 (도)")]
-        public float leanMaxDeg = 8f;
+        public float leanMaxDeg = 6f;
         [Tooltip("기울기 따라가는 속도")]
         public float leanSharpness = 14f;
 
@@ -59,7 +59,7 @@ namespace HillNGun.Data
         [Tooltip("구르기 시작 눌림")]
         public float rollSquash = 0.16f;
         [Tooltip("착지 눌림")]
-        public float landSquash = 0.14f;
+        public float landSquash = 0.05f;
         [Tooltip("잔상 간격 (초)")]
         public float afterimageInterval = 0.04f;
         [Tooltip("잔상 수명 (초)")]
@@ -101,9 +101,29 @@ namespace HillNGun.Data
         public float shadowShrinkPerUnit = 0.9f;
 
         [Header("Enemy / boss motion")]
-        public float enemyBobHeight = 0.05f;
+        public float enemyBobHeight = 0.12f;
         public float enemyLeanMaxDeg = 6f;
         public float bossBreathe = 0.015f;
+
+        [Header("Idle / recoil / caps (v11 natural movement)")]
+        [Tooltip("Idle breathing scale amplitude (0.02 = 2%)")]
+        public float idleBreathAmp = 0.02f;
+        [Tooltip("Idle breathing period (s)")]
+        public float idleBreathPeriod = 1.6f;
+        [Tooltip("Shot recoil kick (local units, opposite the aim)")]
+        public float shootRecoil = 0.06f;
+        [Tooltip("Hit flinch kick (local units, along the hit)")]
+        public float hitRecoil = 0.1f;
+        [Tooltip("Recoil return time constant (s)")]
+        public float recoilReturnTime = 0.08f;
+        [Tooltip("Max simultaneous foot dust puffs (same discipline as the 16 impact particles)")]
+        public int maxActiveDust = 16;
+        [Tooltip("v12: draw all foot dust in one ground sorting band (batches) instead of just under each actor")]
+        public bool dustGroundBand = true;
+        [Tooltip("RowLane (PvP): view-only ease-out of the drawn Y toward the logic Y (s to ~95%). Logic/hitbox untouched")]
+        public float rowViewEaseTime = 0.10f;
+        [Tooltip("RowLane: jumps larger than this (tiles) snap (round reset / spawn)")]
+        public float rowViewSnapDistance = 3f;
 
         private static MotionViewData _fallback;
         public static MotionViewData Fallback

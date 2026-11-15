@@ -79,6 +79,7 @@ namespace HillNGun.DebugTools
             LogLayout(key, combat, pve);
             string path = Path.Combine(_dir, $"terrain_{key}_{Screen.width}x{Screen.height}{(TerrainRules.CoverDebug ? "_debug" : "")}.png");
             ScreenCapture.CaptureScreenshot(path);
+            SmokeTestRunner.MarkShotFrame();
             Debug.Log($"[TerrainSmoke] SHOT {path} t={t:F1}s");
             if (_firstOnly) StartCoroutine(QuitSoon());
         }

@@ -1,0 +1,4031 @@
+fileFormatVersion: 2
+guid: cbe2167c830fc42fcbc50e91ef41de9a
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 0
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 1024
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: down_3q__head
+      rect:
+        serializedVersion: 2
+        x: 607
+        y: 685
+        width: 182
+        height: 129
+      alignment: 9
+      pivot: {x: 0.5736264, y: 0.031007752}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: head
+        guid: 476011944f9ab47ab87c7f1ec081dfc8_b
+        position: {x: 104.4, y: 4, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 64.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 476011944f9ab47ab87c7f1ec081dfc8
+      internalID: -1802088429
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 182, y: 0}
+      - {x: 182, y: 129}
+      - {x: 0, y: 129}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__hat
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 676
+        width: 239
+        height: 138
+      alignment: 9
+      pivot: {x: 0.49832636, y: 0.25289854}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: hat
+        guid: 7d08d41a2a6b842f295c95f4bc8ad57e_b
+        position: {x: 119.1, y: 34.899998, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 69
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 7d08d41a2a6b842f295c95f4bc8ad57e
+      internalID: -640091216
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 239, y: 0}
+      - {x: 239, y: 138}
+      - {x: 0, y: 138}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__torso
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 685
+        width: 166
+        height: 129
+      alignment: 9
+      pivot: {x: 0.534139, y: 0.054263566}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: torso
+        guid: 1acba21dc45884367912d6c267903693_b
+        position: {x: 88.66707, y: 7, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 64.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 1acba21dc45884367912d6c267903693
+      internalID: 1119330116
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 166, y: 0}
+      - {x: 166, y: 129}
+      - {x: 0, y: 129}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__pelvis
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 442
+        width: 156
+        height: 97
+      alignment: 9
+      pivot: {x: 0.5170418, y: 0.46804124}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: pelvis
+        guid: 4c4f24223996447cbbb23dd1966cd05e_b
+        position: {x: 80.65852, y: 45.4, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 48.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 4c4f24223996447cbbb23dd1966cd05e
+      internalID: 1489695849
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 156, y: 0}
+      - {x: 156, y: 97}
+      - {x: 0, y: 97}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__upper_arm_l
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 355
+        width: 44
+        height: 81
+      alignment: 9
+      pivot: {x: 0.41477272, y: 0.7777778}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: upper_arm_l
+        guid: 5741f54c0dc5a46268c7126ea3b2027a_b
+        position: {x: 18.25, y: 63, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 40.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 5741f54c0dc5a46268c7126ea3b2027a
+      internalID: -1816700011
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 44, y: 0}
+      - {x: 44, y: 81}
+      - {x: 0, y: 81}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__upper_arm_r
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 559
+        width: 56
+        height: 112
+      alignment: 9
+      pivot: {x: 0.57117116, y: 0.7875556}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: upper_arm_r
+        guid: e19dac192d9394f8bb7e919d73aa9fd6_b
+        position: {x: 31.985584, y: 88.20622, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 56
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: e19dac192d9394f8bb7e919d73aa9fd6
+      internalID: -1796294588
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 56, y: 0}
+      - {x: 56, y: 112}
+      - {x: 0, y: 112}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__forearm_l
+      rect:
+        serializedVersion: 2
+        x: 255
+        y: 364
+        width: 38
+        height: 72
+      alignment: 9
+      pivot: {x: 0.47733334, y: 0.75}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: forearm_l
+        guid: 654af6a902f1647f1b1ff0c3cea8235b_b
+        position: {x: 18.138666, y: 54, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 36
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 654af6a902f1647f1b1ff0c3cea8235b
+      internalID: 875390855
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 38, y: 0}
+      - {x: 38, y: 72}
+      - {x: 0, y: 72}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__forearm_r
+      rect:
+        serializedVersion: 2
+        x: 793
+        y: 391
+        width: 84
+        height: 45
+      alignment: 9
+      pivot: {x: 0.22559524, y: 0.49888888}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: forearm_r
+        guid: 87c3ab7c19ee24d1c8c4fcceea457dc1_b
+        position: {x: 18.95, y: 22.449999, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 22.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 87c3ab7c19ee24d1c8c4fcceea457dc1
+      internalID: -1908439413
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 84, y: 0}
+      - {x: 84, y: 45}
+      - {x: 0, y: 45}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__hand_l
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 381
+        width: 38
+        height: 55
+      alignment: 9
+      pivot: {x: 0.432, y: 0.9045454}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: hand_l
+        guid: a8ab9a5759684479da2b51525ceacbaf_b
+        position: {x: 16.416, y: 49.75, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 27.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: a8ab9a5759684479da2b51525ceacbaf
+      internalID: 468047627
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 38, y: 0}
+      - {x: 38, y: 55}
+      - {x: 0, y: 55}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__hand_r
+      rect:
+        serializedVersion: 2
+        x: 565
+        y: 382
+        width: 59
+        height: 54
+      alignment: 9
+      pivot: {x: 0.06949153, y: 0.44766355}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: hand_r
+        guid: 5a74406a9d4ef4e2e964826b278eb7f7_b
+        position: {x: 4.1000004, y: 24.173832, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 27
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 5a74406a9d4ef4e2e964826b278eb7f7
+      internalID: -1494714628
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 59, y: 0}
+      - {x: 59, y: 54}
+      - {x: 0, y: 54}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__thigh_l
+      rect:
+        serializedVersion: 2
+        x: 754
+        y: 451
+        width: 62
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5456, y: 0.69204545}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: thigh_l
+        guid: e7a00c4f253d340908745902814c04a8_b
+        position: {x: 33.827198, y: 60.9, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 44
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: e7a00c4f253d340908745902814c04a8
+      internalID: 1183353036
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 62, y: 0}
+      - {x: 62, y: 88}
+      - {x: 0, y: 88}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__thigh_r
+      rect:
+        serializedVersion: 2
+        x: 560
+        y: 449
+        width: 63
+        height: 90
+      alignment: 9
+      pivot: {x: 0.53809524, y: 0.68777776}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: thigh_r
+        guid: 264b245bcee494164afb275df89e8009_b
+        position: {x: 33.9, y: 61.899998, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 45
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 264b245bcee494164afb275df89e8009
+      internalID: -739166723
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 63, y: 0}
+      - {x: 63, y: 90}
+      - {x: 0, y: 90}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__shin_l
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 356
+        width: 76
+        height: 80
+      alignment: 9
+      pivot: {x: 0.41192052, y: 0.6347826}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: shin_l
+        guid: 2b8eb8eaca27f4c23b8b90bcc6c0481f_b
+        position: {x: 31.30596, y: 50.782608, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 40
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 2b8eb8eaca27f4c23b8b90bcc6c0481f
+      internalID: -229345835
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 76, y: 0}
+      - {x: 76, y: 80}
+      - {x: 0, y: 80}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__shin_r
+      rect:
+        serializedVersion: 2
+        x: 819
+        y: 451
+        width: 70
+        height: 88
+      alignment: 9
+      pivot: {x: 0.5359712, y: 0.6545454}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: shin_r
+        guid: b6547a9ad1a4b46bf8e78270e55edb64_b
+        position: {x: 37.517986, y: 57.6, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 44
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: b6547a9ad1a4b46bf8e78270e55edb64
+      internalID: 744013791
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 70, y: 0}
+      - {x: 70, y: 88}
+      - {x: 0, y: 88}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__foot_l
+      rect:
+        serializedVersion: 2
+        x: 157
+        y: 315
+        width: 70
+        height: 34
+      alignment: 9
+      pivot: {x: 0.33687943, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: foot_l
+        guid: 490f02955f28f48cca56bef7e65ffc6a_b
+        position: {x: 23.58156, y: 22.666668, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 17
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 490f02955f28f48cca56bef7e65ffc6a
+      internalID: -191109453
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 70, y: 0}
+      - {x: 70, y: 34}
+      - {x: 0, y: 34}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__foot_r
+      rect:
+        serializedVersion: 2
+        x: 297
+        y: 317
+        width: 64
+        height: 32
+      alignment: 9
+      pivot: {x: 0.54418606, y: 0.875}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: foot_r
+        guid: 7771f9aa09b55413690115f2e18f13d4_b
+        position: {x: 34.827908, y: 28, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 16
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 7771f9aa09b55413690115f2e18f13d4
+      internalID: 1987786283
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 64, y: 0}
+      - {x: 64, y: 32}
+      - {x: 0, y: 32}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__weapon
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 881
+        width: 154
+        height: 140
+      alignment: 9
+      pivot: {x: 0.15339805, y: 0.27240142}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: weapon
+        guid: dd390f6e234024581979de7dbf4dd31d_b
+        position: {x: 23.6233, y: 38.1362, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 70
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: dd390f6e234024581979de7dbf4dd31d
+      internalID: 450713981
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 154, y: 0}
+      - {x: 154, y: 140}
+      - {x: 0, y: 140}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: down_3q__wrench
+      rect:
+        serializedVersion: 2
+        x: 430
+        y: 861
+        width: 136
+        height: 160
+      alignment: 9
+      pivot: {x: 0.7838828, y: 0.23831776}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: wrench
+        guid: 089fccd1f36e64757b07e306f1d107ef_b
+        position: {x: 106.60806, y: 38.13084, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 80
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 089fccd1f36e64757b07e306f1d107ef
+      internalID: -1350900565
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 136, y: 0}
+      - {x: 136, y: 160}
+      - {x: 0, y: 160}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__head
+      rect:
+        serializedVersion: 2
+        x: 546
+        y: 559
+        width: 156
+        height: 112
+      alignment: 9
+      pivot: {x: 0.5543131, y: 0.011160715}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: head
+        guid: 38f5b7ceaf7ff4a448067dab7ed8663f_b
+        position: {x: 86.47285, y: 1.25, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 56
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 38f5b7ceaf7ff4a448067dab7ed8663f
+      internalID: 1252958334
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 156, y: 0}
+      - {x: 156, y: 112}
+      - {x: 0, y: 112}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__hat
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 674
+        width: 204
+        height: 140
+      alignment: 9
+      pivot: {x: 0.44717446, y: 0.27330962}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: hat
+        guid: 20bb2e190884d4797ac37a6b562aa7cd_b
+        position: {x: 91.22359, y: 38.263348, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 70
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 20bb2e190884d4797ac37a6b562aa7cd
+      internalID: 190739220
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 204, y: 0}
+      - {x: 204, y: 140}
+      - {x: 0, y: 140}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__torso
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 542
+        width: 101
+        height: 129
+      alignment: 9
+      pivot: {x: 0.4861386, y: 0.008527132}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: torso
+        guid: 54ae420b4d067426b97d4bdcebef2358_b
+        position: {x: 49.1, y: 1.1, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 64.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 54ae420b4d067426b97d4bdcebef2358
+      internalID: -460139524
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 101, y: 0}
+      - {x: 101, y: 129}
+      - {x: 0, y: 129}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__pelvis
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 439
+        width: 112
+        height: 100
+      alignment: 9
+      pivot: {x: 0.472, y: 0.2625}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: pelvis
+        guid: 3b127cb7307ac441e937fb8273608b88_b
+        position: {x: 52.864, y: 26.249998, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 50
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 3b127cb7307ac441e937fb8273608b88
+      internalID: -1126064283
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 112, y: 0}
+      - {x: 112, y: 100}
+      - {x: 0, y: 100}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__upper_arm_l
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 445
+        width: 54
+        height: 94
+      alignment: 9
+      pivot: {x: 0.29357797, y: 0.8299465}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: upper_arm_l
+        guid: 0eb4d07a17c0a4c60bce29e429b8599a_b
+        position: {x: 15.85321, y: 78.01497, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 47
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 0eb4d07a17c0a4c60bce29e429b8599a
+      internalID: 605161499
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 54, y: 0}
+      - {x: 54, y: 94}
+      - {x: 0, y: 94}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__upper_arm_r
+      rect:
+        serializedVersion: 2
+        x: 769
+        y: 561
+        width: 55
+        height: 110
+      alignment: 9
+      pivot: {x: 0.44727272, y: 0.7146119}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: upper_arm_r
+        guid: 10593b4bb40ab4770bfefb98ffae2d2c_b
+        position: {x: 24.6, y: 78.60731, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 55
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 10593b4bb40ab4770bfefb98ffae2d2c
+      internalID: 1991850585
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 55, y: 0}
+      - {x: 55, y: 110}
+      - {x: 0, y: 110}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__forearm_l
+      rect:
+        serializedVersion: 2
+        x: 337
+        y: 368
+        width: 45
+        height: 68
+      alignment: 9
+      pivot: {x: 0.32222223, y: 0.78467155}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: forearm_l
+        guid: 1d91c9f0509444a6aaaaea13d6aea500_b
+        position: {x: 14.5, y: 53.357666, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 34
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 1d91c9f0509444a6aaaaea13d6aea500
+      internalID: 1033899783
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 45, y: 0}
+      - {x: 45, y: 68}
+      - {x: 0, y: 68}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__forearm_r
+      rect:
+        serializedVersion: 2
+        x: 677
+        y: 386
+        width: 113
+        height: 50
+      alignment: 9
+      pivot: {x: 0.20132743, y: 0.45148516}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: forearm_r
+        guid: aa834a39b30484a95b8969931c7223f4_b
+        position: {x: 22.75, y: 22.574257, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 25
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: aa834a39b30484a95b8969931c7223f4
+      internalID: 1549569009
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 113, y: 0}
+      - {x: 113, y: 50}
+      - {x: 0, y: 50}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__hand_l
+      rect:
+        serializedVersion: 2
+        x: 919
+        y: 398
+        width: 25
+        height: 38
+      alignment: 9
+      pivot: {x: 0.322, y: 0.93421054}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: hand_l
+        guid: c46b60018dab94ad79b31b2532bc870e_b
+        position: {x: 8.05, y: 35.5, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 19
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: c46b60018dab94ad79b31b2532bc870e
+      internalID: -1514047516
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 25, y: 0}
+      - {x: 25, y: 38}
+      - {x: 0, y: 38}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__hand_r
+      rect:
+        serializedVersion: 2
+        x: 462
+        y: 380
+        width: 59
+        height: 56
+      alignment: 9
+      pivot: {x: 0.021186441, y: 0.45044246}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: hand_r
+        guid: 27531dbde4aa84514995df3b9d417ee0_b
+        position: {x: 1.25, y: 25.224777, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 28
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 27531dbde4aa84514995df3b9d417ee0
+      internalID: 124297081
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 59, y: 0}
+      - {x: 59, y: 56}
+      - {x: 0, y: 56}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__thigh_l
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 442
+        width: 56
+        height: 97
+      alignment: 9
+      pivot: {x: 0.46607143, y: 0.73298967}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: thigh_l
+        guid: 2a202a5ee31c14a32b5dc97555ffead0_b
+        position: {x: 26.1, y: 71.1, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 48.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 2a202a5ee31c14a32b5dc97555ffead0
+      internalID: 126164379
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 56, y: 0}
+      - {x: 56, y: 97}
+      - {x: 0, y: 97}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__thigh_r
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 440
+        width: 60
+        height: 99
+      alignment: 9
+      pivot: {x: 0.54333335, y: 0.7282828}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: thigh_r
+        guid: a1572a5103c3045de85ec06b747fab51_b
+        position: {x: 32.600002, y: 72.1, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 49.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: a1572a5103c3045de85ec06b747fab51
+      internalID: 1638783907
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 60, y: 0}
+      - {x: 60, y: 99}
+      - {x: 0, y: 99}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__shin_l
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 352
+        width: 60
+        height: 84
+      alignment: 9
+      pivot: {x: 0.44916666, y: 0.6639053}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: shin_l
+        guid: 8e51caa70df59415ba2825cbe089d6b7_b
+        position: {x: 26.949999, y: 55.768047, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 42
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 8e51caa70df59415ba2825cbe089d6b7
+      internalID: 2032174585
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 60, y: 0}
+      - {x: 60, y: 84}
+      - {x: 0, y: 84}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__shin_r
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 447
+        width: 58
+        height: 92
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6786885}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: shin_r
+        guid: 3a6e22503db5b471d83bf8332fa0b7d7_b
+        position: {x: 29, y: 62.439346, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 46
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 3a6e22503db5b471d83bf8332fa0b7d7
+      internalID: -1726874233
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 58, y: 0}
+      - {x: 58, y: 92}
+      - {x: 0, y: 92}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__foot_l
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 315
+        width: 64
+        height: 34
+      alignment: 9
+      pivot: {x: 0.2364341, y: 0.715942}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: foot_l
+        guid: 81d35e6b7d1344beb90bc73cd59aac99_b
+        position: {x: 15.131783, y: 24.34203, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 17
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 81d35e6b7d1344beb90bc73cd59aac99
+      internalID: 2000830085
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 64, y: 0}
+      - {x: 64, y: 34}
+      - {x: 0, y: 34}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__foot_r
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 312
+        width: 70
+        height: 37
+      alignment: 9
+      pivot: {x: 0.43165466, y: 0.9972973}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: foot_r
+        guid: 37f737529af2e41e58ad172799ea0985_b
+        position: {x: 30.215826, y: 36.9, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 18.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 37f737529af2e41e58ad172799ea0985
+      internalID: 230594590
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 70, y: 0}
+      - {x: 70, y: 37}
+      - {x: 0, y: 37}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__weapon
+      rect:
+        serializedVersion: 2
+        x: 569
+        y: 877
+        width: 166
+        height: 144
+      alignment: 9
+      pivot: {x: 0.12372372, y: 0.29268292}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: weapon
+        guid: d06d8c163c94e47f9af6cde57a0335b4_b
+        position: {x: 20.538137, y: 42.14634, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 72
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: d06d8c163c94e47f9af6cde57a0335b4
+      internalID: 2008740584
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 166, y: 0}
+      - {x: 166, y: 144}
+      - {x: 0, y: 144}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: side__wrench
+      rect:
+        serializedVersion: 2
+        x: 174
+        y: 836
+        width: 118
+        height: 185
+      alignment: 9
+      pivot: {x: 0.8248945, y: 0.31135136}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: wrench
+        guid: 4f7c4447729614ee3bcc0a0f49c5a6f5_b
+        position: {x: 97.33755, y: 57.600002, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 92.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 4f7c4447729614ee3bcc0a0f49c5a6f5
+      internalID: -387831344
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 118, y: 0}
+      - {x: 118, y: 185}
+      - {x: 0, y: 185}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__head
+      rect:
+        serializedVersion: 2
+        x: 318
+        y: 545
+        width: 166
+        height: 126
+      alignment: 9
+      pivot: {x: 0.4939577, y: 0.008730159}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: head
+        guid: 1c61f8bf1bfb145bd9913c95ae92b9e9_b
+        position: {x: 81.99698, y: 1.1, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 63
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 1c61f8bf1bfb145bd9913c95ae92b9e9
+      internalID: -1047961737
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 166, y: 0}
+      - {x: 166, y: 126}
+      - {x: 0, y: 126}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__hat
+      rect:
+        serializedVersion: 2
+        x: 107
+        y: 543
+        width: 208
+        height: 128
+      alignment: 9
+      pivot: {x: 0.453125, y: 0.3171875}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: hat
+        guid: 86f0cb36964654ec89374adadaeb1722_b
+        position: {x: 94.25, y: 40.6, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 64
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 86f0cb36964654ec89374adadaeb1722
+      internalID: 634086940
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 208, y: 0}
+      - {x: 208, y: 128}
+      - {x: 0, y: 128}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__torso
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 679
+        width: 152
+        height: 135
+      alignment: 9
+      pivot: {x: 0.509901, y: 0.05185185}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: torso
+        guid: c872817e75b4d48b1ad6a5b385c4f681_b
+        position: {x: 77.50495, y: 6.9999995, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 67.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: c872817e75b4d48b1ad6a5b385c4f681
+      internalID: 2096701262
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 152, y: 0}
+      - {x: 152, y: 135}
+      - {x: 0, y: 135}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__pelvis
+      rect:
+        serializedVersion: 2
+        x: 827
+        y: 564
+        width: 139
+        height: 107
+      alignment: 9
+      pivot: {x: 0.49460432, y: 0.46495327}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: pelvis
+        guid: 477f20267b2e5422eb619ddd34c3ac7e_b
+        position: {x: 68.75, y: 49.75, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 53.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 477f20267b2e5422eb619ddd34c3ac7e
+      internalID: -1550203978
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 139, y: 0}
+      - {x: 139, y: 107}
+      - {x: 0, y: 107}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__upper_arm_l
+      rect:
+        serializedVersion: 2
+        x: 118
+        y: 439
+        width: 40
+        height: 100
+      alignment: 9
+      pivot: {x: 0.52839506, y: 0.8069652}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: upper_arm_l
+        guid: a34c58131e79244589e1afefa1aa63dc_b
+        position: {x: 21.135803, y: 80.69652, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 50
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: a34c58131e79244589e1afefa1aa63dc
+      internalID: -1351432775
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 40, y: 0}
+      - {x: 40, y: 100}
+      - {x: 0, y: 100}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__upper_arm_r
+      rect:
+        serializedVersion: 2
+        x: 705
+        y: 559
+        width: 61
+        height: 112
+      alignment: 9
+      pivot: {x: 0.40819672, y: 0.7780269}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: upper_arm_r
+        guid: f98300bebd96d400fb350683a102b10f_b
+        position: {x: 24.9, y: 87.13901, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 56
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: f98300bebd96d400fb350683a102b10f
+      internalID: -963467087
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 61, y: 0}
+      - {x: 61, y: 112}
+      - {x: 0, y: 112}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__forearm_l
+      rect:
+        serializedVersion: 2
+        x: 296
+        y: 364
+        width: 38
+        height: 72
+      alignment: 9
+      pivot: {x: 0.38533333, y: 0.7465278}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: forearm_l
+        guid: 7f79db11926af474ca61423cb39cb685_b
+        position: {x: 14.642667, y: 53.75, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 36
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 7f79db11926af474ca61423cb39cb685
+      internalID: -1017120475
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 38, y: 0}
+      - {x: 38, y: 72}
+      - {x: 0, y: 72}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__forearm_r
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 371
+        width: 74
+        height: 65
+      alignment: 9
+      pivot: {x: 0.307483, y: 0.41384616}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: forearm_r
+        guid: 9ce86d9f679c44b86b5f92d83c54a94b_b
+        position: {x: 22.75374, y: 26.900002, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 32.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 9ce86d9f679c44b86b5f92d83c54a94b
+      internalID: -1874687266
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 74, y: 0}
+      - {x: 74, y: 65}
+      - {x: 0, y: 65}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__hand_l
+      rect:
+        serializedVersion: 2
+        x: 880
+        y: 393
+        width: 36
+        height: 43
+      alignment: 9
+      pivot: {x: 0.43150684, y: 0.90697676}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: hand_l
+        guid: a4d362be931cb4253a448d6e4146dbd3_b
+        position: {x: 15.534246, y: 39, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 21.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: a4d362be931cb4253a448d6e4146dbd3
+      internalID: -849249032
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 36, y: 0}
+      - {x: 36, y: 43}
+      - {x: 0, y: 43}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__hand_r
+      rect:
+        serializedVersion: 2
+        x: 627
+        y: 383
+        width: 47
+        height: 53
+      alignment: 9
+      pivot: {x: 0.026595745, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: hand_r
+        guid: 256a493e0e27247c5a43b2e83f4eec51_b
+        position: {x: 1.25, y: 26.5, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 26.5
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 256a493e0e27247c5a43b2e83f4eec51
+      internalID: -1331160376
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 47, y: 0}
+      - {x: 47, y: 53}
+      - {x: 0, y: 53}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__thigh_l
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 354
+        width: 60
+        height: 82
+      alignment: 9
+      pivot: {x: 0.5478992, y: 0.67195123}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: thigh_l
+        guid: 28131d0bec51944ecae61ba39f177a4c_b
+        position: {x: 32.87395, y: 55.100002, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 41
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 28131d0bec51944ecae61ba39f177a4c
+      internalID: -636771535
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 60, y: 0}
+      - {x: 60, y: 82}
+      - {x: 0, y: 82}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__thigh_r
+      rect:
+        serializedVersion: 2
+        x: 626
+        y: 449
+        width: 62
+        height: 90
+      alignment: 9
+      pivot: {x: 0.5419355, y: 0.68618786}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: thigh_r
+        guid: 082f5a5fc8b894187811ec2c3f48a34e_b
+        position: {x: 33.600002, y: 61.75691, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 45
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 082f5a5fc8b894187811ec2c3f48a34e
+      internalID: -999191252
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 62, y: 0}
+      - {x: 62, y: 90}
+      - {x: 0, y: 90}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__shin_l
+      rect:
+        serializedVersion: 2
+        x: 691
+        y: 449
+        width: 60
+        height: 90
+      alignment: 9
+      pivot: {x: 0.54545456, y: 0.6722222}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: shin_l
+        guid: cacfbb238ca334c7d80565c70230e83e_b
+        position: {x: 32.727272, y: 60.499996, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 45
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: cacfbb238ca334c7d80565c70230e83e
+      internalID: -721479947
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 60, y: 0}
+      - {x: 60, y: 90}
+      - {x: 0, y: 90}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__shin_r
+      rect:
+        serializedVersion: 2
+        x: 892
+        y: 451
+        width: 76
+        height: 88
+      alignment: 9
+      pivot: {x: 0.4317881, y: 0.6522727}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: shin_r
+        guid: 5386dbebb7d1b4243bfb64f37ac069f0_b
+        position: {x: 32.815895, y: 57.399998, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 44
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 5386dbebb7d1b4243bfb64f37ac069f0
+      internalID: -179341926
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 76, y: 0}
+      - {x: 76, y: 88}
+      - {x: 0, y: 88}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__foot_l
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 321
+        width: 58
+        height: 28
+      alignment: 9
+      pivot: {x: 0.47692308, y: 0.95535713}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: foot_l
+        guid: fd4cb445aa8e249ed942353700d90948_b
+        position: {x: 27.66154, y: 26.75, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 14
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: fd4cb445aa8e249ed942353700d90948
+      internalID: 1325544408
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 58, y: 0}
+      - {x: 58, y: 28}
+      - {x: 0, y: 28}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__foot_r
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 311
+        width: 78
+        height: 38
+      alignment: 9
+      pivot: {x: 0.41082802, y: 0.82236844}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: foot_r
+        guid: 574a7a97bbfd142f7bf7b4ac605fe434_b
+        position: {x: 32.044586, y: 31.25, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 19
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 574a7a97bbfd142f7bf7b4ac605fe434
+      internalID: -1120717065
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 78, y: 0}
+      - {x: 78, y: 38}
+      - {x: 0, y: 38}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__weapon
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 847
+        width: 132
+        height: 174
+      alignment: 9
+      pivot: {x: 0.20874524, y: 0.18936782}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: weapon
+        guid: 28157c3634318490ba8b365584618751_b
+        position: {x: 27.55437, y: 32.95, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 87
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: 28157c3634318490ba8b365584618751
+      internalID: 1750333982
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 132, y: 0}
+      - {x: 132, y: 174}
+      - {x: 0, y: 174}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: up_3q__wrench
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 817
+        width: 168
+        height: 204
+      alignment: 9
+      pivot: {x: 0.7240356, y: 0.36430317}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones:
+      - name: wrench
+        guid: da059c76bab694d7fb4ff24adf4eb62c_b
+        position: {x: 121.637985, y: 74.31785, z: 0}
+        rotation: {x: 0, y: 0, z: 0, w: 1}
+        length: 102
+        parentId: -1
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
+      spriteID: da059c76bab694d7fb4ff24adf4eb62c
+      internalID: -428683652
+      vertices:
+      - {x: 0, y: 0}
+      - {x: 168, y: 0}
+      - {x: 168, y: 204}
+      - {x: 0, y: 204}
+      indices: 000000000100000002000000000000000200000003000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 3, y: 0}
+      weights:
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 1
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 6516b88776a1e4cd9a52cb9c5ff6e438
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      down_3q__foot_l: -191109453
+      down_3q__foot_r: 1987786283
+      down_3q__forearm_l: 875390855
+      down_3q__forearm_r: -1908439413
+      down_3q__hand_l: 468047627
+      down_3q__hand_r: -1494714628
+      down_3q__hat: -640091216
+      down_3q__head: -1802088429
+      down_3q__pelvis: 1489695849
+      down_3q__shin_l: -229345835
+      down_3q__shin_r: 744013791
+      down_3q__thigh_l: 1183353036
+      down_3q__thigh_r: -739166723
+      down_3q__torso: 1119330116
+      down_3q__upper_arm_l: -1816700011
+      down_3q__upper_arm_r: -1796294588
+      down_3q__weapon: 450713981
+      down_3q__wrench: -1350900565
+      side__foot_l: 2000830085
+      side__foot_r: 230594590
+      side__forearm_l: 1033899783
+      side__forearm_r: 1549569009
+      side__hand_l: -1514047516
+      side__hand_r: 124297081
+      side__hat: 190739220
+      side__head: 1252958334
+      side__pelvis: -1126064283
+      side__shin_l: 2032174585
+      side__shin_r: -1726874233
+      side__thigh_l: 126164379
+      side__thigh_r: 1638783907
+      side__torso: -460139524
+      side__upper_arm_l: 605161499
+      side__upper_arm_r: 1991850585
+      side__weapon: 2008740584
+      side__wrench: -387831344
+      up_3q__foot_l: 1325544408
+      up_3q__foot_r: -1120717065
+      up_3q__forearm_l: -1017120475
+      up_3q__forearm_r: -1874687266
+      up_3q__hand_l: -849249032
+      up_3q__hand_r: -1331160376
+      up_3q__hat: 634086940
+      up_3q__head: -1047961737
+      up_3q__pelvis: -1550203978
+      up_3q__shin_l: -721479947
+      up_3q__shin_r: -179341926
+      up_3q__thigh_l: -636771535
+      up_3q__thigh_r: -999191252
+      up_3q__torso: 2096701262
+      up_3q__upper_arm_l: -1351432775
+      up_3q__upper_arm_r: -963467087
+      up_3q__weapon: 1750333982
+      up_3q__wrench: -428683652
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

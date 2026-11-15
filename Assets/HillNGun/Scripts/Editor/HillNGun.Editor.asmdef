@@ -2,7 +2,9 @@
     "name": "HillNGun.Editor",
     "rootNamespace": "HillNGun.Editor",
     "references": [
-        "HillNGun.Runtime"
+        "HillNGun.Runtime",
+        "Unity.2D.Sprite.Editor",
+        "Unity.2D.Animation.Runtime"
     ],
     "includePlatforms": [
         "Editor"

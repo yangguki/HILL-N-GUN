@@ -143,10 +143,57 @@ namespace HillNGun.PvE
 
         public IReadOnlyList<CharacterStateMachine> PlayerTeam => _playerTeam;
 
+        // ---- FreeMove (MatchRulesData.pveMoveMode) ----
+        private MoveMode _moveMode = MoveMode.RowLane;
+        public MoveMode MoveMode => _moveMode;
+        public bool IsFreeMove => _moveMode == MoveMode.FreeMove;
+        private Battlefield.FreeMoveWorld _world;
+        private EnemySpawnDirector _director;
+        private FireTokenScheduler _fire;
+        private System.Random _aiRng = new System.Random(1);
+        private FreeCtx _ctx;
+        private int _enemySerial;
+        private readonly List<Vector2> _playerPosBuf = new List<Vector2>();
+        public Battlefield.FreeMoveWorld World => _world;
+        public EnemySpawnDirector Director => _director;
+        public FireTokenScheduler FireTokens => _fire;
+        public StreetLayoutData StreetLayout => _world?.Layout;
+        /// <summary>Max enemies (incl. the boss) winding up / firing in the same frame this stage.</summary>
+        public int PeakConcurrentAttackers { get; private set; }
+        public int FramesOverFireCap { get; private set; }
+        public event System.Action<EnemyInstance> OnEnemyEntranceComplete;
+
+        private MatchRulesData Rules => ServiceLocator.Get<MatchRulesData>() ?? RuntimeAssetManager.Instance?.MatchRules;
+
+        private sealed class FreeCtx : IEnemyFreeContext
+        {
+            private readonly PvEMatchManager _m;
+            public FreeCtx(PvEMatchManager m) { _m = m; }
+            public Vector2 NearestPlayerPos(Vector2 from) => _m.GetNearestPlayerPosition(from);
+            public Vector2 MoveEnemy(EnemyInstance e, Vector2 delta) => _m._world != null ? _m._world.Move(e.Position, delta, e.BodyRadius) : e.Position + delta;
+            public Vector2 PickPost(EnemyInstance e) => _m.PickPost(e);
+            public bool TryAcquireFire(EnemyInstance e) => _m._fire == null || _m._fire.TryAcquire(e, _m._stageTimer);
+            public void ReleaseFire(EnemyInstance e) => _m._fire?.Release(e);
+        }
+
+        private void SetupMoveMode()
+        {
+            var rules = Rules;
+            _moveMode = rules != null ? rules.pveMoveMode : MoveMode.FreeMove;
+            if (!IsFreeMove) return;
+            _world = new Battlefield.FreeMoveWorld((StreetLayoutData)null);
+            _world.CoverSource = () => _combat != null ? _combat.Covers : null;
+            ServiceLocator.Register(_world);
+            _ctx = new FreeCtx(this);
+            _fire = new FireTokenScheduler(rules != null ? rules.pveMaxConcurrentEnemyFire : 3);
+            Debug.Log($"[PvE] MoveMode={_moveMode} (pveMoveMode data flag) fireCap={_fire.Capacity}");
+        }
+
         private void Start()
         {
             LoadDataFromAssetManager();
             _combat = ServiceLocator.Get<CombatSystem>();
+            SetupMoveMode();
             // Covers spawn in StartStage with stage-specific placements (avoid double-registering battlefield defaults).
             ProjectileView.Ensure();
             GrenadeView.Ensure();
@@ -274,6 +321,7 @@ namespace HillNGun.PvE
                 {
                     Vector2 spawn = GetSpawnPoint(i, charData);
                     var character = CreatePlayerCharacter(charData, i, spawn, GetRowFor(spawn.y));
+                    character.SetMoveMode(_moveMode);
                     _playerTeam.Add(character);
 
                     if (i != _playerControlledIndex)
@@ -394,6 +442,7 @@ namespace HillNGun.PvE
 
         private void OnDestroy()
         {
+            if (_world != null && ServiceLocator.Get<Battlefield.FreeMoveWorld>() == _world) ServiceLocator.Unregister<Battlefield.FreeMoveWorld>();
             if (_combat != null)
             {
                 _combat.OnCombatTargetHit -= HandleCombatTargetHitForStats;
@@ -446,6 +495,7 @@ namespace HillNGun.PvE
             _isMatchActive = true;
 
             CleanupStageActors(true);
+            SetupStageFreeMove();
             HillNGun.Combat.DropDirector.Instance?.ClearField();
             ClearHazards();
             TeamDownedCount = 0;
@@ -455,6 +505,8 @@ namespace HillNGun.PvE
 
             ResetPlayerTeamForStage();
             SpawnCovers();
+            if (IsFreeMove)
+                foreach (var c in _playerTeam) if (c != null) c.SetPosition(c.Position); // depenetrate from the stage covers (no blocked start slot)
             SpawnHazards();
             SpawnVisualProps();
             FindFirstObjectByType<HillNGun.Battlefield.BattlefieldRenderer>()?.RefreshStageVisual();
@@ -483,10 +535,33 @@ namespace HillNGun.PvE
             }
         }
 
+        private void SetupStageFreeMove()
+        {
+            if (!IsFreeMove || _currentStage == null) return;
+            var layout = _currentStage.visual != null ? _currentStage.visual.streetLayout : null;
+            if (layout == null) Debug.LogWarning($"[PvE] stage {_currentStage.id} has no StreetLayoutData - FreeMove uses the default field polygon and cannot spawn");
+            _world.SetLayout(layout);
+            EntranceDoors.Setup(layout, _currentStage.visual != null ? _currentStage.visual.timeOfDay : TimeOfDay.Noon); // v13 designer door sprites
+            var rules = Rules;
+            _director = new EnemySpawnDirector(layout, _currentStage.spawnSeed);
+            if (rules != null)
+            {
+                _director.SafeRadius = rules.pveSpawnSafeRadius;
+                _director.RetryInterval = rules.pveSpawnRetryInterval;
+                _director.RelaxAfter = rules.pveSpawnRelaxAfter;
+            }
+            _aiRng = new System.Random(_currentStage.spawnSeed * 7919 + 17);
+            _fire?.Clear();
+            _fire?.ResetStats();
+            PeakConcurrentAttackers = 0;
+            FramesOverFireCap = 0;
+        }
+
         private void StartWave(int waveIndex)
         {
             if (_currentStage?.waves == null || waveIndex >= _currentStage.waves.Length) return;
 
+            _director?.BeginWave(waveIndex);
             _currentWave = waveIndex;
             _currentWaveData = _currentStage.waves[waveIndex];
             StagePresentation.Instance?.ShowWave(waveIndex + 1);
@@ -517,6 +592,7 @@ namespace HillNGun.PvE
             int aiAllies = AiAllyCount;
             int scaledHp = _currentStage.bossData.GetScaledMaxHp(humans, aiAllies);
             _activeBoss.Initialize(_currentStage.bossData, _currentStage.bossData.battlePosition, scaledHp);
+            if (IsFreeMove && StreetLayout != null) _activeBoss.SetEntryStart(StreetLayout.bossEntryStart); // walks in through the back gate (no drop)
             Debug.Log($"[PvE] Boss {_currentStage.bossData.id} hp={scaledHp} (humans={humans} aiAllies={aiAllies} aiAllyHpAdd={_currentStage.bossData.aiAllyHpAdd} partyTotal={PartySize})");
             _combat?.RegisterCombatTarget(_activeBoss);
 
@@ -556,8 +632,105 @@ namespace HillNGun.PvE
                 UpdateWaveMode();
             }
 
-            UpdateEnemies();
+            if (IsFreeMove)
+            {
+                if (_director != null && !TrainBlockingSpawns)
+                    _director.Tick(_stageTimer, ActivePlayerPositions(), SpawnFromDirector);
+                UpdateEnemiesFree(Time.deltaTime);
+            }
+            else UpdateEnemies();
             CheckTeamDefeat();
+        }
+
+        private IList<Vector2> ActivePlayerPositions()
+        {
+            _playerPosBuf.Clear();
+            foreach (var c in _playerTeam)
+                if (c != null && c.OverallState != CharacterOverallState.Eliminated) _playerPosBuf.Add(c.Position);
+            return _playerPosBuf;
+        }
+
+        private void UpdateEnemiesFree(float dt)
+        {
+            if (_fire != null) _fire.Reserved = _activeBoss != null && _activeBoss.IsAlive ? 1 : 0;
+            var projectiles = _combat?.ProjectilePool?.ActiveProjectiles;
+            for (int i = _activeEnemies.Count - 1; i >= 0; i--)
+            {
+                var e = _activeEnemies[i];
+                if (e.IsDefeated)
+                {
+                    e.UpdateDefeated(dt, _ctx);
+                    if (e.IsGone) _activeEnemies.RemoveAt(i);
+                    continue;
+                }
+                e.UpdateFree(dt, _ctx);
+                e.TickDodge(dt, Time.time, projectiles, -50f, 50f, e.FreeMover);
+            }
+            int attacking = (_fire != null ? _fire.ActiveCount : 0) + (_activeBoss != null && _activeBoss.IsAlive && _activeBoss.IsAttacking ? 1 : 0);
+            if (attacking > PeakConcurrentAttackers) PeakConcurrentAttackers = attacking;
+            int cap = Rules != null ? Rules.pveMaxConcurrentEnemyFire : 3;
+            if (attacking > cap) FramesOverFireCap++;
+        }
+
+        private void SpawnFromDirector(EnemySpawnDirector.Pending p, int pointIndex)
+        {
+            var layout = StreetLayout;
+            if (layout == null || p.data == null) return;
+            var sp = layout.spawnPoints[pointIndex];
+            var rules = Rules;
+            var enemy = new EnemyInstance();
+            float hpMul = rules != null ? rules.GetPvEEnemyHpMul(PartySize) : 1f;
+            int seed = (_currentStage != null ? _currentStage.spawnSeed : 1) * 92821 + p.serial * 7919;
+            enemy.InitializeFree(p.data, sp, pointIndex, hpMul, rules != null ? rules.pveEntranceAttackDelay : 0.8f, new System.Random(seed));
+            enemy.Serial = _enemySerial++;
+            var feel = ServiceLocator.Get<MovementFeelData>() ?? MovementFeelData.Fallback;
+            enemy.BodyRadius = feel.freeMoveEnemyRadius * Mathf.Max(0.5f, p.data.scale);
+            var en = enemy;
+            enemy.FreeMover = d => _world != null ? _world.Move(en.Position, d, en.BodyRadius) : en.Position + d;
+            enemy.OnEntranceComplete += HandleEntranceComplete;
+            if (EnemySpawnDirector.IsSniper(p.data)) _director?.SetOccupied(pointIndex, true);
+            _combat?.RegisterCombatTarget(enemy);
+            enemy.OnDefeated += HandleEnemyDefeated;
+            enemy.OnDamageTaken += HandleEnemyDamaged;
+            enemy.OnAttack += HandleEnemyAttack;
+            enemy.OnExplosiveThrown += HandleEnemyExplosive;
+            _activeEnemies.Add(enemy);
+            CreateEnemyView(enemy);
+            Debug.Log($"[Spawn] {p.data.id} at {sp.id} type={sp.type} side={sp.side} t={_stageTimer:F1}s wave={_currentWave + 1}");
+            OnEnemySpawned?.Invoke(enemy);
+        }
+
+        private void HandleEntranceComplete(EnemyInstance e)
+        {
+            if (_world != null && !e.Data.stationary) e.SetPosition(_world.Depenetrate(e.Position, e.BodyRadius));
+            OnEnemyEntranceComplete?.Invoke(e);
+        }
+
+        /// <summary>FreeMove post: a free spot in the enemy zone at a fair distance from the nearest player, spread from other enemies.</summary>
+        public Vector2 PickPost(EnemyInstance e)
+        {
+            var layout = StreetLayout;
+            if (layout == null || _world == null || e?.Data == null) return e != null ? e.Position : Vector2.zero;
+            Rect z = layout.enemyPostZone;
+            float desired = Mathf.Clamp(e.Data.keepDistance + 2f, 3f, Mathf.Max(3f, e.Data.attackRange * 0.8f));
+            Vector2 best = e.Position; float bestScore = float.MinValue;
+            for (int k = 0; k < 14; k++)
+            {
+                float y = z.yMin + (float)_aiRng.NextDouble() * z.height;
+                if (!Battlefield.FreeMoveCollision.SpanAtY(_world.Polygon, y, out float x0, out float x1)) continue;
+                x0 = Mathf.Max(x0 + layout.enemyPostEdgeMargin, z.xMin); x1 = Mathf.Min(x1 - layout.enemyPostEdgeMargin, z.xMax);
+                if (x1 <= x0) continue;
+                var c = new Vector2(Mathf.Lerp(x0, x1, (float)_aiRng.NextDouble()), y);
+                if (!_world.IsFree(c, e.BodyRadius + 0.2f)) continue;
+                Vector2 pl = GetNearestPlayerPosition(c);
+                float score = -Mathf.Abs((pl - c).magnitude - desired);
+                float spread = 3f;
+                foreach (var o in _activeEnemies)
+                    if (o != e && o.IsAlive) spread = Mathf.Min(spread, Mathf.Min((o.Post - c).magnitude, (o.Position - c).magnitude));
+                score += 0.6f * spread - 0.08f * (c - e.Position).magnitude;
+                if (score > bestScore) { bestScore = score; best = c; }
+            }
+            return best;
         }
 
         private void UpdateAllyBots()
@@ -570,11 +743,13 @@ namespace HillNGun.PvE
                 var c = gunner.Character;
                 if (c == null || c.OverallState != CharacterOverallState.Active) continue;
                 float range = c.Data?.weapon?.range ?? 7f;
-                Vector2? inRange = FindTargetFor(c.Position, range * 1.1f);
+                Vector2? inRange = FindTargetFor(c.Position, IsFreeMove ? range : range * 1.1f); // FreeMove: true shot range (no row slack)
                 var pilot = i < _allyPilots.Count ? _allyPilots[i] : null;
                 bool pilotMoving = pilot != null && TickPilot(pilot, dt, inRange);
                 if (!pilotMoving) DriveAllyMovement(c, inRange);
+                else if (IsFreeMove) { var pn = Nav(c); pn.intent = AllyIntent.Pilot; pn.cmdMag = 0f; pn.lastPos = c.Position; pn.blockedTime = 0f; }
                 if (pilot == null || !pilot.IsHolding) gunner.Tick(dt, inRange);
+                if (IsFreeMove) Nav(c).shots = gunner.ShotsAttempted;
             }
         }
 
@@ -665,8 +840,112 @@ namespace HillNGun.PvE
         public static bool ShouldAdvanceForRange(bool hasTargetInWeaponRange, bool advanceWhenOutOfRangeEnabled)
             => advanceWhenOutOfRangeEnabled && !hasTargetInWeaponRange;
 
+        private sealed class AllyNav
+        {
+            public Vector2 lastPos; public float stuck; public float sidestep; public float sideSign = 1f;
+            // v12 instrumentation (view/debug only; no gameplay effect)
+            public AllyIntent intent; public bool hasTarget, inRange; public float targetDist, cmdMag, progress = 1f, blockedTime;
+            public int sidesteps, blockedEpisodes, shots;
+            public Vector2 blockedStart;
+            public readonly AllyFreeSteer steer = new AllyFreeSteer();
+        }
+
+        /// <summary>Why a FreeMove ally is (not) moving this frame.</summary>
+        public enum AllyIntent { None, Pilot, Dodge, HoldInRange, BackOff, Approach, Sidestep, NoTarget, Rolling }
+
+        public struct AllyIntentInfo
+        {
+            public AllyIntent intent; public bool hasTarget, inRange; public float targetDist, cmdMag, progress, blockedTime;
+            public int sidesteps, blockedEpisodes, shots;
+        }
+
+        public int AllyBlockedEpisodes { get; private set; }
+
+        private AllyNav Nav(CharacterStateMachine c)
+        {
+            if (!_allyNav.TryGetValue(c, out var nav)) { nav = new AllyNav { lastPos = c.Position, sideSign = (_allyNav.Count % 2 == 0) ? 1f : -1f }; _allyNav[c] = nav; }
+            return nav;
+        }
+
+        public bool TryGetAllyIntent(CharacterStateMachine c, out AllyIntentInfo info)
+        {
+            info = default;
+            if (c == null || !_allyNav.TryGetValue(c, out var n)) return false;
+            info = new AllyIntentInfo { intent = n.intent, hasTarget = n.hasTarget, inRange = n.inRange, targetDist = n.targetDist, cmdMag = n.cmdMag,
+                progress = n.progress, blockedTime = n.blockedTime, sidesteps = n.sidesteps, blockedEpisodes = n.blockedEpisodes, shots = n.shots };
+            return true;
+        }
+
+        /// <summary>Progress bookkeeping: a commanded move making < 25% of its expected distance for > 1 s is a blocked episode (logged).</summary>
+        private void TrackAllyProgress(CharacterStateMachine c, AllyNav nav, float dt)
+        {
+            float expected = nav.cmdMag * (c.Data != null ? c.Data.moveSpeed : 3f) * dt;
+            float moved = (c.Position - nav.lastPos).magnitude;
+            nav.progress = expected > 1e-4f ? Mathf.Clamp01(moved / expected) : 1f;
+            bool blockedNow = expected > 1e-4f && nav.progress < 0.25f && c.MovementState != MovementState.Rolling;
+            if (blockedNow)
+            {
+                if (nav.blockedTime <= 0f) nav.blockedStart = c.Position;
+                float before = nav.blockedTime;
+                nav.blockedTime += dt;
+                if (before < 1f && nav.blockedTime >= 1f)
+                {
+                    nav.blockedEpisodes++; AllyBlockedEpisodes++;
+                    Debug.Log($"[AllyNav] BLOCKED {c.Data?.id} at ({c.Position.x:F2},{c.Position.y:F2}) intent={nav.intent} target={(nav.hasTarget ? nav.targetDist.ToString("F1") : "none")} inRange={nav.inRange} sidesteps={nav.sidesteps} t={_stageTimer:F1}s stage={CurrentStageId}");
+                }
+            }
+            else if (nav.blockedTime > 0f)
+            {
+                if (nav.blockedTime >= 1f) Debug.Log($"[AllyNav] UNBLOCKED {c.Data?.id} after {nav.blockedTime:F1}s moved {(c.Position - nav.blockedStart).magnitude:F2} t={_stageTimer:F1}s");
+                nav.blockedTime = 0f;
+            }
+        }
+        private readonly Dictionary<CharacterStateMachine, AllyNav> _allyNav = new Dictionary<CharacterStateMachine, AllyNav>();
+
+        /// <summary>FreeMove ally/autopilot: walk (2D) toward the nearest target until in weapon range, back off when crowded,
+        /// dodge the tail sweep, side-step around covers when stuck. Aiming stays with AutoGunner (2D direction to target).</summary>
+        private void DriveAllyFree(CharacterStateMachine c, Vector2? inRangeTarget)
+        {
+            var nav = Nav(c);
+            float dt = Time.deltaTime;
+            TrackAllyProgress(c, nav, dt);
+            if (c.MovementState == MovementState.Rolling) { nav.intent = AllyIntent.Rolling; nav.cmdMag = 0f; nav.lastPos = c.Position; return; }
+            float now = Time.time;
+            nav.inRange = inRangeTarget.HasValue;
+            bool dodge = _botBehavior == null || _botBehavior.dodgeTailSweep;
+            if (dodge && TryGetTailSweepDodge(c.Position, out float dodgeDir))
+            {
+                nav.intent = AllyIntent.Dodge; nav.cmdMag = 1f; nav.lastPos = c.Position;
+                c.OnMoveCommand(new MoveCommand(new Vector2(dodgeDir, -0.3f).normalized, 1f, now));
+                return;
+            }
+            Vector2 dir = Vector2.zero; float mag = 1f;
+            Vector2? any = inRangeTarget ?? FindTargetFor(c.Position, 100f);
+            nav.hasTarget = any.HasValue;
+            nav.targetDist = any.HasValue ? (any.Value - c.Position).magnitude : -1f;
+            if (inRangeTarget.HasValue)
+            {
+                Vector2 away = c.Position - inRangeTarget.Value;
+                if (away.magnitude < 2.2f) { dir = away.normalized; mag = 0.8f; nav.intent = AllyIntent.BackOff; }
+                else nav.intent = AllyIntent.HoldInRange; // deliberate: in weapon range, AutoGunner fires
+            }
+            else if (any.HasValue) { dir = (any.Value - c.Position).normalized; nav.intent = AllyIntent.Approach; }
+            else nav.intent = AllyIntent.NoTarget; // nothing hittable (all entering / wave gap)
+            if (dir == Vector2.zero) { c.OnMoveCommand(MoveCommand.Stop(now)); nav.cmdMag = 0f; nav.steer.Reset(); nav.lastPos = c.Position; return; }
+            bool lastActive = nav.cmdMag > 0f;
+            Vector2 goal = any.HasValue && nav.intent == AllyIntent.Approach ? any.Value : c.Position + dir * 2f;
+            dir = nav.steer.Steer(goal, dir, dt, lastActive, nav.progress, _world, c.Position, c.BodyRadius);
+            if (nav.steer.Sidestepping || nav.steer.Routing) nav.intent = AllyIntent.Sidestep;
+            nav.sidesteps = nav.steer.sidesteps;
+            nav.lastPos = c.Position;
+            nav.cmdMag = mag;
+            c.OnMoveCommand(new MoveCommand(dir, mag, now));
+        }
+
         public void DriveAllyMovement(CharacterStateMachine c, Vector2? inRangeTarget)
         {
+            if (c != null && c == HillNGun.AI.AbilityPilot.DiagHoldActor) { if (c.MovementState == MovementState.Moving) c.OnMoveCommand(new MoveCommand(Vector2.zero, 0f, Time.time)); return; } // diagnostic take only
+            if (c.IsFreeMove) { DriveAllyFree(c, inRangeTarget); return; }
             if (c.MovementState == MovementState.RowChanging || c.MovementState == MovementState.Rolling) return;
 
             bool dodge = _botBehavior == null || _botBehavior.dodgeTailSweep;
@@ -731,7 +1010,7 @@ namespace HillNGun.PvE
             return best;
         }
 
-        private Vector2 GetNearestPlayerPosition(Vector2 fromPosition)
+        public Vector2 GetNearestPlayerPosition(Vector2 fromPosition)
         {
             if (_playerTeam == null || _playerTeam.Count == 0)
                 return new Vector2(12f, 4.5f);
@@ -758,6 +1037,12 @@ namespace HillNGun.PvE
         private void SpawnEnemy(EnemySpawnEntry entry)
         {
             if (entry?.enemyData == null) return;
+            if (IsFreeMove)
+            {
+                // painted entrances only (no sky drop): the director places it at a safe door / alley / street end / fence / window
+                _director?.Enqueue(entry, _stageTimer, Rules != null ? Rules.pveSpawnStagger : 0.3f);
+                return;
+            }
 
             for (int i = 0; i < entry.count; i++)
             {
@@ -796,6 +1081,11 @@ namespace HillNGun.PvE
         {
             EnemiesDefeated++;
             _combat?.UnregisterCombatTarget(enemy);
+            if (enemy.FreeMove)
+            {
+                _fire?.Release(enemy);
+                if (enemy.Data != null && EnemySpawnDirector.IsSniper(enemy.Data)) _director?.SetOccupied(enemy.SpawnPointIndex, false);
+            }
             _currentGauge += enemy.Data.gaugeValue;
             OnGaugeChanged?.Invoke(_currentGauge);
             OnEnemyDefeated?.Invoke(enemy);
@@ -820,7 +1110,7 @@ namespace HillNGun.PvE
             if (_currentWaveData == null) return;
 
             int enemyEntries = _currentWaveData.enemies != null ? _currentWaveData.enemies.Length : 0;
-            bool waveComplete = _nextSpawnIndex >= enemyEntries;
+            bool waveComplete = _nextSpawnIndex >= enemyEntries && (_director == null || !IsFreeMove || _director.PendingCount == 0);
             if (!waveComplete) return;
 
             bool waitClear = _currentWaveData.waitForClear;
@@ -1000,6 +1290,9 @@ namespace HillNGun.PvE
             }
             _activeEnemies.Clear();
             _activeBoss = null;
+            _director?.Clear();
+            _fire?.Clear();
+            _allyNav.Clear();
 
             foreach (var go in _stageViews)
             {

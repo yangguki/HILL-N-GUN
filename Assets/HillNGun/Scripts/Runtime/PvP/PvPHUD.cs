@@ -157,13 +157,22 @@ namespace HillNGun.PvP
         }
 
         private GUIStyle _scoreTint, _timerTint, _nameTint;
+        /// <summary>v14 perf diag only: last repaint's HUD state + repaint count (census attribution).</summary>
+        public static string DiagState = "-"; public static int DiagRepaints;
+        private static string TeamDiag(System.Collections.Generic.IReadOnlyList<CharacterStateMachine> t)
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (var c in t) sb.Append(c == null ? '-' : c.OverallState == CharacterOverallState.Active ? 'A' : (c.OverallState == CharacterOverallState.Downed || c.OverallState == CharacterOverallState.BeingRevived) ? 'D' : 'X');
+            return sb.ToString();
+        }
 
         private void OnGUI()
         {
-            if (HillNGun.DebugTools.SmokeTestRunner.NoGui) return;
+            if (HillNGun.DebugTools.SmokeTestRunner.NoGuiPart("mode")) return;
             if (_matchManager == null) return;
 
             InitStyles();
+            if (HillNGun.DebugTools.SmokeTestRunner.CensusOn && Event.current.type == EventType.Repaint) { DiagRepaints++; DiagState = $"phase={_matchManager.CurrentPhase} msg={(_roundMessageTimer > 0f ? 1 : 0)} toast={(_toastTimer > 0f ? 1 : 0)} {TeamDiag(_matchManager.PlayerTeam)}|{TeamDiag(_matchManager.EnemyTeam)}"; }
 
             DrawScoreboard();
             DrawTimer();

@@ -36,6 +36,8 @@ namespace HillNGun.Data
         [Range(0, 8)] public int dustMotesLowTier = 4;
         [Range(0, 2)] public int tumbleweeds = 1;
         public bool saloonSignSway = true;
+        [Tooltip("FreeMove PvE street layout (walk area + spawn points) matching this painted plate")]
+        public StreetLayoutData streetLayout;
         [Tooltip("Darken/blur baked-in concept-art covers so StageData covers read clearly")]
         [Range(0f, 1f)] public float conceptCoverDim = 0.35f;
 

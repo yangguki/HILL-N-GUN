@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2ae93e1685de4fde9657b979485bcb4, type: 3}
+  m_Name: enemy_balcony_sniper
+  m_EditorClassIdentifier: 
+  id: balcony_sniper
+  nameKey: pve.enemy.balcony_sniper
+  enemyType: 4
+  maxHp: 500
+  hitRadius: 0.45
+  moveSpeed: 0
+  warningTime: 1
+  attackInterval: 3.2
+  attackDamage: 140
+  isRanged: 1
+  attackRange: 20
+  bulletSpeed: 13
+  bulletRadius: 0.12
+  projectilesPerShot: 1
+  spreadDeg: 0
+  throwsExplosive: 0
+  explosiveRadius: 2
+  explosiveDamage: 450
+  explosiveFlightTime: 0.8
+  bulletDodge:
+    chance: 0
+    delayMin: 0.15
+    delayMax: 0.3
+    lookahead: 0.55
+    margin: 0.15
+    cooldown: 3
+  dodgeStepDistance: 1.2
+  dodgeStepSpeed: 7
+  movesBetweenRows: 0
+  rowChangeInterval: 5
+  stationary: 1
+  keepDistance: 0
+  repositionInterval: 3.5
+  artId: pistol_mook
+  roleTint: {r: 0.72, g: 0.82, b: 1, a: 1}
+  sightLineTelegraph: 1
+  gaugeValue: 2
+  scoreValue: 200
+  baseColor: {r: 0.45, g: 0.5, b: 0.65, a: 1}
+  scale: 1
+  fleesOnDefeat: 0
+  fleeSpeed: 0

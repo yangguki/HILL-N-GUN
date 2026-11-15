@@ -17,6 +17,21 @@ namespace HillNGun.Combat
         private readonly List<BombSprite> _bombs = new List<BombSprite>(8);
         private readonly List<TrailPuff> _puffs = new List<TrailPuff>(48);
         private Sprite _bombSprite;
+        // v17 release bridge (VISUAL ONLY): the drawn bomb starts at the thrower's hand and blends into the logical
+        // trajectory position over BridgeSecs. GrenadeProjectile position / collider / trajectory / spawn tick untouched.
+        public const float BridgeSecs = 0.06f;
+        private readonly Dictionary<GrenadeProjectile, Vector3> _bridge = new Dictionary<GrenadeProjectile, Vector3>();
+        private readonly List<GrenadeProjectile> _bridgeGone = new List<GrenadeProjectile>();
+        public static int BridgesStarted;
+        public int BridgesActive => _bridge.Count;
+        public static int BridgesLive;
+        private static bool InList(IReadOnlyList<GrenadeProjectile> l, GrenadeProjectile g) { for (int i = 0; i < l.Count; i++) if (l[i] == g) return true; return false; }
+        /// <summary>Drawn world offset for a grenade at this age (decays to zero at BridgeSecs).</summary>
+        public static Vector3 BridgeOffset(Vector3 startOffset, float age)
+        {
+            float u = Mathf.Clamp01(age / BridgeSecs);
+            return startOffset * (1f - u * u * (3f - 2f * u));
+        }
         private static Material _spriteMat;
 
         public int LastDrawn { get; private set; }
@@ -84,6 +99,11 @@ namespace HillNGun.Combat
                 var bomb = _bombs[bi++];
                 Vector2 logic = g.VisualPosition;
                 Vector3 world = FieldView.ToWorld(logic);
+                if (_bridge.TryGetValue(g, out var off))
+                {
+                    if (g.ElapsedTime >= BridgeSecs) _bridge.Remove(g);
+                    else world += BridgeOffset(off, g.ElapsedTime);
+                }
                 float persp = FieldView.PerspectiveScale(logic.y);
                 float size = vfx.bombSize * persp;
                 float spin = g.ElapsedTime * vfx.spinDegPerSec;
@@ -96,6 +116,14 @@ namespace HillNGun.Combat
                 LastDrawn++;
             }
 
+            // early collision / expiry: drop bridge entries of grenades no longer active (no stale / duplicate sprite)
+            if (_bridge.Count > 0)
+            {
+                _bridgeGone.Clear();
+                foreach (var kv in _bridge) if (kv.Key == null || !kv.Key.IsActive || !InList(list, kv.Key)) _bridgeGone.Add(kv.Key);
+                foreach (var k in _bridgeGone) _bridge.Remove(k);
+            }
+            BridgesLive = _bridge.Count;
             TickPuffs(Time.deltaTime);
         }
 
@@ -104,6 +132,12 @@ namespace HillNGun.Combat
             PlaceholderAudio.Instance?.PlayGrenadeThrow();
             var vfx = g?.Data != null && g.Data.vfx != null ? g.Data.vfx : GrenadeVfxData.Builtin;
             Vector3 w = FieldView.ToWorld(start);
+            if (g != null && HillNGun.Rig.CutoutRig.TryGetHandOrigin(w, out var hand))
+            {
+                Vector3 off = hand - FieldView.ToWorld(g.VisualPosition); off.z = 0f;
+                _bridge[g] = off; BridgesStarted++;
+                w = hand;
+            }
             EmitPuff(w, vfx.trailColor, 0.18f, 0.35f);
         }
 

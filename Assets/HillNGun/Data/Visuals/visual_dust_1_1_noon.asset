@@ -53,4 +53,5 @@ MonoBehaviour:
   dustMotesLowTier: 4
   tumbleweeds: 1
   saloonSignSway: 0
+  streetLayout: {fileID: 11400000, guid: 1016cfdc7e64b40eb8304029a891acd8, type: 2}
   conceptCoverDim: 0.4

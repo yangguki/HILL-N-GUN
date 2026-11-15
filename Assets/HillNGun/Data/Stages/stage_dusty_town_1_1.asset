@@ -34,6 +34,8 @@ MonoBehaviour:
       count: 3
       preferredRow: 0
       spawnDelay: 0
+      spawnPointId: 
+      spawnType: 1
     delayBeforeWave: 1
     paceTag: intro
     waitForClear: 1
@@ -44,6 +46,8 @@ MonoBehaviour:
       count: 4
       preferredRow: 0
       spawnDelay: 0
+      spawnPointId: 
+      spawnType: 0
     delayBeforeWave: 0.5
     paceTag: pressure
     waitForClear: 1
@@ -54,10 +58,14 @@ MonoBehaviour:
       count: 3
       preferredRow: 0
       spawnDelay: 0
+      spawnPointId: 
+      spawnType: 2
     - enemyData: {fileID: 11400000, guid: 7ec624a13e38b4196a9b0fe16323b48f, type: 2}
       count: 1
-      preferredRow: 1
+      preferredRow: 0
       spawnDelay: 0
+      spawnPointId: 
+      spawnType: 3
     delayBeforeWave: 0.5
     paceTag: pressure
     waitForClear: 1
@@ -68,6 +76,8 @@ MonoBehaviour:
       count: 5
       preferredRow: 0
       spawnDelay: 0
+      spawnPointId: 
+      spawnType: 0
     delayBeforeWave: 0.5
     paceTag: peak
     waitForClear: 1
@@ -78,10 +88,20 @@ MonoBehaviour:
       count: 2
       preferredRow: 0
       spawnDelay: 0
+      spawnPointId: 
+      spawnType: 4
     - enemyData: {fileID: 11400000, guid: 7ec624a13e38b4196a9b0fe16323b48f, type: 2}
       count: 1
-      preferredRow: 1
+      preferredRow: 0
       spawnDelay: 0
+      spawnPointId: 
+      spawnType: 1
+    - enemyData: {fileID: 11400000, guid: 3192694d84a4947c7a8a4c6c72963fdc, type: 2}
+      count: 1
+      preferredRow: 0
+      spawnDelay: 0
+      spawnPointId: window_R
+      spawnType: 5
     delayBeforeWave: 0.5
     paceTag: finale
     waitForClear: 1
@@ -95,6 +115,7 @@ MonoBehaviour:
   - 11
   - 13.5
   - 16
+  spawnSeed: 1101
   coverPlacements:
   - coverId: cover_wagon
     rowIndex: 0

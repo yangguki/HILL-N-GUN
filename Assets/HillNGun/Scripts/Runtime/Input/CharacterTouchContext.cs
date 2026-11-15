@@ -63,6 +63,8 @@ namespace HillNGun.Input
             return best;
         }
 
+        public bool FreeMove => Character != null && Character.IsFreeMove;
+
         public Vector2 ClampToField(Vector2 p)
         {
             var bf = ServiceLocator.Get<Battlefield.BattlefieldSystem>();

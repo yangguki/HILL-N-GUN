@@ -136,7 +136,38 @@ namespace HillNGun.Core
         PistolMook,
         DynamiteBandit,
         MountedRaider,
-        BossRattlesnakeRex
+        BossRattlesnakeRex,
+        /// <summary>Stationary second-floor window shooter (FreeMove PvE, spawn type BalconySniper).</summary>
+        BalconySniper
+    }
+
+    /// <summary>How a mode moves its characters (mode data flag: MatchRulesData.pveMoveMode / pvpMoveMode).</summary>
+    public enum MoveMode
+    {
+        /// <summary>Row lanes: horizontal stick movement + discrete row changes (PvP).</summary>
+        RowLane,
+        /// <summary>360-degree free movement inside the street walk area, cover colliders (PvE).</summary>
+        FreeMove
+    }
+
+    /// <summary>FreeMove PvE enemy entrance kinds (StageSpawnPoint.type). 0 = any (wave entry wildcard).</summary>
+    public enum SpawnPointType
+    {
+        Any = 0,
+        StorefrontDoor = 1,
+        AlleyGap = 2,
+        StreetEnd = 3,
+        FenceClimb = 4,
+        BalconySniper = 5
+    }
+
+    /// <summary>Which side of the screen a spawn point enters from (waves must use at least two).</summary>
+    public enum SpawnSide
+    {
+        Left,
+        Right,
+        Bottom,
+        Top
     }
 
     public enum BossPhase

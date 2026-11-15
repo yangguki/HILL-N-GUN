@@ -34,5 +34,7 @@ namespace HillNGun.Input
         /// <summary>Nearest hittable enemy within maxRange (logic tiles), or null.</summary>
         Vector2? NearestEnemy(float maxRange);
         Vector2 ClampToField(Vector2 p);
+        /// <summary>FreeMove (PvE): 360 stick movement, no row changes, a tap fires the LAST aim direction (no auto-aim).</summary>
+        bool FreeMove => false;
     }
 }

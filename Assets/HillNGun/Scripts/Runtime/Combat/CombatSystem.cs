@@ -148,13 +148,17 @@ namespace HillNGun.Combat
         public event System.Action<CharacterStateMachine, CoverInstance, int> OnCoverRepaired;
         public event System.Action<CharacterStateMachine, SkillEffect> OnSkillEffect;
 
+        /// <summary>Logical projectile origin: fixed logic (position + aim * weapon offset), never read from rig bones/views.</summary>
+        public static Vector2 LogicalMuzzle(Vector2 logicPos, Vector2 aimDir, HillNGun.Data.WeaponData weapon)
+            => logicPos + aimDir * (weapon != null ? weapon.muzzleForwardOffset : 0f);
+
         private void HandleCharacterFired(CharacterStateMachine character, Vector2 direction, int damage)
         {
             if (character.Data?.weapon == null) return;
 
             var weapon = character.Data.weapon;
             var skill = character.Data.skill;
-            Vector2 muzzlePos = character.Position + direction * weapon.muzzleForwardOffset;
+            Vector2 muzzlePos = LogicalMuzzle(character.Position, direction, weapon);
 
             // 버스터 돌파 사격: wider fixed spread + cover damage x2 while active (03 §2)
             float spread = weapon.spreadDeg;

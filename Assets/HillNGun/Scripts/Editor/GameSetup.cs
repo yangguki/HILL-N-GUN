@@ -383,6 +383,7 @@ namespace HillNGun.Editor
             CreateActor3DAssets();
             CreateTouchControlsAsset();
             CreateDropTableAsset();
+            FreeMoveSetup.Apply(); // v11 FreeMove PvE: layout, spawns, sniper, mode flags, motion numbers (last = authoritative)
         }
 
         /// <summary>Field drops (t48u). Code defaults in DropTableData are the tuned numbers (see implementation_status.md).</summary>
@@ -554,17 +555,18 @@ namespace HillNGun.Editor
             stage1_2.themeId = "canyon_pass";
             stage1_2.enemyRowsY = new float[] { 11f, 13.5f, 16f };
             stage1_2.coverPlacements = new CoverPlacement[] {
-                // 12_terrain_props §5.3 제안 A (개수·HP·폭 보존) — 실제 권위는 StageData 에셋
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 0, xPosition = 4f },
+                // v13 mixed cover (planner order): same 10 count / width sum 20; rocks indestructible; row-1 centre kept open.
+                // Destructible HP 25,000 -> 19,500 (+2 indestructible rocks). StageData asset is the runtime authority; this mirrors it.
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 0, xPosition = 4f },
                 new CoverPlacement { coverId = "cover_trough", rowIndex = 0, xPosition = 12f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 0, xPosition = 20f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 3f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 8f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 16f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 1, xPosition = 21f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 4f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 12f },
-                new CoverPlacement { coverId = "cover_trough", rowIndex = 2, xPosition = 20f },
+                new CoverPlacement { coverId = "cover_barrel", rowIndex = 0, xPosition = 20f },
+                new CoverPlacement { coverId = "cover_rock", rowIndex = 1, xPosition = 3f },
+                new CoverPlacement { coverId = "cover_hay", rowIndex = 1, xPosition = 8f },
+                new CoverPlacement { coverId = "cover_hay", rowIndex = 1, xPosition = 16f },
+                new CoverPlacement { coverId = "cover_rock", rowIndex = 1, xPosition = 21f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 2, xPosition = 4f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 2, xPosition = 12f },
+                new CoverPlacement { coverId = "cover_wagon", rowIndex = 2, xPosition = 20f },
             };
             stage1_2.hazards = new HazardPlacement[] {
                 new HazardPlacement { type = HazardType.ExplosiveBarrel, mode = PlacementMode.Free, x = 3f, y = 12f },
@@ -1076,8 +1078,8 @@ namespace HillNGun.Editor
         private static void CreateMotionFeelAssets()
         {
             var m = CreateOrLoad<MovementFeelData>(DATA_PATH + "Feel/movement_feel.asset");
-            m.accelTime = 0.09f;
-            m.decelTime = 0.07f;
+            m.accelTime = 0.08f; // v11 (FreeMoveSetup re-applies)
+            m.decelTime = 0.06f;
             m.turnDecelMul = 1.8f;
             m.accelCurve = new AnimationCurve(new Keyframe(0f, 1.6f), new Keyframe(0.7f, 1f), new Keyframe(1f, 0.6f));
             m.analogDeadzone = 0.12f;

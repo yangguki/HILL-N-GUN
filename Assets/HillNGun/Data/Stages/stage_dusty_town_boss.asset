@@ -37,6 +37,7 @@ MonoBehaviour:
   - 11
   - 13.5
   - 16
+  spawnSeed: 1999
   coverPlacements:
   - coverId: cover_swing_door
     rowIndex: 0

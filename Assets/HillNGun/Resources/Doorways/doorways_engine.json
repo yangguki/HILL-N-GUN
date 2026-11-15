@@ -1,0 +1,28 @@
+{
+  "status": "doorways_v2.1 WORKING ART (planner-approved working direction; not user-published)",
+  "manifest": "Doorways/doorways_v2_manifest",
+  "layers": [
+    { "name": "interior",    "file": "Doorways/{id}/{id}_interior_{tod}",         "z": 0, "stateful": false },
+    { "name": "door",        "file": "Doorways/{id}/{id}_door_{state}_{tod}",     "z": 2, "stateful": true },
+    { "name": "front_frame", "file": "Doorways/{id}/{id}_front_frame_{tod}",      "z": 3, "stateful": false }
+  ],
+  "enemyInsideZ": 1,
+  "todNames": ["day", "afternoon", "sunset", "night"],
+  "stateNames": ["closed", "swingA", "swingB", "open"],
+  "preGradedNoTodTint": true,
+  "visualWalkTime": 0.4,
+  "crossFraction": 0.55,
+  "crossBelowAnchorPx": 6,
+  "insideFeetAbovePx": 10,
+  "minOpeningToEnemy": 1.15,
+  "backgroundPpu": 54,
+  "backgroundScale": 1.0,
+  "backgroundOpaqueSingleLayer": true,
+  "backgroundDisablesRuntimeLanternGlow": true,
+  "backgrounds": [
+    { "tod": "day",       "file": "Doorways/bg/stage_visual_dust_1_1_noon_doorways_v2_1920x1080" },
+    { "tod": "afternoon", "file": "Doorways/bg/stage_visual_dust_1_2_afternoon_doorways_v2_1920x1080" },
+    { "tod": "sunset",    "file": "Doorways/bg/stage_visual_dust_1_3_sunset_doorways_v2_1920x1080" },
+    { "tod": "night",     "file": "Doorways/bg/stage_visual_rex_night_doorways_v2_1920x1080" }
+  ]
+}

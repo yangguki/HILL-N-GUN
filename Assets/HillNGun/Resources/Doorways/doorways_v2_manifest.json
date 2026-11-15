@@ -1,0 +1,239 @@
+{
+ "version": "doorways_v2.1 draft (local alignment fix + night lantern glow; not user-approved)",
+ "sources": {
+  "bg": "stage_bg_current/source_bg/*.png mapped to 1080p screen space (x1.53, offset -19,-11 = FitToCamera 2.8333 with 2% overscan)",
+  "placement": "stage_bg_current/door_data placement.runtime_copy.json + runtime_log_excerpt (v14-final)"
+ },
+ "reference": {
+  "resolution": [
+   1920,
+   1080
+  ],
+  "orthoSize": 10,
+  "px_per_unit": 54
+ },
+ "backgrounds": {
+  "day": "backgrounds/stage_visual_dust_1_1_noon_doorways_v2_1920x1080.png",
+  "afternoon": "backgrounds/stage_visual_dust_1_2_afternoon_doorways_v2_1920x1080.png",
+  "sunset": "backgrounds/stage_visual_dust_1_3_sunset_doorways_v2_1920x1080.png",
+  "night": "backgrounds/stage_visual_rex_night_doorways_v2_1920x1080.png"
+ },
+ "edit_mask": "backgrounds/edit_mask_1920x1080.png",
+ "bg_import_note": "Revised BGs are SCREEN-SPACE 1920x1080 (the 2% overscan border of the painting is already cropped). Show 1:1: PPU 54, scale 1, centred at (0,0), no FitToCamera 1.02 overscan. Using the old path (PPU100 x2.8333) would misplace the doors. Do not apply FitToCamera overscan on top.",
+ "enemy_height": {
+  "planning_px": 140.4,
+  "runtime_measured_px": "110-120 (stage_bg_current README §4; ~120 measured on 1_1 door_exit capture)"
+ },
+ "doors": {
+  "door_L": {
+   "anchor_px": [
+    397,
+    449
+   ],
+   "world": [
+    -10.426,
+    1.685
+   ],
+   "canvas_bg_rect": [
+    285,
+    200,
+    525,
+    465
+   ],
+   "canvas_size": [
+    240,
+    265
+   ],
+   "anchor_local": [
+    112,
+    249
+   ],
+   "pivot_norm": [
+    0.4667,
+    0.0604
+   ],
+   "opening_px": {
+    "x0": 355,
+    "y_top": 273,
+    "x1": 455,
+    "y_floor": 449,
+    "w": 100,
+    "h": 176
+   },
+   "layer_scale": "PPU 54, scale 1.0 (=PPU100 scale 1.852)",
+   "edit_bbox": [
+    137,
+    191,
+    504,
+    583
+   ],
+   "opening_center_x": 405.0,
+   "anchor_offset_from_opening_center_px": -8.0,
+   "anchor_is_opening_center": false,
+   "centered_alternative_considered": [
+    347,
+    447
+   ],
+   "front_frame": "cut from the same revised background pixels per TOD (painted posts+lintel), so outline/thickness/colour match exactly",
+   "why_not_centered": "painted saloon opening is 352-456; shifting 8px left would put the left post over the bench/porch brace; kept 355-455 (offset -8: anchor is 8px left of centre)"
+  },
+  "door_R": {
+   "anchor_px": [
+    1512,
+    458
+   ],
+   "world": [
+    10.222,
+    1.519
+   ],
+   "canvas_bg_rect": [
+    1375,
+    209,
+    1615,
+    474
+   ],
+   "canvas_size": [
+    240,
+    265
+   ],
+   "anchor_local": [
+    137,
+    249
+   ],
+   "pivot_norm": [
+    0.5708,
+    0.0604
+   ],
+   "opening_px": {
+    "x0": 1445,
+    "y_top": 282,
+    "x1": 1545,
+    "y_floor": 458,
+    "w": 100,
+    "h": 176
+   },
+   "layer_scale": "PPU 54, scale 1.0 (=PPU100 scale 1.852)",
+   "edit_bbox": [
+    1376,
+    137,
+    1793,
+    583
+   ],
+   "opening_center_x": 1495.0,
+   "anchor_offset_from_opening_center_px": 17.0,
+   "anchor_is_opening_center": false,
+   "centered_alternative_considered": [
+    1462,
+    1562
+   ],
+   "front_frame": "cut from the same revised background pixels per TOD (painted posts+lintel), so outline/thickness/colour match exactly",
+   "why_not_centered": "1462-1562 puts right post onto the barrel (x>=1553) and the red wall edge; kept 1445-1545 (offset +17: anchor is 17px right of centre). Enemy spawned at anchor x is off-centre in the opening by 17px."
+  }
+ },
+ "layers_z": [
+  {
+   "z": 0,
+   "layer": "background (revised)"
+  },
+  {
+   "z": 1,
+   "layer": "interior"
+  },
+  {
+   "z": 2,
+   "layer": "ENEMY while inside (before threshold)"
+  },
+  {
+   "z": 3,
+   "layer": "door_<closed|swingA|swingB|open>"
+  },
+  {
+   "z": 4,
+   "layer": "front_frame (posts, lintel, threshold) - occludes enemy before threshold"
+  },
+  {
+   "z": 5,
+   "layer": "ENEMY after threshold"
+  }
+ ],
+ "occlusion": {
+  "switch_rule": "enemy foot y_px >= anchor y (world foot y <= anchor world y) -> move enemy from z2 to z5",
+  "phases": [
+   {
+    "phase": "idle",
+    "door": "closed"
+   },
+   {
+    "phase": "telegraph 0.8s",
+    "door": "swingA/swingB alternating 100ms",
+    "enemy": "z2 (spawn ~49px behind threshold)"
+   },
+   {
+    "phase": "exit",
+    "door": "open",
+    "enemy": "z2 until threshold, then z5"
+   },
+   {
+    "phase": "after",
+    "door": "swingB->swingA->closed ~300ms",
+    "enemy": "z5"
+   }
+  ]
+ },
+ "layer_files": [
+  "layers/door_L/door_L_interior_day.png",
+  "layers/door_L/door_L_front_frame_day.png",
+  "layers/door_L/door_L_door_closed_day.png",
+  "layers/door_L/door_L_door_swingA_day.png",
+  "layers/door_L/door_L_door_swingB_day.png",
+  "layers/door_L/door_L_door_open_day.png",
+  "layers/door_L/door_L_interior_afternoon.png",
+  "layers/door_L/door_L_front_frame_afternoon.png",
+  "layers/door_L/door_L_door_closed_afternoon.png",
+  "layers/door_L/door_L_door_swingA_afternoon.png",
+  "layers/door_L/door_L_door_swingB_afternoon.png",
+  "layers/door_L/door_L_door_open_afternoon.png",
+  "layers/door_L/door_L_interior_sunset.png",
+  "layers/door_L/door_L_front_frame_sunset.png",
+  "layers/door_L/door_L_door_closed_sunset.png",
+  "layers/door_L/door_L_door_swingA_sunset.png",
+  "layers/door_L/door_L_door_swingB_sunset.png",
+  "layers/door_L/door_L_door_open_sunset.png",
+  "layers/door_L/door_L_interior_night.png",
+  "layers/door_L/door_L_front_frame_night.png",
+  "layers/door_L/door_L_door_closed_night.png",
+  "layers/door_L/door_L_door_swingA_night.png",
+  "layers/door_L/door_L_door_swingB_night.png",
+  "layers/door_L/door_L_door_open_night.png",
+  "layers/door_R/door_R_interior_day.png",
+  "layers/door_R/door_R_front_frame_day.png",
+  "layers/door_R/door_R_door_closed_day.png",
+  "layers/door_R/door_R_door_swingA_day.png",
+  "layers/door_R/door_R_door_swingB_day.png",
+  "layers/door_R/door_R_door_open_day.png",
+  "layers/door_R/door_R_interior_afternoon.png",
+  "layers/door_R/door_R_front_frame_afternoon.png",
+  "layers/door_R/door_R_door_closed_afternoon.png",
+  "layers/door_R/door_R_door_swingA_afternoon.png",
+  "layers/door_R/door_R_door_swingB_afternoon.png",
+  "layers/door_R/door_R_door_open_afternoon.png",
+  "layers/door_R/door_R_interior_sunset.png",
+  "layers/door_R/door_R_front_frame_sunset.png",
+  "layers/door_R/door_R_door_closed_sunset.png",
+  "layers/door_R/door_R_door_swingA_sunset.png",
+  "layers/door_R/door_R_door_swingB_sunset.png",
+  "layers/door_R/door_R_door_open_sunset.png",
+  "layers/door_R/door_R_interior_night.png",
+  "layers/door_R/door_R_front_frame_night.png",
+  "layers/door_R/door_R_door_closed_night.png",
+  "layers/door_R/door_R_door_swingA_night.png",
+  "layers/door_R/door_R_door_swingB_night.png",
+  "layers/door_R/door_R_door_open_night.png"
+ ],
+ "layer_count": 48,
+ "v2_1_changes": [
+  "R: painted inner jamb that sat 15px inside the opening was shifted 14px right (x1531-1552 -> 1545-1566, rows 281-461); vacated strip filled with the painted interior of the same row",
+  "front_frame regenerated by cutting painted frame pixels (no vector frame)",
+  "night: relocated lanterns L(228-263,372-404) R(1383-1404,288-309) glass lit + warm glow r~95px, multiplied by edit mask, x505-1375 zeroed"
+ ]
+}

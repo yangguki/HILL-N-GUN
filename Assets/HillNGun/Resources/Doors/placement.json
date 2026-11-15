@@ -1,0 +1,93 @@
+{
+  "background": "/workspace/smoke_scale/v11/fullpve__fm_door_telegraph_dusty_town_1_1_1920x1080.png (마커 없는 동일 장면 terrain_1_1로 확인)",
+  "reference_resolution": [
+    1920,
+    1080
+  ],
+  "sprite_canvas": [
+    256,
+    320
+  ],
+  "anchor_in_sprite": [
+    128,
+    300
+  ],
+  "anchor_bottom_margin_px": "기준점 y=300(문턱 바닥선). 외곽선 안티에일리어싱이 y=302까지 있음(2px). y 303~319 (17px) 완전 투명. 전체 그림 bbox = x31~224, y33~302 (16프레임 동일)",
+  "recommended_scale": 0.25,
+  "scale_note": "배경 개구부 실측 약 36x57px(1080p) ↔ 스프라이트 개구부 140x230px. 0.25 배율 시 외곽 44x65px",
+  "slots": {
+    "left": {
+      "anchor_bg_px": [
+        397,
+        449
+      ],
+      "default_kind": "saloon",
+      "flip_x": false,
+      "building": "왼쪽 청록 말굽 간판 건물, 문 위 랜턴 아래"
+    },
+    "right": {
+      "anchor_bg_px": [
+        1512,
+        458
+      ],
+      "default_kind": "shop",
+      "flip_x": true,
+      "building": "오른쪽 빨간 건물, 문 위 랜턴 아래"
+    }
+  },
+  "flip": "좌우 모두 flip 가능(대칭 문틀, 기준점 x=128 중앙이라 flip 후에도 동일). shop은 flip 시 경첩/손잡이 방향만 바뀜. 텍스트·광원 비대칭 요소 없음",
+  "perspective": "배경의 두 개구부는 거의 정면 직사각형으로 보여 원근 변형(skew) 불필요로 판단. 필요하면 엔진에서 x축 skew ±3° 이내 권장. 별도 좌우 변형 파일은 만들지 않음",
+  "slot_measure_note": "배경 해상도가 낮고 개구부 위가 랜턴·예고 마커에 가려져 있어 육안 실측값(±3px). 엔진 배치 후 확인 필요",
+  "telegraph_timeline_ms": {
+    "note": "권장안, 게임 밸런스 확정 아님",
+    "sequence": [
+      [
+        "swingA",
+        0,
+        100
+      ],
+      [
+        "swingB",
+        100,
+        200
+      ],
+      [
+        "swingA",
+        200,
+        300
+      ],
+      [
+        "swingB",
+        300,
+        400
+      ],
+      [
+        "swingA",
+        400,
+        500
+      ],
+      [
+        "swingB",
+        500,
+        600
+      ],
+      [
+        "swingA",
+        600,
+        700
+      ],
+      [
+        "swingB",
+        700,
+        800
+      ],
+      [
+        "open",
+        800,
+        null
+      ]
+    ],
+    "total_telegraph_ms": 800,
+    "after": "open 유지 중 적 등장, 이후 closed로 복귀(복귀 타이밍은 기획 결정)"
+  }
+}

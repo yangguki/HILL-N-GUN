@@ -84,7 +84,7 @@ namespace HillNGun.PvE
 
         private void OnGUI()
         {
-            if (HillNGun.DebugTools.SmokeTestRunner.NoGui) return;
+            if (HillNGun.DebugTools.SmokeTestRunner.NoGuiPart("mode")) return;
             if (_matchManager == null) return;
 
             InitStyles();

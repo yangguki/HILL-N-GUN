@@ -16,14 +16,14 @@ MonoBehaviour:
   enemyArtFacesRight: 0
   heroFootOffset: -0.88
   aimFacingHold: 0.45
-  flipTime: 0.07
+  flipTime: 0.08
   flipMinWidth: 0.35
   facingHoldTime: 0.1
   aimFacingMinX: 0.25
-  bobHeight: 0.07
+  bobHeight: 0.12
   stepsPerTile: 1.25
   walkStretch: 0.035
-  leanMaxDeg: 8
+  leanMaxDeg: 6
   leanSharpness: 14
   startStretch: 0.1
   stopSquash: 0.1
@@ -32,7 +32,7 @@ MonoBehaviour:
   rowHopHeight: 0.18
   rollSpinDeg: 360
   rollSquash: 0.16
-  landSquash: 0.14
+  landSquash: 0.05
   afterimageInterval: 0.04
   afterimageLifetime: 0.2
   afterimageAlpha: 0.45
@@ -53,6 +53,14 @@ MonoBehaviour:
   footInset: 0.03
   fallbackShadowSize: {x: 1, y: 0.32}
   shadowShrinkPerUnit: 0.9
-  enemyBobHeight: 0.05
+  enemyBobHeight: 0.12
   enemyLeanMaxDeg: 6
   bossBreathe: 0.015
+  idleBreathAmp: 0.02
+  idleBreathPeriod: 1.6
+  shootRecoil: 0.06
+  hitRecoil: 0.1
+  recoilReturnTime: 0.08
+  maxActiveDust: 16
+  rowViewEaseTime: 0.1
+  rowViewSnapDistance: 3

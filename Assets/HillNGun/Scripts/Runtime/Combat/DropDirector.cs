@@ -124,7 +124,7 @@ namespace HillNGun.Combat
         private Vector2 Land(BattlefieldSystem bf, float x, float y)
         {
             float s = _system.Table.landScatter;
-            float lx = x + UnityEngine.Random.Range(-s, s);
+            float lx = x + HillNGun.Core.GameplayRng.Range(-s, s);
             float min = bf?.Data != null ? bf.Data.boundaryMinX + 0.6f : 1f;
             float max = bf?.Data != null ? bf.Data.boundaryMaxX - 0.6f : 23f;
             return new Vector2(Mathf.Clamp(lx, min, max), y);

@@ -14,6 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   friendlyFire: 0
   ownCoverBlocksOwnShots: 0
+  pveMoveMode: 1
+  pvpMoveMode: 0
+  pveMaxConcurrentEnemyFire: 3
+  pveSpawnSafeRadius: 3
+  pveEntranceAttackDelay: 0.8
+  pveSpawnStagger: 0.3
+  pveSpawnRetryInterval: 0.25
+  pveSpawnRelaxAfter: 2
   pveEnemyHpMultipliers:
   - 1
   - 1.5

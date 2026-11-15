@@ -76,6 +76,8 @@ namespace HillNGun.Data
         public bool useGrenades = true;
         [Tooltip("수류탄 투척 최소 간격 (초)")]
         public float grenadeMinInterval = 4f;
+        [Tooltip("v17: AI 전용 수류탄 예비동작 (초). 결정 시 조준 고정 -> 이 시간 후 실제 투척. 피격/기절/구르기 시 취소(소모 없음). 0 = 즉시 (이전 동작). 플레이어 입력은 영향 없음")]
+        public float aiGrenadeWindup = 0.15f;
         [Tooltip("PvE AI 아군 수류탄 최소 간격 (초). 수류탄 12초 재충전(t49u 수정) 후에도 스테이지 길이(03 §4)를 지키기 위한 값. 0 이하 = grenadeMinInterval 사용")]
         public float pveAllyGrenadeMinInterval = 45f;
         [Tooltip("PvE AI 아군 사격 쿨다운 배율 (1=그대로). 스테이지 목표 시간(06) 맞추기용 페이싱 노브. 무기 fireInterval 자체는 변경하지 않음")]

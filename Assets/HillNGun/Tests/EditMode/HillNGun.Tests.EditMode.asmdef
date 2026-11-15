@@ -4,7 +4,8 @@
     "references": [
         "HillNGun.Runtime",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "Unity.2D.Animation.Runtime"
     ],
     "includePlatforms": [
         "Editor"

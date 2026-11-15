@@ -46,7 +46,7 @@ namespace HillNGun.Combat
         public DropSystem(DropTableData table, Func<float> rng = null)
         {
             _table = table;
-            _rng = rng ?? (() => UnityEngine.Random.value);
+            _rng = rng ?? (() => HillNGun.Core.GameplayRng.Value);
         }
 
         /// <summary>Roll a drop with the given chance. Returns the entry or null.</summary>

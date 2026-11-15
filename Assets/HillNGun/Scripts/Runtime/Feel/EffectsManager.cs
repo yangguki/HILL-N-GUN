@@ -245,7 +245,7 @@ namespace HillNGun.Feel
 
         private void OnGUI()
         {
-            if (HillNGun.DebugTools.SmokeTestRunner.NoGui) return;
+            if (HillNGun.DebugTools.SmokeTestRunner.NoGuiPart("fx")) return;
             // Damage numbers / floating labels are world-space TextMeshes now (one shared font material, batched).
         }
     }

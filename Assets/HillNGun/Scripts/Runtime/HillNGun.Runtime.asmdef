@@ -4,7 +4,8 @@
     "references": [
         "Unity.InputSystem",
         "Unity.TextMeshPro",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "Unity.2D.Animation.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

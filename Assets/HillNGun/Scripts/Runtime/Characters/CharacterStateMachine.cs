@@ -64,6 +64,44 @@ namespace HillNGun.Characters
 
         private ICharacterView _view;
 
+        // ---- FreeMove (PvE, MatchRulesData.pveMoveMode) ----
+        private MoveMode _moveMode = MoveMode.RowLane;
+        private Vector2 _vel2;
+        private Vector2 _lastMoveDir2 = Vector2.right;
+        public MoveMode MoveMode => _moveMode;
+        public bool IsFreeMove => _moveMode == MoveMode.FreeMove;
+        /// <summary>Logic velocity of the FreeMove integrator (tiles/s) before collision.</summary>
+        public Vector2 FreeVelocity => _vel2;
+        public float BodyRadius => Feel.freeMoveBodyRadius;
+
+        /// <summary>Mode data flag: RowLane (PvP rows) or FreeMove (PvE 360 + colliders). Row commands are ignored in FreeMove.</summary>
+        public void SetMoveMode(MoveMode mode)
+        {
+            _moveMode = mode;
+            _vel2 = Vector2.zero;
+            _velX = 0f;
+            _rollTargetRow = -1;
+            if (_movementState == MovementState.RowChanging) _movementState = MovementState.Idle;
+            _bufRowDir = 0;
+            if (mode == MoveMode.FreeMove) _position = FreeDepenetrate(_position);
+        }
+
+        private Vector2 FreeDepenetrate(Vector2 p)
+        {
+            var w = Battlefield.FreeMoveWorld.Active;
+            return w != null ? w.Depenetrate(p, BodyRadius) : p;
+        }
+
+        /// <summary>FreeMove: swept circle move with sliding; falls back to the field clamp when no world is registered.</summary>
+        private Vector2 FreeMoveBy(Vector2 delta)
+        {
+            var w = Battlefield.FreeMoveWorld.Active;
+            if (w != null) return w.Move(_position, delta, BodyRadius);
+            var bf = ServiceLocator.Get<Battlefield.BattlefieldSystem>();
+            Vector2 p = _position + delta;
+            return bf != null ? bf.ClampToField(p) : p;
+        }
+
         public CharacterData Data => _data;
         public Vector2 Position => _position;
         public int CurrentRowIndex => _currentRowIndex;
@@ -171,6 +209,8 @@ namespace HillNGun.Characters
             _currentHp = Mathf.Min(MaxHp, _currentHp + Mathf.RoundToInt(MaxHp * ratio));
         }
 
+        /// <summary>v16 view-only: number of logic grenade releases (spawns) by this character.</summary>
+        public int GrenadesReleased { get; private set; }
         public bool HasGrenadeReady => _grenadeSystem != null && _grenadeSystem.HasGrenade();
         public bool IsBusy => !CanPerformAction();
 
@@ -231,6 +271,7 @@ namespace HillNGun.Characters
             UpdateDowned(dt);
             UpdatePassive(dt);
             UpdateInputBuffer();
+            TickAiGrenade(dt);
 
             if (dt > 0f) _velocity = (_position - before) / dt;
 
@@ -252,7 +293,71 @@ namespace HillNGun.Characters
             UpdateDowned(dt);
             UpdatePassive(dt);
             UpdateInputBuffer();
+            TickAiGrenade(dt);
             if (dt > 0f) _velocity = (_position - before) / dt;
+        }
+
+        // ---------------------------------------------------------------- v17: AI-only grenade anticipation
+        // Player commands are unchanged (release on the command). AI drivers (AbilityPilot: PvE allies / PvP / smoke
+        // autopilot; BotBrain: PvP bots) call BeginAiGrenadeThrow: the character enters GrenadeAiming with the aim LOCKED at
+        // the decision target, and the existing OnGrenadeReleaseCommand runs exactly once after the data-driven windup
+        // (BotBehaviorData.aiGrenadeWindup, 0.15 s). Interrupts (no spawn, grenade NOT consumed): hit (damage taken), downed,
+        // roll, or anything else leaving GrenadeAiming. The AI driver's own grenade timer is set at the decision, so a cancel
+        // never retries immediately and never blocks forever. Grenade data / cooldown / range / trajectory untouched.
+        private bool _aiGrenadeWindup; private float _aiGrenadeTimer; private Vector2 _aiGrenadeTarget, _aiGrenadeDir;
+        public bool AiGrenadeWindingUp => _aiGrenadeWindup;
+        public float AiGrenadeWindupLeft => _aiGrenadeWindup ? _aiGrenadeTimer : 0f;
+        public int AiGrenadeCancels { get; private set; }
+        public string LastAiGrenadeCancel { get; private set; }
+        /// <summary>Target of the last logic release (read-only diagnostics / tests).</summary>
+        public Vector2 LastGrenadeReleaseTarget { get; private set; }
+
+        /// <returns>True when the windup started (or, with windup &lt;= 0, the grenade was released at once).</returns>
+        public bool BeginAiGrenadeThrow(Vector2 target, float windup)
+        {
+            if (_aiGrenadeWindup || _overallState != CharacterOverallState.Active) return false;
+            int before = GrenadesReleased;
+            if (windup <= 0f)
+            {
+                OnGrenadeAimStartCommand(new GrenadeAimStartCommand(Vector2.zero, Time.time));
+                OnGrenadeReleaseCommand(new GrenadeReleaseCommand(target, true, Time.time));
+                return GrenadesReleased != before;
+            }
+            bool wasAiming = _isAiming;
+            _isAiming = false; // stop the gun trigger for the windup: the AI's gun commands can't steer / cancel the throw
+            OnGrenadeAimStartCommand(new GrenadeAimStartCommand(Vector2.zero, Time.time));
+            if (_actionState != ActionState.GrenadeAiming)
+            {
+                _bufGrenade = false; // never leave a buffered aim with no release behind
+                _isAiming = wasAiming;
+                return false;
+            }
+            _aiGrenadeWindup = true; _aiGrenadeTimer = windup; _aiGrenadeTarget = target;
+            Vector2 d = target - _position; _aiGrenadeDir = d.sqrMagnitude > 1e-6f ? d.normalized : _lastAimDirection;
+            _lastAimDirection = _aiGrenadeDir;
+            return true;
+        }
+
+        private void CancelAiGrenade(string reason)
+        {
+            if (!_aiGrenadeWindup) return;
+            _aiGrenadeWindup = false;
+            if (_actionState == ActionState.GrenadeAiming) _actionState = ActionState.None;
+            _bufGrenade = false;
+            AiGrenadeCancels++; LastAiGrenadeCancel = reason;
+        }
+
+        private void TickAiGrenade(float dt)
+        {
+            if (!_aiGrenadeWindup) return;
+            if (_overallState != CharacterOverallState.Active) { CancelAiGrenade("down"); return; }
+            if (_movementState == MovementState.Rolling) { CancelAiGrenade("roll"); return; }
+            if (_actionState != ActionState.GrenadeAiming) { CancelAiGrenade("state"); return; }
+            _lastAimDirection = _aiGrenadeDir; // locked aim (target may move; the throw goes where it was decided)
+            _aiGrenadeTimer -= dt;
+            if (_aiGrenadeTimer > 0f) return;
+            _aiGrenadeWindup = false;
+            OnGrenadeReleaseCommand(new GrenadeReleaseCommand(_aiGrenadeTarget, true, Time.time));
         }
 
         private void UpdateCooldowns(float dt)
@@ -279,7 +384,14 @@ namespace HillNGun.Characters
             {
                 case MovementState.Idle:
                 case MovementState.Moving:
-                    if (_overallState != CharacterOverallState.Active) { _velX = 0f; break; }
+                    if (_overallState != CharacterOverallState.Active) { _velX = 0f; _vel2 = Vector2.zero; break; }
+                    if (IsFreeMove)
+                    {
+                        UpdateFree(dt, _data.GetMoveSpeed(IsCharging));
+                        _movementState = (Feel.AnalogSpeedFactor(_moveInputMag) > 0f || _vel2.magnitude > 0.02f)
+                            ? MovementState.Moving : MovementState.Idle;
+                        break;
+                    }
                     UpdateHorizontal(dt, _data.GetMoveSpeed(IsCharging));
                     _movementState = (Feel.AnalogSpeedFactor(Mathf.Abs(MoveInputX)) > 0f || Mathf.Abs(_velX) > 0.02f)
                         ? MovementState.Moving : MovementState.Idle;
@@ -330,12 +442,17 @@ namespace HillNGun.Characters
                 float targetY = ServiceLocator.Get<Battlefield.BattlefieldSystem>()?.GetRowY(_rollTargetRow, _team) ?? _position.y;
                 _position = Vector2.Lerp(_rollStartPos, new Vector2(_rollStartPos.x, targetY), e);
             }
+            else if (IsFreeMove)
+            {
+                // swept: slides along covers / street edges instead of passing through them
+                _position = FreeMoveBy(_rollStartPos + _rollDirection * distance - _position);
+            }
             else
             {
                 _position = _rollStartPos + _rollDirection * distance;
             }
 
-            ClampPosition();
+            if (!IsFreeMove) ClampPosition();
 
             if (t >= 1f)
             {
@@ -348,6 +465,7 @@ namespace HillNGun.Characters
 
                 _movementState = MovementState.Idle;
                 _velX = _rollTargetRowWasSet ? 0f : _rollDirection.x * _data.moveSpeed * Feel.rollExitCarry;
+                _vel2 = IsFreeMove ? _rollDirection * _data.moveSpeed * Feel.rollExitCarry : Vector2.zero;
                 _rollTargetRowWasSet = false;
                 _recoveryTimer = Feel.rollRecoveryTime;
                 OnRollEnded?.Invoke(this);
@@ -378,8 +496,8 @@ namespace HillNGun.Characters
 
             if (_moveDirection.magnitude > 0.1f)
             {
-                _position += _moveDirection.normalized * downedData.crawlSpeed * dt;
-                ClampPosition();
+                if (IsFreeMove) _position = FreeMoveBy(_moveDirection.normalized * downedData.crawlSpeed * dt);
+                else { _position += _moveDirection.normalized * downedData.crawlSpeed * dt; ClampPosition(); }
             }
 
             if (_downedTimer >= downedData.downedDuration)
@@ -397,6 +515,46 @@ namespace HillNGun.Characters
                 {
                     _rollShotBonusActive = false;
                 }
+            }
+        }
+
+        /// <summary>
+        /// FreeMove: 2D accel/decel toward the analog target velocity (same top speed, accelTime / decelTime /
+        /// turnDecelMul as RowLane), then a swept collision move. A blocked component is dropped so the body slides.
+        /// </summary>
+        private void UpdateFree(float dt, float maxSpeed)
+        {
+            var f = Feel;
+            Vector2 inDir = _moveInputMag > 0f && _moveDirection.sqrMagnitude > 1e-6f ? _moveDirection.normalized : Vector2.zero;
+            float factor = f.AnalogSpeedFactor(_moveInputMag);
+            Vector2 target = inDir * factor * maxSpeed;
+            if (_recoveryTimer > 0f) target *= f.rollRecoveryMoveMul;
+
+            float cur = _vel2.magnitude, tgt = target.magnitude;
+            bool accelerating = tgt > 0.0001f && (cur < 0.0001f || Vector2.Dot(target, _vel2) > 0f) && tgt >= cur - 0.0001f;
+            float rate;
+            if (accelerating)
+                rate = f.accelTime <= 0f ? float.MaxValue
+                    : maxSpeed / f.accelTime * Mathf.Max(0.05f, f.accelCurve != null && f.accelCurve.length > 0 ? f.accelCurve.Evaluate(cur / Mathf.Max(0.01f, maxSpeed)) : 1f);
+            else
+            {
+                rate = f.decelTime <= 0f ? float.MaxValue : maxSpeed / f.decelTime;
+                if (tgt > 0.0001f && cur > 0.0001f && Vector2.Dot(target, _vel2) < 0f) rate *= f.turnDecelMul;
+            }
+            _vel2 = rate >= float.MaxValue * 0.5f ? target : Vector2.MoveTowards(_vel2, target, rate * dt);
+            _velX = _vel2.x;
+            if (_vel2.sqrMagnitude < 1e-8f) { _vel2 = Vector2.zero; return; }
+
+            Vector2 want = _vel2 * dt;
+            Vector2 next = FreeMoveBy(want);
+            Vector2 got = next - _position;
+            _position = next;
+            if (dt > 0f && (got - want).sqrMagnitude > 1e-8f)
+            {
+                // keep only the sliding part of the velocity (no stored push into a wall)
+                Vector2 slide = got / dt;
+                _vel2 = slide.sqrMagnitude < _vel2.sqrMagnitude ? slide : _vel2.normalized * slide.magnitude;
+                _velX = _vel2.x;
             }
         }
 
@@ -451,9 +609,15 @@ namespace HillNGun.Characters
             _moveDirection = cmd.Direction;
             _moveInputMag = cmd.Direction.sqrMagnitude > 0.0001f ? Mathf.Clamp01(cmd.Magnitude) : 0f;
             if (_moveInputMag > 0.1f && Mathf.Abs(cmd.Direction.x) > 0.2f) _lastMoveDirX = Mathf.Sign(cmd.Direction.x);
+            if (_moveInputMag > 0.1f && cmd.Direction.sqrMagnitude > 0.0001f) _lastMoveDir2 = cmd.Direction.normalized;
 
             if (_movementState == MovementState.Rolling || _movementState == MovementState.RowChanging) return;
 
+            if (IsFreeMove)
+            {
+                _movementState = (Feel.AnalogSpeedFactor(_moveInputMag) > 0f || _vel2.magnitude > 0.02f) ? MovementState.Moving : MovementState.Idle;
+                return;
+            }
             _movementState = (Feel.AnalogSpeedFactor(Mathf.Abs(MoveInputX)) > 0f || Mathf.Abs(_velX) > 0.02f)
                 ? MovementState.Moving : MovementState.Idle;
         }
@@ -461,6 +625,7 @@ namespace HillNGun.Characters
         public void OnRowChangeCommand(RowChangeCommand cmd)
         {
             if (_overallState != CharacterOverallState.Active) return;
+            if (IsFreeMove) return; // FreeMove: vertical stick is plain movement, there are no rows
             if (_movementState == MovementState.Rolling || _movementState == MovementState.RowChanging)
             {
                 float wait = _movementState == MovementState.Rolling
@@ -603,7 +768,18 @@ namespace HillNGun.Characters
             if (rollDir.magnitude < 0.1f)
             {
                 // 01 §9: stick direction, or the last move direction when there is no input
-                rollDir = (_moveInputMag > 0.1f && _moveDirection.magnitude > 0.1f) ? _moveDirection : new Vector2(_lastMoveDirX, 0f);
+                rollDir = (_moveInputMag > 0.1f && _moveDirection.magnitude > 0.1f) ? _moveDirection
+                    : (IsFreeMove ? _lastMoveDir2 : new Vector2(_lastMoveDirX, 0f));
+            }
+            if (IsFreeMove)
+            {
+                // FreeMove: roll in the (360) movement direction, no row rolls / horizontal-only rule
+                _rollTargetRow = -1;
+                _rollTargetRowWasSet = false;
+                if (Mathf.Abs(rollDir.x) > 0.05f) _lastMoveDirX = Mathf.Sign(rollDir.x);
+                _lastMoveDir2 = rollDir.normalized;
+                BeginRoll(rollDir);
+                return;
             }
 
             _rollTargetRow = -1;
@@ -630,7 +806,11 @@ namespace HillNGun.Characters
                 rollDir = new Vector2(x, 0f);
             }
             if (Mathf.Abs(rollDir.x) > 0.05f) _lastMoveDirX = Mathf.Sign(rollDir.x);
+            BeginRoll(rollDir);
+        }
 
+        private void BeginRoll(Vector2 rollDir)
+        {
             _rollDirection = rollDir.normalized;
             _rollStartPos = _position;
             _rollTimer = 0f;
@@ -658,7 +838,7 @@ namespace HillNGun.Characters
 
             if (_bufRowDir != 0)
             {
-                if (_clock - _bufRowTime > expire) _bufRowDir = 0;
+                if (_clock - _bufRowTime > expire || IsFreeMove) _bufRowDir = 0;
                 else if (_movementState != MovementState.Rolling && _movementState != MovementState.RowChanging)
                 {
                     int d = _bufRowDir; _bufRowDir = 0;
@@ -736,6 +916,8 @@ namespace HillNGun.Characters
 
             if (_grenadeSystem.TryUseGrenade())
             {
+                LastGrenadeReleaseTarget = cmd.TargetPosition;
+                GrenadesReleased++; // v16: read-only counter for the view (throw arc / held-bomb hand-off); no gameplay effect
                 var combatSystem = ServiceLocator.Get<CombatSystem>();
                 combatSystem?.SpawnGrenade(_position, cmd.TargetPosition, _data.grenade, _team);
             }
@@ -834,6 +1016,7 @@ namespace HillNGun.Characters
             if (IsInvulnerable) return;
 
             _currentHp = Mathf.Max(0, _currentHp - damage);
+            if (damage > 0) CancelAiGrenade("hit");
             OnDamageTaken?.Invoke(this, damage, sourceDirection);
 
             if (_currentHp <= 0)
@@ -856,6 +1039,7 @@ namespace HillNGun.Characters
 
         private void EnterDowned()
         {
+            CancelAiGrenade("down");
             _overallState = CharacterOverallState.Downed;
             _movementState = MovementState.Idle;
             _actionState = ActionState.None;
@@ -902,8 +1086,9 @@ namespace HillNGun.Characters
 
         public void SetPosition(Vector2 position)
         {
-            _position = position;
+            _position = IsFreeMove ? FreeDepenetrate(position) : position;
             _velX = 0f;
+            _vel2 = Vector2.zero;
         }
 
         public void SetRowIndex(int rowIndex)
@@ -913,7 +1098,8 @@ namespace HillNGun.Characters
 
         public void ResetForRound(Vector2 spawnPosition, int rowIndex)
         {
-            _position = spawnPosition;
+            _position = IsFreeMove ? FreeDepenetrate(spawnPosition) : spawnPosition;
+            _vel2 = Vector2.zero;
             _currentRowIndex = rowIndex;
             _currentHp = _data.maxHp;
             _overallState = CharacterOverallState.Active;

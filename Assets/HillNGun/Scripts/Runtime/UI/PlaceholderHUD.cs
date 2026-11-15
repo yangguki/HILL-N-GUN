@@ -134,7 +134,7 @@ namespace HillNGun.UI
 
         private void OnGUI()
         {
-            if (HillNGun.DebugTools.SmokeTestRunner.NoGui) return;
+            if (HillNGun.DebugTools.SmokeTestRunner.NoGuiPart("hud")) return;
             if (_character == null) return;
             Init();
 

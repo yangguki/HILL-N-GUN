@@ -31,6 +31,10 @@ namespace HillNGun.Characters
 
         // Motion feel (view only; MotionViewData)
         private MotionRig _rig;
+        // v13 articulated cutout rig (2D Animation SpriteSkin); null = style-4 sprite fallback
+        private HillNGun.Rig.CutoutRig _cutout;
+        public HillNGun.Rig.CutoutRig Cutout => _cutout;
+        public static int ActiveCutoutRigs;
         private float _afterimageTimer;
         private float _rollDustTimer;
         public SpriteRenderer BodyRenderer => _bodyRenderer;
@@ -72,10 +76,12 @@ namespace HillNGun.Characters
             }
 
             Setup3D(character);
+            SetupCutout(character);
 
             character.OnDamageTaken += HandleDamageTaken;
             character.OnRollStarted += HandleRollStarted;
             character.OnRollEnded += HandleRollEnded;
+            character.OnFired += HandleFiredRecoil;
 
             UpdateView(character);
         }
@@ -86,6 +92,43 @@ namespace HillNGun.Characters
         {
             PlayHitFlash(0.08f);
             _actor3D?.Hit();
+            _cutout?.Hit();
+            if (_rig != null)
+            {
+                var d = MotionFx.Data;
+                Vector2 k = dir.sqrMagnitude > 1e-4f ? dir.normalized : Vector2.zero;
+                _rig.Kick(new Vector2(k.x, k.y * 0.4f) * d.hitRecoil); // flinch along the hit (view only)
+                _rig.Impulse(-0.04f);
+            }
+        }
+
+        private void HandleFiredRecoil(CharacterStateMachine c, Vector2 dir, int damage)
+        {
+            _cutout?.Shoot();
+            if (_rig == null) return;
+            var d = MotionFx.Data;
+            Vector2 k = dir.sqrMagnitude > 1e-4f ? -dir.normalized : Vector2.zero;
+            _rig.Kick(new Vector2(k.x, k.y * 0.4f) * d.shootRecoil); // recoil opposite the shot; blends with roll / squash
+            _rig.Impulse(-0.025f);
+        }
+
+        // RowLane (PvP) view-only Y ease-out (MotionViewData.rowViewEaseTime). Logic position / hitbox are untouched.
+        private float _viewY;
+        private bool _hasViewY;
+        public float ViewY => _viewY;
+
+        private Vector2 DrawPosition(CharacterStateMachine c)
+        {
+            Vector2 p = c.Position;
+            if (c.IsFreeMove) { _viewY = p.y; _hasViewY = true; return p; }
+            var d = MotionFx.Data;
+            float dt = GameTime.DeltaTime;
+            if (!_hasViewY || d.rowViewEaseTime <= 0f || Mathf.Abs(p.y - _viewY) > d.rowViewSnapDistance || c.OverallState == CharacterOverallState.Eliminated)
+                _viewY = p.y;
+            else
+                _viewY = Mathf.Lerp(_viewY, p.y, 1f - Mathf.Exp(-3f * dt / d.rowViewEaseTime)); // ~95% in rowViewEaseTime
+            _hasViewY = true;
+            return new Vector2(p.x, _viewY);
         }
 
         private void Setup3D(CharacterStateMachine character)
@@ -163,11 +206,13 @@ namespace HillNGun.Characters
 
         private void OnDestroy()
         {
+            if (_cutout != null) { ActiveCutoutRigs--; _cutout = null; }
             if (_character != null)
             {
                 _character.OnDamageTaken -= HandleDamageTaken;
                 _character.OnRollStarted -= HandleRollStarted;
                 _character.OnRollEnded -= HandleRollEnded;
+                _character.OnFired -= HandleFiredRecoil;
             }
             _actor3D?.Destroy();
             _actor3D = null;
@@ -235,6 +280,7 @@ namespace HillNGun.Characters
             _nameLabel.alignment = TextAlignment.Center;
             _nameLabel.color = character.Team == Team.Player ? new Color(0.85f, 1f, 0.85f) : new Color(1f, 0.75f, 0.7f);
             _labelRenderer = labelGo.GetComponent<MeshRenderer>();
+            if (HillNGun.DebugTools.PerfDiag.NoLabels) labelGo.SetActive(false); // attribution runs only
 
             // Team marker under the feet (blue = our team, red = opponents)
             var markerGo = new GameObject("TeamMarker");
@@ -345,11 +391,18 @@ namespace HillNGun.Characters
             }
         }
 
+        /// <summary>Debug capture only (-rig-throwtakes): one-actor take; other player-team hero VIEWS are parked off screen
+        /// (logic untouched). Null = normal.</summary>
+        public static CharacterStateMachine DebugSoloActor;
+        public CharacterStateMachine Character => _character;
         public void UpdateView(CharacterStateMachine character)
         {
             if (character == null) return;
+            if (DebugSoloActor != null && character != DebugSoloActor && character.Team == DebugSoloActor.Team)
+            { transform.position = new Vector3(9999f, 9999f, 0f); return; }
 
-            FieldView.Place(transform, character.Position, ScalePresets.VisualMul); // scale preset (view only): body, shadow, foot ring — HitRadius stays on CharacterMul
+            Vector2 drawPos = DrawPosition(character);
+            FieldView.Place(transform, drawPos, ScalePresets.VisualMul); // scale preset (view only): body, shadow, foot ring — HitRadius stays on CharacterMul
             Vector3 worldPos = transform.position;
             FieldView.ApplySorting(_bodyRenderer, character.Position.y);
             if (_teamMarker != null) _teamMarker.sortingOrder = FieldView.GroundDecalOrder;
@@ -424,6 +477,7 @@ namespace HillNGun.Characters
             {
                 _rig.ResetPose();
                 Update3D(c, false);
+                TickCutout(c, false);
                 return;
             }
 
@@ -436,7 +490,11 @@ namespace HillNGun.Characters
                             (c.IsAimingWeapon && c.ActionState != ActionState.Aiming) ||
                             Time.time - c.LastFireTime < d.aimFacingHold;
             float want = 0f; bool deliberate = false;
+            bool grenadeAim = c.ActionState == ActionState.GrenadeAiming;
+            bool throwArc = _cutout != null && _cutout.ThrowArcTime < HillNGun.Rig.CutoutRig.ThrowDur; // v16: hold facing through the arc
             if (rolling && !c.IsRowRoll && Mathf.Abs(c.RollDirection.x) > 0.05f) { want = Mathf.Sign(c.RollDirection.x); deliberate = true; }
+            else if (throwArc) want = 0f;
+            else if (grenadeAim && Mathf.Abs(c.AimDirection.x) > d.aimFacingMinX) { want = Mathf.Sign(c.AimDirection.x); deliberate = true; } // v16: face the throw
             else if (shooting && Mathf.Abs(c.AimDirection.x) > d.aimFacingMinX) want = Mathf.Sign(c.AimDirection.x);
             else if (!shooting && Mathf.Abs(c.MoveInputX) > 0.1f) { want = Mathf.Sign(c.MoveInputX); deliberate = true; }
             else if (!shooting && Mathf.Abs(vx) > 0.3f) want = Mathf.Sign(vx);
@@ -455,7 +513,7 @@ namespace HillNGun.Characters
                 hop = c.IsRowRoll ? d.rowHopHeight * 1.3f * Mathf.Sin(Mathf.PI * p) : d.rowHopHeight * 0.35f * Mathf.Sin(Mathf.PI * p);
 
                 _afterimageTimer -= dt;
-                if (_afterimageTimer <= 0f && p < 0.92f && _actor3D == null)
+                if (_afterimageTimer <= 0f && p < 0.92f && _actor3D == null && _cutout == null) // rig: curl + tumble instead of sprite ghosts
                 {
                     _afterimageTimer = d.afterimageInterval;
                     MotionFx.Instance.Afterimage(_bodyRenderer, d.afterimageTint, d.afterimageAlpha, d.afterimageLifetime);
@@ -473,8 +531,47 @@ namespace HillNGun.Characters
             }
 
             bool grounded = !rolling && c.MovementState != MovementState.RowChanging;
-            _rig.Tick(dt, rolling ? 0f : vx, maxSpeed, grounded, d.bobHeight, d.leanMaxDeg, hop, spin, true);
+            _rig.Tick(dt, rolling ? Vector2.zero : c.Velocity, maxSpeed, grounded, d.bobHeight, d.leanMaxDeg, hop, spin, true); // 2D gait (FreeMove diagonals bob too)
             Update3D(c, shooting);
+            TickCutout(c, shooting);
+        }
+
+        private void SetupCutout(CharacterStateMachine c)
+        {
+            if (_actor3D != null || _rig == null || c?.Data == null || HillNGun.DebugTools.PerfDiag.NoRig) return;
+            var def = HillNGun.Rig.RigDefinition.Load(c.Data.id);
+            if (def == null) return; // no delivered / placeholder parts for this character: style-4 sprite fallback
+            float h = Mathf.Max(0.5f, (_headTop - _footY) * 0.97f);
+            _cutout = new HillNGun.Rig.CutoutRig(_rig.Body, def, _footY, h);
+            ActiveCutoutRigs++;
+            if (_bodyRenderer != null) _bodyRenderer.enabled = false; // kept as silhouette / fallback sprite source
+            _rig.WholeBodyScale = HillNGun.Rig.RigClipSet.Shared.settings.wholeBodyMotionScale;
+            Debug.Log($"[Rig] {c.Data.id} cutout rig: views={def.directions.Length} skins={_cutout.SkinCount} valid={_cutout.AllSkinsValid} source={def.source}");
+        }
+
+        private void TickCutout(CharacterStateMachine c, bool shooting)
+        {
+            if (_cutout == null) return;
+            if (HillNGun.Rig.CutoutRig.HeldBombSprite == null) { var lib = HillNGun.Core.RuntimeAssetManager.Instance?.SpriteLibrary; if (lib != null && lib.grenade != null) HillNGun.Rig.CutoutRig.HeldBombSprite = lib.grenade; }
+            if (_bodyRenderer != null) { if (_bodyRenderer.enabled) _bodyRenderer.enabled = false; _cutout.SetColor(_bodyRenderer.color); }
+            bool active = c.OverallState == CharacterOverallState.Active;
+            var inp = new HillNGun.Rig.RigInput
+            {
+                velocity = active ? c.Velocity : Vector2.zero,
+                maxSpeed = c.Data != null ? c.Data.moveSpeed : 3f,
+                aim = c.IsFreeMove ? c.AimDirection : new Vector2(_rig.FacingSign, 0f),
+                aiming = active && shooting,
+                rolling = active && c.MovementState == MovementState.Rolling,
+                rollProgress = c.RollProgress,
+                downed = c.OverallState == CharacterOverallState.Downed,
+                grenadeAiming = active && c.ActionState == ActionState.GrenadeAiming,
+                throwCount = c.GrenadesReleased, throwCountValid = true,
+                forceSide = !c.IsFreeMove, // PvP RowLane: fixed forward aim, side view (visual only)
+                facing = _rig.FacingSign,
+                sortingOrder = FieldView.DepthOrder(c.Position.y),
+            };
+            _cutout.Tick(GameTime.DeltaTime, inp);
+            _rig.ShadowMul = _cutout.ShadowMul;
         }
 
         // Downed / revive bar + skill state marker tint (placeholder visuals, no external art)

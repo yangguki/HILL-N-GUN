@@ -137,7 +137,7 @@ namespace HillNGun.AI
                 float range = _character.Data?.weapon?.range ?? 7f;
                 float d = Vector2.Distance(_character.Position, objective.Value);
                 bool targetInRange = _currentTarget != null && Vector2.Distance(_character.Position, _currentTarget.Position) <= range;
-                if (d <= range && (!targetInRange || Random.value < 0.35f))
+                if (d <= range && (!targetInRange || GameplayRng.Value < 0.35f))
                 {
                     _shootObjective = true;
                     _objectivePos = objective.Value;
@@ -229,7 +229,7 @@ namespace HillNGun.AI
             if (_character.MovementState == MovementState.RowChanging || _character.MovementState == MovementState.Rolling) return;
             Vector2 delta = _currentTarget.Position - _character.Position;
             int towardRow = TowardTargetRowDirection(delta.y);
-            if (towardRow != 0 && Random.value < _behaviorData.rowChangeChance)
+            if (towardRow != 0 && GameplayRng.Value < _behaviorData.rowChangeChance)
             {
                 _character.OnRowChangeCommand(new RowChangeCommand(towardRow, Time.time));
             }
@@ -266,7 +266,7 @@ namespace HillNGun.AI
             Vector2 aimAt = _shootObjective ? _objectivePos : _currentTarget.Position;
             Vector2 dirToTarget = (aimAt - _character.Position).normalized;
             float jitter = _behaviorData.aimJitter * Mathf.Deg2Rad;
-            float randomAngle = Random.Range(-jitter, jitter);
+            float randomAngle = GameplayRng.Range(-jitter, jitter);
             _aimDirection = RotateVector(dirToTarget, randomAngle);
 
             if (!_isAiming)
@@ -338,7 +338,7 @@ namespace HillNGun.AI
                 return;
             }
 
-            Vector2 rollDir = Random.value > 0.5f ? Vector2.left : Vector2.right;
+            Vector2 rollDir = GameplayRng.Value > 0.5f ? Vector2.left : Vector2.right;
 
             if (_currentTarget != null)
             {
@@ -361,8 +361,8 @@ namespace HillNGun.AI
 
             Vector2 grenadeTarget = _currentTarget.Position;
 
-            _character.OnGrenadeAimStartCommand(new GrenadeAimStartCommand(Vector2.zero, Time.time));
-            _character.OnGrenadeReleaseCommand(new GrenadeReleaseCommand(grenadeTarget, true, Time.time));
+            // v17: common AI anticipation (aim locked at the decision, release after BotBehaviorData.aiGrenadeWindup)
+            if (!_character.BeginAiGrenadeThrow(grenadeTarget, _behaviorData.aiGrenadeWindup)) { _currentState = BotState.Idle; return; }
 
             _grenadeCooldownTimer = _character.Data?.grenade?.rechargeTime ?? 12f;
             _currentState = BotState.Idle;
@@ -473,7 +473,7 @@ namespace HillNGun.AI
 
             if (distance <= seekDist)
             {
-                return Random.value < (_behaviorData?.revivePriority ?? 0.6f);
+                return GameplayRng.Value < (_behaviorData?.revivePriority ?? 0.6f);
             }
 
             return false;
@@ -523,7 +523,7 @@ namespace HillNGun.AI
             if (_rollCooldownTimer > 0f) return false;
 
             float hpRatio = (float)_character.CurrentHp / _character.Data.maxHp;
-            if (hpRatio < _behaviorData.dodgeHpThreshold && Random.value < _behaviorData.dodgeChance)
+            if (hpRatio < _behaviorData.dodgeHpThreshold && GameplayRng.Value < _behaviorData.dodgeChance)
             {
                 return true;
             }
@@ -543,7 +543,7 @@ namespace HillNGun.AI
 
             if (distance >= minRange && distance <= maxRange)
             {
-                return Random.value < _behaviorData.grenadeUseChance;
+                return GameplayRng.Value < _behaviorData.grenadeUseChance;
             }
 
             return false;
@@ -553,7 +553,7 @@ namespace HillNGun.AI
         {
             if (_skillCooldownTimer > 0f) return false;
 
-            return Random.value < _behaviorData.skillUseChance;
+            return GameplayRng.Value < _behaviorData.skillUseChance;
         }
 
         private Vector2 RotateVector(Vector2 v, float radians)

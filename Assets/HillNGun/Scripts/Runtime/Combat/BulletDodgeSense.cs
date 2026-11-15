@@ -45,7 +45,7 @@ namespace HillNGun.Combat
         public BulletDodgeSense(DodgeTuning tuning, Func<float> rng = null)
         {
             Tuning = tuning;
-            _rng = rng ?? (() => UnityEngine.Random.value);
+            _rng = rng ?? (() => HillNGun.Core.GameplayRng.Value);
         }
 
         /// <summary>Will a bullet at projPos moving along projDir hit a circle at pos within lookahead? side = dodge direction.</summary>

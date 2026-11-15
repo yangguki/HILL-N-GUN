@@ -25,6 +25,11 @@ namespace HillNGun.Feel
         }
 
         private readonly List<Fx> _active = new List<Fx>();
+        private int _dustActive;
+        /// <summary>Live dust puffs (capped by MotionViewData.maxActiveDust).</summary>
+        public int DustActive => _dustActive;
+        public int DustPeak { get; private set; }
+        public int DustDropped { get; private set; }
         private readonly Stack<SpriteRenderer> _pool = new Stack<SpriteRenderer>();
 
         public static MotionViewData Data
@@ -193,9 +198,12 @@ namespace HillNGun.Feel
         public void Dust(Vector3 worldPos, Vector2 dir, int count, float scale, int sortingOrder)
         {
             var d = Data;
-            if (count <= 0 || d.dustLifetime <= 0f) return;
+            if (count <= 0 || d.dustLifetime <= 0f || HillNGun.DebugTools.PerfDiag.NoDust) return;
             for (int i = 0; i < count; i++)
             {
+                if (d.maxActiveDust > 0 && _dustActive >= d.maxActiveDust) { DustDropped += count - i; return; }
+                _dustActive++;
+                if (_dustActive > DustPeak) DustPeak = _dustActive;
                 var sr = Get();
                 sr.sprite = DustSprite;
                 sr.sortingOrder = sortingOrder;
@@ -235,9 +243,10 @@ namespace HillNGun.Feel
             {
                 var f = _active[i];
                 f.age += dt;
-                if (f.sr == null) { _active.RemoveAt(i); continue; }
+                if (f.sr == null) { if (f.startScale > 0f) _dustActive--; _active.RemoveAt(i); continue; }
                 if (f.age >= f.life)
                 {
+                    if (f.startScale > 0f) _dustActive--;
                     f.sr.gameObject.SetActive(false);
                     _pool.Push(f.sr);
                     _active.RemoveAt(i);
@@ -275,15 +284,23 @@ namespace HillNGun.Feel
         private readonly Vector2 _shadowSize;
         private readonly bool _artFacesRight;
         private float _face, _flip, _lean, _phase, _sq, _sqVel;
+        private Vector2 _kick;
+        private float _breath;
         private int _prevSign;
         private bool _moving;
         private float _shadowAlpha;
 
         public float FacingSign => _face;
+        /// <summary>v13: whole-body bob / lean / squash / breath / kick multiplier (cutout rig animates the limbs instead, so deformations do not stack).</summary>
+        public float WholeBodyScale { get; set; } = 1f;
+        /// <summary>v13: shadow ellipse multiplier (rig: wider on run, stretched on roll).</summary>
+        public Vector2 ShadowMul { get; set; } = Vector2.one;
         public int SortingOrder { get; set; }
         /// <summary>Extra multiplier for dust size (perspective / actor size).</summary>
         public float FxScale { get; set; } = 1f;
 
+        /// <summary>Feet y relative to the root (local units, negative).</summary>
+        public float FootOffset => _foot;
         public MotionRig(Transform root, float footOffset, Vector2 shadowSize, bool artFacesRight)
         {
             Root = root;
@@ -313,6 +330,12 @@ namespace HillNGun.Feel
             Renderer = Body.gameObject.AddComponent<SpriteRenderer>();
         }
 
+        /// <summary>v15: face a side instantly (no flip squash), e.g. an enemy already facing its walk-out direction inside a doorway.</summary>
+        public void SnapFacing(float sign)
+        {
+            if (Mathf.Abs(sign) < 0.01f) return;
+            _face = _flip = Mathf.Sign(sign);
+        }
         public void SetFacing(float sign)
         {
             if (Mathf.Abs(sign) > 0.01f) _face = Mathf.Sign(sign);
@@ -321,18 +344,39 @@ namespace HillNGun.Feel
         /// <summary>+ stretches, - squashes (spring returns to 1).</summary>
         public void Impulse(float amount) => _sq += amount;
 
+        /// <summary>Recoil / flinch: body offset (world-ish local units) that eases back (MotionViewData.recoilReturnTime). Blends with roll/squash.</summary>
+        public void Kick(Vector2 offset) { _kick += offset; _kick = Vector2.ClampMagnitude(_kick, 0.25f); }
+
+        /// <summary>2D gait: step phase / bob / dust from the full speed, lean / turn accents from the horizontal part.</summary>
+        public void Tick(float dt, Vector2 velocity, float maxSpeed, bool grounded, float bobHeight, float leanMax,
+                         float hop, float spinDeg, bool walkFx)
+        {
+            TickCore(dt, velocity.x, velocity.magnitude, maxSpeed, grounded, bobHeight, leanMax, hop, spinDeg, walkFx);
+        }
+
         public Vector3 FootWorld => Root.TransformPoint(new Vector3(0f, _foot, 0f));
 
         public void Dust(Vector2 dir, int count)
         {
-            MotionFx.Instance.Dust(FootWorld, dir, count, Root.lossyScale.y * FxScale, SortingOrder - 1);
+            // v12: ground band (one shared order above shadows, below every actor/cover) so puffs batch into one draw
+            // instead of splitting the depth-sorted actor batches; old per-actor order kept behind the data flag.
+            var d = MotionFx.Data;
+            int order = d != null && d.dustGroundBand ? HillNGun.Battlefield.FieldView.GroundDecalOrder + 1 : SortingOrder - 1;
+            MotionFx.Instance.Dust(FootWorld, dir, count, Root.lossyScale.y * FxScale, order);
         }
 
         public void Tick(float dt, float speedX, float maxSpeed, bool grounded, float bobHeight, float leanMax,
                          float hop, float spinDeg, bool walkFx)
         {
+            TickCore(dt, speedX, Mathf.Abs(speedX), maxSpeed, grounded, bobHeight, leanMax, hop, spinDeg, walkFx);
+        }
+
+        private void TickCore(float dt, float speedX, float speed, float maxSpeed, bool grounded, float bobHeight, float leanMax,
+                         float hop, float spinDeg, bool walkFx)
+        {
             var d = MotionFx.Data;
-            float m01 = maxSpeed > 0.01f ? Mathf.Clamp01(Mathf.Abs(speedX) / maxSpeed) : 0f;
+            float m01 = maxSpeed > 0.01f ? Mathf.Clamp01(speed / maxSpeed) : 0f;
+            float dirX = Mathf.Abs(speedX) > 0.05f ? Mathf.Sign(speedX) : 0f;
 
             // smooth flip (paper-turn through a thin sliver instead of a hard mirror)
             float flipRate = d.flipTime > 0f ? 2f / d.flipTime : 1000f;
@@ -346,9 +390,9 @@ namespace HillNGun.Feel
             if (grounded && m01 > 0.05f)
             {
                 float prev = _phase;
-                _phase += Mathf.Abs(speedX) * d.stepsPerTile * Mathf.PI * dt;
+                _phase += speed * d.stepsPerTile * Mathf.PI * dt;
                 if (walkFx && d.dustOnSteps && Mathf.Floor(prev / Mathf.PI) != Mathf.Floor(_phase / Mathf.PI))
-                    Dust(new Vector2(-Mathf.Sign(speedX), 0f), 1);
+                    Dust(new Vector2(-dirX, 0f), 1);
                 float s = Mathf.Abs(Mathf.Sin(_phase));
                 bob = s * bobHeight * m01;
                 stretch = (s - 0.5f) * 2f * d.walkStretch * m01;
@@ -360,10 +404,10 @@ namespace HillNGun.Feel
             }
 
             // start / stop / turn accents
-            bool movingNow = Mathf.Abs(speedX) > 0.35f;
+            bool movingNow = speed > 0.35f;
             if (grounded && walkFx)
             {
-                if (movingNow && !_moving) { _sq += d.startStretch; Dust(new Vector2(-Mathf.Sign(speedX), 0f), d.dustBurstCount); }
+                if (movingNow && !_moving) { _sq += d.startStretch; Dust(new Vector2(-dirX, 0f), d.dustBurstCount); }
                 else if (!movingNow && _moving) { _sq -= d.stopSquash; Dust(Vector2.zero, Mathf.Max(1, d.dustBurstCount - 1)); }
                 int sign = speedX > 0.8f ? 1 : (speedX < -0.8f ? -1 : 0);
                 if (sign != 0 && _prevSign != 0 && sign != _prevSign) { _sq -= d.stopSquash * 0.6f; Dust(new Vector2(-sign, 0f), d.dustBurstCount); }
@@ -387,16 +431,28 @@ namespace HillNGun.Feel
             float leanTarget = grounded ? Mathf.Clamp(-(speedX / Mathf.Max(0.01f, maxSpeed)) * leanMax, -leanMax, leanMax) : 0f;
             _lean = Mathf.Lerp(_lean, leanTarget, 1f - Mathf.Exp(-d.leanSharpness * dt));
 
-            float sq = _sq + stretch;
-            Pivot.localScale = new Vector3(sx * (1f - sq * 0.6f), 1f + sq, 1f);
-            Pivot.localRotation = Quaternion.Euler(0f, 0f, _lean);
-            Body.localPosition = new Vector3(0f, -_foot + bob + hop, 0f);
+            // idle breathing (fades in when standing still)
+            float idleW = grounded ? 1f - m01 : 0f;
+            float period = Mathf.Max(0.2f, d.idleBreathPeriod);
+            _breath = (_breath + dt / period) % 1f;
+            float breathe = d.idleBreathAmp * idleW * Mathf.Sin(_breath * Mathf.PI * 2f);
+
+            // recoil / flinch returns exponentially
+            float rt = Mathf.Max(0.01f, d.recoilReturnTime);
+            _kick *= Mathf.Exp(-dt / rt);
+
+            float wb = WholeBodyScale;
+            bob *= wb; breathe *= wb;
+            float sq = (_sq + stretch) * wb;
+            Pivot.localScale = new Vector3(sx * (1f - sq * 0.6f) * (1f - breathe * 0.5f), (1f + sq) * (1f + breathe), 1f);
+            Pivot.localRotation = Quaternion.Euler(0f, 0f, _lean * wb);
+            Body.localPosition = new Vector3(_kick.x * wb * Mathf.Sign(sx), -_foot + bob + hop + _kick.y * wb, 0f);
             // spinDeg = forward tumble in the facing direction; compensate for the mirrored pivot
             Body.localRotation = Quaternion.Euler(0f, 0f, -_face * spinDeg * Mathf.Sign(sx));
 
             float lift = bob + hop;
             float k = Mathf.Clamp(1f - d.shadowShrinkPerUnit * lift, 0.5f, 1f);
-            Shadow.transform.localScale = new Vector3(_shadowSize.x * k, _shadowSize.y * k, 1f);
+            Shadow.transform.localScale = new Vector3(_shadowSize.x * k * ShadowMul.x, _shadowSize.y * k * ShadowMul.y, 1f);
             var c = HillNGun.Scenery.ThemeContext.GroundShadowOr(d.shadowColor); c.a = c.a * Mathf.Lerp(0.6f, 1f, k);
             Shadow.color = c;
             Shadow.sortingOrder = HillNGun.Battlefield.FieldView.GroundDecalOrder - 1;
@@ -406,6 +462,7 @@ namespace HillNGun.Feel
         public void ResetPose()
         {
             _sq = _sqVel = _lean = 0f;
+            _kick = Vector2.zero;
             _moving = false;
             float sx = _face * (_artFacesRight ? 1f : -1f);
             _flip = _face;
