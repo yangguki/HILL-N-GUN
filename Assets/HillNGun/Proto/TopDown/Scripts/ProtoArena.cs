@@ -105,6 +105,8 @@ namespace HillNGun.Proto.TopDown
         public const string SpriteSide = ArtDir + "/buster_side.png";
         public const string PixelArtTopDown = ProtoArtDir + "/ProtoPixelArt_TopDown.asset";
         public const string PixelArtFrontline = ProtoArtDir + "/ProtoPixelArt_Frontline.asset";
+        public const string AnimArtDir = ProtoArtDir + "/v2/anim";
+        public const string FlipbookDir = ProtoArtDir + "/Flipbooks";
 
         public static string OutputDir => System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../Builds/proto_topdown"));
     }

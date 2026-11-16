@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 using HillNGun.Battlefield;
 using HillNGun.Characters;
 using HillNGun.Core;
@@ -10,9 +12,51 @@ using HillNGun.PvE;
 namespace HillNGun.Proto.Frontline
 {
     /// <summary>
+    /// Tunables for FrontlineBot pacing (serialized on FrontlineMatch). Combat numbers stay untouched.
+    /// Defaults sit midway between the passive pre-tune and the overshooting v4 BotTuning so
+    /// bot-vs-bot rounds land in the 45–75 s band.
+    /// </summary>
+    [Serializable]
+    public class FrontlineBotTuning
+    {
+        [Tooltip("Hold/hide behind cover before peeking.")]
+        public float HoldMin = 0.18f;
+        public float HoldMax = 0.45f;
+
+        [Tooltip("Peek + shoot window length.")]
+        public float PeekMin = 2.1f;
+        public float PeekMax = 3.2f;
+
+        [Tooltip("Seconds without a fire/hit engagement before switching cover / advancing.")]
+        public float IdleAdvanceMin = 3.5f;
+        public float IdleAdvanceMax = 4.5f;
+
+        [Tooltip("Seconds with no HP traded (self or foe) before forcing a front-cover advance (breaks 1v1 stalemates).")]
+        public float NoDamageAdvanceSeconds = 8f;
+
+        [Tooltip("Initial reaction delay before first move (plus slot * ReactionSlotStep).")]
+        public float ReactionDelay = 0.10f;
+        public float ReactionSlotStep = 0.07f;
+
+        [Tooltip("Return-to-cover phase budget.")]
+        public float ReturnSeconds = 1.3f;
+
+        [Tooltip("After an idle advance, budget to reach the new hold.")]
+        public float AdvanceSeekSeconds = 3.5f;
+
+        [Tooltip("When this many (or fewer) allies remain, may push — gated by LastUnitMinRoundSeconds / HP behind.")]
+        public int LastUnitThreshold = 1;
+        [Tooltip("Last-unit push only after this many seconds of round time (unless team HP ratio is behind).")]
+        public float LastUnitMinRoundSeconds = 25f;
+        public float LastUnitPeekBonus = 0.75f;
+        public float LastUnitIdleScale = 0.75f;
+        public float LastUnitAdvanceLerp = 0.45f;
+    }
+
+    /// <summary>
     /// Prefer front (midline-nearest) cover → peek/fire → return. Rolls when hit.
-    /// Idle 3–5 s without engagement → switch cover and advance toward the line.
-    /// 3v3: each bot claims a distinct cover slot (no shared midline pile-up).
+    /// Idle without engagement → switch cover; no HP traded for ~8 s → force front advance.
+    /// Last living unit pushes only after ~25 s or when team HP ratio is behind. 3v3: distinct slots.
     /// Does not change HP/damage/range/fire interval/round length.
     /// </summary>
     public sealed class FrontlineBot
@@ -29,6 +73,7 @@ namespace HillNGun.Proto.Frontline
         readonly AllyFreeSteer _steer = new AllyFreeSteer();
         readonly int _slot;
         readonly FrontlineLayout _layout;
+        readonly FrontlineBotTuning _tune;
         float _grenadeCd;
         float _lastShot = -999f;
         bool _moved;
@@ -42,28 +87,33 @@ namespace HillNGun.Proto.Frontline
         float _hpSeen = -1f;
         CoverInstance _cover;
         float _lastEngage;
+        float _lastDamage;
         float _idleLimit;
+        float _foeHpSeen = -1f;
         int _coverSalt;
 
         public CharacterStateMachine Self => _self;
         public CoverInstance ClaimedCover => _cover;
 
-        public FrontlineBot(CharacterStateMachine self, int slot, FrontlineLayout layout)
+        public FrontlineBot(CharacterStateMachine self, int slot, FrontlineLayout layout, FrontlineBotTuning tune = null)
         {
             _self = self;
             _slot = slot;
             _layout = layout;
-            _grenadeCd = 1.4f + slot * 0.35f;
-            _phaseUntil = Time.time + 0.15f + slot * 0.1f;
+            _tune = tune ?? new FrontlineBotTuning();
+            _grenadeCd = 1.0f + slot * 0.25f;
+            _phaseUntil = Time.time + _tune.ReactionDelay + slot * _tune.ReactionSlotStep;
             if (_self != null) _hpSeen = _self.CurrentHp;
             _lastEngage = Time.time;
-            _idleLimit = Random.Range(3f, 5f);
+            _lastDamage = Time.time;
+            _idleLimit = Random.Range(_tune.IdleAdvanceMin, _tune.IdleAdvanceMax);
             _rollDir = _layout.TowardEnemy(_self != null ? _self.Team : Team.Player);
         }
 
         public void Tick(
             float dt, float now, List<CharacterStateMachine> foes, IReadOnlyList<CoverInstance> covers,
-            HashSet<CoverInstance> claimed)
+            HashSet<CoverInstance> claimed, int livingAllies = 99,
+            float roundElapsed = 0f, float allyHp = 0f, float foeHp = 0f)
         {
             if (_self == null || _self.OverallState != CharacterOverallState.Active) return;
             if (_self.MovementState == MovementState.Rolling)
@@ -72,11 +122,16 @@ namespace HillNGun.Proto.Frontline
                 return;
             }
 
+            bool hpBehind = foeHp > 0.5f && allyHp < foeHp - 0.5f;
+            bool lastPush = livingAllies <= _tune.LastUnitThreshold
+                && (roundElapsed >= _tune.LastUnitMinRoundSeconds || hpBehind);
+
             if (_hpSeen < 0f) _hpSeen = _self.CurrentHp;
             if (_self.CurrentHp < _hpSeen - 0.5f)
             {
                 _wantRoll = true;
-                MarkEngage(now);
+                MarkEngage(now, lastPush);
+                MarkDamage(now);
                 var foeHit = Nearest(foes);
                 if (foeHit != null)
                 {
@@ -93,7 +148,7 @@ namespace HillNGun.Proto.Frontline
                 _wantRoll = false;
                 _self.OnRollCommand(new RollCommand(_rollDir, now));
                 _phase = Phase.ToCover;
-                _phaseUntil = now + 0.35f;
+                _phaseUntil = now + 0.25f;
                 _lastPos = _self.Position;
                 return;
             }
@@ -105,26 +160,39 @@ namespace HillNGun.Proto.Frontline
             float radius = _self.BodyRadius;
             float range = _self.Data != null && _self.Data.weapon != null ? _self.Data.weapon.range : 8f;
 
-            if (now - _lastEngage >= _idleLimit)
+            if (foe != null)
+            {
+                if (_foeHpSeen < 0f) _foeHpSeen = foe.CurrentHp;
+                if (foe.CurrentHp < _foeHpSeen - 0.5f) MarkDamage(now);
+                _foeHpSeen = foe.CurrentHp;
+            }
+            else
+                _foeHpSeen = -1f;
+
+            float idleCap = _idleLimit * (lastPush ? _tune.LastUnitIdleScale : 1f);
+            bool forceFront = now - _lastDamage >= _tune.NoDamageAdvanceSeconds;
+            if (now - _lastEngage >= idleCap || forceFront)
             {
                 _coverSalt++;
                 _cover = null;
-                PickCover(covers, foe, radius, true, claimed);
+                PickCover(covers, foe, radius, true, claimed, lastPush);
                 _phase = Phase.ToCover;
-                _phaseUntil = now + 4f;
+                _phaseUntil = now + _tune.AdvanceSeekSeconds;
                 _lastEngage = now;
-                _idleLimit = Random.Range(3f, 5f);
+                if (forceFront) _lastDamage = now;
+                _idleLimit = Random.Range(_tune.IdleAdvanceMin, _tune.IdleAdvanceMax);
             }
             else
-                PickCover(covers, foe, radius, false, claimed);
+                PickCover(covers, foe, radius, false, claimed, lastPush);
 
             if (_phase == Phase.ToCover || _phase == Phase.Return)
             {
                 if ((_self.Position - _coverHold).sqrMagnitude <= 0.35f * 0.35f || now >= _phaseUntil + 5f)
                 {
                     _phase = Phase.Hold;
-                    // Shorter hold → more time peeking/shooting (target 45–75 s rounds).
-                    _phaseUntil = now + Random.Range(0.25f, 0.55f) + _slot * 0.08f;
+                    float hold = Random.Range(_tune.HoldMin, _tune.HoldMax) + _slot * 0.05f;
+                    if (lastPush) hold *= 0.65f;
+                    _phaseUntil = now + hold;
                     _self.OnMoveCommand(MoveCommand.Stop(now));
                 }
                 else
@@ -136,7 +204,9 @@ namespace HillNGun.Proto.Frontline
                 if (now >= _phaseUntil)
                 {
                     _phase = Phase.Peek;
-                    _phaseUntil = now + Random.Range(1.7f, 2.7f);
+                    float peek = Random.Range(_tune.PeekMin, _tune.PeekMax);
+                    if (lastPush) peek += _tune.LastUnitPeekBonus;
+                    _phaseUntil = now + peek;
                 }
             }
             else // Peek
@@ -152,7 +222,7 @@ namespace HillNGun.Proto.Frontline
                     if (aim.sqrMagnitude < 1e-4f) aim = _layout.TowardEnemy(_self.Team);
                     aim.Normalize();
                     bool inRange = Vector2.Distance(_self.Position, foe.Position) <= range;
-                    if (inRange && Fire(aim, now)) MarkEngage(now);
+                    if (inRange && Fire(aim, now)) MarkEngage(now, lastPush);
                     _grenadeCd -= dt;
                     if (_grenadeCd <= 0f && inRange && _self.HasGrenadeReady)
                     {
@@ -162,7 +232,7 @@ namespace HillNGun.Proto.Frontline
                         float max = grenade != null ? grenade.maxRange : 9f;
                         if (gap >= min && gap <= max && _self.BeginAiGrenadeThrow(foe.Position, 0.15f))
                         {
-                            MarkEngage(now);
+                            MarkEngage(now, lastPush);
                             _grenadeCd = grenade != null ? grenade.rechargeTime : 12f;
                         }
                     }
@@ -171,16 +241,25 @@ namespace HillNGun.Proto.Frontline
                 if (now >= _phaseUntil)
                 {
                     _phase = Phase.Return;
-                    _phaseUntil = now + 1.6f;
+                    _phaseUntil = now + _tune.ReturnSeconds;
                 }
             }
         }
 
-        void MarkEngage(float now)
+        void MarkEngage(float now, bool lastPush)
         {
             _lastEngage = now;
-            _idleLimit = Random.Range(3f, 5f);
+            float lo = _tune.IdleAdvanceMin;
+            float hi = _tune.IdleAdvanceMax;
+            if (lastPush)
+            {
+                lo *= _tune.LastUnitIdleScale;
+                hi *= _tune.LastUnitIdleScale;
+            }
+            _idleLimit = Random.Range(lo, hi);
         }
+
+        void MarkDamage(float now) => _lastDamage = now;
 
         void MoveToward(Vector2 goal, float dt, float progress, float radius, float now)
         {
@@ -199,7 +278,7 @@ namespace HillNGun.Proto.Frontline
 
         void PickCover(
             IReadOnlyList<CoverInstance> covers, CharacterStateMachine foe, float radius, bool advance,
-            HashSet<CoverInstance> claimed)
+            HashSet<CoverInstance> claimed, bool lastPush)
         {
             Vector2 toward = _layout.TowardEnemy(_self.Team);
             Vector2 fallback = FallbackHold();
@@ -233,11 +312,15 @@ namespace HillNGun.Proto.Frontline
             {
                 if (_cover != null && claimed != null) claimed.Remove(_cover);
                 _cover = null;
+                float lerp = advance
+                    ? (lastPush ? _tune.LastUnitAdvanceLerp : 0.35f)
+                    : 0f;
                 float hold = advance
-                    ? Mathf.Lerp(HoldCoord(fallback), _layout.LineCoord, 0.35f)
+                    ? Mathf.Lerp(HoldCoord(fallback), _layout.LineCoord, lerp)
                     : HoldCoord(fallback);
                 _coverHold = _layout.ClampSide(WithHold(fallback, hold), radius, _self.Team);
-                _peekPos = _layout.ClampSide(_coverHold + toward * 1.25f, radius, _self.Team);
+                float peekOut = lastPush ? 1.55f : 1.25f;
+                _peekPos = _layout.ClampSide(_coverHold + toward * peekOut, radius, _self.Team);
                 return;
             }
 
@@ -256,8 +339,9 @@ namespace HillNGun.Proto.Frontline
                 radius, _self.Team);
             float sideNudge = (_slot - 1) * 0.18f;
             Vector2 lateral = _layout.IsTopBottom ? new Vector2(sideNudge, 0f) : new Vector2(0f, sideNudge);
+            float peekOutCover = lastPush ? 0.95f : 0.7f;
             _peekPos = _layout.ClampSide(
-                best.Position + toward * (half + radius + 0.7f) + lateral,
+                best.Position + toward * (half + radius + peekOutCover) + lateral,
                 radius, _self.Team);
         }
 

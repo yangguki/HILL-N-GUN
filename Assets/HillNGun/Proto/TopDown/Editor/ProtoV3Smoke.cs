@@ -23,6 +23,7 @@ namespace HillNGun.Proto.TopDown.Editor
     {
         public const string Arg = "-proto-v3-smoke";
         public const string StateMenu = "menu";
+        public const string StateMove8 = "move8";
         public const string StateTopDown = "topdown";
         public const string StateFront1 = "frontline_1v1";
         public const string StateFront3 = "frontline_3v3";
@@ -93,6 +94,9 @@ namespace HillNGun.Proto.TopDown.Editor
             if (string.IsNullOrEmpty(state))
             {
                 ClearOutputs();
+                // Ensure flipbook SOs + sprite pivots exist before any playmode stage.
+                try { ProtoFlipbookBuilder.Refresh(); }
+                catch (Exception e) { Debug.LogWarning("[ProtoV3Smoke] flipbook refresh: " + e.Message); }
                 WriteState(StateMenu);
                 state = StateMenu;
             }
@@ -137,6 +141,7 @@ namespace HillNGun.Proto.TopDown.Editor
                 case StateMenu:
                     EditorSceneManager.OpenScene(ProtoAssets.MenuScene);
                     break;
+                case StateMove8:
                 case StateTopDown:
                     EditorSceneManager.OpenScene(ProtoAssets.Scene);
                     break;
@@ -165,7 +170,8 @@ namespace HillNGun.Proto.TopDown.Editor
         {
             switch (finished)
             {
-                case StateMenu: return StateTopDown;
+                case StateMenu: return StateMove8;
+                case StateMove8: return StateTopDown;
                 case StateTopDown: return StateFront1;
                 case StateFront1: return StateFront3;
                 case StateFront3: return StateDone;
@@ -181,20 +187,29 @@ namespace HillNGun.Proto.TopDown.Editor
                          "menu.png", "topdown.png", "frontline_1v1.png", "frontline_3v3.png",
                          "menu_v2.png", "topdown_v2.png", "frontline_1v1_v2.png", "frontline_3v3_v2.png",
                          "menu_v4.png", "topdown_v4.png", "frontline_1v1_v4.png", "frontline_3v3_v4.png",
+                         "menu_v5.png", "topdown_v5.png", "frontline_1v1_v5.png", "frontline_3v3_v5.png",
+                         "backpedal_v5.png",
                          "results.txt", "stage_done.txt", "smoke_fail.txt", "smoke_round.txt"
                      })
             {
                 string p = Path.Combine(OutputDir, name);
                 if (File.Exists(p)) File.Delete(p);
             }
+            // Clear prior move8 sequence frames.
+            if (Directory.Exists(OutputDir))
+            {
+                foreach (var f in Directory.GetFiles(OutputDir, "move8_v5_*.png"))
+                    File.Delete(f);
+            }
         }
 
         public static bool AllOutputsPresent()
         {
-            return File.Exists(Path.Combine(OutputDir, "menu_v4.png"))
-                && File.Exists(Path.Combine(OutputDir, "topdown_v4.png"))
-                && File.Exists(Path.Combine(OutputDir, "frontline_1v1_v4.png"))
-                && File.Exists(Path.Combine(OutputDir, "frontline_3v3_v4.png"))
+            return File.Exists(Path.Combine(OutputDir, "menu_v5.png"))
+                && File.Exists(Path.Combine(OutputDir, "topdown_v5.png"))
+                && File.Exists(Path.Combine(OutputDir, "frontline_1v1_v5.png"))
+                && File.Exists(Path.Combine(OutputDir, "frontline_3v3_v5.png"))
+                && File.Exists(Path.Combine(OutputDir, "backpedal_v5.png"))
                 && File.Exists(ResultsPath);
         }
 
@@ -230,6 +245,8 @@ namespace HillNGun.Proto.TopDown.Editor
             sb.Append("result=").Append(result).Append('\n');
             sb.Append("reason=").Append(reason).Append('\n');
             sb.Append("end_time_sec=").Append(endTimeSec.ToString("0.###")).Append('\n');
+            // Explicit per-round seconds for the bot report (same value as end_time_sec).
+            sb.Append("round_seconds=").Append(endTimeSec.ToString("0.###")).Append('\n');
             File.WriteAllText(ResultsPath, sb.ToString());
         }
 
@@ -245,6 +262,9 @@ namespace HillNGun.Proto.TopDown.Editor
             sb.Append("mode=").Append(mode).Append(" average\n");
             sb.Append("rounds=").Append(times.Count).Append('\n');
             sb.Append("end_time_sec=").Append(avg.ToString("0.###")).Append('\n');
+            sb.Append("avg_round_seconds=").Append(avg.ToString("0.###")).Append('\n');
+            for (int i = 0; i < times.Count; i++)
+                sb.Append("round_").Append(i + 1).Append("_seconds=").Append(times[i].ToString("0.###")).Append('\n');
             File.WriteAllText(ResultsPath, sb.ToString());
         }
 
@@ -303,6 +323,10 @@ namespace HillNGun.Proto.TopDown.Editor
                     _busy = true;
                     StartCoroutine(RunMenu());
                     break;
+                case ProtoV3Smoke.StateMove8:
+                    _busy = true;
+                    StartCoroutine(RunMove8());
+                    break;
                 case ProtoV3Smoke.StateTopDown:
                     TickTopDown();
                     break;
@@ -321,14 +345,98 @@ namespace HillNGun.Proto.TopDown.Editor
                 t += Time.unscaledDeltaTime;
                 yield return null;
             }
-            string path = Path.Combine(ProtoV3Smoke.OutputDir, "menu_v4.png");
+            string path = Path.Combine(ProtoV3Smoke.OutputDir, "menu_v5.png");
             yield return CaptureHud(path);
             if (!File.Exists(path))
             {
-                ProtoV3Smoke.Fail("menu_v4.png missing after capture");
+                ProtoV3Smoke.Fail("menu_v5.png missing after capture");
                 yield break;
             }
             ProtoV3Smoke.MarkStageDone(ProtoV3Smoke.StateMenu);
+        }
+
+        IEnumerator RunMove8()
+        {
+            float wait = 0f;
+            ProtoTopDownMatch match = null;
+            while (match == null && wait < 8f)
+            {
+                match = FindFirstObjectByType<ProtoTopDownMatch>();
+                wait += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            if (match == null)
+            {
+                ProtoV3Smoke.Fail("move8: ProtoTopDownMatch missing");
+                yield break;
+            }
+            match.SmokeAutoplay = true;
+            match.SetDebugHud(false);
+            // Pause waves so the 8-way walk is uncontested.
+            match.SmokePauseWaves = true;
+
+            // E, NE, N, NW, W, SW, S, SE
+            var dirs = new[]
+            {
+                new Vector2(1f, 0f), new Vector2(1f, 1f).normalized, new Vector2(0f, 1f), new Vector2(-1f, 1f).normalized,
+                new Vector2(-1f, 0f), new Vector2(-1f, -1f).normalized, new Vector2(0f, -1f), new Vector2(1f, -1f).normalized
+            };
+            const float hold = 0.55f;
+            const float shotEvery = 0.12f;
+            int frame = 0;
+            for (int d = 0; d < dirs.Length; d++)
+            {
+                float t = 0f;
+                float nextShot = 0f;
+                while (t < hold)
+                {
+                    var player = match.Player;
+                    if (player != null && player.OverallState == CharacterOverallState.Active)
+                        player.OnMoveCommand(new MoveCommand(dirs[d], 1f, Time.time));
+                    if (t + 1e-4f >= nextShot && frame < 48)
+                    {
+                        string path = Path.Combine(ProtoV3Smoke.OutputDir, "move8_v5_" + frame.ToString("000") + ".png");
+                        yield return CaptureQuick(path);
+                        frame++;
+                        nextShot += shotEvery;
+                    }
+                    t += Time.deltaTime;
+                    yield return null;
+                }
+            }
+
+            // Backpedal shoot: move down, aim/shoot up.
+            {
+                var player = match.Player;
+                if (player != null && player.OverallState == CharacterOverallState.Active)
+                {
+                    float now = Time.time;
+                    player.OnMoveCommand(new MoveCommand(Vector2.down, 1f, now));
+                    player.OnAimStartCommand(new AimStartCommand(Vector2.zero, now));
+                    player.OnAimDragCommand(new AimDragCommand(Vector2.up, 1f, true, now));
+                    player.OnAimReleaseCommand(new AimReleaseCommand(Vector2.up, true, now));
+                }
+                // Let the shoot frames start.
+                float settle = 0f;
+                while (settle < 0.12f)
+                {
+                    var p = match.Player;
+                    if (p != null && p.OverallState == CharacterOverallState.Active)
+                        p.OnMoveCommand(new MoveCommand(Vector2.down, 1f, Time.time));
+                    settle += Time.deltaTime;
+                    yield return null;
+                }
+                string back = Path.Combine(ProtoV3Smoke.OutputDir, "backpedal_v5.png");
+                yield return CaptureHud(back);
+                if (!File.Exists(back))
+                {
+                    ProtoV3Smoke.Fail("backpedal_v5.png missing after capture");
+                    yield break;
+                }
+            }
+
+            match.SmokePauseWaves = false;
+            ProtoV3Smoke.MarkStageDone(ProtoV3Smoke.StateMove8);
         }
 
         void TickTopDown()
@@ -424,11 +532,11 @@ namespace HillNGun.Proto.TopDown.Editor
                 ? (match.SmokeResultLabel == "클리어" ? "all-waves-cleared" : "player-eliminated")
                 : "incomplete";
             float endTime = match.MatchClock;
-            string path = Path.Combine(ProtoV3Smoke.OutputDir, "topdown_v4.png");
+            string path = Path.Combine(ProtoV3Smoke.OutputDir, "topdown_v5.png");
             yield return CaptureHud(path);
             if (!File.Exists(path))
             {
-                ProtoV3Smoke.Fail("topdown_v4.png missing after capture");
+                ProtoV3Smoke.Fail("topdown_v5.png missing after capture");
                 yield break;
             }
             ProtoV3Smoke.AppendResult("난전", result, reason, endTime);
@@ -460,7 +568,7 @@ namespace HillNGun.Proto.TopDown.Editor
             int round = ProtoV3Smoke.ReadRound();
             bool three = _stage == ProtoV3Smoke.StateFront3;
             string mode = three ? "전선 3v3" : "전선 1v1";
-            string png = three ? "frontline_3v3_v4.png" : "frontline_1v1_v4.png";
+            string png = three ? "frontline_3v3_v5.png" : "frontline_1v1_v5.png";
 
             if (round <= 1)
             {
@@ -490,6 +598,20 @@ namespace HillNGun.Proto.TopDown.Editor
             _frontTimes.Clear();
             ProtoV3Smoke.WriteRound(1);
             ProtoV3Smoke.MarkStageDone(_stage);
+        }
+
+        IEnumerator CaptureQuick(string absolutePath)
+        {
+            Directory.CreateDirectory(ProtoV3Smoke.OutputDir);
+            if (File.Exists(absolutePath)) File.Delete(absolutePath);
+            yield return new WaitForEndOfFrame();
+            ScreenCapture.CaptureScreenshot(absolutePath);
+            float wait = 0f;
+            while (!File.Exists(absolutePath) && wait < 2f)
+            {
+                wait += Time.unscaledDeltaTime;
+                yield return null;
+            }
         }
 
         IEnumerator CaptureHud(string absolutePath)

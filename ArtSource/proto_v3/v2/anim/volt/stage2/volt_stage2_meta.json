@@ -1,0 +1,291 @@
+{
+ "character": "volt",
+ "stage": 2,
+ "frame_size": [
+  128,
+  128
+ ],
+ "pivot": {
+  "x": 64,
+  "y": 124,
+  "desc": "feet bottom-center (lying/rolling frames: body bbox centred on x=64, lowest pixel on y=124)"
+ },
+ "resample": "NEAREST",
+ "background": "transparent",
+ "side_flip": "side faces screen-right; flip_x for left",
+ "anims": {
+  "down/roll": {
+   "sheet": "sheets/volt_down_roll.png",
+   "frames": [
+    "frames/down/roll/volt_down_roll_00.png",
+    "frames/down/roll/volt_down_roll_01.png",
+    "frames/down/roll/volt_down_roll_02.png",
+    "frames/down/roll/volt_down_roll_03.png",
+    "frames/down/roll/volt_down_roll_04.png",
+    "frames/down/roll/volt_down_roll_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "note": "frames 1-4 = tucked ball rotating; i-frames suggestion 1-4"
+  },
+  "down/throw": {
+   "sheet": "sheets/volt_down_throw.png",
+   "frames": [
+    "frames/down/throw/volt_down_throw_00.png",
+    "frames/down/throw/volt_down_throw_01.png",
+    "frames/down/throw/volt_down_throw_02.png",
+    "frames/down/throw/volt_down_throw_03.png",
+    "frames/down/throw/volt_down_throw_04.png"
+   ],
+   "frame_count": 5,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "release_frame": 2,
+   "release_px": [
+    102,
+    29
+   ],
+   "hand_px": [
+    [
+     85,
+     37
+    ],
+    [
+     73,
+     42
+    ],
+    [
+     96,
+     39
+    ],
+    [
+     105,
+     72
+    ],
+    [
+     91,
+     83
+    ]
+   ],
+   "note": "dynamite leaves hand on frame 2; spawn projectile at release_px"
+  },
+  "down/down": {
+   "sheet": "sheets/volt_down_down.png",
+   "frames": [
+    "frames/down/down/volt_down_down_00.png",
+    "frames/down/down/volt_down_down_01.png",
+    "frames/down/down/volt_down_down_02.png",
+    "frames/down/down/volt_down_down_03.png",
+    "frames/down/down/volt_down_down_04.png",
+    "frames/down/down/volt_down_down_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 10,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "note": "no blood; frame 5 = lying with X eyes (down/side) + stars; hold last frame",
+   "head_px_last": [
+    92,
+    99
+   ]
+  },
+  "up/roll": {
+   "sheet": "sheets/volt_up_roll.png",
+   "frames": [
+    "frames/up/roll/volt_up_roll_00.png",
+    "frames/up/roll/volt_up_roll_01.png",
+    "frames/up/roll/volt_up_roll_02.png",
+    "frames/up/roll/volt_up_roll_03.png",
+    "frames/up/roll/volt_up_roll_04.png",
+    "frames/up/roll/volt_up_roll_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "note": "frames 1-4 = tucked ball rotating; i-frames suggestion 1-4"
+  },
+  "up/throw": {
+   "sheet": "sheets/volt_up_throw.png",
+   "frames": [
+    "frames/up/throw/volt_up_throw_00.png",
+    "frames/up/throw/volt_up_throw_01.png",
+    "frames/up/throw/volt_up_throw_02.png",
+    "frames/up/throw/volt_up_throw_03.png",
+    "frames/up/throw/volt_up_throw_04.png"
+   ],
+   "frame_count": 5,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "release_frame": 2,
+   "release_px": [
+    84,
+    26
+   ],
+   "hand_px": [
+    [
+     89,
+     40
+    ],
+    [
+     72,
+     46
+    ],
+    [
+     84,
+     38
+    ],
+    [
+     96,
+     41
+    ],
+    [
+     97,
+     82
+    ]
+   ],
+   "note": "dynamite leaves hand on frame 2; spawn projectile at release_px"
+  },
+  "up/down": {
+   "sheet": "sheets/volt_up_down.png",
+   "frames": [
+    "frames/up/down/volt_up_down_00.png",
+    "frames/up/down/volt_up_down_01.png",
+    "frames/up/down/volt_up_down_02.png",
+    "frames/up/down/volt_up_down_03.png",
+    "frames/up/down/volt_up_down_04.png",
+    "frames/up/down/volt_up_down_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 10,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "note": "no blood; frame 5 = lying with X eyes (down/side) + stars; hold last frame",
+   "head_px_last": [
+    36,
+    96
+   ]
+  },
+  "side/roll": {
+   "sheet": "sheets/volt_side_roll.png",
+   "frames": [
+    "frames/side/roll/volt_side_roll_00.png",
+    "frames/side/roll/volt_side_roll_01.png",
+    "frames/side/roll/volt_side_roll_02.png",
+    "frames/side/roll/volt_side_roll_03.png",
+    "frames/side/roll/volt_side_roll_04.png",
+    "frames/side/roll/volt_side_roll_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": true,
+   "note": "frames 1-4 = tucked ball rotating; i-frames suggestion 1-4"
+  },
+  "side/throw": {
+   "sheet": "sheets/volt_side_throw.png",
+   "frames": [
+    "frames/side/throw/volt_side_throw_00.png",
+    "frames/side/throw/volt_side_throw_01.png",
+    "frames/side/throw/volt_side_throw_02.png",
+    "frames/side/throw/volt_side_throw_03.png",
+    "frames/side/throw/volt_side_throw_04.png"
+   ],
+   "frame_count": 5,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": true,
+   "release_frame": 2,
+   "release_px": [
+    83,
+    40
+   ],
+   "hand_px": [
+    [
+     36,
+     41
+    ],
+    [
+     30,
+     51
+    ],
+    [
+     72,
+     46
+    ],
+    [
+     74,
+     68
+    ],
+    [
+     62,
+     81
+    ]
+   ],
+   "note": "dynamite leaves hand on frame 2; spawn projectile at release_px"
+  },
+  "side/down": {
+   "sheet": "sheets/volt_side_down.png",
+   "frames": [
+    "frames/side/down/volt_side_down_00.png",
+    "frames/side/down/volt_side_down_01.png",
+    "frames/side/down/volt_side_down_02.png",
+    "frames/side/down/volt_side_down_03.png",
+    "frames/side/down/volt_side_down_04.png",
+    "frames/side/down/volt_side_down_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 10,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": true,
+   "note": "no blood; frame 5 = lying with X eyes (down/side) + stars; hold last frame",
+   "head_px_last": [
+    40,
+    94
+   ]
+  }
+ },
+ "height_px": 112,
+ "wrench": "wrench is part of the torso layer: always on Volt's right shoulder (down: screen-left, up: screen-right, side: behind back). Engine flip_x for side-left mirrors it like every side sprite",
+ "note_down": "volt keeps the blaster in hand when falling (no gun_drop); hat lands behind the head"
+}

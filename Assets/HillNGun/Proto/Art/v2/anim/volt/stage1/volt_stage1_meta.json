@@ -1,0 +1,298 @@
+{
+ "character": "volt",
+ "stage": 1,
+ "frame_size": [
+  128,
+  128
+ ],
+ "pivot": {
+  "x": 64,
+  "y": 124,
+  "desc": "feet bottom-center"
+ },
+ "resample": "NEAREST",
+ "background": "transparent",
+ "directions": {
+  "down": "facing camera (down_3q)",
+  "up": "facing away (up_3q)",
+  "side": "facing screen-right; flip_x in engine for left"
+ },
+ "anims": {
+  "down/idle": {
+   "sheet": "sheets/volt_down_idle.png",
+   "frames": [
+    "frames/down/idle/volt_down_idle_00.png",
+    "frames/down/idle/volt_down_idle_01.png",
+    "frames/down/idle/volt_down_idle_02.png",
+    "frames/down/idle/volt_down_idle_03.png"
+   ],
+   "frame_count": 4,
+   "fps": 6,
+   "loop": true,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false
+  },
+  "down/run": {
+   "sheet": "sheets/volt_down_run.png",
+   "frames": [
+    "frames/down/run/volt_down_run_00.png",
+    "frames/down/run/volt_down_run_01.png",
+    "frames/down/run/volt_down_run_02.png",
+    "frames/down/run/volt_down_run_03.png",
+    "frames/down/run/volt_down_run_04.png",
+    "frames/down/run/volt_down_run_05.png",
+    "frames/down/run/volt_down_run_06.png",
+    "frames/down/run/volt_down_run_07.png"
+   ],
+   "frame_count": 8,
+   "fps": 12,
+   "loop": true,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false
+  },
+  "down/shoot": {
+   "sheet": "sheets/volt_down_shoot.png",
+   "frames": [
+    "frames/down/shoot/volt_down_shoot_00.png",
+    "frames/down/shoot/volt_down_shoot_01.png",
+    "frames/down/shoot/volt_down_shoot_02.png"
+   ],
+   "frame_count": 3,
+   "fps": 12,
+   "loop": false,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "muzzle_flash_frames": [
+    0,
+    1
+   ],
+   "muzzle_px": [
+    [
+     31,
+     49
+    ],
+    [
+     30,
+     49
+    ],
+    null
+   ],
+   "flash_color": "yellow (friendly)"
+  },
+  "down/hit": {
+   "sheet": "sheets/volt_down_hit.png",
+   "frames": [
+    "frames/down/hit/volt_down_hit_00.png",
+    "frames/down/hit/volt_down_hit_01.png"
+   ],
+   "frame_count": 2,
+   "fps": 10,
+   "loop": false,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "white_flash_frame": 0,
+   "note": "no blood; recoil backward"
+  },
+  "up/idle": {
+   "sheet": "sheets/volt_up_idle.png",
+   "frames": [
+    "frames/up/idle/volt_up_idle_00.png",
+    "frames/up/idle/volt_up_idle_01.png",
+    "frames/up/idle/volt_up_idle_02.png",
+    "frames/up/idle/volt_up_idle_03.png"
+   ],
+   "frame_count": 4,
+   "fps": 6,
+   "loop": true,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false
+  },
+  "up/run": {
+   "sheet": "sheets/volt_up_run.png",
+   "frames": [
+    "frames/up/run/volt_up_run_00.png",
+    "frames/up/run/volt_up_run_01.png",
+    "frames/up/run/volt_up_run_02.png",
+    "frames/up/run/volt_up_run_03.png",
+    "frames/up/run/volt_up_run_04.png",
+    "frames/up/run/volt_up_run_05.png",
+    "frames/up/run/volt_up_run_06.png",
+    "frames/up/run/volt_up_run_07.png"
+   ],
+   "frame_count": 8,
+   "fps": 12,
+   "loop": true,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false
+  },
+  "up/shoot": {
+   "sheet": "sheets/volt_up_shoot.png",
+   "frames": [
+    "frames/up/shoot/volt_up_shoot_00.png",
+    "frames/up/shoot/volt_up_shoot_01.png",
+    "frames/up/shoot/volt_up_shoot_02.png"
+   ],
+   "frame_count": 3,
+   "fps": 12,
+   "loop": false,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "muzzle_flash_frames": [
+    0,
+    1
+   ],
+   "muzzle_px": [
+    [
+     38,
+     53
+    ],
+    [
+     37,
+     51
+    ],
+    null
+   ],
+   "flash_color": "yellow (friendly)"
+  },
+  "up/hit": {
+   "sheet": "sheets/volt_up_hit.png",
+   "frames": [
+    "frames/up/hit/volt_up_hit_00.png",
+    "frames/up/hit/volt_up_hit_01.png"
+   ],
+   "frame_count": 2,
+   "fps": 10,
+   "loop": false,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "white_flash_frame": 0,
+   "note": "no blood; recoil backward"
+  },
+  "side/idle": {
+   "sheet": "sheets/volt_side_idle.png",
+   "frames": [
+    "frames/side/idle/volt_side_idle_00.png",
+    "frames/side/idle/volt_side_idle_01.png",
+    "frames/side/idle/volt_side_idle_02.png",
+    "frames/side/idle/volt_side_idle_03.png"
+   ],
+   "frame_count": 4,
+   "fps": 6,
+   "loop": true,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": true
+  },
+  "side/run": {
+   "sheet": "sheets/volt_side_run.png",
+   "frames": [
+    "frames/side/run/volt_side_run_00.png",
+    "frames/side/run/volt_side_run_01.png",
+    "frames/side/run/volt_side_run_02.png",
+    "frames/side/run/volt_side_run_03.png",
+    "frames/side/run/volt_side_run_04.png",
+    "frames/side/run/volt_side_run_05.png",
+    "frames/side/run/volt_side_run_06.png",
+    "frames/side/run/volt_side_run_07.png"
+   ],
+   "frame_count": 8,
+   "fps": 12,
+   "loop": true,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": true
+  },
+  "side/shoot": {
+   "sheet": "sheets/volt_side_shoot.png",
+   "frames": [
+    "frames/side/shoot/volt_side_shoot_00.png",
+    "frames/side/shoot/volt_side_shoot_01.png",
+    "frames/side/shoot/volt_side_shoot_02.png"
+   ],
+   "frame_count": 3,
+   "fps": 12,
+   "loop": false,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": true,
+   "muzzle_flash_frames": [
+    0,
+    1
+   ],
+   "muzzle_px": [
+    [
+     99,
+     60
+    ],
+    [
+     101,
+     59
+    ],
+    null
+   ],
+   "flash_color": "yellow (friendly)"
+  },
+  "side/hit": {
+   "sheet": "sheets/volt_side_hit.png",
+   "frames": [
+    "frames/side/hit/volt_side_hit_00.png",
+    "frames/side/hit/volt_side_hit_01.png"
+   ],
+   "frame_count": 2,
+   "fps": 10,
+   "loop": false,
+   "sheet_layout": "horizontal strip, frame i at x=128*i",
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": true,
+   "white_flash_frame": 0,
+   "note": "no blood; recoil backward"
+  }
+ },
+ "height_px": 112,
+ "wrench": "wrench is part of the torso layer: always on Volt's right shoulder (down: screen-left, up: screen-right, side: behind back). Engine flip_x for side-left mirrors it like every side sprite",
+ "note_up": "up view: blaster tip over the screen-left shoulder borrowed from the front view (the sheet back view hides the gun) so the muzzle flash has a source"
+}

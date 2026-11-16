@@ -1,0 +1,125 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9048746382362e1458cbd9c2c1e1ab92, type: 3}
+  m_Name: ProtoFlipbook_raven_stage1
+  m_EditorClassIdentifier: 
+  characterId: raven
+  stage: 1
+  clips:
+  - facing: 0
+    anim: 0
+    frames:
+    - {fileID: 21300000, guid: 6e52107e96687d64496fc592307b343e, type: 3}
+    - {fileID: 21300000, guid: d788945adba80644a9df2484dcd45a94, type: 3}
+    - {fileID: 21300000, guid: 5ea71874ab40e934ca2cf94e06fd6a40, type: 3}
+    - {fileID: 21300000, guid: 7180cb44eb495d343a6bc3d81b878dfe, type: 3}
+    fps: 6
+    loop: 1
+    flipXForLeft: 0
+    pivotPx: {x: 64, y: 124}
+  - facing: 0
+    anim: 1
+    frames:
+    - {fileID: 21300000, guid: f1b177a89ec495649917840b0ada4abb, type: 3}
+    - {fileID: 21300000, guid: 26f6f4d226c45d54086f551478e2af83, type: 3}
+    - {fileID: 21300000, guid: 073b5b4f9f074994f938ff1b86c2d8fb, type: 3}
+    - {fileID: 21300000, guid: ff637b54d28d51a4c8db30d4b2fc6666, type: 3}
+    - {fileID: 21300000, guid: 88f09cc33e591194e90a06d724bb10c3, type: 3}
+    - {fileID: 21300000, guid: b0d6420b971545646bf86a652af018c2, type: 3}
+    - {fileID: 21300000, guid: 8f55ad93995024c4a906a163d1c30606, type: 3}
+    - {fileID: 21300000, guid: 3f9ab92319ceb644593c3e05934630dd, type: 3}
+    fps: 12
+    loop: 1
+    flipXForLeft: 0
+    pivotPx: {x: 64, y: 124}
+  - facing: 0
+    anim: 2
+    frames:
+    - {fileID: 21300000, guid: dd9f5c1d8be05684eb4bcc9c89d8f202, type: 3}
+    - {fileID: 21300000, guid: ea79ccfdd6412f343aa4224ed25f3fb8, type: 3}
+    - {fileID: 21300000, guid: 0dfcdaa8310a35a48ae217e8b0277396, type: 3}
+    fps: 12
+    loop: 0
+    flipXForLeft: 0
+    pivotPx: {x: 64, y: 124}
+  - facing: 1
+    anim: 0
+    frames:
+    - {fileID: 21300000, guid: e27372a3862fe2f419e326994a9cfea3, type: 3}
+    - {fileID: 21300000, guid: 3c474effcfb443c4aae7d9a9b2f8cc3c, type: 3}
+    - {fileID: 21300000, guid: b9f556798d4c76941b4029d9effa86ac, type: 3}
+    - {fileID: 21300000, guid: 978c4bce45be9f0408cfc657433bfd21, type: 3}
+    fps: 6
+    loop: 1
+    flipXForLeft: 0
+    pivotPx: {x: 64, y: 124}
+  - facing: 1
+    anim: 1
+    frames:
+    - {fileID: 21300000, guid: c42d6ca51b34dae41886a93827e2e02f, type: 3}
+    - {fileID: 21300000, guid: 554b2b48eb6569a498257801f194b03a, type: 3}
+    - {fileID: 21300000, guid: afa1703db66190d42966a145a2878b57, type: 3}
+    - {fileID: 21300000, guid: 36b92cbe48f72f24693a024059eb5903, type: 3}
+    - {fileID: 21300000, guid: d50a1391578a9124da982c2f217c14dc, type: 3}
+    - {fileID: 21300000, guid: 3d50080ed6648c147a6bf1dc0bbb2524, type: 3}
+    - {fileID: 21300000, guid: d182936316b68074e90ee0bcf68f929e, type: 3}
+    - {fileID: 21300000, guid: f5bddb16eb9ac4e4ca7a088feb67cd51, type: 3}
+    fps: 12
+    loop: 1
+    flipXForLeft: 0
+    pivotPx: {x: 64, y: 124}
+  - facing: 1
+    anim: 2
+    frames:
+    - {fileID: 21300000, guid: fe699053587b24d4c9478589f89b840a, type: 3}
+    - {fileID: 21300000, guid: 332ce4be073d7de439812469fb1e52d5, type: 3}
+    - {fileID: 21300000, guid: 8650ace970f4b274bb50a6a4455ffcaa, type: 3}
+    fps: 12
+    loop: 0
+    flipXForLeft: 0
+    pivotPx: {x: 64, y: 124}
+  - facing: 2
+    anim: 0
+    frames:
+    - {fileID: 21300000, guid: d277b586e678c974b9f07e33ac0ffa12, type: 3}
+    - {fileID: 21300000, guid: ab8c4430e927ddd429d3f9df79e3d2b2, type: 3}
+    - {fileID: 21300000, guid: c876cef22d38fb443a8a18a77f6e9adc, type: 3}
+    - {fileID: 21300000, guid: 891d8dda15168094a84e410229fa0ae5, type: 3}
+    fps: 6
+    loop: 1
+    flipXForLeft: 1
+    pivotPx: {x: 64, y: 124}
+  - facing: 2
+    anim: 1
+    frames:
+    - {fileID: 21300000, guid: f13cde6c2d012d44e825a9576976d326, type: 3}
+    - {fileID: 21300000, guid: 08f69a4d7d6d7d84aba21297b272043c, type: 3}
+    - {fileID: 21300000, guid: cdb29a8c4775c314cbc52913699d4054, type: 3}
+    - {fileID: 21300000, guid: c56e4b779e78da340a15c4e112dad6ef, type: 3}
+    - {fileID: 21300000, guid: 71ea345faaf9b6c46b05ec257868f7d9, type: 3}
+    - {fileID: 21300000, guid: b3ca658ff664d974bbd59aba588bfc82, type: 3}
+    - {fileID: 21300000, guid: f62c926c7f3ce054fb73a79a696f8d45, type: 3}
+    - {fileID: 21300000, guid: b86c02facc82a6a40bf6135726b745ba, type: 3}
+    fps: 12
+    loop: 1
+    flipXForLeft: 1
+    pivotPx: {x: 64, y: 124}
+  - facing: 2
+    anim: 2
+    frames:
+    - {fileID: 21300000, guid: f551f784cedc9d74cbef986d187a0cac, type: 3}
+    - {fileID: 21300000, guid: dd667d1ae3b17a24a88643f8fb3f4bbd, type: 3}
+    - {fileID: 21300000, guid: 7ca98192b416af24fb4d4eef5610d8ed, type: 3}
+    fps: 12
+    loop: 0
+    flipXForLeft: 1
+    pivotPx: {x: 64, y: 124}

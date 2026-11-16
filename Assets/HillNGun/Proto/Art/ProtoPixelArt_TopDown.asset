@@ -45,3 +45,7 @@ MonoBehaviour:
     front: {fileID: 21300000, guid: 574dd0cd5c491d20fa67eb68ae15f15c, type: 3}
     back: {fileID: 21300000, guid: de01baf080c67c2b5399524496dcb96a, type: 3}
     side: {fileID: 21300000, guid: 1d424ac986119578de576aad0fff5638, type: 3}
+  busterFlip: {fileID: 11400000, guid: 4739b681b44817f47a6716f81d2778a8, type: 2}
+  ravenFlip: {fileID: 11400000, guid: 877a7170eb4a137408c7960f3681085f, type: 2}
+  voltFlip: {fileID: 11400000, guid: 87b47b58bbae30843969009f101ba974, type: 2}
+  gruntFlip: {fileID: 11400000, guid: 42233919a45808b459ca9d3f47bb4368, type: 2}

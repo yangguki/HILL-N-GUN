@@ -57,6 +57,8 @@ namespace HillNGun.Proto.TopDown
 #if UNITY_EDITOR
         /// <summary>Smoke-only: editor driver sets this so autoplay runs while ProtoControls stays enabled (HUD visible).</summary>
         public bool SmokeAutoplay { get; set; }
+        /// <summary>Smoke-only: freeze wave spawn/advance during the move8 facing capture.</summary>
+        public bool SmokePauseWaves { get; set; }
         public bool SmokeMatchEnded => _ended;
         public string SmokeResultLabel => _result;
         public float MatchClock => _clock;
@@ -211,7 +213,12 @@ namespace HillNGun.Proto.TopDown
             }
             else _clock += sim;
             if (_capture) TickDemo();
-            if (!_ended || _capture) _driver.Tick(sim, Time.time, _player.Position);
+#if UNITY_EDITOR
+            bool pauseWaves = SmokePauseWaves;
+#else
+            bool pauseWaves = false;
+#endif
+            if ((!_ended || _capture) && !pauseWaves) _driver.Tick(sim, Time.time, _player.Position);
             if (!_ended)
             {
                 if (_player.OverallState == CharacterOverallState.Eliminated) { _ended = true; _result = "패배"; }

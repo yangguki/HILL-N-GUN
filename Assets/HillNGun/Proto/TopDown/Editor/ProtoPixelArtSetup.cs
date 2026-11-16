@@ -17,6 +17,7 @@ namespace HillNGun.Proto.TopDown.Editor
             EnsureSpriteImportSettings();
             var top = BuildTopDown();
             var front = BuildFrontline();
+            ProtoFlipbookBuilder.Refresh();
             WireScenes(top, front);
             AssetDatabase.SaveAssets();
             Debug.Log("[ProtoPixelArt] refreshed " + ProtoAssets.PixelArtTopDown + " and " + ProtoAssets.PixelArtFrontline);
@@ -48,10 +49,11 @@ namespace HillNGun.Proto.TopDown.Editor
         static ProtoPixelArt BuildFrontline()
         {
             var art = LoadOrCreate(ProtoAssets.PixelArtFrontline);
-            art.background = LoadSprite(ArtV2 + "/bg_frontline_v2_1920.png");
-            // Horizontal dirt band on v2 frontline plate (buildings top+bottom). Swap file + UV for v2.1.
-            art.dirtUvMin = new Vector2(0.02f, 0.30f);
-            art.dirtUvMax = new Vector2(0.98f, 0.70f);
+            // v2.1: shops left/right, dirt center strip. Keep bg_frontline_v2_1920.png in repo unused.
+            art.background = LoadSprite(ArtV2 + "/bg_frontline_v2_1_1920.png");
+            // Dirt rect x 358–1563, y 128–916 (from top) on 1920×1080 → UV origin bottom-left.
+            art.dirtUvMin = HillNGun.Proto.Frontline.FrontlineRules.V21DirtUvMin;
+            art.dirtUvMax = HillNGun.Proto.Frontline.FrontlineRules.V21DirtUvMax;
             AssignSharedProps(art);
             art.fenceDivider = LoadSprite(Art + "/prop_fence_divider_v2.png");
             art.fenceCap = LoadSprite(Art + "/prop_fence_cap.png");

@@ -144,8 +144,32 @@ namespace HillNGun.Tests.EditMode
         [Test]
         public void TopBottom_SpawnAndClamp_StayInDirtBand()
         {
+            var layout = FrontlineRules.FromDirtUv(
+                FrontlineSplitAxis.TopBottom, FrontlineRules.V21DirtUvMin, FrontlineRules.V21DirtUvMax);
+            AssertV21DirtContainsSpawnsAndClamps(layout);
+        }
+
+        [Test]
+        public void TopBottomDefault_UsesV21DirtUv()
+        {
             var layout = FrontlineRules.TopBottomDefault;
+            var expected = FrontlineRules.FromDirtUv(
+                FrontlineSplitAxis.TopBottom, FrontlineRules.V21DirtUvMin, FrontlineRules.V21DirtUvMax);
+            Assert.AreEqual(expected.MinX, layout.MinX, 1e-4f);
+            Assert.AreEqual(expected.MaxX, layout.MaxX, 1e-4f);
+            Assert.AreEqual(expected.MinY, layout.MinY, 1e-4f);
+            Assert.AreEqual(expected.MaxY, layout.MaxY, 1e-4f);
+            AssertV21DirtContainsSpawnsAndClamps(layout);
+            // Player bottom / enemy top.
+            Assert.Less(layout.Spawn(Team.Player, 0).y, layout.LineCoord);
+            Assert.Greater(layout.Spawn(Team.Enemy, 0).y, layout.LineCoord);
+        }
+
+        static void AssertV21DirtContainsSpawnsAndClamps(FrontlineLayout layout)
+        {
             const float radius = 0.3f;
+            Assert.Greater(layout.MinX, layout.PlateMinX + 0.5f, "v2.1 dirt inset from plate L");
+            Assert.Less(layout.MaxX, layout.PlateMaxX - 0.5f, "v2.1 dirt inset from plate R");
             for (int slot = 0; slot < 3; slot++)
             {
                 var p = layout.Spawn(Team.Player, slot);
@@ -156,10 +180,14 @@ namespace HillNGun.Tests.EditMode
                 Assert.LessOrEqual(e.y, layout.MaxY - radius + 1e-3f);
                 Assert.GreaterOrEqual(p.x, layout.MinX + radius - 1e-3f);
                 Assert.LessOrEqual(p.x, layout.MaxX - radius + 1e-3f);
+                Assert.GreaterOrEqual(e.x, layout.MinX + radius - 1e-3f);
+                Assert.LessOrEqual(e.x, layout.MaxX - radius + 1e-3f);
 
                 var up = layout.ClampSide(new Vector2(p.x, layout.LineCoord + 3f), radius, Team.Player);
                 Assert.IsTrue(layout.OnOwnSide(up, radius, Team.Player));
                 Assert.LessOrEqual(up.y, layout.LineCoord - radius + 0.02f);
+                Assert.GreaterOrEqual(up.x, layout.MinX + radius - 1e-3f);
+                Assert.LessOrEqual(up.x, layout.MaxX - radius + 1e-3f);
             }
         }
 
@@ -197,17 +225,95 @@ namespace HillNGun.Tests.EditMode
                 {
                     if (front) playerFront++; else playerBack++;
                     Assert.Less(p.Center.y, layout.LineCoord);
+                    AssertInDirt(layout, p.Center);
                 }
                 else
                 {
                     if (front) enemyFront++; else enemyBack++;
                     Assert.Greater(p.Center.y, layout.LineCoord);
+                    AssertInDirt(layout, p.Center);
                 }
             }
             Assert.GreaterOrEqual(playerFront, 2);
             Assert.GreaterOrEqual(playerBack, 2);
             Assert.GreaterOrEqual(enemyFront, 2);
             Assert.GreaterOrEqual(enemyBack, 2);
+            Assert.GreaterOrEqual(pieces.Length, 8, "preview 4/side + extras for 3v3 slots");
+        }
+
+        static void AssertInDirt(FrontlineLayout layout, Vector2 p)
+        {
+            Assert.GreaterOrEqual(p.x, layout.MinX - 0.05f);
+            Assert.LessOrEqual(p.x, layout.MaxX + 0.05f);
+            Assert.GreaterOrEqual(p.y, layout.MinY - 0.05f);
+            Assert.LessOrEqual(p.y, layout.MaxY + 0.05f);
+        }
+
+        [Test]
+        public void TopBottom_ArchPosts_BlockAsStaticObstacles()
+        {
+            var layout = FrontlineRules.TopBottomDefault;
+            var posts = layout.ArchPosts();
+            Assert.AreEqual(2, posts.Length, "two arch posts");
+            var world = new FreeMoveWorld(layout.WalkPolygon());
+            world.StaticObstacles.Add(layout.Wall);
+            for (int i = 0; i < posts.Length; i++)
+                world.StaticObstacles.Add(posts[i]);
+
+            // Step from below a post column into the post — movement must stop short of the post interior.
+            for (int i = 0; i < posts.Length; i++)
+            {
+                var post = posts[i];
+                float cx = post.xMin + post.width * 0.5f;
+                float startY = Mathf.Max(layout.LineCoord + 0.6f, post.yMin - 1.2f);
+                var start = new Vector2(cx, startY);
+                Assert.IsTrue(layout.OnOwnSide(start, 0.3f, Team.Enemy), "start on enemy half toward arch");
+                Assert.IsTrue(world.IsFree(start, 0.3f), "start clear of post");
+                var blocked = world.Move(start, Vector2.up * 4f, 0.3f);
+                Assert.Less(blocked.y, post.yMin + post.height * 0.5f,
+                    "arch post blocks upward move at x=" + cx);
+                Assert.LessOrEqual(blocked.y, post.yMin + 0.35f + 1e-2f,
+                    "stopped near post bottom edge");
+            }
+        }
+
+        [Test]
+        public void TopBottom_Fence_DisplayOnly_NotAnExtraCollider()
+        {
+            var layout = FrontlineRules.TopBottomDefault;
+            // Fence span is shorter than dirt and centered on the split; not added as an obstacle.
+            Assert.Greater(layout.FenceMinX, layout.MinX + 0.5f);
+            Assert.Less(layout.FenceMaxX, layout.MaxX - 0.5f);
+            float fenceLen = layout.FenceMaxX - layout.FenceMinX;
+            float dirtLen = layout.MaxX - layout.MinX;
+            Assert.Less(fenceLen, dirtLen * 0.9f, "fence shorter than dirt width");
+
+            var posts = layout.ArchPosts();
+            var world = new FreeMoveWorld(layout.WalkPolygon());
+            world.StaticObstacles.Add(layout.Wall);
+            for (int i = 0; i < posts.Length; i++)
+                world.StaticObstacles.Add(posts[i]);
+
+            // Along the player side near the line but outside WallHalf — lateral slide must not hit a fence collider.
+            float y = layout.LineCoord - 0.55f;
+            var a = new Vector2(layout.FenceMinX + 0.5f, y);
+            var b = world.Move(a, Vector2.right * (fenceLen - 1f), 0.25f);
+            Assert.Greater(b.x, a.x + fenceLen * 0.4f, "no fence collider blocking lateral walk");
+        }
+
+        [Test]
+        public void TopBottom_CameraFit195_ContainsDirt()
+        {
+            const float aspect = 19.5f / 9f;
+            const float pad = 0.35f;
+            var layout = FrontlineRules.TopBottomDefault;
+            float fMinX = layout.PlateMinX - 1.2f;
+            float fMaxX = layout.PlateMaxX + 1.2f;
+            float fMinY = layout.PlateMinY - 0.9f;
+            float fMaxY = layout.PlateMaxY + 1.0f;
+            Assert.IsTrue(ProtoSafeLayout.PixelShowsArena(aspect, fMinX, fMaxX, fMinY, fMaxY, pad));
+            Assert.IsTrue(ProtoSafeLayout.PixelShowsArena(
+                aspect, layout.MinX, layout.MaxX, layout.MinY, layout.MaxY, pad), "dirt in camera");
         }
     }
 }

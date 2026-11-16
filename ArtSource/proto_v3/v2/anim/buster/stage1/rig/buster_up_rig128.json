@@ -1,0 +1,186 @@
+{
+ "character": "buster",
+ "direction": "up_3q",
+ "stage": "stage1 flipbook bake",
+ "canvas": [
+  128,
+  128
+ ],
+ "coord": "pixels, origin top-left, y down; 128 frame space after foot alignment (pivot 64,124)",
+ "lr_convention": "l/r = character anatomical left/right (NOT screen left/right)",
+ "screen_mapping": "3/4 back view facing screen-right: character RIGHT = screen-right (near, hand on gun), LEFT = screen-left (far, darkened)",
+ "source_rig": "/workspace/hillandgun_handoff/v2/designs/rig_parts/buster/up_3q/rig.json",
+ "source_art": "designs/pixel_v3/buster_pixel_sheet_v2_ref.jpg",
+ "bone_hierarchy": "root->pelvis->torso->head->hat, torso->scarf/upper_arm->forearm->hand->weapon, pelvis->thigh->shin->foot (same as source rig)",
+ "draw_order_back_to_front": [
+  "upper_arm_l",
+  "forearm_l",
+  "hand_l",
+  "thigh_l",
+  "shin_l",
+  "foot_l",
+  "weapon",
+  "thigh_r",
+  "shin_r",
+  "foot_r",
+  "pelvis",
+  "head",
+  "torso",
+  "scarf",
+  "hat",
+  "upper_arm_r",
+  "forearm_r",
+  "hand_r"
+ ],
+ "draw_order_stage1_layers": [
+  "lifted leg (up view)",
+  "planted legs",
+  "lifted leg (down view)",
+  "torso",
+  "head",
+  "gun_arms",
+  "muzzle_flash"
+ ],
+ "joints": {
+  "head_c": [
+   64,
+   36
+  ],
+  "neck": [
+   64,
+   54
+  ],
+  "waist": [
+   63,
+   84
+  ],
+  "hip_c": [
+   63,
+   90
+  ],
+  "grip": [
+   38,
+   66
+  ],
+  "muzzle": [
+   27,
+   42
+  ],
+  "hip_l": [
+   52,
+   88
+  ],
+  "knee_l": [
+   52,
+   105
+  ],
+  "ankle_l": [
+   52,
+   114
+  ],
+  "hip_r": [
+   73,
+   88
+  ],
+  "knee_r": [
+   73,
+   105
+  ],
+  "ankle_r": [
+   73,
+   114
+  ]
+ },
+ "legs": {
+  "thigh_r/shin_r/foot_r": "screen-right leg",
+  "thigh_l/shin_l/foot_l": "screen-left leg"
+ },
+ "parts": [
+  {
+   "layer": "head",
+   "merged_from": [
+    "head",
+    "hat"
+   ],
+   "parent": "torso",
+   "pivot_joint": "neck"
+  },
+  {
+   "layer": "torso",
+   "merged_from": [
+    "torso",
+    "pelvis",
+    "scarf",
+    "upper_arm_l",
+    "upper_arm_r",
+    "forearm_r",
+    "hand_r"
+   ],
+   "parent": "root",
+   "pivot_joint": "hip_c",
+   "note": "area under gun inpainted from neighbouring rows"
+  },
+  {
+   "layer": "gun_arms",
+   "merged_from": [
+    "weapon",
+    "hand_r",
+    "hand_l",
+    "forearm_l"
+   ],
+   "parent": "torso",
+   "pivot_joint": "grip",
+   "note": "recoil moves this layer"
+  },
+  {
+   "layer": "thigh_l",
+   "merged_from": [
+    "thigh_l"
+   ],
+   "parent": "pelvis",
+   "pivot_joint": "hip_l"
+  },
+  {
+   "layer": "shin_l",
+   "merged_from": [
+    "shin_l"
+   ],
+   "parent": "thigh_l",
+   "pivot_joint": "knee_l"
+  },
+  {
+   "layer": "foot_l",
+   "merged_from": [
+    "foot_l"
+   ],
+   "parent": "shin_l",
+   "pivot_joint": "ankle_l"
+  },
+  {
+   "layer": "thigh_r",
+   "merged_from": [
+    "thigh_r"
+   ],
+   "parent": "pelvis",
+   "pivot_joint": "hip_r"
+  },
+  {
+   "layer": "shin_r",
+   "merged_from": [
+    "shin_r"
+   ],
+   "parent": "thigh_r",
+   "pivot_joint": "knee_r"
+  },
+  {
+   "layer": "foot_r",
+   "merged_from": [
+    "foot_r"
+   ],
+   "parent": "shin_r",
+   "pivot_joint": "ankle_r"
+  }
+ ],
+ "joint_seam_fill": "side: jeans-colour disc r=3 at knee, r=4 at hip; down/up: 2px vertical overlap between thigh/shin/foot",
+ "status": "flipbook-only rig; joints are 128-space approximations for engine hit/muzzle points, not a Spine export"
+}

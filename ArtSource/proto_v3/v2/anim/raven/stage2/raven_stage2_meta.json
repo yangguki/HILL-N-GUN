@@ -1,0 +1,290 @@
+{
+ "character": "raven",
+ "stage": 2,
+ "frame_size": [
+  128,
+  128
+ ],
+ "pivot": {
+  "x": 64,
+  "y": 124,
+  "desc": "feet bottom-center (lying/rolling frames: body bbox centred on x=64, lowest pixel on y=124)"
+ },
+ "resample": "NEAREST",
+ "background": "transparent",
+ "side_flip": "side faces screen-right; flip_x for left",
+ "anims": {
+  "down/roll": {
+   "sheet": "sheets/raven_down_roll.png",
+   "frames": [
+    "frames/down/roll/raven_down_roll_00.png",
+    "frames/down/roll/raven_down_roll_01.png",
+    "frames/down/roll/raven_down_roll_02.png",
+    "frames/down/roll/raven_down_roll_03.png",
+    "frames/down/roll/raven_down_roll_04.png",
+    "frames/down/roll/raven_down_roll_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "note": "frames 1-4 = tucked ball rotating; i-frames suggestion 1-4"
+  },
+  "down/throw": {
+   "sheet": "sheets/raven_down_throw.png",
+   "frames": [
+    "frames/down/throw/raven_down_throw_00.png",
+    "frames/down/throw/raven_down_throw_01.png",
+    "frames/down/throw/raven_down_throw_02.png",
+    "frames/down/throw/raven_down_throw_03.png",
+    "frames/down/throw/raven_down_throw_04.png"
+   ],
+   "frame_count": 5,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "release_frame": 2,
+   "release_px": [
+    98,
+    29
+   ],
+   "hand_px": [
+    [
+     81,
+     37
+    ],
+    [
+     69,
+     42
+    ],
+    [
+     92,
+     39
+    ],
+    [
+     101,
+     72
+    ],
+    [
+     87,
+     83
+    ]
+   ],
+   "note": "dynamite leaves hand on frame 2; spawn projectile at release_px"
+  },
+  "down/down": {
+   "sheet": "sheets/raven_down_down.png",
+   "frames": [
+    "frames/down/down/raven_down_down_00.png",
+    "frames/down/down/raven_down_down_01.png",
+    "frames/down/down/raven_down_down_02.png",
+    "frames/down/down/raven_down_down_03.png",
+    "frames/down/down/raven_down_down_04.png",
+    "frames/down/down/raven_down_down_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 10,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "note": "no blood; frame 5 = lying with X eyes (down/side) + stars; hold last frame",
+   "head_px_last": [
+    85,
+    85
+   ]
+  },
+  "up/roll": {
+   "sheet": "sheets/raven_up_roll.png",
+   "frames": [
+    "frames/up/roll/raven_up_roll_00.png",
+    "frames/up/roll/raven_up_roll_01.png",
+    "frames/up/roll/raven_up_roll_02.png",
+    "frames/up/roll/raven_up_roll_03.png",
+    "frames/up/roll/raven_up_roll_04.png",
+    "frames/up/roll/raven_up_roll_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "note": "frames 1-4 = tucked ball rotating; i-frames suggestion 1-4"
+  },
+  "up/throw": {
+   "sheet": "sheets/raven_up_throw.png",
+   "frames": [
+    "frames/up/throw/raven_up_throw_00.png",
+    "frames/up/throw/raven_up_throw_01.png",
+    "frames/up/throw/raven_up_throw_02.png",
+    "frames/up/throw/raven_up_throw_03.png",
+    "frames/up/throw/raven_up_throw_04.png"
+   ],
+   "frame_count": 5,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "release_frame": 2,
+   "release_px": [
+    81,
+    25
+   ],
+   "hand_px": [
+    [
+     86,
+     39
+    ],
+    [
+     69,
+     45
+    ],
+    [
+     81,
+     37
+    ],
+    [
+     93,
+     40
+    ],
+    [
+     94,
+     81
+    ]
+   ],
+   "note": "dynamite leaves hand on frame 2; spawn projectile at release_px"
+  },
+  "up/down": {
+   "sheet": "sheets/raven_up_down.png",
+   "frames": [
+    "frames/up/down/raven_up_down_00.png",
+    "frames/up/down/raven_up_down_01.png",
+    "frames/up/down/raven_up_down_02.png",
+    "frames/up/down/raven_up_down_03.png",
+    "frames/up/down/raven_up_down_04.png",
+    "frames/up/down/raven_up_down_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 10,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": false,
+   "note": "no blood; frame 5 = lying with X eyes (down/side) + stars; hold last frame",
+   "head_px_last": [
+    35,
+    98
+   ]
+  },
+  "side/roll": {
+   "sheet": "sheets/raven_side_roll.png",
+   "frames": [
+    "frames/side/roll/raven_side_roll_00.png",
+    "frames/side/roll/raven_side_roll_01.png",
+    "frames/side/roll/raven_side_roll_02.png",
+    "frames/side/roll/raven_side_roll_03.png",
+    "frames/side/roll/raven_side_roll_04.png",
+    "frames/side/roll/raven_side_roll_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": true,
+   "note": "frames 1-4 = tucked ball rotating; i-frames suggestion 1-4"
+  },
+  "side/throw": {
+   "sheet": "sheets/raven_side_throw.png",
+   "frames": [
+    "frames/side/throw/raven_side_throw_00.png",
+    "frames/side/throw/raven_side_throw_01.png",
+    "frames/side/throw/raven_side_throw_02.png",
+    "frames/side/throw/raven_side_throw_03.png",
+    "frames/side/throw/raven_side_throw_04.png"
+   ],
+   "frame_count": 5,
+   "fps": 12,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": true,
+   "release_frame": 2,
+   "release_px": [
+    87,
+    38
+   ],
+   "hand_px": [
+    [
+     40,
+     39
+    ],
+    [
+     34,
+     49
+    ],
+    [
+     76,
+     44
+    ],
+    [
+     78,
+     66
+    ],
+    [
+     66,
+     79
+    ]
+   ],
+   "note": "dynamite leaves hand on frame 2; spawn projectile at release_px"
+  },
+  "side/down": {
+   "sheet": "sheets/raven_side_down.png",
+   "frames": [
+    "frames/side/down/raven_side_down_00.png",
+    "frames/side/down/raven_side_down_01.png",
+    "frames/side/down/raven_side_down_02.png",
+    "frames/side/down/raven_side_down_03.png",
+    "frames/side/down/raven_side_down_04.png",
+    "frames/side/down/raven_side_down_05.png"
+   ],
+   "frame_count": 6,
+   "fps": 10,
+   "loop": false,
+   "pivot": [
+    64,
+    124
+   ],
+   "flip_x_for_left": true,
+   "note": "no blood; frame 5 = lying with X eyes (down/side) + stars; hold last frame",
+   "head_px_last": [
+    42,
+    96
+   ]
+  }
+ },
+ "height_px": 112,
+ "cape": "cape is a separate layer with its own sway (secondary motion); per-frame values in source poses"
+}

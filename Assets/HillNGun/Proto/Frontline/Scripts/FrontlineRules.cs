@@ -27,6 +27,8 @@ namespace HillNGun.Proto.Frontline
     /// <summary>
     /// Plate = full BG frame for the camera. Walk Min/Max = dirt band (movement / spawn / clamp).
     /// A thin static obstacle is the invisible wall; bullets ignore it. ClampSide is the knockback backstop.
+    /// Arch posts (top/bottom + v2.1) are extra static obstacles — BG draws them, no extra display mesh.
+    /// Horizontal fence span is display-only (see FenceMinX/FenceMaxX); not an obstacle.
     /// </summary>
     public readonly struct FrontlineLayout
     {
@@ -49,6 +51,10 @@ namespace HillNGun.Proto.Frontline
         public float LineY => IsTopBottom ? LineCoord : float.NaN;
         public float MidX => (MinX + MaxX) * 0.5f;
         public float MidY => (MinY + MaxY) * 0.5f;
+
+        /// <summary>Display-only H fence span (preview x 506–1425). Full dirt width in left/right mode.</summary>
+        public float FenceMinX => IsTopBottom ? FrontlineRules.PlateXFromPx(506f) : MinX;
+        public float FenceMaxX => IsTopBottom ? FrontlineRules.PlateXFromPx(1425f) : MaxX;
 
         public FrontlineLayout(
             FrontlineSplitAxis axis,
@@ -74,6 +80,20 @@ namespace HillNGun.Proto.Frontline
         public Rect Wall => IsTopBottom
             ? new Rect(MinX - 2f, LineCoord - WallHalf, (MaxX - MinX) + 4f, WallHalf * 2f)
             : new Rect(LineCoord - WallHalf, PlateMinY - 2f, WallHalf * 2f, (PlateMaxY - PlateMinY) + 4f);
+
+        /// <summary>
+        /// Top entrance arch posts (BG-drawn). Prefer static obstacles over column clamp.
+        /// Preview posts x 790–830 / 1085–1125, y 60–262 from top on 1920×1080.
+        /// </summary>
+        public Rect[] ArchPosts()
+        {
+            if (!IsTopBottom) return System.Array.Empty<Rect>();
+            return new[]
+            {
+                FrontlineRules.ArchPostRect(790f, 830f, 60f, 262f),
+                FrontlineRules.ArchPostRect(1085f, 1125f, 60f, 262f)
+            };
+        }
 
         public Vector2[] WalkPolygon() => new[]
         {
@@ -147,30 +167,26 @@ namespace HillNGun.Proto.Frontline
 
         void AddTopBottom(List<FrontlineRules.Piece> list)
         {
-            // Two horizontal cover rows per side (front nearest midline, back nearer buildings).
-            float halfP = Mathf.Max(1.2f, LineCoord - MinY);
-            float halfE = Mathf.Max(1.2f, MaxY - LineCoord);
-            float frontPlayer = LineCoord - halfP * 0.32f;
-            float backPlayer = MinY + halfP * 0.28f;
-            float frontEnemy = LineCoord + halfE * 0.32f;
-            float backEnemy = MaxY - halfE * 0.28f;
-            float[] lanes = { MidX - 4.2f, MidX, MidX + 4.2f };
+            // Preview (v2_1_frontline_preview): 4 covers/side + 1 mirrored center-lane extra for 3v3 slots.
+            // Foot ≈ lower edge of preview range; collision sizes unchanged (Sized brick only).
+            // Enemy half (top)
+            Add(list, "brick", FrontlineRules.PlatePx(520f, 240f), 2.4f, 0.7f, true, Team.Enemy);       // x420–620 / y155–240
+            Add(list, "hay", FrontlineRules.PlatePx(1380f, 250f), 0f, 0f, false, Team.Enemy);          // x1335–1425 / y170–250
+            Add(list, "sandbag", FrontlineRules.PlatePx(520f, 420f), 0f, 0f, false, Team.Enemy);      // front L
+            Add(list, "crate", FrontlineRules.PlatePx(1420f, 430f), 0f, 0f, false, Team.Enemy);        // front R
+            Add(list, "sandbag", FrontlineRules.PlatePx(960f, 400f), 0f, 0f, false, Team.Enemy);      // extra center front
 
-            Add(list, "brick", new Vector2(lanes[0], backPlayer), 2.4f, 0.7f, true, Team.Player);
-            Add(list, "brick", new Vector2(lanes[2], backPlayer), 2.4f, 0.7f, true, Team.Player);
-            Add(list, "sandbag", new Vector2(lanes[0], frontPlayer), 0f, 0f, false, Team.Player);
-            Add(list, "crate", new Vector2(lanes[1], frontPlayer), 0f, 0f, false, Team.Player);
-            Add(list, "sandbag", new Vector2(lanes[2], frontPlayer), 0f, 0f, false, Team.Player);
-
-            Add(list, "brick", new Vector2(lanes[0], backEnemy), 2.4f, 0.7f, true, Team.Enemy);
-            Add(list, "brick", new Vector2(lanes[2], backEnemy), 2.4f, 0.7f, true, Team.Enemy);
-            Add(list, "sandbag", new Vector2(lanes[0], frontEnemy), 0f, 0f, false, Team.Enemy);
-            Add(list, "crate", new Vector2(lanes[1], frontEnemy), 0f, 0f, false, Team.Enemy);
-            Add(list, "sandbag", new Vector2(lanes[2], frontEnemy), 0f, 0f, false, Team.Enemy);
+            // Player half (bottom)
+            Add(list, "sandbag", FrontlineRules.PlatePx(520f, 650f), 0f, 0f, false, Team.Player);     // front L
+            Add(list, "barrel", FrontlineRules.PlatePx(1420f, 650f), 0f, 0f, false, Team.Player);     // front R
+            Add(list, "hay", FrontlineRules.PlatePx(602.5f, 875f), 0f, 0f, false, Team.Player);       // back L
+            Add(list, "crate", FrontlineRules.PlatePx(1340f, 875f), 0f, 0f, false, Team.Player);      // back R
+            Add(list, "crate", FrontlineRules.PlatePx(960f, 630f), 0f, 0f, false, Team.Player);       // extra center front
         }
 
         void AddLeftRight(List<FrontlineRules.Piece> list, bool right)
         {
+            // Legacy left/right cover bank — unchanged so SplitAxis.LeftRight still works.
             var team = right ? Team.Enemy : Team.Player;
             float minX = MinX, maxX = MaxX, midY = MidY, line = LineCoord;
             float mirror = minX + maxX;
@@ -212,18 +228,20 @@ namespace HillNGun.Proto.Frontline
         public const float RoundSeconds = 90f;
         public const float WallHalf = 0.15f;
 
-        const float PlateMinX = 0.6f;
-        const float PlateMaxX = 23.4f;
-        const float PlateMinY = 1.2f;
-        const float PlateMaxY = 12.8f;
+        public const float PlateMinX = 0.6f;
+        public const float PlateMaxX = 23.4f;
+        public const float PlateMinY = 1.2f;
+        public const float PlateMaxY = 12.8f;
+
+        /// <summary>bg_frontline_v2_1 dirt rect x 358–1563, y 128–916 (from top) on 1920×1080.</summary>
+        public static readonly Vector2 V21DirtUvMin = new Vector2(358f / 1920f, 1f - 916f / 1080f);
+        public static readonly Vector2 V21DirtUvMax = new Vector2(1563f / 1920f, 1f - 128f / 1080f);
 
         /// <summary>
-        /// Default proto: top/bottom on bg_frontline_v2 (buildings top+bottom).
-        /// Dirt UV from image sampling ≈ y 0.30–0.70 from bottom → walk band below.
-        /// Camera frames the full plate so BG dirt aligns with the walk band.
+        /// Default proto: top/bottom on bg_frontline_v2_1 (shops left/right, dirt center strip).
         /// </summary>
         public static FrontlineLayout TopBottomDefault { get; } = BuildTopBottom(
-            dirtUvMinX: 0.02f, dirtUvMaxX: 0.98f, dirtUvMinY: 0.30f, dirtUvMaxY: 0.70f);
+            V21DirtUvMin.x, V21DirtUvMax.x, V21DirtUvMin.y, V21DirtUvMax.y);
 
         /// <summary>Legacy left/right banks (player left, enemy right). Still selectable via SplitAxis.</summary>
         public static FrontlineLayout LeftRightDefault { get; } = BuildLeftRight(
@@ -245,7 +263,7 @@ namespace HillNGun.Proto.Frontline
             axis == FrontlineSplitAxis.LeftRight ? LeftRightDefault : TopBottomDefault;
 
         /// <summary>
-        /// Rebuild walk from dirt UV on the shared plate. Used when swapping BG files (e.g. future v2.1 center strip).
+        /// Rebuild walk from dirt UV on the shared plate. Used when swapping BG files.
         /// </summary>
         public static FrontlineLayout FromDirtUv(
             FrontlineSplitAxis axis, Vector2 dirtUvMin, Vector2 dirtUvMax)
@@ -255,6 +273,24 @@ namespace HillNGun.Proto.Frontline
             return axis == FrontlineSplitAxis.LeftRight
                 ? BuildLeftRight(dirtUvMin.x, dirtUvMax.x, dirtUvMin.y, dirtUvMax.y)
                 : BuildTopBottom(dirtUvMin.x, dirtUvMax.x, dirtUvMin.y, dirtUvMax.y);
+        }
+
+        public static float PlateXFromPx(float px) =>
+            Mathf.Lerp(PlateMinX, PlateMaxX, px / 1920f);
+
+        public static float PlateYFromTopPx(float pyFromTop) =>
+            Mathf.Lerp(PlateMinY, PlateMaxY, 1f - pyFromTop / 1080f);
+
+        public static Vector2 PlatePx(float px, float pyFromTop) =>
+            new Vector2(PlateXFromPx(px), PlateYFromTopPx(pyFromTop));
+
+        public static Rect ArchPostRect(float x0, float x1, float yTop, float yBotFromTop)
+        {
+            float xa = PlateXFromPx(Mathf.Min(x0, x1));
+            float xb = PlateXFromPx(Mathf.Max(x0, x1));
+            float yMin = PlateYFromTopPx(Mathf.Max(yTop, yBotFromTop));
+            float yMax = PlateYFromTopPx(Mathf.Min(yTop, yBotFromTop));
+            return new Rect(xa, yMin, xb - xa, yMax - yMin);
         }
 
         static FrontlineLayout BuildTopBottom(float dirtUvMinX, float dirtUvMaxX, float dirtUvMinY, float dirtUvMaxY)

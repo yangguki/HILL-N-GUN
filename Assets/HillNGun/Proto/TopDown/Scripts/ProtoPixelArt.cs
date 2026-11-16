@@ -52,8 +52,23 @@ namespace HillNGun.Proto.TopDown
         public PoseSet volt;
         public PoseSet grunt;
 
+        [Header("Hero / grunt flipbooks (stage1 idle/run/shoot)")]
+        public ProtoFlipbookSet busterFlip;
+        public ProtoFlipbookSet ravenFlip;
+        public ProtoFlipbookSet voltFlip;
+        public ProtoFlipbookSet gruntFlip;
+
         public bool HasDirtUv =>
             dirtUvMax.x > dirtUvMin.x + 0.01f && dirtUvMax.y > dirtUvMin.y + 0.01f;
+
+        public ProtoFlipbookSet FlipForSlot(int slot)
+        {
+            if (slot == 1 && ravenFlip != null) return ravenFlip;
+            if (slot == 2 && voltFlip != null) return voltFlip;
+            return busterFlip;
+        }
+
+        public ProtoFlipbookSet EnemyFlip => gruntFlip;
 
         public Sprite CoverSprite(string kind) => CoverSprite(kind, 1f);
 

@@ -16,11 +16,19 @@ namespace HillNGun.Proto.TopDown
     {
         public const float ScreenHeightFraction = 0.13f;
         const float FigureHeight = 1.12f;
-        /// <summary>Cover art height as a fraction of the hero on-screen height (view only).</summary>
+        /// <summary>Cover art height as a fraction of the hero on-screen height (view only). TopDown keeps these.</summary>
         const float CoverBarrelFrac = 0.55f;
         const float CoverCrateFrac = 0.42f;
         const float CoverBagFrac = 0.38f;
         const float CoverBrickFrac = 0.40f;
+        /// <summary>
+        /// Frontline top/bottom capture was ~half the v2_1 preview: brick ~100 vs ~200 px wide,
+        /// hay/crate ~40 vs ~90, barrel ~45 vs ~70 tall. Display-only multipliers (collision unchanged).
+        /// </summary>
+        const float FrontlineCoverBrickMul = 2.00f;
+        const float FrontlineCoverHayMul = 2.25f;
+        const float FrontlineCoverCrateMul = 2.25f;
+        const float FrontlineCoverBarrelMul = 1.55f;
 
         public bool PixelOn { get; private set; } = true;
         public Camera ActiveCamera => PixelOn ? _pixelCam : _dioCam;
@@ -42,7 +50,11 @@ namespace HillNGun.Proto.TopDown
         Transform _divider;
         bool _dividerUsesFence;
         bool _dividerHorizontal;
-        /// <summary>Horizontal fence scale. 0.238 (1.3×0.183) oversized the 438px v2 tile (~1.04u tall); 0.10 ≈ modest rail.</summary>
+        /// <summary>
+        /// Horizontal fence scale. Planner asked 1.3×0.10=0.13; full 438px tile at 0.13 ≈ 53 plate-px vs
+        /// preview rail ~41 px (~29% tall). Preview-matching scale kept at 0.10 (within ~1% of 41 px).
+        /// Length comes from match DividerMinX/MaxX (fence span x 506–1425, not full dirt).
+        /// </summary>
         const float FenceScaleH = 0.10f;
         const float FenceScaleV = 0.183f;
         readonly Dictionary<EnemyInstance, Vis> _enemies = new Dictionary<EnemyInstance, Vis>();
@@ -80,7 +92,10 @@ namespace HillNGun.Proto.TopDown
             public Transform Pixel, PixelSpin, Dio, DioSpin;
             public SpriteRenderer Body, Shadow, Hp;
             public ProtoPixelArt.PoseSet Poses;
+            public ProtoFlipbookSet FlipSet;
+            public ProtoFlipbookAnimator Flip;
             public float Recoil;
+            public bool FootPivot;
         }
 
         class CoverVis
@@ -157,7 +172,11 @@ namespace HillNGun.Proto.TopDown
             if (match.Fighters == null)
             {
                 _player = MakeActor(_pixelRoot, _dioRoot, new Color(0.93f, 0.86f, 0.72f), new Color(0.45f, 0.28f, 0.16f), new Color(0.75f, 0.18f, 0.18f), true);
-                if (_art != null) _player.Poses = _art.HeroForSlot(0);
+                if (_art != null)
+                {
+                    _player.Poses = _art.HeroForSlot(0);
+                    BindFlip(_player, _art.FlipForSlot(0), _player.Poses);
+                }
                 if (match.Player != null)
                     match.Player.OnFired += (_, __, ___) => _playerRecoil = 1f;
             }
@@ -262,7 +281,12 @@ namespace HillNGun.Proto.TopDown
             if (player != null && _player != null)
             {
                 _playerRecoil = Mathf.MoveTowards(_playerRecoil, 0f, Time.deltaTime * 8f);
-                Place(_player, player.Position, _match.AimDirection, player.FreeVelocity.magnitude > 0.15f, _playerRecoil, 1f, player.HpRatio, true);
+                bool shooting = player.ActionState == ActionState.Firing || _playerRecoil > 0.2f ||
+                                (_player.Flip != null && _player.Flip.ShootPlaying);
+                bool aiming = player.IsAimingWeapon || shooting;
+                float maxSpd = player.Data != null ? player.Data.moveSpeed : 5f;
+                PlaceFlip(_player, player.Position, player.FreeVelocity, _match.AimDirection,
+                    aiming, shooting, player.FreeVelocity.magnitude, maxSpd, _playerRecoil, player.HpRatio);
             }
             _drop.Clear();
             foreach (var kv in _enemies)
@@ -285,6 +309,7 @@ namespace HillNGun.Proto.TopDown
                         vis.Poses = _art.EnemyPoses;
                         // Designer grunt sheet already has its own colors — drop the red tint.
                         if (vis.Poses != null) vis.Body.color = Color.white;
+                        BindFlip(vis, _art.EnemyFlip, vis.Poses);
                     }
                     _enemies[e] = vis;
                     e.OnAttack += (_, __, ___) => vis.Recoil = 1f;
@@ -297,27 +322,55 @@ namespace HillNGun.Proto.TopDown
                 if (face.sqrMagnitude < 1e-4f) face = Vector2.down;
                 vis.Recoil = Mathf.MoveTowards(vis.Recoil, 0f, Time.deltaTime * 8f);
                 bool moving = !e.InEntrance && (e.IsDodging || (e.Post - e.Position).sqrMagnitude > 0.05f);
-                Place(vis, e.Position, face.normalized, moving, vis.Recoil, 1f, e.CurrentHp / (float)Mathf.Max(1, e.MaxHp), false);
+                Vector2 moveVec = moving ? ((e.Post - e.Position).sqrMagnitude > 1e-4f ? (e.Post - e.Position) : face) : Vector2.zero;
+                bool shooting = e.IsWindingUp || vis.Recoil > 0.2f || (vis.Flip != null && vis.Flip.ShootPlaying);
+                float speed = moving ? Mathf.Max(ProtoFacingSelector.MoveSpeedEps * 2f, (e.Post - e.Position).magnitude) : 0f;
+                PlaceFlip(vis, e.Position, moveVec, face.normalized, shooting, shooting, speed, 3f, vis.Recoil,
+                    e.CurrentHp / (float)Mathf.Max(1, e.MaxHp));
             }
         }
 
-        void Place(Vis vis, Vector2 logic, Vector2 face, bool moving, float recoil, float hpScale, float hp, bool player)
+        void BindFlip(Vis vis, ProtoFlipbookSet set, ProtoPixelArt.PoseSet poses)
         {
-            float bob = moving ? Mathf.Sin(Time.time * 14f) * 0.035f : 0f;
+            vis.FlipSet = set;
+            vis.Poses = poses;
+            if (vis.Flip == null) vis.Flip = new ProtoFlipbookAnimator();
+            vis.Flip.Bind(vis.Body, set, poses);
+            vis.FootPivot = set != null;
+        }
+
+        void PlaceFlip(Vis vis, Vector2 logic, Vector2 moveVec, Vector2 aimVec, bool aiming, bool shooting,
+            float actualSpeed, float maxSpeed, float recoil, float hp)
+        {
+            Vector2 face = aimVec.sqrMagnitude > 1e-4f ? aimVec.normalized :
+                (moveVec.sqrMagnitude > 1e-4f ? moveVec.normalized : Vector2.down);
+            bool usedFlip = false;
+            if (vis.Flip != null)
+                usedFlip = vis.Flip.Tick(moveVec, aimVec, aiming, shooting, actualSpeed, maxSpeed, Time.deltaTime);
+            if (!usedFlip)
+                ApplySprite(vis, face);
+
+            if (vis.Flip != null)
+                face = ProtoFacingSelector.FaceDirFromState(vis.Flip.Facing, vis.Flip.FlipX);
+
+            // Flipbooks replace the old temp bounce; keep a tiny bob only for static-pose fallback.
+            float bob = (!usedFlip && actualSpeed > ProtoFacingSelector.MoveSpeedEps)
+                ? Mathf.Sin(Time.time * 14f) * 0.035f : 0f;
             Vector2 kick = -face * recoil * 0.12f;
             vis.Pixel.position = ProtoArena.ToPixel(logic + kick);
             vis.PixelSpin.localPosition = new Vector3(0f, bob, 0f);
-            ApplySprite(vis, face);
             float targetH = _pixelCam.orthographicSize * 2f * ScreenHeightFraction;
             var sprite = vis.Body.sprite;
             float units = sprite != null ? sprite.rect.height / sprite.pixelsPerUnit : 1f;
             float s = units > 0.01f ? targetH / units : 1f;
             vis.PixelSpin.localScale = new Vector3(s, s, 1f);
-            // Soft small ellipse under the feet (not a dark square).
             vis.Shadow.transform.localScale = new Vector3(targetH * 0.38f, targetH * 0.11f, 1f);
-            vis.Shadow.transform.localPosition = new Vector3(0f, -targetH * 0.36f, 0f);
+            // Foot-pivoted frames sit on the transform; center-pivoted poses need the old offset.
+            float shadowY = vis.FootPivot && usedFlip ? -targetH * 0.02f : -targetH * 0.36f;
+            float hpY = vis.FootPivot && usedFlip ? targetH * 1.05f : targetH * 0.62f;
+            vis.Shadow.transform.localPosition = new Vector3(0f, shadowY, 0f);
             vis.Hp.transform.localScale = new Vector3(targetH * 0.7f * Mathf.Clamp01(hp), targetH * 0.06f, 1f);
-            vis.Hp.transform.localPosition = new Vector3(0f, targetH * 0.62f, 0f);
+            vis.Hp.transform.localPosition = new Vector3(0f, hpY, 0f);
             vis.Hp.color = hp > 0.35f ? new Color(0.35f, 0.85f, 0.4f) : new Color(0.9f, 0.3f, 0.25f);
             int order = 1000 - Mathf.RoundToInt(logic.y * 20f);
             vis.Body.sortingOrder = order;
@@ -363,7 +416,9 @@ namespace HillNGun.Proto.TopDown
                     vis = MakeActor(_pixelRoot, _dioRoot, shirt, hat, band, human);
                     if (_art != null)
                     {
-                        vis.Poses = ally ? _art.HeroForSlot(slot) : _art.EnemyPoses;
+                        var poses = ally ? _art.HeroForSlot(slot) : _art.EnemyPoses;
+                        var flip = ally ? _art.FlipForSlot(slot) : _art.EnemyFlip;
+                        BindFlip(vis, flip, poses);
                         if (vis.Poses != null) vis.Body.color = Color.white;
                     }
                     _fighters[f] = vis;
@@ -375,12 +430,17 @@ namespace HillNGun.Proto.TopDown
                 vis.Dio.gameObject.SetActive(show);
                 if (!show) continue;
                 Vector2 idleFace = DefaultFace(f.Team);
-                Vector2 face = f == _match.Player
+                Vector2 aim = f == _match.Player
                     ? _match.AimDirection
-                    : (f.FreeVelocity.sqrMagnitude > 0.04f ? f.FreeVelocity.normalized : idleFace);
-                if (face.sqrMagnitude < 1e-4f) face = idleFace;
+                    : (f.AimDirection.sqrMagnitude > 0.01f ? f.AimDirection : idleFace);
+                if (aim.sqrMagnitude < 1e-4f) aim = idleFace;
                 vis.Recoil = Mathf.MoveTowards(vis.Recoil, 0f, Time.deltaTime * 8f);
-                Place(vis, f.Position, face.normalized, f.FreeVelocity.magnitude > 0.15f, vis.Recoil, 1f, f.HpRatio, f == _match.Player);
+                bool shooting = f.ActionState == ActionState.Firing || vis.Recoil > 0.2f ||
+                                (vis.Flip != null && vis.Flip.ShootPlaying);
+                bool aiming = f.IsAimingWeapon || shooting;
+                float maxSpd = f.Data != null ? f.Data.moveSpeed : 5f;
+                PlaceFlip(vis, f.Position, f.FreeVelocity, aim, aiming, shooting,
+                    f.FreeVelocity.magnitude, maxSpd, vis.Recoil, f.HpRatio);
             }
         }
 
@@ -675,20 +735,34 @@ namespace HillNGun.Proto.TopDown
             }
         }
 
+        bool IsFrontlineBoard => _match != null && _match.Fighters != null;
+
+        float CoverFracFor(string kind)
+        {
+            float frac = kind == "barrel" ? CoverBarrelFrac
+                : kind == "crate" ? CoverCrateFrac
+                : kind == "brick" ? CoverBrickFrac
+                : CoverBagFrac;
+            if (!IsFrontlineBoard) return frac;
+            float mul = kind == "barrel" ? FrontlineCoverBarrelMul
+                : kind == "crate" ? FrontlineCoverCrateMul
+                : kind == "brick" ? FrontlineCoverBrickMul
+                : FrontlineCoverHayMul; // hay + sandbag
+            return frac * mul;
+        }
+
         void ScaleCoverSprite(CoverVis vis, float heroH)
         {
             var spr = vis.PixelSprite.sprite;
             float unitsH = spr.rect.height / spr.pixelsPerUnit;
             float unitsW = spr.rect.width / spr.pixelsPerUnit;
             if (unitsH < 0.01f) return;
-            float frac = vis.Kind == "barrel" ? CoverBarrelFrac
-                : vis.Kind == "crate" ? CoverCrateFrac
-                : vis.Kind == "brick" ? CoverBrickFrac
-                : CoverBagFrac;
+            float frac = CoverFracFor(vis.Kind);
             float targetH = heroH * frac;
-            // Brick walls: keep footprint width roughly in line with the collision box when wider than tall.
             float s = targetH / unitsH;
-            if (vis.Kind == "brick" && vis.Bounds.width > vis.Bounds.height * 1.2f && unitsW > 0.01f)
+            // TopDown only: keep wide brick footprint near the collision box. Frontline skips so
+            // preview-matching display scale is not capped by the smaller collider.
+            if (!IsFrontlineBoard && vis.Kind == "brick" && vis.Bounds.width > vis.Bounds.height * 1.2f && unitsW > 0.01f)
             {
                 float widthS = Mathf.Max(0.2f, vis.Bounds.width / unitsW);
                 s = Mathf.Min(s, widthS);
@@ -713,7 +787,7 @@ namespace HillNGun.Proto.TopDown
             if (brick == null) return 1f;
             float unitsH = brick.rect.height / brick.pixelsPerUnit;
             if (unitsH < 0.01f) return 1f;
-            return (heroH * CoverBrickFrac) / unitsH;
+            return (heroH * CoverFracFor("brick")) / unitsH;
         }
 
         void ScaleCoverStack(CoverVis vis, float heroH)
@@ -727,7 +801,7 @@ namespace HillNGun.Proto.TopDown
                 float unitsH = sr.sprite.rect.height / sr.sprite.pixelsPerUnit;
                 if (unitsH < 0.01f) continue;
                 bool barrel = (i % 2) == 1;
-                float frac = barrel ? CoverBarrelFrac * 0.92f : CoverCrateFrac;
+                float frac = barrel ? CoverFracFor("barrel") * 0.92f : CoverFracFor("crate");
                 float s = (heroH * frac) / unitsH;
                 sr.transform.localScale = new Vector3(s, s, 1f);
                 sr.sortingOrder = order + i;

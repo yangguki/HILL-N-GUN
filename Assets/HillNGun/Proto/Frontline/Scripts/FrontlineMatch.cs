@@ -37,6 +37,9 @@ namespace HillNGun.Proto.Frontline
         [Tooltip("Default TopBottom (player bottom / enemy top). LeftRight keeps the older bank layout.")]
         public FrontlineSplitAxis SplitAxis = FrontlineSplitAxis.TopBottom;
 
+        [Tooltip("Bot pacing only (hold/peek/idle/last-unit). Combat numbers stay untouched.")]
+        public FrontlineBotTuning BotTuning = new FrontlineBotTuning();
+
         public CharacterStateMachine Player => _fighters.Count > 0 ? _fighters[0] : null;
         public CombatSystem Combat => _combat;
         public IReadOnlyList<CoverInstance> Covers => _covers;
@@ -47,8 +50,9 @@ namespace HillNGun.Proto.Frontline
         public IReadOnlyList<CharacterStateMachine> Fighters => _fighters;
         public float DividerX => _layout.IsTopBottom ? float.NaN : _layout.LineCoord;
         public float DividerY => _layout.IsTopBottom ? _layout.LineCoord : float.NaN;
-        public float DividerMinX => _layout.MinX;
-        public float DividerMaxX => _layout.MaxX;
+        /// <summary>H-fence display span (preview x 506–1425), not full dirt width.</summary>
+        public float DividerMinX => _layout.FenceMinX;
+        public float DividerMaxX => _layout.FenceMaxX;
         public float DividerMinY => _layout.MinY;
         public float DividerMaxY => _layout.MaxY;
         public FrontlineLayout Layout => _layout;
@@ -125,6 +129,10 @@ namespace HillNGun.Proto.Frontline
             _world = new FreeMoveWorld(layoutData);
             _world.CoverSource = () => _covers;
             _world.StaticObstacles.Add(_layout.Wall);
+            // Arch posts: static obstacles, BG draws them (no extra mesh). Fence is display-only.
+            var posts = _layout.ArchPosts();
+            for (int i = 0; i < posts.Length; i++)
+                _world.StaticObstacles.Add(posts[i]);
             ServiceLocator.Register(_world);
 
             var combatGo = new GameObject("Combat");
@@ -194,11 +202,17 @@ namespace HillNGun.Proto.Frontline
             {
                 float now = Time.time;
                 RefreshClaims();
+                float playerHp = Sum(Team.Player);
+                float enemyHp = Sum(Team.Enemy);
                 for (int i = 0; i < _bots.Count; i++)
                 {
                     _foes.Clear();
                     FillFoes(_bots[i].Self, _foes);
-                    _bots[i].Tick(GameTime.DeltaTime, now, _foes, _covers, _claimed);
+                    var team = _bots[i].Self != null ? _bots[i].Self.Team : Team.Player;
+                    int allies = CountLiving(team);
+                    float allyHp = team == Team.Player ? playerHp : enemyHp;
+                    float foeHp = team == Team.Player ? enemyHp : playerHp;
+                    _bots[i].Tick(GameTime.DeltaTime, now, _foes, _covers, _claimed, allies, _clock, allyHp, foeHp);
                 }
                 var outcome = FrontlineRules.Judge(Snapshot(), _clock >= FrontlineRules.RoundSeconds);
                 if (outcome != FrontlineOutcome.Playing) Finish(outcome);
@@ -235,7 +249,7 @@ namespace HillNGun.Proto.Frontline
             if (_smokePlayerBot || Player == null) return;
             for (int i = 0; i < _bots.Count; i++)
                 if (_bots[i] != null && _bots[i].Self == Player) { _smokePlayerBot = true; return; }
-            _bots.Add(new FrontlineBot(Player, 0, _layout));
+            _bots.Add(new FrontlineBot(Player, 0, _layout, BotTuning ?? new FrontlineBotTuning()));
             _smokePlayerBot = true;
             Debug.Log("[Frontline] smoke player bot attached");
         }
@@ -366,8 +380,19 @@ namespace HillNGun.Proto.Frontline
                 _combat.RegisterCharacter(actor);
                 _fighters.Add(actor);
                 bool driven = _auto || !(team == Team.Player && slot == 0);
-                if (driven) _bots.Add(new FrontlineBot(actor, slot, _layout));
+                if (driven) _bots.Add(new FrontlineBot(actor, slot, _layout, BotTuning ?? new FrontlineBotTuning()));
             }
+        }
+
+        int CountLiving(Team team)
+        {
+            int n = 0;
+            for (int i = 0; i < _fighters.Count; i++)
+            {
+                var f = _fighters[i];
+                if (f != null && f.Team == team && f.OverallState != CharacterOverallState.Eliminated) n++;
+            }
+            return n;
         }
 
         void BuildCovers()
@@ -376,7 +401,9 @@ namespace HillNGun.Proto.Frontline
             for (int i = 0; i < pieces.Length; i++)
             {
                 var piece = pieces[i];
-                var src = piece.Kind == "brick" ? Rock : piece.Kind == "sandbag" ? Hay : Crate;
+                var src = piece.Kind == "brick" ? Rock
+                    : piece.Kind == "sandbag" || piece.Kind == "hay" ? Hay
+                    : Crate;
                 if (src == null) continue;
                 var data = src;
                 if (piece.Sized)
