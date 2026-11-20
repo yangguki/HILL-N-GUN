@@ -1,0 +1,18 @@
+{
+    "name": "HillNGun.Proto.Greybox.Editor",
+    "rootNamespace": "HillNGun.Proto.Greybox.Editor",
+    "references": [
+        "HillNGun.Proto.Greybox"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
