@@ -1,0 +1,25 @@
+{
+    "name": "HillNGun.Proto.Greybox3D.Tests.EditMode",
+    "rootNamespace": "HillNGun.Proto.Greybox3D.Tests.EditMode",
+    "references": [
+        "HillNGun.Proto.Greybox",
+        "HillNGun.Proto.Greybox3D",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

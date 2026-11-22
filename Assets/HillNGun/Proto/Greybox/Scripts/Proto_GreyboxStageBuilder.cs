@@ -254,6 +254,8 @@ namespace HillNGun.Proto.Greybox
                 cam = FindFirstObjectByType<Camera>();
             if (cam != null)
                 Proto_GreyboxHudBuilder.Build(cam, transform);
+
+            Proto_GreyboxViewPresenterRegistry.Ensure();
         }
     }
 }

@@ -106,6 +106,7 @@ namespace HillNGun.Proto.Greybox
         Proto_GreyboxRunResult _runResult = Proto_GreyboxRunResult.Playing;
         float _hitFlashTimer;
         bool _debugTogglePrev;
+        bool _viewModeApplied;
 
         public Proto_GreyboxPlayerMotor Motor => _motor;
         public Proto_GreyboxRoll Roll => _roll;
@@ -128,8 +129,57 @@ namespace HillNGun.Proto.Greybox
         public Proto_GreyboxRunResult RunResult => _runResult;
         public bool IsPaused { get; private set; }
         public bool PlayerHitFlashActive => _hitFlashTimer > 0f;
+        public Proto_GreyboxViewMode ViewMode => Proto_GreyboxViewModeState.Current;
 
         public void NotifyMoveZoneChanged() => _westSkin?.RebuildMoveBoundary();
+
+        public void SetViewMode(Proto_GreyboxViewMode mode, bool persist = true)
+        {
+            EnsureLogic();
+            Proto_GreyboxViewModeState.SetMode(mode, persist);
+            _tuning.View3D = mode == Proto_GreyboxViewMode.View3D;
+            ApplyViewMode();
+        }
+
+        void ApplyViewMode()
+        {
+            bool threeD = Proto_GreyboxViewModeState.Is3D;
+            var presenter = Proto_GreyboxViewPresenterRegistry.Ensure();
+            Proto_GreyboxWorld2DVisibility.SetWorldVisible(!threeD);
+            var cam2d = Proto_GreyboxWorld2DVisibility.Find2DWorldCamera();
+            if (cam2d != null)
+            {
+                cam2d.enabled = !threeD;
+                if (!threeD)
+                {
+                    cam2d.tag = "MainCamera";
+                    cam2d.GetComponent<Proto_GreyboxCameraSetup>()?.Apply();
+                }
+                else
+                    cam2d.tag = "Untagged";
+            }
+
+            presenter?.SetActive(threeD, this);
+            var hud = GameObject.Find("Greybox_Hud");
+            var canvas = hud != null ? hud.GetComponent<Canvas>() : null;
+            if (canvas != null && canvas.renderMode == RenderMode.ScreenSpaceCamera)
+            {
+                var worldCam = threeD && presenter?.WorldCamera != null ? presenter.WorldCamera : cam2d;
+                if (worldCam != null)
+                    canvas.worldCamera = worldCam;
+            }
+
+            _viewModeApplied = true;
+            if (threeD)
+                presenter?.Sync(this);
+        }
+
+        void SyncViewPresenter()
+        {
+            if (!Proto_GreyboxViewModeState.Is3D)
+                return;
+            Proto_GreyboxViewPresenterRegistry.Ensure()?.Sync(this);
+        }
 
         public void SetWestPixelSkin(bool enabled)
         {
@@ -197,6 +247,8 @@ namespace HillNGun.Proto.Greybox
             _baseColor = _sprite != null ? _sprite.color : Color.white;
             var foot = new Vector2(transform.position.x, transform.position.y);
             Proto_GreyboxBulletSpeedPrefs.LoadInto(_tuning);
+            Proto_GreyboxViewModeState.EnsureLoaded();
+            _tuning.View3D = Proto_GreyboxViewModeState.Is3D;
             _hearts.Configure(_tuning.PlayerMaxHp, _tuning.HeartRegenSec);
             _rollDizzy.ApplyRuntime(_tuning);
             _hp = _hearts.Hearts;
@@ -210,6 +262,8 @@ namespace HillNGun.Proto.Greybox
             CacheHudRefs();
             CacheCrosshair();
             EnsureDebugUi();
+            if (!_viewModeApplied)
+                ApplyViewMode();
         }
 
         public void SetAimOverride(Vector2 groundPos) => _aimOverride = groundPos;
@@ -498,6 +552,9 @@ namespace HillNGun.Proto.Greybox
             _hearts.Tick(dt, _tuning.HeartRegenSec);
             _hp = _hearts.Hearts;
             CheckRunEnd();
+            SyncViewPresenter();
+            if (Proto_GreyboxViewModeState.Is3D)
+                Proto_GreyboxWorld2DVisibility.SetWorldVisible(false);
 
             if (Input.GetKeyDown(KeyCode.T))
                 FireDebugBullet();

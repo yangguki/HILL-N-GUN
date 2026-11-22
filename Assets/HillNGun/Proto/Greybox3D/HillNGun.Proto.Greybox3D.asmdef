@@ -1,0 +1,16 @@
+{
+    "name": "HillNGun.Proto.Greybox3D",
+    "rootNamespace": "HillNGun.Proto.Greybox3D",
+    "references": [
+        "HillNGun.Proto.Greybox"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

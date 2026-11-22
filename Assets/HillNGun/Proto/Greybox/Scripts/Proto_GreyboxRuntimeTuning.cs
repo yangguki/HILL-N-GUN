@@ -37,6 +37,7 @@ namespace HillNGun.Proto.Greybox
         public bool PerspectiveDepth = Proto_GreyboxPerspectiveDepth.DefaultEnabled;
         public bool PlayerPerspective = Proto_GreyboxPerspectiveDepth.DefaultPlayerPerspectiveEnabled;
         public bool PlayerDepthMove = Proto_GreyboxPerspectiveDepth.DefaultPlayerDepthMoveEnabled;
+        public bool View3D;
         public float PlayerHeightTopPercent = Proto_GreyboxPerspectiveDepth.DefaultPlayerHeightFarPercent;
         public float PlayerHeightBottomPercent = Proto_GreyboxPerspectiveDepth.DefaultPlayerHeightNearPercent;
 

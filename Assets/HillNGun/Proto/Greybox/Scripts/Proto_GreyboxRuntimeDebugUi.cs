@@ -133,6 +133,11 @@ namespace HillNGun.Proto.Greybox
                 _tuning.AimAngularCapDegPerSec, v => _tuning.AimAngularCapDegPerSec = v);
             AddSliderRow(_panelRoot.transform, ref y, "Aim fine-aim exponent", 1f, 2.5f, _tuning.AimFineAimExponent,
                 v => _tuning.AimFineAimExponent = v);
+            AddToggleRow(_panelRoot.transform, ref y, "View: 2D / 3D", _tuning.View3D, v =>
+            {
+                _tuning.View3D = v;
+                _controller?.SetViewMode(v ? Proto_GreyboxViewMode.View3D : Proto_GreyboxViewMode.View2D);
+            });
             AddToggleRow(_panelRoot.transform, ref y, "West pixel skin", _tuning.WestPixelSkin, v =>
             {
                 _tuning.WestPixelSkin = v;
