@@ -12,18 +12,24 @@ namespace HillNGun.Proto.Greybox
         public const float PauseHitY1 = 9.2f;
         public const float ResumeHitX0 = 38f;
         public const float ResumeHitX1 = 62f;
-        public const float ResumeHitY0 = 52f;
-        public const float ResumeHitY1 = 58f;
+        public const float ResumeHitY0 = 56f;
+        public const float ResumeHitY1 = 62f;
         public const float PauseSettingsHitX0 = 38f;
         public const float PauseSettingsHitX1 = 62f;
-        public const float PauseSettingsHitY0 = 61f;
-        public const float PauseSettingsHitY1 = 67f;
+        public const float PauseSettingsHitY0 = 64f;
+        public const float PauseSettingsHitY1 = 70f;
         public const float PauseRestartHitX0 = 38f;
         public const float PauseRestartHitX1 = 62f;
-        public const float PauseRestartHitY0 = 70f;
-        public const float PauseRestartHitY1 = 76f;
+        public const float PauseRestartHitY0 = 72f;
+        public const float PauseRestartHitY1 = 78f;
+        public const float ViewToggleHitX0 = 32f;
+        public const float ViewToggleHitX1 = 68f;
+        public const float ViewToggleHitY0 = 45f;
+        public const float ViewToggleHitY1 = 54f;
 
         GameObject _root;
+        Text _viewLabel;
+        Image _viewPlate;
 
         public bool IsBuilt => _root != null;
         public bool IsVisible => _root != null && _root.activeSelf;
@@ -55,7 +61,7 @@ namespace HillNGun.Proto.Greybox
 
             PlaceImage(_root.transform, "Greybox_PauseDim", 0f, 0f, 100f, 100f,
                 new Color(0.04f, 0.05f, 0.07f, 0.62f));
-            PlaceImage(_root.transform, "Greybox_PauseCard", 30f, 32f, 70f, 68f,
+            PlaceImage(_root.transform, "Greybox_PauseCard", 28f, 28f, 72f, 82f,
                 new Color(16f / 255f, 18f / 255f, 26f / 255f, 0.94f));
 
             string title = hangul ? "일시정지" : "PAUSED";
@@ -63,8 +69,12 @@ namespace HillNGun.Proto.Greybox
             string settings = hangul ? "설정" : "SETTINGS";
             string restart = hangul ? "다시하기" : "RESTART";
 
-            PlaceText(_root.transform, "Greybox_PauseTitle", 32f, 36f, 68f, 44f, font, 28,
+            PlaceText(_root.transform, "Greybox_PauseTitle", 32f, 32f, 68f, 42f, font, 28,
                 TextAnchor.MiddleCenter, Color.white, title);
+            _viewPlate = PlaceButtonPlate(_root.transform, "Greybox_PauseViewPlate", ViewToggleHitX0, ViewToggleHitY0,
+                ViewToggleHitX1, ViewToggleHitY1, new Color(0.55f, 0.22f, 0.72f, 0.95f));
+            _viewLabel = PlaceText(_root.transform, "Greybox_PauseViewLabel", ViewToggleHitX0, ViewToggleHitY0,
+                ViewToggleHitX1, ViewToggleHitY1, font, 24, TextAnchor.MiddleCenter, Color.white, "2D  /  3D");
             PlaceButtonPlate(_root.transform, "Greybox_PauseResumePlate", ResumeHitX0, ResumeHitY0, ResumeHitX1,
                 ResumeHitY1);
             PlaceText(_root.transform, "Greybox_PauseResumeLabel", ResumeHitX0, ResumeHitY0, ResumeHitX1,
@@ -93,7 +103,10 @@ namespace HillNGun.Proto.Greybox
             if (_root == null) return;
             _root.SetActive(visible);
             if (visible)
+            {
+                RefreshViewToggle(Proto_GreyboxViewModeState.Is3D);
                 _root.transform.SetAsLastSibling();
+            }
         }
 
         public static bool IsPauseToggleHit(float xPct, float yPct) =>
@@ -130,7 +143,8 @@ namespace HillNGun.Proto.Greybox
             img.raycastTarget = false;
         }
 
-        static void PlaceButtonPlate(Transform parent, string name, float x0, float y0, float x1, float y1)
+        static Image PlaceButtonPlate(Transform parent, string name, float x0, float y0, float x1, float y1,
+            Color? color = null)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
@@ -138,8 +152,22 @@ namespace HillNGun.Proto.Greybox
             Proto_GreyboxHudBuilder.ApplyRect(rt, x0, y0, x1, y1);
             var img = go.AddComponent<Image>();
             img.sprite = Proto_GreyboxSpriteUtil.WhiteSprite;
-            img.color = new Color(0.22f, 0.45f, 0.72f, 0.85f);
+            img.color = color ?? new Color(0.22f, 0.45f, 0.72f, 0.85f);
             img.raycastTarget = false;
+            return img;
+        }
+
+        public static bool IsViewToggleHit(float xPct, float yPct) =>
+            xPct >= ViewToggleHitX0 && xPct <= ViewToggleHitX1 && yPct >= ViewToggleHitY0 && yPct <= ViewToggleHitY1;
+
+        public void RefreshViewToggle(bool is3D)
+        {
+            if (_viewLabel != null)
+                _viewLabel.text = is3D ? "View:  3D" : "View:  2D";
+            if (_viewPlate != null)
+                _viewPlate.color = is3D
+                    ? new Color(0.55f, 0.22f, 0.72f, 0.95f)
+                    : new Color(0.22f, 0.45f, 0.72f, 0.95f);
         }
 
         static Text PlaceText(Transform parent, string name, float x0, float y0, float x1, float y1, Font font,

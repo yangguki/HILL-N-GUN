@@ -182,8 +182,8 @@ namespace HillNGun.Proto.Greybox3D
             AddPart(root, PrimitiveType.Cylinder, new Vector3(0f, 0.52f, 0f), new Vector3(0.44f, 0.28f, 0.38f), shirt);
             AddPart(root, PrimitiveType.Sphere, new Vector3(0f, 0.92f, 0.02f), new Vector3(0.36f, 0.36f, 0.34f), HeroFace);
             AddPart(root, PrimitiveType.Cube, new Vector3(0f, 0.78f, 0.14f), new Vector3(0.28f, 0.07f, 0.06f), scarf);
-            AddPart(root, PrimitiveType.Cylinder, new Vector3(0f, 1.12f, 0f), new Vector3(0.42f, 0.16f, 0.42f), hat);
-            AddPart(root, PrimitiveType.Cylinder, new Vector3(0f, 1.00f, 0f), new Vector3(0.85f, 0.035f, 0.85f), hat);
+            AddPart(root, PrimitiveType.Cylinder, new Vector3(0f, 1.12f, 0f), new Vector3(0.30f, 0.12f, 0.30f), hat);
+            AddPart(root, PrimitiveType.Cylinder, new Vector3(0f, 1.00f, 0f), new Vector3(0.52f, 0.022f, 0.52f), hat);
             AddPart(root, PrimitiveType.Cube, new Vector3(0.28f, 0.42f, 0.16f), new Vector3(0.08f, 0.05f, 0.28f),
                 new Color(0.18f, 0.18f, 0.20f));
             return root;
@@ -217,11 +217,11 @@ namespace HillNGun.Proto.Greybox3D
                 SnapUpright(hatRoot, head.position + Vector3.up * 0.08f);
                 SetWorldScale(hatRoot, Vector3.one);
                 AddPrimitive(hatRoot, PrimitiveType.Cylinder, new Vector3(0f, 0.10f, 0f),
-                    new Vector3(0.38f, 0.10f, 0.38f), hat);          // crown
+                    new Vector3(0.28f, 0.085f, 0.28f), hat);          // crown
                 AddPrimitive(hatRoot, PrimitiveType.Cylinder, new Vector3(0f, 0.02f, 0f),
-                    new Vector3(0.72f, 0.022f, 0.72f), hatLight);    // wide brim (not a platter)
+                    new Vector3(0.48f, 0.016f, 0.48f), hatLight);    // wide brim (not a platter)
                 AddPrimitive(hatRoot, PrimitiveType.Cylinder, new Vector3(0f, 0.045f, 0f),
-                    new Vector3(0.40f, 0.018f, 0.40f), scarf);       // red band
+                    new Vector3(0.30f, 0.016f, 0.30f), scarf);       // red band
 
                 // Dark brown hair so the back of the head isn't a bald flesh oval.
                 var hair = NewPart(head, "DressHair");

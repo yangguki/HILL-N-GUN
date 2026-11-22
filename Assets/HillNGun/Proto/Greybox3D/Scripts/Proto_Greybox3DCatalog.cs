@@ -5,6 +5,11 @@ namespace HillNGun.Proto.Greybox3D
     /// <summary>Runtime references to imported CC0 models, filled by the editor catalog builder.</summary>
     public sealed class Proto_Greybox3DCatalog : ScriptableObject
     {
+        static Proto_Greybox3DCatalog()
+        {
+            Proto_Greybox3DViewBootstrap.Register();
+        }
+
         public const string ResourcesPath = "HillNGunGreybox3D/Catalog";
 
         public GameObject CowboyMale;

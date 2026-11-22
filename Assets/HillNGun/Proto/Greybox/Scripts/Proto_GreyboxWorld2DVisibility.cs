@@ -58,10 +58,13 @@ namespace HillNGun.Proto.Greybox
 
         public static Camera Find2DWorldCamera()
         {
-            var stageBuilder = Object.FindFirstObjectByType<Proto_GreyboxStageBuilder>();
-            if (stageBuilder != null)
+            // Never pick the 3D camera: ViewRoot is parented under the stage builder,
+            // so GetComponentInChildren<Camera> can return it after a 3D switch.
+            var setups = Object.FindObjectsByType<Proto_GreyboxCameraSetup>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var setup in setups)
             {
-                var cam = stageBuilder.GetComponentInChildren<Camera>(true);
+                var cam = setup.GetComponent<Camera>();
                 if (cam != null)
                     return cam;
             }
@@ -69,7 +72,7 @@ namespace HillNGun.Proto.Greybox
             var main = Camera.main;
             if (main != null && main.GetComponent<Proto_GreyboxCameraSetup>() != null)
                 return main;
-            return Object.FindFirstObjectByType<Proto_GreyboxCameraSetup>()?.GetComponent<Camera>();
+            return null;
         }
     }
 }

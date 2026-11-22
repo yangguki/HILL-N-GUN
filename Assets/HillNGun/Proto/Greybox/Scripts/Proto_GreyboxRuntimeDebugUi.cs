@@ -12,6 +12,7 @@ namespace HillNGun.Proto.Greybox
 
         public bool IsOpen { get; private set; }
         static string s_faultLine;
+        public static string LastFaultLine => s_faultLine;
         Text _faultLabel;
 
         public static void SetFaultLine(string message)
@@ -19,6 +20,58 @@ namespace HillNGun.Proto.Greybox
             s_faultLine = message;
             var ui = Object.FindFirstObjectByType<Proto_GreyboxRuntimeDebugUi>(FindObjectsInactive.Include);
             ui?.RefreshFaultLabel();
+            ShowHudBanner(message);
+        }
+
+        static void ShowHudBanner(string message)
+        {
+            const string name = "Greybox_ViewFaultBanner";
+            var existing = GameObject.Find(name);
+            if (string.IsNullOrEmpty(message))
+            {
+                if (existing != null)
+                    UnityEngine.Object.Destroy(existing);
+                return;
+            }
+
+            Text label = null;
+            if (existing == null)
+            {
+                var hud = GameObject.Find("Greybox_Hud");
+                var parent = hud != null ? hud.transform : null;
+                if (parent == null) return;
+                var go = new GameObject(name);
+                go.transform.SetParent(parent, false);
+                var rt = go.AddComponent<RectTransform>();
+                Proto_GreyboxHudBuilder.ApplyRect(rt, 6f, 18f, 94f, 32f);
+                var img = go.AddComponent<Image>();
+                img.sprite = Proto_GreyboxSpriteUtil.WhiteSprite;
+                img.color = new Color(0.55f, 0.08f, 0.08f, 0.88f);
+                img.raycastTarget = false;
+                var tgo = new GameObject("Label");
+                tgo.transform.SetParent(go.transform, false);
+                var trt = tgo.AddComponent<RectTransform>();
+                trt.anchorMin = Vector2.zero;
+                trt.anchorMax = Vector2.one;
+                trt.offsetMin = new Vector2(10f, 4f);
+                trt.offsetMax = new Vector2(-10f, -4f);
+                label = tgo.AddComponent<Text>();
+                label.font = Proto_GreyboxHudBuilder.GetUiFont(out _);
+                label.fontSize = 18;
+                label.alignment = TextAnchor.MiddleCenter;
+                label.color = Color.white;
+                label.horizontalOverflow = HorizontalWrapMode.Wrap;
+                label.verticalOverflow = VerticalWrapMode.Overflow;
+                label.raycastTarget = false;
+                label.supportRichText = false;
+            }
+            else
+                label = existing.GetComponentInChildren<Text>(true);
+
+            if (label != null)
+                label.text = message;
+            if (existing != null)
+                existing.transform.SetAsLastSibling();
         }
 
         void RefreshFaultLabel()

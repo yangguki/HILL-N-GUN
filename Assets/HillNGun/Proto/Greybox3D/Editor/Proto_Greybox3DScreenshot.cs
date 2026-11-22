@@ -255,6 +255,44 @@ namespace HillNGun.Proto.Greybox3D.Editor
             EditorApplication.Exit(0);
         }
 
+        public static void Capture3dDCombat()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D D combat: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+            Capture3dDCombatOn(controller);
+            EditorApplication.Exit(0);
+        }
+
+        static void Capture3dDCombatOn(Proto_GreyboxPlayerController controller)
+        {
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 0.55f;
+            controller.RuntimeTuning.Wave1Count = 6;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 200; i++)
+            {
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = i % 4 != 0 }, dt);
+                if (i % 25 == 0) controller.ResetHp();
+            }
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            controller.PoseAimStickDrag(new Vector2(0.4f, 4.8f));
+            controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            Canvas.ForceUpdateCanvases();
+            var tex = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(tex, "v4_greybox/3d_d_combat.png");
+            Object.DestroyImmediate(tex);
+        }
+
         static void Capture3dCCombatOn(Proto_GreyboxPlayerController controller)
         {
             const float dt = 0.02f;

@@ -147,6 +147,49 @@ namespace HillNGun.Proto.Greybox
         {
             bool threeD = Proto_GreyboxViewModeState.Is3D;
             var presenter = Proto_GreyboxViewPresenterRegistry.Ensure();
+            if (threeD && presenter == null)
+            {
+                Proto_GreyboxRuntimeDebugUi.SetFaultLine(
+                    "3D view failed to start (no presenter factory). Staying in 2D.");
+                threeD = false;
+                _tuning.View3D = false;
+                Proto_GreyboxViewModeState.SetMode(Proto_GreyboxViewMode.View2D, persist: false);
+            }
+
+            ApplyWorldVisibility(threeD, presenter);
+
+            if (threeD)
+            {
+                try
+                {
+                    presenter.SetActive(true, this);
+                    if (presenter.WorldCamera == null)
+                        throw new System.InvalidOperationException("3D camera was not created.");
+                    presenter.Sync(this);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("Greybox ApplyViewMode 3D failed: " + e);
+                    Proto_GreyboxRuntimeDebugUi.SetFaultLine("3D view error: " + e.GetType().Name + ": " + e.Message);
+                    threeD = false;
+                    _tuning.View3D = false;
+                    Proto_GreyboxViewModeState.SetMode(Proto_GreyboxViewMode.View2D, persist: false);
+                    try { presenter.SetActive(false, this); }
+                    catch (System.Exception hide) { Debug.LogError(hide); }
+                    ApplyWorldVisibility(false, presenter);
+                }
+            }
+            else
+            {
+                try { presenter?.SetActive(false, this); }
+                catch (System.Exception e) { Debug.LogError("Greybox ApplyViewMode 2D presenter hide failed: " + e); }
+            }
+
+            _viewModeApplied = true;
+        }
+
+        void ApplyWorldVisibility(bool threeD, IProto_GreyboxViewPresenter presenter)
+        {
             Proto_GreyboxWorld2DVisibility.SetWorldVisible(!threeD);
             var cam2d = Proto_GreyboxWorld2DVisibility.Find2DWorldCamera();
             if (cam2d != null)
@@ -161,14 +204,6 @@ namespace HillNGun.Proto.Greybox
                     cam2d.tag = "Untagged";
             }
 
-            try
-            {
-                presenter?.SetActive(threeD, this);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError("Greybox ApplyViewMode presenter.SetActive failed: " + e);
-            }
             var hud = GameObject.Find("Greybox_Hud");
             var canvas = hud != null ? hud.GetComponent<Canvas>() : null;
             if (canvas != null && canvas.renderMode == RenderMode.ScreenSpaceCamera)
@@ -177,13 +212,16 @@ namespace HillNGun.Proto.Greybox
                 if (worldCam != null)
                     canvas.worldCamera = worldCam;
             }
+        }
 
-            _viewModeApplied = true;
-            if (threeD)
-            {
-                try { presenter?.Sync(this); }
-                catch (System.Exception e) { Debug.LogError("Greybox ApplyViewMode presenter.Sync failed: " + e); }
-            }
+        public void ToggleViewMode()
+        {
+            var next = Proto_GreyboxViewModeState.Is3D
+                ? Proto_GreyboxViewMode.View2D
+                : Proto_GreyboxViewMode.View3D;
+            SetViewMode(next, persist: true);
+            _pauseUi?.RefreshViewToggle(Proto_GreyboxViewModeState.Is3D);
+            _settingsUi?.RefreshViewToggle(Proto_GreyboxViewModeState.Is3D);
         }
 
         void SyncViewPresenter()
@@ -1884,12 +1922,16 @@ namespace HillNGun.Proto.Greybox
         {
             if (_settingsUi.IsVisible)
             {
-                if (PollSettingsCloseTap())
+                if (PollSettingsViewToggleTap())
+                    ToggleViewMode();
+                else if (PollSettingsCloseTap())
                     CloseSettings();
             }
-            else if (PollPauseOverlayInput(out bool resume, out bool restart, out bool settings))
+            else if (PollPauseOverlayInput(out bool resume, out bool restart, out bool settings, out bool viewToggle))
             {
-                if (resume)
+                if (viewToggle)
+                    ToggleViewMode();
+                else if (resume)
                     SetPaused(false);
                 else if (settings)
                     OpenSettings(false);
@@ -1916,16 +1958,23 @@ namespace HillNGun.Proto.Greybox
             return false;
         }
 
-        bool PollPauseOverlayInput(out bool resume, out bool restart, out bool settings)
+        bool PollPauseOverlayInput(out bool resume, out bool restart, out bool settings, out bool viewToggle)
         {
             resume = false;
             restart = false;
             settings = false;
+            viewToggle = false;
             int n = GatherPointers(_pointerBuf);
             for (int i = 0; i < n; i++)
             {
                 if (!_pointerBuf[i].Began) continue;
                 PointerPercent(_pointerBuf[i].Pos, out float xPct, out float yPct);
+                if (Proto_GreyboxPauseUi.IsViewToggleHit(xPct, yPct))
+                {
+                    viewToggle = true;
+                    return true;
+                }
+
                 if (Proto_GreyboxPauseUi.IsResumeHit(xPct, yPct))
                 {
                     resume = true;
@@ -1943,6 +1992,20 @@ namespace HillNGun.Proto.Greybox
                     restart = true;
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        bool PollSettingsViewToggleTap()
+        {
+            int n = GatherPointers(_pointerBuf);
+            for (int i = 0; i < n; i++)
+            {
+                if (!_pointerBuf[i].Began) continue;
+                PointerPercent(_pointerBuf[i].Pos, out float xPct, out float yPct);
+                if (_settingsUi.IsViewToggleHit(xPct, yPct))
+                    return true;
             }
 
             return false;

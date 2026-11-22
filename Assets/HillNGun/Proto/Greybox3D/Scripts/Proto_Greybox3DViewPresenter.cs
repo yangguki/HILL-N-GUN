@@ -167,8 +167,8 @@ namespace HillNGun.Proto.Greybox3D
         {
             // Raised, wider framing: player bottom-center, fence + enemy row readable, sky band on top.
             // Just above hat height, behind the hero, nearly level so the hat brim reads.
-            var desired = new Vector3(heroPos.x * 0.05f, 2.05f, heroPos.z - 4.35f);
-            var lookAt = heroPos + new Vector3(0f, 1.35f, 8.6f);
+            var desired = new Vector3(heroPos.x * 0.05f, 3.05f, heroPos.z - 5.35f);
+            var lookAt = heroPos + new Vector3(0f, 1.15f, 9.2f);
             var lookRot = Quaternion.LookRotation(lookAt - desired, Vector3.up);
             if (!Application.isPlaying)
             {

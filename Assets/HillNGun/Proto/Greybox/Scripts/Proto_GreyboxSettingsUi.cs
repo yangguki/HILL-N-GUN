@@ -12,14 +12,20 @@ namespace HillNGun.Proto.Greybox
         public const float BulletSpeedNudge = 0.5f;
         public const float CloseHitX0 = 38f;
         public const float CloseHitX1 = 62f;
-        public const float CloseHitY0 = 68f;
-        public const float CloseHitY1 = 74f;
+        public const float CloseHitY0 = 70f;
+        public const float CloseHitY1 = 76f;
+        public const float ViewToggleHitX0 = 32f;
+        public const float ViewToggleHitX1 = 68f;
+        public const float ViewToggleHitY0 = 62f;
+        public const float ViewToggleHitY1 = 69f;
 
         GameObject _root;
         Slider _allySlider;
         Slider _enemySlider;
         Text _allyValue;
         Text _enemyValue;
+        Text _viewLabel;
+        Image _viewPlate;
         Proto_GreyboxRuntimeTuning _tuning;
         Action _onClose;
 
@@ -36,6 +42,8 @@ namespace HillNGun.Proto.Greybox
             _root = null;
             _allySlider = null;
             _enemySlider = null;
+            _viewLabel = null;
+            _viewPlate = null;
         }
 
         public void Ensure(Transform canvasTransform, Proto_GreyboxRuntimeTuning tuning, Action onClose)
@@ -58,7 +66,7 @@ namespace HillNGun.Proto.Greybox
             StretchFull(rootRt);
             PlaceImage(_root.transform, "Greybox_SettingsDim", 0f, 0f, 100f, 100f,
                 new Color(0.04f, 0.05f, 0.07f, 0.55f));
-            PlaceImage(_root.transform, "Greybox_SettingsCard", 26f, 24f, 74f, 76f,
+            PlaceImage(_root.transform, "Greybox_SettingsCard", 24f, 20f, 76f, 80f,
                 new Color(16f / 255f, 18f / 255f, 26f / 255f, 0.96f));
 
             string title = hangul ? "설정" : "SETTINGS";
@@ -74,6 +82,11 @@ namespace HillNGun.Proto.Greybox
             BuildSliderRow(_root.transform, "EnemyRow", 32f, 52f, 68f, 61f, enemyLabel, font,
                 BulletSpeedMin, BulletSpeedMax, out _enemySlider, out _enemyValue, v => ApplyEnemy(v),
                 () => NudgeEnemy(BulletSpeedNudge), () => NudgeEnemy(-BulletSpeedNudge));
+            _viewPlate = PlaceButtonPlate(_root.transform, "Greybox_SettingsViewPlate", ViewToggleHitX0,
+                ViewToggleHitY0, ViewToggleHitX1, ViewToggleHitY1, true,
+                new Color(0.55f, 0.22f, 0.72f, 0.95f));
+            _viewLabel = PlaceText(_root.transform, "Greybox_SettingsViewLabel", ViewToggleHitX0, ViewToggleHitY0,
+                ViewToggleHitX1, ViewToggleHitY1, font, 22, TextAnchor.MiddleCenter, Color.white, "2D  /  3D");
             PlaceButtonPlate(_root.transform, "Greybox_SettingsClosePlate", CloseHitX0, CloseHitY0, CloseHitX1,
                 CloseHitY1, true);
             PlaceText(_root.transform, "Greybox_SettingsCloseLabel", CloseHitX0, CloseHitY0, CloseHitX1,
@@ -154,6 +167,7 @@ namespace HillNGun.Proto.Greybox
             {
                 Proto_GreyboxUiEventSystem.Ensure();
                 SyncSlidersFromTuning();
+                RefreshViewToggle(Proto_GreyboxViewModeState.Is3D);
                 _root.transform.SetAsLastSibling();
             }
         }
@@ -301,8 +315,8 @@ namespace HillNGun.Proto.Greybox
             img.raycastTarget = false;
         }
 
-        static void PlaceButtonPlate(Transform parent, string name, float x0, float y0, float x1, float y1,
-            bool raycast)
+        static Image PlaceButtonPlate(Transform parent, string name, float x0, float y0, float x1, float y1,
+            bool raycast, Color? color = null)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
@@ -310,8 +324,22 @@ namespace HillNGun.Proto.Greybox
             Proto_GreyboxHudBuilder.ApplyRect(rt, x0, y0, x1, y1);
             var img = go.AddComponent<Image>();
             img.sprite = Proto_GreyboxSpriteUtil.WhiteSprite;
-            img.color = new Color(0.22f, 0.45f, 0.72f, 0.85f);
+            img.color = color ?? new Color(0.22f, 0.45f, 0.72f, 0.85f);
             img.raycastTarget = raycast;
+            return img;
+        }
+
+        public bool IsViewToggleHit(float xPct, float yPct) =>
+            xPct >= ViewToggleHitX0 && xPct <= ViewToggleHitX1 && yPct >= ViewToggleHitY0 && yPct <= ViewToggleHitY1;
+
+        public void RefreshViewToggle(bool is3D)
+        {
+            if (_viewLabel != null)
+                _viewLabel.text = is3D ? "View:  3D" : "View:  2D";
+            if (_viewPlate != null)
+                _viewPlate.color = is3D
+                    ? new Color(0.55f, 0.22f, 0.72f, 0.95f)
+                    : new Color(0.22f, 0.45f, 0.72f, 0.95f);
         }
 
         static Text PlaceText(Transform parent, string name, float x0, float y0, float x1, float y1, Font font,

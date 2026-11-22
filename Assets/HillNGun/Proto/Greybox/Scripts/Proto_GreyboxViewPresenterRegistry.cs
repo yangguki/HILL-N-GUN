@@ -24,5 +24,11 @@ namespace HillNGun.Proto.Greybox
         {
             s_instance = null;
         }
+
+        public static void ClearFactoryForTests()
+        {
+            s_factory = null;
+            s_instance = null;
+        }
     }
 }
