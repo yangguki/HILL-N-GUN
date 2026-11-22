@@ -115,6 +115,8 @@ namespace HillNGun.Proto.Greybox
         public Proto_GreyboxRollDizzy RollDizzy => _rollDizzy;
         public Proto_GreyboxPlayerHearts Hearts => _hearts;
         public Proto_GreyboxGrenade Grenade => _grenade;
+        public bool GrenadeAimPreviewActive => _grenadeStickActive && _grenade != null && _grenade.CanThrow(_simTime);
+        public Vector2 GrenadePreviewLanding => _grenadePreviewLanding;
         public Proto_GreyboxCover Cover => _cover;
         public Proto_GreyboxRuntimeTuning RuntimeTuning => _tuning;
         public Proto_GreyboxWaveDirector WaveDirector => _waveDirector;

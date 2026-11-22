@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c4d784e2cabc42b6b94000d432f48ba, type: 3}
+  m_Name: Catalog
+  m_EditorClassIdentifier: 
+  CowboyMale: {fileID: 7411000752716441607, guid: a65a1baffb34149cc918b53c75e1758d, type: 3}
+  CowboyIdle: {fileID: 9061338213343248790, guid: dcf2710dff0244c1aaa93bcb68db6c9e, type: 3}
+  CowboyWalk: {fileID: -5599002979973759676, guid: dcf2710dff0244c1aaa93bcb68db6c9e, type: 3}
+  CowboyShoot: {fileID: -5307234019925579384, guid: dcf2710dff0244c1aaa93bcb68db6c9e, type: 3}
+  CowboyHit: {fileID: -4856542728082765067, guid: dcf2710dff0244c1aaa93bcb68db6c9e, type: 3}
+  CowboyPunch: {fileID: -4592842328519117816, guid: dcf2710dff0244c1aaa93bcb68db6c9e, type: 3}
+  CactusShort: {fileID: 919132149155446097, guid: 24cfae073d3da4526b0e06e862156305, type: 3}
+  CactusTall: {fileID: 919132149155446097, guid: 184bf0378ca0d49aa8051adc6948778a, type: 3}
+  Grass: {fileID: 919132149155446097, guid: fd01df24b4e7e42df958bc54921e559f, type: 3}
+  GrassLarge: {fileID: 919132149155446097, guid: ad0accdf8541946f5a8cf0e77a581641, type: 3}
+  GrassLeafs: {fileID: 919132149155446097, guid: c9ed54825b6874deead730199adc8755, type: 3}
+  RockSmallA: {fileID: 919132149155446097, guid: f048fbc132697428baef698732eab298, type: 3}
+  RockSmallB: {fileID: 919132149155446097, guid: 783050e57d3ec41a4928150d91fd336d, type: 3}
+  RockSmallC: {fileID: 919132149155446097, guid: c069b23f0eb754d28ad056f7425a6099, type: 3}
+  RockTallA: {fileID: 919132149155446097, guid: adcf18ea8ee2a498c9ff99e614e372d4, type: 3}
+  RockTallB: {fileID: 919132149155446097, guid: 8e77f7b97aa134873b478af556c789a9, type: 3}
+  RockLargeA: {fileID: 919132149155446097, guid: 4a363fde3b5a44fc6b9b36e776c58a6e, type: 3}
+  CliffBlock: {fileID: 919132149155446097, guid: 022eceddd6acb4f47b7dca278092fc96, type: 3}
+  CliffLarge: {fileID: 919132149155446097, guid: 9d119dc0baafd40ca81ea9879400de5d, type: 3}
+  CliffTop: {fileID: 919132149155446097, guid: 95799731a63e44a1987bd859f5de57a7, type: 3}
+  Barrel: {fileID: 919132149155446097, guid: fd6359739429c460d9cc9cdaef71f01f, type: 3}
+  Crate: {fileID: 919132149155446097, guid: 3a3d1a86b19284d0ba4997c984b1700e, type: 3}
+  CrateLarge: {fileID: 919132149155446097, guid: e0e5de2f1927d4080a55ac45667d7f73, type: 3}
+  Fence: {fileID: 919132149155446097, guid: 0dea6608b980b4321ba68f28921a89c2, type: 3}
+  FenceDoorway: {fileID: 919132149155446097, guid: e63a4d6b4dfc7456c8ee6faa879645a0, type: 3}
+  PatchGrass: {fileID: 919132149155446097, guid: 6c610c9a4d1bd45d186b814fb7d2d91e, type: 3}
+  RockSandA: {fileID: 919132149155446097, guid: 68156337a2de0482b8be949c82897d33, type: 3}
+  RockSandB: {fileID: 919132149155446097, guid: 6344e39277b9d401ab392a5a879c093b, type: 3}
+  WesternObjects: {fileID: 919132149155446097, guid: cc9bb59fc9f1645c699e46c12a2cff96, type: 3}
+  WoodTex: {fileID: 2800000, guid: 9b4fdf5d4d4fa4963a5876881ade189d, type: 3}
+  DirtTex: {fileID: 2800000, guid: ffe1ea4440af94730a4c4e66f10fb4d7, type: 3}
+  FabricTex: {fileID: 2800000, guid: a9ef29778ea334b42892e9bee81e5ce0, type: 3}
+  SkyboxDay: {fileID: 2800000, guid: 1736f84276f48409688aa41f00b5035e, type: 3}
