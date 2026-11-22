@@ -20,23 +20,44 @@ namespace HillNGun.Proto.Greybox3D
         static Material s_ring;
         static Material s_sky;
 
-        static Shader CelShader =>
-            s_cel != null ? s_cel : (s_cel = Shader.Find("HillNGun/Proto/Greybox3D/Cel") ?? Shader.Find("VertexLit"));
+        public static void BindFromCatalog(Proto_Greybox3DCatalog cat)
+        {
+            if (cat == null) return;
+            if (cat.CelShader != null) s_cel = cat.CelShader;
+            if (cat.GlowShader != null) s_glow = cat.GlowShader;
+            if (cat.BlobShader != null) s_blobShader = cat.BlobShader;
+            if (cat.SkyShader != null) s_skyShader = cat.SkyShader;
+        }
 
-        static Shader GlowShader =>
-            s_glow != null ? s_glow : (s_glow = Shader.Find("HillNGun/Proto/Greybox3D/Glow") ?? Shader.Find("Unlit/Color"));
+        static Shader Resolve(ref Shader cache, string name, string fallback)
+        {
+            if (cache != null) return cache;
+            var cat = Proto_Greybox3DCatalog.Load();
+            BindFromCatalog(cat);
+            if (cache != null) return cache;
+            cache = Shader.Find(name) ?? Shader.Find(fallback) ?? Shader.Find("UI/Default") ??
+                    Shader.Find("Sprites/Default");
+            return cache;
+        }
 
-        static Shader BlobShader =>
-            s_blobShader != null ? s_blobShader : (s_blobShader = Shader.Find("HillNGun/Proto/Greybox3D/BlobShadow") ?? Shader.Find("Unlit/Color"));
+        static Shader CelShader => Resolve(ref s_cel, "HillNGun/Proto/Greybox3D/Cel", "VertexLit");
+        static Shader GlowShader => Resolve(ref s_glow, "HillNGun/Proto/Greybox3D/Glow", "Unlit/Color");
+        static Shader BlobShader => Resolve(ref s_blobShader, "HillNGun/Proto/Greybox3D/BlobShadow", "Unlit/Color");
+        static Shader SkyShader => Resolve(ref s_skyShader, "HillNGun/Proto/Greybox3D/Sky", "Unlit/Color");
 
-        static Shader SkyShader =>
-            s_skyShader != null ? s_skyShader : (s_skyShader = Shader.Find("HillNGun/Proto/Greybox3D/Sky") ?? Shader.Find("Unlit/Color"));
+        static Material SafeMaterial(Shader shader)
+        {
+            if (shader != null) return new Material(shader);
+            Debug.LogError("Greybox3D: no fallback shader available; custom shaders may have been stripped.");
+            // Last resort: a material Unity can construct without a custom shader asset.
+            return new Material(Shader.Find("UI/Default"));
+        }
 
         public static Material Cel(Color baseColor, Texture tex = null, float outline = 0.016f)
         {
             if (s_celTemplate == null)
             {
-                s_celTemplate = new Material(CelShader);
+                s_celTemplate = SafeMaterial(CelShader);
                 s_celTemplate.enableInstancing = true;
             }
 
@@ -146,7 +167,7 @@ namespace HillNGun.Proto.Greybox3D
             {
                 if (s_blob == null)
                 {
-                    s_blob = new Material(BlobShader);
+                    s_blob = SafeMaterial(BlobShader);
                     if (s_blob.HasProperty("_Color"))
                         s_blob.SetColor("_Color", new Color(0.12f, 0.07f, 0.03f, 0.42f));
                 }
@@ -170,7 +191,7 @@ namespace HillNGun.Proto.Greybox3D
             {
                 if (s_sky == null)
                 {
-                    s_sky = new Material(SkyShader);
+                    s_sky = SafeMaterial(SkyShader);
                     var cat = Proto_Greybox3DCatalog.Load();
                     if (s_sky.HasProperty("_Color"))
                         s_sky.SetColor("_Color", new Color(0.32f, 0.62f, 0.95f));
@@ -190,7 +211,7 @@ namespace HillNGun.Proto.Greybox3D
 
         public static Material Glow(Color color, float intensity)
         {
-            var m = new Material(GlowShader);
+            var m = SafeMaterial(GlowShader);
             if (m.HasProperty("_Color")) m.SetColor("_Color", color);
             if (m.HasProperty("_Intensity")) m.SetFloat("_Intensity", intensity);
             m.color = color;

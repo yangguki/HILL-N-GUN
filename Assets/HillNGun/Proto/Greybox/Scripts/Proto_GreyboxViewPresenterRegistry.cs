@@ -17,7 +17,6 @@ namespace HillNGun.Proto.Greybox
                 return null;
             if (s_instance == null)
                 s_instance = s_factory();
-            s_instance?.EnsureCreated();
             return s_instance;
         }
 

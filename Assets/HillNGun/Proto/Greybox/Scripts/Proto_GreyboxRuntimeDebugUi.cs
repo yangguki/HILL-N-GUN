@@ -11,6 +11,22 @@ namespace HillNGun.Proto.Greybox
         Text _header;
 
         public bool IsOpen { get; private set; }
+        static string s_faultLine;
+        Text _faultLabel;
+
+        public static void SetFaultLine(string message)
+        {
+            s_faultLine = message;
+            var ui = Object.FindFirstObjectByType<Proto_GreyboxRuntimeDebugUi>(FindObjectsInactive.Include);
+            ui?.RefreshFaultLabel();
+        }
+
+        void RefreshFaultLabel()
+        {
+            if (_faultLabel == null) return;
+            _faultLabel.text = string.IsNullOrEmpty(s_faultLine) ? "" : "3D FAULT: " + s_faultLine;
+            _faultLabel.gameObject.SetActive(!string.IsNullOrEmpty(s_faultLine));
+        }
 
         public static Proto_GreyboxRuntimeDebugUi Ensure(Canvas canvas, Proto_GreyboxRuntimeTuning tuning,
             Proto_GreyboxPlayerController controller)
@@ -49,6 +65,11 @@ namespace HillNGun.Proto.Greybox
 
             float y = 1f;
             _header = AddLabel(_panelRoot.transform, "TUNING (F1)", 1f, y, 42f, y + 4f, font, 12);
+            y += 5f;
+            _faultLabel = AddLabel(_panelRoot.transform, "", 1f, y, 42f, y + 8f, font, 10);
+            _faultLabel.color = new Color(1f, 0.45f, 0.3f);
+            _faultLabel.gameObject.SetActive(false);
+            RefreshFaultLabel();
             y += 6f;
 
             AddSliderRow(_panelRoot.transform, ref y, "Move top %", Proto_GreyboxMoveZone.FootYPercentMinSliderMin,

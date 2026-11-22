@@ -44,7 +44,13 @@ namespace HillNGun.Proto.Greybox3D
         public Texture2D FabricTex;
         public Texture2D SkyboxDay;
 
+        public Shader CelShader;
+        public Shader GlowShader;
+        public Shader BlobShader;
+        public Shader SkyShader;
+
         public bool HasCowboy => CowboyMale != null;
+        public bool HasCelShader => CelShader != null;
 
         static Proto_Greybox3DCatalog _cached;
 
@@ -61,6 +67,8 @@ namespace HillNGun.Proto.Greybox3D
             var loaded = Resources.Load<Proto_Greybox3DCatalog>(ResourcesPath);
             if (loaded != null)
                 _cached = loaded;
+            if (_cached != null)
+                Proto_Greybox3DMaterials.BindFromCatalog(_cached);
             return _cached;
         }
     }

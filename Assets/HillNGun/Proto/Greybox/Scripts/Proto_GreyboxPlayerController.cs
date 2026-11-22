@@ -161,7 +161,14 @@ namespace HillNGun.Proto.Greybox
                     cam2d.tag = "Untagged";
             }
 
-            presenter?.SetActive(threeD, this);
+            try
+            {
+                presenter?.SetActive(threeD, this);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Greybox ApplyViewMode presenter.SetActive failed: " + e);
+            }
             var hud = GameObject.Find("Greybox_Hud");
             var canvas = hud != null ? hud.GetComponent<Canvas>() : null;
             if (canvas != null && canvas.renderMode == RenderMode.ScreenSpaceCamera)
@@ -173,7 +180,10 @@ namespace HillNGun.Proto.Greybox
 
             _viewModeApplied = true;
             if (threeD)
-                presenter?.Sync(this);
+            {
+                try { presenter?.Sync(this); }
+                catch (System.Exception e) { Debug.LogError("Greybox ApplyViewMode presenter.Sync failed: " + e); }
+            }
         }
 
         void SyncViewPresenter()

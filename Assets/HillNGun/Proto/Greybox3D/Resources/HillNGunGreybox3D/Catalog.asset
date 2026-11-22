@@ -45,3 +45,7 @@ MonoBehaviour:
   DirtTex: {fileID: 2800000, guid: ffe1ea4440af94730a4c4e66f10fb4d7, type: 3}
   FabricTex: {fileID: 2800000, guid: a9ef29778ea334b42892e9bee81e5ce0, type: 3}
   SkyboxDay: {fileID: 2800000, guid: 1736f84276f48409688aa41f00b5035e, type: 3}
+  CelShader: {fileID: 4800000, guid: 5949bb97c83b34721a0af73b5d5b9ddc, type: 3}
+  GlowShader: {fileID: 4800000, guid: 594b43cbe787d4989a690ce846153986, type: 3}
+  BlobShader: {fileID: 4800000, guid: 173097b214ac8441799d7d2e1ae59b8b, type: 3}
+  SkyShader: {fileID: 4800000, guid: cdb5097087ec04c40af9de0df860dadd, type: 3}

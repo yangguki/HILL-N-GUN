@@ -66,6 +66,11 @@ namespace HillNGun.Proto.Greybox3D.Editor
             catalog.SkyboxDay = LoadTex(
                 "Assets/HillNGun/Proto/Greybox3D/ThirdParty/Kenney/Skyboxes/skybox-day.png");
 
+            catalog.CelShader = Shader.Find("HillNGun/Proto/Greybox3D/Cel");
+            catalog.GlowShader = Shader.Find("HillNGun/Proto/Greybox3D/Glow");
+            catalog.BlobShader = Shader.Find("HillNGun/Proto/Greybox3D/BlobShadow");
+            catalog.SkyShader = Shader.Find("HillNGun/Proto/Greybox3D/Sky");
+
             var prefab = EnsureCowboyPrefab(catalog.CowboyMale);
             if (prefab != null)
                 catalog.CowboyMale = prefab;
@@ -75,7 +80,7 @@ namespace HillNGun.Proto.Greybox3D.Editor
             AssetDatabase.Refresh();
             Proto_Greybox3DCatalog.Inject(catalog);
             Debug.Log(
-                $"Greybox3D catalog rebuilt. cowboy={(catalog.CowboyMale != null)} cowboyName={(catalog.CowboyMale != null ? catalog.CowboyMale.name : "null")} idle={(catalog.CowboyIdle != null)} walk={(catalog.CowboyWalk != null)} shoot={(catalog.CowboyShoot != null)} hit={(catalog.CowboyHit != null)} cactus={(catalog.CactusTall != null)} sky={(catalog.SkyboxDay != null)}");
+                $"Greybox3D catalog rebuilt. cowboy={(catalog.CowboyMale != null)} cowboyName={(catalog.CowboyMale != null ? catalog.CowboyMale.name : "null")} idle={(catalog.CowboyIdle != null)} walk={(catalog.CowboyWalk != null)} shoot={(catalog.CowboyShoot != null)} hit={(catalog.CowboyHit != null)} cactus={(catalog.CactusTall != null)} sky={(catalog.SkyboxDay != null)} celShader={(catalog.CelShader != null)}");
         }
 
         public static void BuildAndExit()
