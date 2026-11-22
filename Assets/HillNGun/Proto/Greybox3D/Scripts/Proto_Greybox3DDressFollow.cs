@@ -57,15 +57,19 @@ namespace HillNGun.Proto.Greybox3D
         public void Apply()
         {
             if (_bone == null) return;
+            // Attach() parents to the body so we never inherit the bone's packed scale.
+            // Always snap to the bone; upright pieces keep a level yaw (hat brim).
+            var body = _body != null ? _body : _bone;
+            var pos = _bone.position + body.TransformVector(_up + _fwd + _right);
+            transform.position = pos;
             if (_upright)
             {
-                var body = _body != null ? _body : _bone;
-                var pos = _bone.position + body.TransformVector(_up + _fwd + _right);
-                transform.position = pos;
                 var fwd = Vector3.ProjectOnPlane(body.forward, Vector3.up);
                 if (fwd.sqrMagnitude < 1e-6f) fwd = Vector3.forward;
                 transform.rotation = Quaternion.LookRotation(fwd.normalized, Vector3.up);
             }
+            else if (body != _bone)
+                transform.rotation = _bone.rotation;
             ApplyScaleOnly();
         }
 

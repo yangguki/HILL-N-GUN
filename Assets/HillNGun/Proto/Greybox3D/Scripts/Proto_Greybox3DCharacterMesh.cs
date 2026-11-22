@@ -4,25 +4,31 @@ namespace HillNGun.Proto.Greybox3D
 {
     public static class Proto_Greybox3DCharacterMesh
     {
-        static readonly Color HeroHat = new Color(0.45f, 0.14f, 0.72f);
-        static readonly Color HeroHatLight = new Color(0.58f, 0.22f, 0.85f);
-        static readonly Color HeroShirt = new Color(0.50f, 0.16f, 0.78f);
-        static readonly Color HeroPants = new Color(0.16f, 0.32f, 0.78f);
-        static readonly Color HeroScarf = new Color(0.92f, 0.12f, 0.14f);
-        static readonly Color HeroHair = new Color(0.12f, 0.07f, 0.04f);
-        static readonly Color HeroSkin = new Color(0.92f, 0.74f, 0.58f);
-        static readonly Color HeroFace = new Color(0.96f, 0.80f, 0.64f);
+        static readonly Color HeroHat = new Color(0.48f, 0.12f, 0.78f);
+        static readonly Color HeroHatLight = new Color(0.62f, 0.22f, 0.88f);
+        static readonly Color HeroShirt = new Color(0.55f, 0.16f, 0.82f);
+        static readonly Color HeroPants = new Color(0.16f, 0.38f, 0.82f);
+        static readonly Color HeroScarf = new Color(0.92f, 0.10f, 0.14f);
+        static readonly Color HeroHair = new Color(0.28f, 0.14f, 0.07f);
+        static readonly Color HeroSkin = new Color(0.94f, 0.74f, 0.58f);
+        static readonly Color HeroFace = new Color(0.97f, 0.80f, 0.64f);
+        static readonly Color HeroBoot = new Color(0.36f, 0.18f, 0.08f);
+        static readonly Color Leather = new Color(0.28f, 0.14f, 0.06f);
+        static readonly Color Silver = new Color(0.78f, 0.80f, 0.86f);
+        static readonly Color SilverDark = new Color(0.48f, 0.50f, 0.56f);
 
         static readonly Color GruntHat = new Color(0.42f, 0.28f, 0.14f);
         static readonly Color GruntHatLight = new Color(0.62f, 0.42f, 0.22f);
-        static readonly Color GruntShirt = new Color(0.62f, 0.38f, 0.20f);
-        static readonly Color GruntPants = new Color(0.16f, 0.34f, 0.76f);
-        static readonly Color GruntScarf = new Color(0.90f, 0.12f, 0.14f);
+        static readonly Color GruntShirt = new Color(0.70f, 0.42f, 0.22f);
+        static readonly Color GruntPants = new Color(0.16f, 0.36f, 0.80f);
+        static readonly Color GruntScarf = new Color(0.90f, 0.10f, 0.12f);
+        static readonly Color GruntBoot = new Color(0.32f, 0.16f, 0.08f);
 
         // Shared outfit (brown hat, red bandana, warm shirt, blue jeans) with 3 tint/hat cuts.
         static readonly Color[] GruntHatV = { new Color(0.42f, 0.28f, 0.14f), new Color(0.55f, 0.38f, 0.18f), new Color(0.28f, 0.18f, 0.10f) };
         static readonly Color[] GruntHatLightV = { new Color(0.62f, 0.42f, 0.22f), new Color(0.72f, 0.52f, 0.28f), new Color(0.45f, 0.30f, 0.16f) };
-        static readonly Color[] GruntShirtV = { new Color(0.62f, 0.38f, 0.20f), new Color(0.72f, 0.32f, 0.16f), new Color(0.70f, 0.52f, 0.22f) };
+        static readonly Color[] GruntShirtV = { new Color(0.66f, 0.32f, 0.16f), new Color(0.74f, 0.48f, 0.24f), new Color(0.58f, 0.36f, 0.18f) };
+        static readonly Color[] GruntVestV = { new Color(0.58f, 0.22f, 0.12f), new Color(0.62f, 0.34f, 0.16f), new Color(0.48f, 0.26f, 0.12f) };
 
         public static Transform BuildHero(Transform parent) => BuildCowboy(parent, "Greybox3D_Hero", true, 0);
 
@@ -75,6 +81,7 @@ namespace HillNGun.Proto.Greybox3D
             var driver = go.GetComponent<Proto_Greybox3DAnimDriver>() ?? go.AddComponent<Proto_Greybox3DAnimDriver>();
             driver.Bind(animator, catalog);
             FitHeight(go.transform, 1f);
+            HideSourceRenderers(go);
             DressCowboy(go.transform, root, hero, variant);
             var rends = go.GetComponentsInChildren<Renderer>(true);
             int skinned = go.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length;
@@ -157,7 +164,7 @@ namespace HillNGun.Proto.Greybox3D
             if (n.Contains("skin"))
                 return HeroSkin;
             if (n.Contains("gun") || n.Contains("metal") || n.Contains("revolver"))
-                return new Color(0.18f, 0.18f, 0.20f);
+                return Silver;
             return hero ? HeroShirt : GruntShirt;
         }
 
@@ -208,63 +215,160 @@ namespace HillNGun.Proto.Greybox3D
             go.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.Cel(color);
         }
 
+        static void HideSourceRenderers(GameObject model)
+        {
+            // Keep bones + Animator, hide the adult-proportioned pack mesh
+            // so the chubby chibi dress is the visible silhouette.
+            foreach (var r in model.GetComponentsInChildren<Renderer>(true))
+                r.enabled = false;
+        }
+
         static void DressCowboy(Transform model, Transform body, bool hero, int variant)
         {
-            var head = FindBone(model, "Head");
-            var neck = FindBone(model, "Neck") ?? head;
-            var hips = FindBone(model, "Hips") ?? model;
-            var fist = FindBone(model, "Fist.R", "Hand.R", "LowerArm.R");
+            // Static chubby chibi in local space of the 1-unit body so the
+            // silhouette stays readable from behind: wide hat, hair cap,
+            // bandana tails, short purple shirt, belt/holster, blue jeans, boots.
             int v = Mathf.Abs(variant) % 3;
-
             Color hat = hero ? HeroHat : GruntHatV[v];
             Color hatLight = hero ? HeroHatLight : GruntHatLightV[v];
             Color scarf = hero ? HeroScarf : GruntScarf;
-            float brim = hero ? 0.48f : (v == 1 ? 0.54f : v == 2 ? 0.42f : 0.48f);
-            float crown = hero ? 0.28f : (v == 2 ? 0.26f : 0.29f);
+            Color shirt = hero ? HeroShirt : GruntShirtV[v];
+            Color vest = hero ? HeroShirt : GruntVestV[v];
+            Color pants = hero ? HeroPants : GruntPants;
+            Color boot = hero ? HeroBoot : GruntBoot;
+            Color skin = HeroSkin;
+            Color face = HeroFace;
+            Color hair = HeroHair;
 
-            // Parent dress to the body and follow bones in LateUpdate so bone scale cannot drift the pieces.
-            if (head != null)
+            float brim = hero ? 0.78f : (v == 1 ? 0.62f : v == 2 ? 0.52f : 0.58f);
+            float crown = hero ? 0.30f : (v == 2 ? 0.24f : 0.28f);
+
+            var dress = NewPart(body, "DressRoot");
+
+            var boots = NewPart(dress, "DressBoots");
+            Proto_Greybox3DSmoothPrim.Sphere(boots, "DressBootL", new Vector3(-0.09f, 0.055f, 0.05f),
+                new Vector3(0.14f, 0.10f, 0.20f), boot, 0.012f);
+            Proto_Greybox3DSmoothPrim.Sphere(boots, "DressBootR", new Vector3(0.09f, 0.055f, 0.05f),
+                new Vector3(0.14f, 0.10f, 0.20f), boot, 0.012f);
+
+            Proto_Greybox3DSmoothPrim.CapsuleY(dress, "DressLegL", new Vector3(-0.09f, 0.22f, 0.02f),
+                new Vector3(0.16f, 0.18f, 0.16f), pants, 0.012f);
+            Proto_Greybox3DSmoothPrim.CapsuleY(dress, "DressLegR", new Vector3(0.09f, 0.22f, 0.02f),
+                new Vector3(0.16f, 0.18f, 0.16f), pants, 0.012f);
+
+            var belt = NewPart(dress, "DressBelt");
+            belt.localPosition = new Vector3(0f, 0.36f, 0.01f);
+            Proto_Greybox3DSmoothPrim.DiskY(belt, "Belt", Vector3.zero, new Vector3(0.34f, 0.05f, 0.26f), Leather, 0.01f);
+            Proto_Greybox3DSmoothPrim.Part(belt, "Buckle", Proto_Greybox3DSmoothPrim.SphereMesh(),
+                new Vector3(0f, 0f, 0.13f), new Vector3(0.07f, 0.055f, 0.04f), Silver, 0.008f);
+            Proto_Greybox3DSmoothPrim.Part(belt, "Holster", Proto_Greybox3DSmoothPrim.CapsuleMesh(),
+                new Vector3(0.15f, -0.09f, -0.04f), new Vector3(0.08f, 0.16f, 0.07f), Leather, 0.01f,
+                Quaternion.Euler(20f, 20f, 12f));
+            Proto_Greybox3DSmoothPrim.Part(belt, "StrapL", Proto_Greybox3DSmoothPrim.CapsuleMesh(),
+                new Vector3(-0.08f, 0.08f, -0.02f), new Vector3(0.035f, 0.13f, 0.03f), Leather, 0.008f,
+                Quaternion.Euler(8f, 0f, 22f));
+            Proto_Greybox3DSmoothPrim.Part(belt, "StrapR", Proto_Greybox3DSmoothPrim.CapsuleMesh(),
+                new Vector3(0.08f, 0.08f, -0.02f), new Vector3(0.035f, 0.13f, 0.03f), Leather, 0.008f,
+                Quaternion.Euler(8f, 0f, -22f));
+
+            var torso = NewPart(dress, "DressTorso");
+            torso.localPosition = new Vector3(0f, 0.52f, 0.02f);
+            Proto_Greybox3DSmoothPrim.Sphere(torso, "Belly", new Vector3(0f, 0.00f, 0.02f),
+                new Vector3(0.32f, 0.24f, 0.26f), shirt, 0.014f);
+            if (!hero)
             {
-                var hatRoot = Proto_Greybox3DDressFollow.Attach(head, body, "DressHat", 0.08f, 0f, 0f, Vector3.one, true);
-                AddPrimitive(hatRoot, PrimitiveType.Cylinder, new Vector3(0f, 0.10f, 0f),
-                    new Vector3(crown, 0.085f, crown), hat);
-                AddPrimitive(hatRoot, PrimitiveType.Cylinder, new Vector3(0f, 0.02f, 0f),
-                    new Vector3(brim, 0.016f, brim), hatLight);
-                AddPrimitive(hatRoot, PrimitiveType.Cylinder, new Vector3(0f, 0.045f, 0f),
-                    new Vector3(crown + 0.02f, 0.016f, crown + 0.02f), scarf);
+                Proto_Greybox3DSmoothPrim.Sphere(torso, "Vest", new Vector3(0f, 0.02f, 0.04f),
+                    new Vector3(0.30f, 0.20f, 0.20f), vest, 0.012f);
+            }
+            Proto_Greybox3DSmoothPrim.CapsuleY(dress, "Neck", new Vector3(0f, 0.64f, 0.02f),
+                new Vector3(0.12f, 0.07f, 0.12f), skin, 0.01f);
 
-                var hair = Proto_Greybox3DDressFollow.Attach(head, body, "DressHair", 0.02f, -0.04f, 0f, Vector3.one, true);
-                AddPrimitive(hair, PrimitiveType.Sphere, new Vector3(0f, 0.02f, -0.02f),
-                    new Vector3(0.34f, 0.26f, 0.32f), HeroHair);
+            var sl = NewPart(dress, "DressSleeveL");
+            sl.localPosition = new Vector3(-0.20f, 0.54f, 0.00f);
+            sl.localRotation = Quaternion.Euler(8f, 0f, 22f);
+            Proto_Greybox3DSmoothPrim.CapsuleY(sl, "Sleeve", new Vector3(0f, -0.05f, 0f),
+                new Vector3(0.13f, 0.13f, 0.13f), shirt, 0.012f);
+            Proto_Greybox3DSmoothPrim.Sphere(sl, "Arm", new Vector3(0f, -0.15f, 0.01f),
+                new Vector3(0.11f, 0.14f, 0.11f), skin, 0.01f);
+
+            var sr = NewPart(dress, "DressSleeveR");
+            if (hero)
+            {
+                sr.localPosition = new Vector3(0.20f, 0.54f, 0.03f);
+                sr.localRotation = Quaternion.Euler(16f, 8f, -20f);
+            }
+            else
+            {
+                sr.localPosition = new Vector3(0.18f, 0.58f, 0.06f);
+                sr.localRotation = Quaternion.Euler(-70f, 8f, -10f);
+            }
+            Proto_Greybox3DSmoothPrim.CapsuleY(sr, "Sleeve", new Vector3(0f, -0.05f, 0f),
+                new Vector3(0.13f, 0.13f, 0.13f), shirt, 0.012f);
+            Proto_Greybox3DSmoothPrim.Sphere(sr, "Arm", new Vector3(0f, -0.15f, 0.01f),
+                new Vector3(0.11f, 0.14f, 0.11f), skin, 0.01f);
+
+            var head = NewPart(dress, "DressHead");
+            head.localPosition = new Vector3(0f, 0.74f, 0.02f);
+            Proto_Greybox3DSmoothPrim.Sphere(head, "Head", Vector3.zero, new Vector3(0.32f, 0.30f, 0.30f), face, 0.014f);
+            if (!hero)
+            {
+                Proto_Greybox3DSmoothPrim.Sphere(head, "Mask", new Vector3(0f, -0.07f, 0.12f),
+                    new Vector3(0.30f, 0.15f, 0.16f), scarf, 0.012f);
             }
 
-            if (neck != null)
-            {
-                // Knot sits on the nape, clearly visible from the camera behind the hero.
-                var knot = Proto_Greybox3DDressFollow.Attach(neck, body, "DressBandanaKnot", 0.02f, -0.09f, 0f, Vector3.one, true);
-                AddPrimitive(knot, PrimitiveType.Sphere, new Vector3(0f, 0f, 0f),
-                    new Vector3(0.10f, 0.08f, 0.10f), scarf);
-                AddPrimitive(knot, PrimitiveType.Cube, new Vector3(-0.05f, -0.05f, -0.02f),
-                    new Vector3(0.045f, 0.10f, 0.025f), scarf);
-                AddPrimitive(knot, PrimitiveType.Cube, new Vector3(0.05f, -0.05f, -0.02f),
-                    new Vector3(0.045f, 0.10f, 0.025f), scarf);
-            }
+            // Hair helmet under the brim: covers the back and sides of the
+            // head so the rear view is brown hair, not a bald skin sphere.
+            var hairRoot = NewPart(dress, "DressHair");
+            hairRoot.localPosition = new Vector3(0f, 0.74f, 0.00f);
+            Proto_Greybox3DSmoothPrim.Sphere(hairRoot, "HairBack", new Vector3(0f, 0.02f, -0.07f),
+                new Vector3(0.34f, 0.28f, 0.26f), hair, 0.012f);
+            Proto_Greybox3DSmoothPrim.Sphere(hairRoot, "HairSideL", new Vector3(-0.14f, 0.00f, -0.02f),
+                new Vector3(0.14f, 0.18f, 0.16f), hair, 0.01f);
+            Proto_Greybox3DSmoothPrim.Sphere(hairRoot, "HairSideR", new Vector3(0.14f, 0.00f, -0.02f),
+                new Vector3(0.14f, 0.18f, 0.16f), hair, 0.01f);
+            Proto_Greybox3DSmoothPrim.Sphere(hairRoot, "HairTop", new Vector3(0f, 0.10f, -0.02f),
+                new Vector3(0.28f, 0.10f, 0.24f), hair, 0.01f);
 
-            var belt = Proto_Greybox3DDressFollow.Attach(hips, body, "DressBelt", 0.05f, 0f, 0f, Vector3.one, true);
-            AddPrimitive(belt, PrimitiveType.Cylinder, new Vector3(0f, 0f, 0f),
-                new Vector3(0.38f, 0.018f, 0.26f), new Color(0.18f, 0.10f, 0.06f));
-            AddPrimitive(belt, PrimitiveType.Cube, new Vector3(0.14f, -0.06f, 0.02f),
-                new Vector3(0.08f, 0.14f, 0.05f), new Color(0.16f, 0.09f, 0.05f));
+            var hatRoot = NewPart(dress, "DressHat");
+            hatRoot.localPosition = new Vector3(0f, 0.90f, 0.02f);
+            Proto_Greybox3DSmoothPrim.DiskY(hatRoot, "Brim", Vector3.zero,
+                new Vector3(brim, 0.032f, brim), hatLight, 0.014f);
+            // Cowboy crown: short cylinder + dented cap, not a bowler sphere.
+            Proto_Greybox3DSmoothPrim.DiskY(hatRoot, "Crown", new Vector3(0f, 0.08f, 0f),
+                new Vector3(crown, 0.14f, crown * 0.92f), hat, 0.014f);
+            Proto_Greybox3DSmoothPrim.Sphere(hatRoot, "CrownDent", new Vector3(0f, 0.15f, 0.01f),
+                new Vector3(crown * 0.72f, 0.05f, crown * 0.62f), hatLight, 0.008f);
+            Proto_Greybox3DSmoothPrim.DiskY(hatRoot, "Band", new Vector3(0f, 0.025f, 0f),
+                new Vector3(crown + 0.04f, 0.04f, crown + 0.04f), scarf, 0.01f);
 
-            if (hero && fist != null)
+            var knot = NewPart(dress, "DressBandanaKnot");
+            knot.localPosition = new Vector3(0f, 0.58f, -0.16f);
+            Proto_Greybox3DSmoothPrim.Sphere(knot, "Knot", Vector3.zero, new Vector3(0.11f, 0.10f, 0.11f), scarf, 0.012f);
+            var tailL = Proto_Greybox3DSmoothPrim.CapsuleY(knot, "DressBandanaTailL", new Vector3(-0.06f, -0.14f, -0.02f),
+                new Vector3(0.055f, 0.20f, 0.035f), scarf, 0.01f);
+            tailL.localRotation = Quaternion.Euler(18f, 12f, 18f);
+            var tailR = Proto_Greybox3DSmoothPrim.CapsuleY(knot, "DressBandanaTailR", new Vector3(0.06f, -0.14f, -0.02f),
+                new Vector3(0.055f, 0.20f, 0.035f), scarf, 0.01f);
+            tailR.localRotation = Quaternion.Euler(18f, -12f, -18f);
+
+            var gun = NewPart(hero ? dress : sr, "DressRevolver");
+            if (hero)
             {
-                var gun = Proto_Greybox3DDressFollow.AttachLocal(fist, "DressRevolver",
-                    new Vector3(0f, 0.02f, 0.04f), Quaternion.Euler(90f, 0f, 0f), Vector3.one);
-                AddPrimitive(gun, PrimitiveType.Cube, new Vector3(0f, 0.02f, 0.05f),
-                    new Vector3(0.035f, 0.06f, 0.08f), new Color(0.16f, 0.16f, 0.18f));
-                AddPrimitive(gun, PrimitiveType.Cylinder, new Vector3(0f, 0.03f, 0.14f),
-                    new Vector3(0.03f, 0.08f, 0.03f), new Color(0.18f, 0.18f, 0.20f));
+                gun.localPosition = new Vector3(0.24f, 0.40f, 0.14f);
+                gun.localRotation = Quaternion.Euler(12f, 22f, 0f);
             }
+            else
+            {
+                gun.localPosition = new Vector3(0f, -0.22f, 0.04f);
+                gun.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            }
+            Proto_Greybox3DSmoothPrim.Part(gun, "Barrel", Proto_Greybox3DSmoothPrim.CapsuleMesh(),
+                new Vector3(0f, 0.03f, 0.12f), new Vector3(0.035f, 0.11f, 0.035f), Silver, 0.01f,
+                Quaternion.Euler(90f, 0f, 0f));
+            Proto_Greybox3DSmoothPrim.Part(gun, "Body", Proto_Greybox3DSmoothPrim.SphereMesh(),
+                new Vector3(0f, 0.02f, 0.05f), new Vector3(0.05f, 0.06f, 0.07f), Silver, 0.01f);
+            Proto_Greybox3DSmoothPrim.Part(gun, "Grip", Proto_Greybox3DSmoothPrim.CapsuleMesh(),
+                new Vector3(0f, -0.02f, 0.02f), new Vector3(0.03f, 0.07f, 0.025f), Leather, 0.008f);
         }
 
         static Transform FindBone(Transform root, params string[] names)

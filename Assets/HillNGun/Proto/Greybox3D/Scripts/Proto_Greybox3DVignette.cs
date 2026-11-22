@@ -22,7 +22,7 @@ namespace HillNGun.Proto.Greybox3D
             if (sh == null) return;
             _mat = new Material(sh);
             _mat.SetFloat("_Vignette", 0.10f);
-            _mat.SetFloat("_Warmth", 0.14f);
+            _mat.SetFloat("_Warmth", 0.16f);
         }
 
         void OnRenderImage(RenderTexture src, RenderTexture dest)

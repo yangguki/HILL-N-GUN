@@ -43,11 +43,11 @@ namespace HillNGun.Proto.Greybox3D
             _cam.orthographic = false;
             _cam.fieldOfView = 48f;
             _cam.nearClipPlane = 0.12f;
-            _cam.farClipPlane = 180f;
+            _cam.farClipPlane = 250f;
             _cam.clearFlags = RenderSettings.skybox != null
                 ? CameraClearFlags.Skybox
                 : CameraClearFlags.SolidColor;
-            _cam.backgroundColor = new Color(0.18f, 0.46f, 0.92f);
+            _cam.backgroundColor = new Color(0.12f, 0.42f, 0.95f);
             _cam.depth = 1f;
             _cam.enabled = false;
             _cam.allowMSAA = false;
@@ -55,6 +55,9 @@ namespace HillNGun.Proto.Greybox3D
             _cam.gameObject.AddComponent<Proto_Greybox3DVignette>();
 
             _stageRoot = Proto_Greybox3DSceneBuilder.BuildRoot(transform);
+            _cam.clearFlags = RenderSettings.skybox != null
+                ? CameraClearFlags.Skybox
+                : CameraClearFlags.SolidColor;
             _fx = Proto_Greybox3DFx.Ensure(_stageRoot);
             _hero = Proto_Greybox3DCharacterMesh.BuildHero(_stageRoot);
             _heroBaseRot = Quaternion.identity;
@@ -400,50 +403,79 @@ namespace HillNGun.Proto.Greybox3D
             var go = new GameObject(enemy ? "Greybox3D_EnemyBullet" : "Greybox3D_AllyBullet");
             go.transform.SetParent(_stageRoot, false);
 
-            // Body elongated along +Z (travel). Ally: brass/gold with a thin dark
-            // outline and rounded tip. Enemy: chunkier red-orange shell, white-hot core.
-            float bodyLen = Mathf.Max(length, diam * (enemy ? 2.4f : 2.8f));
-            var body = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            body.name = "Body";
-            body.transform.SetParent(go.transform, false);
-            body.transform.localScale = new Vector3(diam, diam, bodyLen);
-            Proto_Greybox3DUtil.DestroySafe(body.GetComponent<Collider>());
-            body.GetComponent<MeshRenderer>().sharedMaterial = enemy
-                ? Proto_Greybox3DMaterials.SharedEnemyBullet
-                : Proto_Greybox3DMaterials.SharedAllyBullet;
-
-            var tip = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            tip.name = "Tip";
-            tip.transform.SetParent(go.transform, false);
-            float tipD = diam * (enemy ? 0.95f : 0.78f);
-            tip.transform.localPosition = new Vector3(0f, 0f, bodyLen * 0.42f);
-            tip.transform.localScale = Vector3.one * tipD;
-            Proto_Greybox3DUtil.DestroySafe(tip.GetComponent<Collider>());
-            tip.GetComponent<MeshRenderer>().sharedMaterial = enemy
-                ? Proto_Greybox3DMaterials.SharedEnemyBullet
-                : Proto_Greybox3DMaterials.SharedAllyBulletTip;
+            // Long axis is +Z so LookRotation(velocity) aims the shot correctly.
+            float bodyLen = Mathf.Max(length, diam * (enemy ? 3.0f : 2.8f));
 
             if (enemy)
             {
-                var core = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                core.name = "Core";
-                core.transform.SetParent(go.transform, false);
-                core.transform.localScale = Vector3.one * (diam * 0.55f);
-                Proto_Greybox3DUtil.DestroySafe(core.GetComponent<Collider>());
-                core.GetComponent<MeshRenderer>().sharedMaterial =
-                    Proto_Greybox3DMaterials.SharedEnemyBulletCore;
+                Proto_Greybox3DSmoothPrim.CapsuleZ(go.transform, "Body", Vector3.zero,
+                    new Vector3(diam, bodyLen, diam), new Color(0.95f, 0.12f, 0.06f), 0.0f);
+                go.transform.Find("Body").GetComponent<MeshRenderer>().sharedMaterial =
+                    Proto_Greybox3DMaterials.SharedEnemyBullet;
+                var tip = Proto_Greybox3DSmoothPrim.Sphere(go.transform, "Tip", new Vector3(0f, 0f, bodyLen * 0.38f),
+                    Vector3.one * (diam * 0.95f), new Color(1f, 0.28f, 0.08f), 0.0f);
+                tip.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.SharedEnemyBullet;
+                var core = Proto_Greybox3DSmoothPrim.Sphere(go.transform, "Core", Vector3.zero,
+                    Vector3.one * (diam * 0.50f), new Color(1f, 0.95f, 0.7f), 0.0f);
+                core.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.SharedEnemyBulletCore;
+                var glow = Proto_Greybox3DSmoothPrim.CapsuleZ(go.transform, "Glow", Vector3.zero,
+                    new Vector3(diam * 1.45f, bodyLen * 1.15f, diam * 1.45f), new Color(1f, 0.4f, 0.1f), 0.0f);
+                glow.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.SharedEnemyGlow;
+                // Flame puffs stacked behind the tail.
+                for (int i = 1; i <= 3; i++)
+                {
+                    float k = i / 3f;
+                    var flame = Proto_Greybox3DSmoothPrim.Sphere(go.transform, "Flame" + i,
+                        new Vector3(0f, 0f, -bodyLen * (0.28f + 0.22f * i)),
+                        Vector3.one * (diam * (1.1f - 0.22f * i)),
+                        Color.Lerp(new Color(1f, 0.85f, 0.2f), new Color(1f, 0.35f, 0.05f), k), 0.0f);
+                    flame.GetComponent<MeshRenderer>().sharedMaterial = i == 1
+                        ? Proto_Greybox3DMaterials.SharedEnemyBulletCore
+                        : Proto_Greybox3DMaterials.SharedEnemyBulletTrail;
+                }
             }
+            else
+            {
+                Proto_Greybox3DSmoothPrim.CapsuleZ(go.transform, "Body", Vector3.zero,
+                    new Vector3(diam * 0.9f, bodyLen, diam * 0.9f), new Color(1f, 0.82f, 0.2f), 0.02f);
+                go.transform.Find("Body").GetComponent<MeshRenderer>().sharedMaterial =
+                    Proto_Greybox3DMaterials.SharedAllyBullet;
+                var tip = Proto_Greybox3DSmoothPrim.Sphere(go.transform, "Tip", new Vector3(0f, 0f, bodyLen * 0.38f),
+                    Vector3.one * (diam * 0.78f), new Color(1f, 0.90f, 0.45f), 0.018f);
+                tip.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.SharedAllyBulletTip;
+            }
+
             var trail = go.AddComponent<TrailRenderer>();
-            trail.time = enemy ? 0.22f : 0.10f;
-            trail.startWidth = diam * (enemy ? 0.85f : 0.45f);
-            trail.endWidth = diam * 0.05f;
+            trail.time = enemy ? 0.32f : 0.10f;
+            trail.startWidth = diam * (enemy ? 1.35f : 0.45f);
+            trail.endWidth = diam * (enemy ? 0.15f : 0.05f);
             trail.minVertexDistance = 0.03f;
-            trail.material = enemy
-                ? Proto_Greybox3DMaterials.SharedEnemyBulletTrail
-                : Proto_Greybox3DMaterials.SharedAllyBulletTrail;
             trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            trail.numCornerVertices = 2;
-            trail.numCapVertices = 2;
+            trail.numCornerVertices = 3;
+            trail.numCapVertices = 3;
+            if (enemy)
+            {
+                var g = new Gradient();
+                g.SetKeys(
+                    new[]
+                    {
+                        new GradientColorKey(new Color(1f, 0.95f, 0.35f), 0f),
+                        new GradientColorKey(new Color(1f, 0.45f, 0.05f), 0.45f),
+                        new GradientColorKey(new Color(0.85f, 0.08f, 0.02f), 1f)
+                    },
+                    new[]
+                    {
+                        new GradientAlphaKey(0.95f, 0f),
+                        new GradientAlphaKey(0.55f, 0.55f),
+                        new GradientAlphaKey(0f, 1f)
+                    });
+                trail.colorGradient = g;
+                trail.material = Proto_Greybox3DMaterials.SharedEnemyBulletTrail;
+            }
+            else
+            {
+                trail.material = Proto_Greybox3DMaterials.SharedAllyBulletTrail;
+            }
             go.SetActive(false);
             return go.transform;
         }

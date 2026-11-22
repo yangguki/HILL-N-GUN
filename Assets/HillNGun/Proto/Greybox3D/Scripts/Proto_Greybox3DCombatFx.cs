@@ -41,6 +41,7 @@ namespace HillNGun.Proto.Greybox3D
             }
             foreach (var r in GetComponentsInChildren<Renderer>(true))
             {
+                if (!r.enabled) continue;
                 if (r is TrailRenderer) continue;
                 if (r.gameObject.name == "BlobShadow") continue;
                 var shared = r.sharedMaterials;

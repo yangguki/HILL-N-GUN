@@ -27,24 +27,34 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
         {
             _root = new GameObject("LookTestRoot").transform;
             var stage = Proto_Greybox3DSceneBuilder.BuildRoot(_root);
-            int stores = 0, towers = 0, hay = 0, scallops = 0;
-            float maxStoreH = 0f;
+            int stores = 0, towers = 0, hay = 0, planks = 0, stripes = 0, mesas = 0, strata = 0;
+            var storePos = new System.Collections.Generic.List<Vector3>();
             foreach (var child in stage.GetComponentsInChildren<Transform>(true))
             {
                 if (child.name.StartsWith("Greybox3D_Store_"))
                 {
                     stores++;
-                    maxStoreH = Mathf.Max(maxStoreH, child.localScale.y);
+                    storePos.Add(child.position);
                 }
                 if (child.name == "Greybox3D_WaterTower") towers++;
                 if (child.name == "Greybox3D_Hay") hay++;
-                if (child.name == "Scallop") scallops++;
+                if (child.name == "Plank") planks++;
+                if (child.name == "AwningStripe") stripes++;
+                if (child.name == "Greybox3D_Mesa") mesas++;
+                if (child.name == "MesaStratum") strata++;
             }
-            Assert.AreEqual(11, stores, "4 storefronts per side + 3 in the back row");
-            Assert.Less(maxStoreH, 2.5f, "store facades must shrink with the smaller characters");
+            Assert.AreEqual(9, stores, "3 storefronts per side + 3 at the far end");
+            Assert.Greater(planks, 9 * 6, "false fronts should be built from plank strips");
+            Assert.Greater(stripes, 9 * 3, "awnings should be striped");
+            Assert.GreaterOrEqual(mesas, 8, "sculpted mesa/butte count");
+            Assert.Greater(strata, 20, "mesas need layered strata, not a single stripe");
+            float minGap = 99f;
+            for (int i = 0; i < storePos.Count; i++)
+            for (int j = i + 1; j < storePos.Count; j++)
+                minGap = Mathf.Min(minGap, Vector3.Distance(storePos[i], storePos[j]));
+            Assert.Greater(minGap, 2.0f, "stores should leave desert gaps, not stack tight");
             Assert.AreEqual(1, towers, "water tower missing");
             Assert.GreaterOrEqual(hay, 3, "hay bales missing");
-            Assert.Greater(scallops, 0, "awnings should have scalloped edges");
         }
 
         [Test]
@@ -54,14 +64,16 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
             var hero = Proto_Greybox3DCharacterMesh.BuildHero(_root);
             var hat = FindDeep(hero, "DressHat");
             var knot = FindDeep(hero, "DressBandanaKnot");
+            var boots = FindDeep(hero, "DressBoots");
             Assert.NotNull(hat, "hat dress missing");
             Assert.NotNull(knot, "bandana knot missing");
-            var hatFollow = hat.GetComponent<Proto_Greybox3DDressFollow>();
-            var knotFollow = knot.GetComponent<Proto_Greybox3DDressFollow>();
-            Assert.NotNull(hatFollow);
-            Assert.NotNull(knotFollow);
-            Assert.NotNull(hatFollow.Bone);
-            Assert.AreEqual("Head", hatFollow.Bone.name);
+            Assert.NotNull(boots, "boots missing");
+            // Chibi is authored in local space of the 1-unit body: hat at the
+            // top, knot at the nape, boots on the ground — not stacked at origin.
+            Assert.Greater(hat.localPosition.y, 0.70f, "hat should sit on the big chibi head");
+            Assert.Greater(knot.localPosition.y, 0.40f);
+            Assert.Greater(hat.localPosition.y, knot.localPosition.y + 0.15f);
+            Assert.Less(boots.localPosition.y, 0.15f);
         }
 
         [Test]
@@ -115,6 +127,36 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
             Assert.NotNull(r);
             var m = r.sharedMaterial;
             return m.HasProperty("_Color") ? m.GetColor("_Color") : m.color;
+        }
+
+
+        [Test]
+        public void DressHat_HasWideBrimAndBandanaTails()
+        {
+            _root = new GameObject("DressLookRoot").transform;
+            var hero = Proto_Greybox3DCharacterMesh.BuildHero(_root);
+            var brim = FindDeep(hero, "Brim");
+            var tails = 0;
+            var silver = 0;
+            foreach (var child in hero.GetComponentsInChildren<Transform>(true))
+            {
+                if (child.name.StartsWith("DressBandanaTail")) tails++;
+                if (child.name == "Barrel" || child.name == "Body")
+                {
+                    var mr = child.GetComponent<MeshRenderer>();
+                    if (mr != null && mr.sharedMaterial != null && mr.sharedMaterial.HasProperty("_Color"))
+                    {
+                        var c = mr.sharedMaterial.GetColor("_Color");
+                        if (c.r > 0.5f && c.g > 0.5f && c.b > 0.5f && c.b >= c.r * 0.9f)
+                            silver++;
+                    }
+                }
+            }
+            Assert.NotNull(brim, "wide hat brim missing");
+            Assert.GreaterOrEqual(brim.localScale.x, 0.70f, "hero brim should be wide like the concept");
+            Assert.GreaterOrEqual(tails, 2, "bandana tails should be visible from behind");
+            Assert.Greater(silver, 0, "revolver should read as silver, not dark iron");
+            Assert.NotNull(FindDeep(hero, "HairBack"), "brown hair under the hat missing");
         }
 
         static Transform FindDeep(Transform root, string name)

@@ -236,7 +236,7 @@ namespace HillNGun.Proto.Greybox3D
             get
             {
                 if (s_enemyBullet == null)
-                    s_enemyBullet = Glow(new Color(1f, 0.22f, 0.05f, 1f), 3.4f);
+                    s_enemyBullet = Glow(new Color(0.95f, 0.08f, 0.04f, 1f), 1.6f);
                 return s_enemyBullet;
             }
         }
@@ -246,7 +246,7 @@ namespace HillNGun.Proto.Greybox3D
             get
             {
                 if (s_enemyBulletCore == null)
-                    s_enemyBulletCore = Glow(new Color(1f, 0.96f, 0.80f, 1f), 5.0f);
+                    s_enemyBulletCore = Glow(new Color(1f, 0.85f, 0.25f, 1f), 2.2f);
                 return s_enemyBulletCore;
             }
         }
@@ -266,7 +266,7 @@ namespace HillNGun.Proto.Greybox3D
             get
             {
                 if (s_enemyGlow == null)
-                    s_enemyGlow = Glow(new Color(1f, 0.55f, 0.12f, 0.7f), 1.8f);
+                    s_enemyGlow = Glow(new Color(1f, 0.45f, 0.08f, 0.55f), 1.2f);
                 return s_enemyGlow;
             }
         }
@@ -304,19 +304,27 @@ namespace HillNGun.Proto.Greybox3D
                     s_sky = SafeMaterial(SkyShader);
                     var cat = Proto_Greybox3DCatalog.Load();
                     if (s_sky.HasProperty("_Color"))
-                        s_sky.SetColor("_Color", new Color(0.08f, 0.34f, 0.92f));
+                        s_sky.SetColor("_Color", new Color(0.04f, 0.26f, 0.90f));
                     if (s_sky.HasProperty("_Horizon"))
-                        s_sky.SetColor("_Horizon", new Color(0.40f, 0.66f, 0.95f));
+                        s_sky.SetColor("_Horizon", new Color(0.36f, 0.66f, 0.98f));
                     if (cat != null && cat.SkyboxDay != null && s_sky.HasProperty("_MainTex"))
                     {
                         s_sky.SetTexture("_MainTex", cat.SkyboxDay);
                         if (s_sky.HasProperty("_UseTex"))
-                            s_sky.SetFloat("_UseTex", 0.08f);
+                            s_sky.SetFloat("_UseTex", 0.0f);
                     }
-                    s_sky.color = new Color(0.08f, 0.34f, 0.92f);
+                    s_sky.color = new Color(0.04f, 0.26f, 0.90f);
                 }
                 return s_sky;
             }
+        }
+
+        public static Material Unlit(Color color)
+        {
+            var m = SafeMaterial(Shader.Find("Unlit/Color"));
+            m.color = color;
+            if (m.HasProperty("_Color")) m.SetColor("_Color", color);
+            return m;
         }
 
         public static Material Glow(Color color, float intensity)
