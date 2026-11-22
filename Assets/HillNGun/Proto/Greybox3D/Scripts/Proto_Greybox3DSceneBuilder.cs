@@ -44,6 +44,39 @@ namespace HillNGun.Proto.Greybox3D
             Proto_Greybox3DUtil.DestroySafe(sky.GetComponent<Collider>());
             sky.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.SharedSky;
             sky.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            BuildClouds(root);
+        }
+
+        static void BuildClouds(Transform root)
+        {
+            Vector3[] spots =
+            {
+                new Vector3(-8f, 14.5f, 24f), new Vector3(-2f, 16f, 27f), new Vector3(6f, 15.2f, 25f),
+                new Vector3(11f, 17f, 29f), new Vector3(-12f, 15.5f, 30f), new Vector3(1.5f, 18f, 32f),
+                new Vector3(8f, 13.8f, 22f)
+            };
+            var mat = Proto_Greybox3DMaterials.Cel(new Color(0.96f, 0.97f, 1f), outline: 0.0f);
+            for (int i = 0; i < spots.Length; i++)
+            {
+                var puff = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                puff.name = "Greybox3D_Cloud";
+                puff.transform.SetParent(root, false);
+                puff.transform.position = spots[i];
+                float s = 2.4f + (i % 3) * 0.7f;
+                puff.transform.localScale = new Vector3(s * 2.1f, s * 0.7f, s);
+                Proto_Greybox3DUtil.DestroySafe(puff.GetComponent<Collider>());
+                var r = puff.GetComponent<MeshRenderer>();
+                r.sharedMaterial = mat;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                // second lobe
+                var lobe = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                lobe.transform.SetParent(puff.transform, false);
+                lobe.transform.localPosition = new Vector3(0.35f, 0.15f, 0.1f);
+                lobe.transform.localScale = new Vector3(0.7f, 0.8f, 0.7f);
+                Proto_Greybox3DUtil.DestroySafe(lobe.GetComponent<Collider>());
+                lobe.GetComponent<MeshRenderer>().sharedMaterial = mat;
+                lobe.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
         }
 
         static void ApplySkybox(Proto_Greybox3DCatalog catalog)
@@ -60,9 +93,9 @@ namespace HillNGun.Proto.Greybox3D
                 mat.SetFloat("_Mapping", 1f);
             RenderSettings.skybox = mat;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.55f, 0.72f, 0.95f);
-            RenderSettings.ambientEquatorColor = new Color(0.85f, 0.72f, 0.50f);
-            RenderSettings.ambientGroundColor = new Color(0.55f, 0.38f, 0.22f);
+            RenderSettings.ambientSkyColor = new Color(0.28f, 0.52f, 0.95f);
+            RenderSettings.ambientEquatorColor = new Color(0.95f, 0.78f, 0.50f);
+            RenderSettings.ambientGroundColor = new Color(0.62f, 0.38f, 0.18f);
             DynamicGI.UpdateEnvironment();
         }
 
@@ -75,6 +108,32 @@ namespace HillNGun.Proto.Greybox3D
             ground.transform.localScale = new Vector3(Proto_GreyboxLayout.WorldWidth * 1.6f, 0.24f, 48f);
             var mr = ground.GetComponent<MeshRenderer>();
             mr.sharedMaterial = Proto_Greybox3DMaterials.SharedGround;
+            Proto_Greybox3DUtil.DestroySafe(ground.GetComponent<Collider>());
+
+            // Subtle sand-color patches so the playfield isn't a flat fill.
+            Color[] patches =
+            {
+                new Color(0.86f, 0.50f, 0.24f),
+                new Color(0.78f, 0.48f, 0.22f),
+                new Color(0.92f, 0.62f, 0.32f)
+            };
+            Vector3[] pos =
+            {
+                new Vector3(-2.4f, 0.01f, 3.2f), new Vector3(3.1f, 0.01f, 5.5f),
+                new Vector3(-4.2f, 0.01f, 8.0f), new Vector3(1.2f, 0.01f, 10.5f),
+                new Vector3(4.8f, 0.01f, 2.4f), new Vector3(-1.0f, 0.01f, 13f)
+            };
+            for (int i = 0; i < pos.Length; i++)
+            {
+                var p = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                p.name = "Greybox3D_SandPatch";
+                p.transform.SetParent(root, false);
+                p.transform.position = pos[i];
+                p.transform.localScale = new Vector3(1.6f + (i % 3) * 0.5f, 0.012f, 1.1f + (i % 2) * 0.4f);
+                Proto_Greybox3DUtil.DestroySafe(p.GetComponent<Collider>());
+                p.GetComponent<MeshRenderer>().sharedMaterial =
+                    Proto_Greybox3DMaterials.Cel(patches[i % patches.Length], outline: 0f);
+            }
         }
 
         static void BuildMesas(Transform root, Proto_Greybox3DCatalog catalog)
@@ -111,34 +170,33 @@ namespace HillNGun.Proto.Greybox3D
 
         static void BuildStorefronts(Transform root)
         {
-            int blocks = 7;
-            float span = Proto_GreyboxLayout.WorldWidth * 1.15f;
-            float blockW = span / blocks;
+            // Concept layout: 2–3 facades per side flanking the street, plus a short back row.
             float z = Proto_Greybox3DFootMap.FootWorldYToDepthZ(
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(32f)) + 3.2f;
-
-            for (int i = 0; i < blocks; i++)
-            {
-                float cx = -span * 0.5f + blockW * (i + 0.5f);
-                BuildOneStore(root, i, cx, z, blockW * 0.92f, AwningColors[i % AwningColors.Length]);
-            }
-
-            // Flanking wings slightly closer / angled like the concept sides.
-            BuildOneStore(root, 20, -span * 0.55f - 1.2f, z - 3.5f, blockW * 0.9f, AwningColors[0]);
-            BuildOneStore(root, 21, span * 0.55f + 1.2f, z - 3.5f, blockW * 0.9f, AwningColors[2]);
-            BuildOneStore(root, 22, -span * 0.62f - 1.8f, z - 6.5f, blockW * 0.85f, AwningColors[1]);
-            BuildOneStore(root, 23, span * 0.62f + 1.8f, z - 6.5f, blockW * 0.85f, AwningColors[3]);
+                Proto_GreyboxLayout.ScreenYPercentToWorldY(32f)) + 3.6f;
+            float zBack = z + 3.4f;
+            float[] leftX = { -6.4f, -4.35f, -2.4f };
+            float[] rightX = { 2.4f, 4.35f, 6.4f };
+            float[] backX = { -2.0f, 0.15f, 2.15f };
+            for (int i = 0; i < leftX.Length; i++)
+                BuildOneStore(root, i, leftX[i], z, 1.85f, AwningColors[i], i == 2 ? -8f : -4f);
+            for (int i = 0; i < rightX.Length; i++)
+                BuildOneStore(root, 10 + i, rightX[i], z, 1.85f, AwningColors[i + 3], i == 0 ? 8f : 4f);
+            for (int i = 0; i < backX.Length; i++)
+                BuildOneStore(root, 20 + i, backX[i], zBack, 1.7f, AwningColors[(i + 1) % AwningColors.Length], 0f);
         }
 
-        static void BuildOneStore(Transform root, int index, float cx, float z, float width, Color awning)
+        static void BuildOneStore(Transform root, int index, float cx, float z, float width, Color awning,
+            float yaw = 0f)
         {
-            float height = 3.6f + (index % 3) * 0.35f;
+            float height = 3.35f + (index % 3) * 0.28f;
             var face = GameObject.CreatePrimitive(PrimitiveType.Cube);
             face.name = "Greybox3D_Store_" + index;
             face.transform.SetParent(root, false);
             face.transform.position = new Vector3(cx, height * 0.5f, z);
-            face.transform.localScale = new Vector3(width, height, 1.8f);
+            face.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+            face.transform.localScale = new Vector3(width, height, 1.55f);
             face.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.SharedWood;
+            Proto_Greybox3DUtil.DestroySafe(face.GetComponent<Collider>());
 
             // western false-front parapet
             var parapet = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -191,6 +249,21 @@ namespace HillNGun.Proto.Greybox3D
                 new Color(0.20f, 0.32f, 0.48f));
             AddFacadePanel(face.transform, new Vector3(0f, -0.28f, -0.52f), new Vector3(0.18f, 0.42f, 0.04f),
                 new Color(0.32f, 0.18f, 0.10f));
+
+            // Horizontal plank hints on the facade (few polys, reads as boarded wood).
+            for (int i = 0; i < 3; i++)
+                AddFacadePanel(face.transform, new Vector3(0f, -0.36f + i * 0.28f, -0.501f),
+                    new Vector3(0.98f, 0.03f, 0.02f), new Color(0.48f, 0.28f, 0.14f));
+
+            // Sign board under the parapet.
+            var sign = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            sign.name = "Sign";
+            sign.transform.SetParent(face.transform, false);
+            sign.transform.localPosition = new Vector3(0f, 0.42f, -0.58f);
+            sign.transform.localScale = new Vector3(0.55f, 0.16f, 0.04f);
+            Proto_Greybox3DUtil.DestroySafe(sign.GetComponent<Collider>());
+            sign.GetComponent<MeshRenderer>().sharedMaterial =
+                Proto_Greybox3DMaterials.Cel(new Color(0.55f, 0.22f, 0.12f), outline: 0.008f);
         }
 
         static void AddFacadePanel(Transform parent, Vector3 localPos, Vector3 scale, Color color)

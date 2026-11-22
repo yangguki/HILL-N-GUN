@@ -66,7 +66,7 @@ namespace HillNGun.Proto.Greybox3D
             if (tex != null && m.HasProperty("_MainTex"))
                 m.SetTexture("_MainTex", tex);
             if (m.HasProperty("_Saturation"))
-                m.SetFloat("_Saturation", 1.4f);
+                m.SetFloat("_Saturation", 1.55f);
             if (m.HasProperty("_OutlineWidth"))
                 m.SetFloat("_OutlineWidth", outline);
             if (m.HasProperty("_OutlineColor"))
@@ -89,7 +89,9 @@ namespace HillNGun.Proto.Greybox3D
                 {
                     // Solid sand: the pack dirt texture is 128px and turns into a giant
                     // checker when stretched over the playfield.
-                    s_ground = Cel(new Color(0.82f, 0.55f, 0.28f), null, 0.0f);
+                    // Solid sand only: the pack dirt texture has a visible "Dirt SandStone" label
+                    // that tiles into a grid on the playfield.
+                    s_ground = Cel(new Color(0.90f, 0.58f, 0.28f), null, 0.0f);
                 }
                 return s_ground;
             }
@@ -194,16 +196,16 @@ namespace HillNGun.Proto.Greybox3D
                     s_sky = SafeMaterial(SkyShader);
                     var cat = Proto_Greybox3DCatalog.Load();
                     if (s_sky.HasProperty("_Color"))
-                        s_sky.SetColor("_Color", new Color(0.32f, 0.62f, 0.95f));
+                        s_sky.SetColor("_Color", new Color(0.16f, 0.42f, 0.92f));
                     if (s_sky.HasProperty("_Horizon"))
-                        s_sky.SetColor("_Horizon", new Color(0.95f, 0.84f, 0.58f));
+                        s_sky.SetColor("_Horizon", new Color(0.78f, 0.88f, 0.98f));
                     if (cat != null && cat.SkyboxDay != null && s_sky.HasProperty("_MainTex"))
                     {
                         s_sky.SetTexture("_MainTex", cat.SkyboxDay);
                         if (s_sky.HasProperty("_UseTex"))
-                            s_sky.SetFloat("_UseTex", 1f);
+                            s_sky.SetFloat("_UseTex", 0.55f);
                     }
-                    s_sky.color = new Color(0.32f, 0.62f, 0.95f);
+                    s_sky.color = new Color(0.16f, 0.42f, 0.92f);
                 }
                 return s_sky;
             }

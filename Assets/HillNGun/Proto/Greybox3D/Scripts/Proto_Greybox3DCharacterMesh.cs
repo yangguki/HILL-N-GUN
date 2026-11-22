@@ -67,6 +67,7 @@ namespace HillNGun.Proto.Greybox3D
             var driver = go.GetComponent<Proto_Greybox3DAnimDriver>() ?? go.AddComponent<Proto_Greybox3DAnimDriver>();
             driver.Bind(animator, catalog);
             FitHeight(go.transform, 1f);
+            DressCowboy(go.transform, hero);
             var rends = go.GetComponentsInChildren<Renderer>(true);
             int skinned = go.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length;
             var b = new Bounds();
@@ -196,6 +197,129 @@ namespace HillNGun.Proto.Greybox3D
             go.transform.localScale = scale;
             Proto_Greybox3DUtil.DestroySafe(go.GetComponent<Collider>());
             go.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.Cel(color);
+        }
+
+        static void DressCowboy(Transform model, bool hero)
+        {
+            var head = FindBone(model, "Head");
+            var neck = FindBone(model, "Neck") ?? head;
+            var hips = FindBone(model, "Hips") ?? model;
+            var fist = FindBone(model, "Fist.R", "Hand.R", "LowerArm.R");
+
+            Color hat = hero ? HeroHat : GruntHat;
+            Color hatLight = hero ? HeroHatLight : GruntHatLight;
+            Color scarf = hero ? HeroScarf : GruntScarf;
+
+            // Wide-brim hat with a red band, world-up, covering the pack's small hat.
+            if (head != null)
+            {
+                var hatRoot = NewPart(head, "DressHat");
+                SnapUpright(hatRoot, head.position + Vector3.up * 0.08f);
+                SetWorldScale(hatRoot, Vector3.one);
+                AddPrimitive(hatRoot, PrimitiveType.Cylinder, new Vector3(0f, 0.10f, 0f),
+                    new Vector3(0.38f, 0.10f, 0.38f), hat);          // crown
+                AddPrimitive(hatRoot, PrimitiveType.Cylinder, new Vector3(0f, 0.02f, 0f),
+                    new Vector3(0.72f, 0.022f, 0.72f), hatLight);    // wide brim (not a platter)
+                AddPrimitive(hatRoot, PrimitiveType.Cylinder, new Vector3(0f, 0.045f, 0f),
+                    new Vector3(0.40f, 0.018f, 0.40f), scarf);       // red band
+
+                // Dark brown hair so the back of the head isn't a bald flesh oval.
+                var hair = NewPart(head, "DressHair");
+                SnapUpright(hair, head.position + Vector3.up * 0.02f + Vector3.back * 0.02f);
+                SetWorldScale(hair, Vector3.one);
+                AddPrimitive(hair, PrimitiveType.Sphere, new Vector3(0f, 0.02f, -0.02f),
+                    new Vector3(0.34f, 0.26f, 0.32f), HeroHair);
+            }
+
+            // Bandana knot visible from behind, at the nape.
+            if (neck != null)
+            {
+                var knot = NewPart(neck, "DressBandanaKnot");
+                SnapUpright(knot, neck.position + Vector3.back * 0.07f + Vector3.up * 0.02f);
+                SetWorldScale(knot, Vector3.one);
+                AddPrimitive(knot, PrimitiveType.Sphere, new Vector3(0f, 0f, 0f),
+                    new Vector3(0.07f, 0.06f, 0.07f), scarf);
+                AddPrimitive(knot, PrimitiveType.Cube, new Vector3(-0.04f, -0.03f, -0.01f),
+                    new Vector3(0.035f, 0.07f, 0.02f), scarf);
+                AddPrimitive(knot, PrimitiveType.Cube, new Vector3(0.04f, -0.03f, -0.01f),
+                    new Vector3(0.035f, 0.07f, 0.02f), scarf);
+            }
+
+            // Belt + holster on the right hip.
+            var belt = NewPart(hips, "DressBelt");
+            SnapUpright(belt, hips.position + Vector3.up * 0.05f);
+            SetWorldScale(belt, Vector3.one);
+            AddPrimitive(belt, PrimitiveType.Cylinder, new Vector3(0f, 0f, 0f),
+                new Vector3(0.38f, 0.018f, 0.26f), new Color(0.18f, 0.10f, 0.06f));
+            AddPrimitive(belt, PrimitiveType.Cube, new Vector3(0.14f, -0.06f, 0.02f),
+                new Vector3(0.08f, 0.14f, 0.05f), new Color(0.16f, 0.09f, 0.05f));
+
+            if (hero && fist != null)
+            {
+                var gun = NewPart(fist, "DressRevolver");
+                gun.localPosition = Vector3.zero;
+                gun.localRotation = Quaternion.identity;
+                SetWorldScale(gun, Vector3.one);
+                // Barrel along the fist; a modest local offset so it reads in the right hand.
+                AddPrimitive(gun, PrimitiveType.Cube, new Vector3(0f, 0.02f, 0.05f),
+                    new Vector3(0.035f, 0.06f, 0.08f), new Color(0.16f, 0.16f, 0.18f));
+                AddPrimitive(gun, PrimitiveType.Cylinder, new Vector3(0f, 0.03f, 0.14f),
+                    new Vector3(0.03f, 0.08f, 0.03f), new Color(0.18f, 0.18f, 0.20f));
+                gun.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            }
+        }
+
+        static Transform FindBone(Transform root, params string[] names)
+        {
+            var all = root.GetComponentsInChildren<Transform>(true);
+            foreach (var n in names)
+            {
+                for (int i = 0; i < all.Length; i++)
+                    if (all[i].name == n) return all[i];
+            }
+            foreach (var n in names)
+            {
+                for (int i = 0; i < all.Length; i++)
+                    if (all[i].name.EndsWith(n) || all[i].name.Contains(n))
+                        return all[i];
+            }
+            return null;
+        }
+
+        static Transform NewPart(Transform parent, string name)
+        {
+            var t = new GameObject(name).transform;
+            t.SetParent(parent, false);
+            t.localPosition = Vector3.zero;
+            t.localRotation = Quaternion.identity;
+            t.localScale = Vector3.one;
+            return t;
+        }
+
+        static void SnapUpright(Transform t, Vector3 worldPos)
+        {
+            t.position = worldPos;
+            t.rotation = Quaternion.identity;
+        }
+
+        static void SetWorldScale(Transform t, Vector3 world)
+        {
+            var ls = t.lossyScale;
+            t.localScale = new Vector3(
+                world.x / Mathf.Max(1e-5f, ls.x),
+                world.y / Mathf.Max(1e-5f, ls.y),
+                world.z / Mathf.Max(1e-5f, ls.z));
+        }
+
+        static void AddPrimitive(Transform parent, PrimitiveType type, Vector3 localPos, Vector3 worldScale, Color color)
+        {
+            var go = GameObject.CreatePrimitive(type);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            go.transform.localRotation = Quaternion.identity;
+            Proto_Greybox3DUtil.DestroySafe(go.GetComponent<Collider>());
+            SetWorldScale(go.transform, worldScale);
+            go.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.Cel(color, outline: 0.012f);
         }
     }
 }

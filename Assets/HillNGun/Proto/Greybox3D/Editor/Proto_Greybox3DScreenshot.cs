@@ -195,7 +195,90 @@ namespace HillNGun.Proto.Greybox3D.Editor
             Object.DestroyImmediate(tex);
         }
 
-        static void CaptureCowboyCloseup()
+        public static void Capture3dCCompare()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D C compare: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 100; i++)
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = i % 5 == 0 }, dt);
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            Canvas.ForceUpdateCanvases();
+            var tex3D = CaptureActiveWorldCam(CompareW, CompareH);
+            var half3D = ScaleTexture(tex3D, HalfW, CompareH);
+
+            var concept = LoadConcept();
+            var halfConcept = concept != null
+                ? ScaleTexture(concept, HalfW, CompareH)
+                : half3D;
+
+            var stitched = new Texture2D(CompareW, CompareH, TextureFormat.RGB24, false);
+            stitched.SetPixels(0, 0, HalfW, CompareH, halfConcept.GetPixels());
+            stitched.SetPixels(HalfW, 0, HalfW, CompareH, half3D.GetPixels());
+            stitched.Apply();
+            WritePng(stitched, "v4_greybox/3d_c_compare.png");
+            Object.DestroyImmediate(tex3D);
+            Object.DestroyImmediate(half3D);
+            if (concept != null) Object.DestroyImmediate(concept);
+            if (halfConcept != half3D) Object.DestroyImmediate(halfConcept);
+            Object.DestroyImmediate(stitched);
+
+            Capture3dCCombatOn(controller);
+            EditorApplication.Exit(0);
+        }
+
+        public static void Capture3dCCombat()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D C combat: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+            Capture3dCCombatOn(controller);
+            EditorApplication.Exit(0);
+        }
+
+        static void Capture3dCCombatOn(Proto_GreyboxPlayerController controller)
+        {
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 0.55f;
+            controller.RuntimeTuning.Wave1Count = 6;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 200; i++)
+            {
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = i % 4 != 0 }, dt);
+                if (i % 25 == 0) controller.ResetHp();
+            }
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            controller.PoseAimStickDrag(new Vector2(0.4f, 4.8f));
+            controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            Canvas.ForceUpdateCanvases();
+            var tex = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(tex, "v4_greybox/3d_c_combat.png");
+            Object.DestroyImmediate(tex);
+        }
+
+                static void CaptureCowboyCloseup()
         {
             var catalog = Proto_Greybox3DCatalog.Load();
             if (catalog == null || !catalog.HasCowboy)

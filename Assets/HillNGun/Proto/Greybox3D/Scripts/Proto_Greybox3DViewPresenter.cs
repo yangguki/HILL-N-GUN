@@ -7,8 +7,8 @@ namespace HillNGun.Proto.Greybox3D
     [DisallowMultipleComponent]
     public sealed class Proto_Greybox3DViewPresenter : MonoBehaviour
     {
-        const float HeroMinHeight = 1.85f;
-        const float GruntMinHeight = 2.35f;
+        const float HeroMinHeight = 2.05f;
+        const float GruntMinHeight = 2.9f;
 
         Camera _cam;
         Transform _stageRoot;
@@ -36,7 +36,7 @@ namespace HillNGun.Proto.Greybox3D
             camGo.transform.SetParent(transform, false);
             _cam = camGo.AddComponent<Camera>();
             _cam.orthographic = false;
-            _cam.fieldOfView = 50f;
+            _cam.fieldOfView = 48f;
             _cam.nearClipPlane = 0.12f;
             _cam.farClipPlane = 180f;
             _cam.clearFlags = RenderSettings.skybox != null
@@ -167,8 +167,8 @@ namespace HillNGun.Proto.Greybox3D
         {
             // Raised, wider framing: player bottom-center, fence + enemy row readable, sky band on top.
             // Just above hat height, behind the hero, nearly level so the hat brim reads.
-            var desired = new Vector3(heroPos.x * 0.06f, 2.65f, heroPos.z - 5.5f);
-            var lookAt = heroPos + new Vector3(0f, 1.25f, 8.8f);
+            var desired = new Vector3(heroPos.x * 0.05f, 2.05f, heroPos.z - 4.35f);
+            var lookAt = heroPos + new Vector3(0f, 1.35f, 8.6f);
             var lookRot = Quaternion.LookRotation(lookAt - desired, Vector3.up);
             if (!Application.isPlaying)
             {
@@ -225,15 +225,15 @@ namespace HillNGun.Proto.Greybox3D
 
         void SyncBullets(Proto_GreyboxPlayerController host)
         {
-            SyncBulletList(host.AllyBullets, _allyBulletViews, Proto_Greybox3DMaterials.SharedAllyBullet, 0.11f, 0.28f);
-            SyncBulletList(host.EnemyBullets, _enemyBulletViews, Proto_Greybox3DMaterials.SharedEnemyBullet, 0.38f, 0.85f);
+            SyncBulletList(host.AllyBullets, _allyBulletViews, Proto_Greybox3DMaterials.SharedAllyBullet, 0.12f, 0.30f, false);
+            SyncBulletList(host.EnemyBullets, _enemyBulletViews, Proto_Greybox3DMaterials.SharedEnemyBullet, 0.55f, 1.15f, true);
         }
 
-        void SyncBulletList<T>(IReadOnlyList<T> sims, List<Transform> views, Material mat, float diam, float length)
+        void SyncBulletList<T>(IReadOnlyList<T> sims, List<Transform> views, Material mat, float diam, float length, bool isEnemy)
             where T : class
         {
             while (views.Count < sims.Count)
-                views.Add(SpawnBullet(mat, diam, length));
+                views.Add(SpawnBullet(mat, diam, length, isEnemy));
 
             for (int i = 0; i < views.Count; i++)
             {
@@ -262,7 +262,7 @@ namespace HillNGun.Proto.Greybox3D
 
                 view.gameObject.SetActive(alive);
                 if (!alive) continue;
-                var world = Proto_Greybox3DFootMap.GroundPointToWorld(pos) + Vector3.up * 0.55f;
+                var world = Proto_Greybox3DFootMap.GroundPointToWorld(pos) + Vector3.up * 0.70f;
                 view.position = world;
                 if (vel.sqrMagnitude > 0.01f)
                 {
@@ -276,21 +276,31 @@ namespace HillNGun.Proto.Greybox3D
             }
         }
 
-        Transform SpawnBullet(Material mat, float diam, float length)
+        Transform SpawnBullet(Material mat, float diam, float length, bool enemy)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            go.name = "Greybox3D_Bullet";
+            go.name = enemy ? "Greybox3D_EnemyBullet" : "Greybox3D_AllyBullet";
             go.transform.SetParent(_stageRoot, false);
             go.transform.localScale = new Vector3(diam, diam, length);
             Proto_Greybox3DUtil.DestroySafe(go.GetComponent<Collider>());
             go.GetComponent<MeshRenderer>().sharedMaterial = mat;
-            // soft glow shell
             var shell = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             shell.name = "Glow";
             shell.transform.SetParent(go.transform, false);
-            shell.transform.localScale = Vector3.one * 1.55f;
+            shell.transform.localScale = Vector3.one * (enemy ? 1.7f : 1.45f);
             Proto_Greybox3DUtil.DestroySafe(shell.GetComponent<Collider>());
-            shell.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.SharedEnemyGlow;
+            shell.GetComponent<MeshRenderer>().sharedMaterial = enemy
+                ? Proto_Greybox3DMaterials.SharedEnemyGlow
+                : mat;
+            var trail = go.AddComponent<TrailRenderer>();
+            trail.time = enemy ? 0.28f : 0.14f;
+            trail.startWidth = diam * (enemy ? 1.15f : 0.7f);
+            trail.endWidth = diam * 0.08f;
+            trail.minVertexDistance = 0.04f;
+            trail.material = mat;
+            trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            trail.numCornerVertices = 2;
+            trail.numCapVertices = 2;
             go.SetActive(false);
             return go.transform;
         }
