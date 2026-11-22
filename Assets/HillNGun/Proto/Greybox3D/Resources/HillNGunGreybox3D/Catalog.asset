@@ -49,3 +49,4 @@ MonoBehaviour:
   GlowShader: {fileID: 4800000, guid: 594b43cbe787d4989a690ce846153986, type: 3}
   BlobShader: {fileID: 4800000, guid: 173097b214ac8441799d7d2e1ae59b8b, type: 3}
   SkyShader: {fileID: 4800000, guid: cdb5097087ec04c40af9de0df860dadd, type: 3}
+  VignetteShader: {fileID: 4800000, guid: 9fa8899d642cb4d799c23d0460fc7760, type: 3}

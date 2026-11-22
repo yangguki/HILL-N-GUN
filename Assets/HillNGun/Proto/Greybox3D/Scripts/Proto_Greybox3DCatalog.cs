@@ -53,6 +53,7 @@ namespace HillNGun.Proto.Greybox3D
         public Shader GlowShader;
         public Shader BlobShader;
         public Shader SkyShader;
+        public Shader VignetteShader;
 
         public bool HasCowboy => CowboyMale != null;
         public bool HasCelShader => CelShader != null;

@@ -5,6 +5,8 @@ namespace HillNGun.Proto.Greybox3D
 {
     public static class Proto_Greybox3DSceneBuilder
     {
+        const float PropScale = 12f / 20f; // keep crates/fence/hay with the smaller hero
+
         static readonly Color[] AwningColors =
         {
             new Color(0.15f, 0.42f, 0.88f),
@@ -51,11 +53,11 @@ namespace HillNGun.Proto.Greybox3D
         {
             Vector3[] spots =
             {
-                new Vector3(-8f, 14.5f, 24f), new Vector3(-2f, 16f, 27f), new Vector3(6f, 15.2f, 25f),
-                new Vector3(11f, 17f, 29f), new Vector3(-12f, 15.5f, 30f), new Vector3(1.5f, 18f, 32f),
-                new Vector3(8f, 13.8f, 22f)
+                new Vector3(-8f, 15.5f, 24f), new Vector3(-2f, 17f, 27f), new Vector3(6f, 16.2f, 25f),
+                new Vector3(11f, 18f, 29f), new Vector3(-12f, 16.5f, 30f), new Vector3(1.5f, 19f, 32f),
+                new Vector3(8f, 14.8f, 22f), new Vector3(-5f, 18.5f, 34f), new Vector3(14f, 17.2f, 33f)
             };
-            var mat = Proto_Greybox3DMaterials.Cel(new Color(0.96f, 0.97f, 1f), outline: 0.0f);
+            var mat = Proto_Greybox3DMaterials.CelShared(new Color(0.97f, 0.98f, 1f), 0.0f);
             for (int i = 0; i < spots.Length; i++)
             {
                 var puff = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -76,6 +78,13 @@ namespace HillNGun.Proto.Greybox3D
                 Proto_Greybox3DUtil.DestroySafe(lobe.GetComponent<Collider>());
                 lobe.GetComponent<MeshRenderer>().sharedMaterial = mat;
                 lobe.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                var lobe2 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                lobe2.transform.SetParent(puff.transform, false);
+                lobe2.transform.localPosition = new Vector3(-0.32f, 0.08f, -0.08f);
+                lobe2.transform.localScale = new Vector3(0.62f, 0.75f, 0.65f);
+                Proto_Greybox3DUtil.DestroySafe(lobe2.GetComponent<Collider>());
+                lobe2.GetComponent<MeshRenderer>().sharedMaterial = mat;
+                lobe2.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             }
         }
 
@@ -132,7 +141,7 @@ namespace HillNGun.Proto.Greybox3D
                 p.transform.localScale = new Vector3(1.6f + (i % 3) * 0.5f, 0.012f, 1.1f + (i % 2) * 0.4f);
                 Proto_Greybox3DUtil.DestroySafe(p.GetComponent<Collider>());
                 p.GetComponent<MeshRenderer>().sharedMaterial =
-                    Proto_Greybox3DMaterials.Cel(patches[i % patches.Length], outline: 0f);
+                    Proto_Greybox3DMaterials.CelShared(patches[i % patches.Length], 0f);
             }
         }
 
@@ -140,10 +149,13 @@ namespace HillNGun.Proto.Greybox3D
         {
             // Far mesa silhouettes behind the town, left and right of the street.
             PlaceMesa(catalog, root, "MesaL", new Vector3(-11f, 0f, 32f), 3.2f, 180f);
+            PlaceMesa(catalog, root, "MesaL2", new Vector3(-14.5f, 0f, 35f), 2.6f, 160f);
             PlaceMesa(catalog, root, "MesaR", new Vector3(11.5f, 0f, 33f), 3.6f, 15f);
+            PlaceMesa(catalog, root, "MesaR2", new Vector3(15.5f, 0f, 36f), 3.0f, 25f);
             PlaceMesa(catalog, root, "MesaC", new Vector3(-2f, 0f, 36f), 2.8f, -10f);
             PlaceMesa(catalog, root, "MesaFar", new Vector3(4f, 0f, 40f), 4.2f, 8f);
             PlaceMesa(catalog, root, "MesaFarL", new Vector3(-16f, 0f, 38f), 3.8f, 20f);
+            PlaceMesa(catalog, root, "MesaFarR", new Vector3(8.5f, 0f, 42f), 3.4f, -15f);
         }
 
         static void PlaceMesa(Proto_Greybox3DCatalog cat, Transform root, string name, Vector3 pos, float scale,
@@ -156,6 +168,7 @@ namespace HillNGun.Proto.Greybox3D
                 if (cat.CliffTop != null)
                     Proto_Greybox3DSpawn.Prefab(cat.CliffTop, root, "Greybox3D_" + name + "Top",
                         pos + new Vector3(0f, 1.6f * scale * 0.25f, 0f), new Vector3(0f, yaw + 30f, 0f), scale * 0.85f);
+                AddMesaBands(root, pos, scale);
                 return;
             }
 
@@ -165,7 +178,33 @@ namespace HillNGun.Proto.Greybox3D
             mesa.transform.position = pos + Vector3.up * 2.4f;
             mesa.transform.localScale = new Vector3(6f * scale * 0.35f, 5f, 4f);
             mesa.GetComponent<MeshRenderer>().sharedMaterial =
-                Proto_Greybox3DMaterials.Cel(new Color(0.72f, 0.42f, 0.28f), outline: 0.02f);
+                Proto_Greybox3DMaterials.CelShared(new Color(0.72f, 0.42f, 0.28f), 0.02f);
+            AddMesaBands(root, pos, scale);
+            return;
+        }
+
+        static void AddMesaBands(Transform root, Vector3 pos, float scale)
+        {
+            Color[] bands =
+            {
+                new Color(0.78f, 0.42f, 0.26f),
+                new Color(0.62f, 0.32f, 0.20f),
+                new Color(0.86f, 0.55f, 0.32f)
+            };
+            for (int i = 0; i < bands.Length; i++)
+            {
+                var band = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                band.name = "MesaBand";
+                band.transform.SetParent(root, false);
+                float y = 0.55f * scale + i * 0.55f * scale;
+                band.transform.position = pos + new Vector3(0f, y, 0f);
+                float w = (3.2f - i * 0.25f) * scale * 0.55f;
+                band.transform.localScale = new Vector3(w, 0.16f * scale * 0.35f, w * 0.7f);
+                Proto_Greybox3DUtil.DestroySafe(band.GetComponent<Collider>());
+                band.GetComponent<MeshRenderer>().sharedMaterial =
+                    Proto_Greybox3DMaterials.CelShared(bands[i], 0.008f);
+                band.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
         }
 
         static void BuildStorefronts(Transform root)
@@ -263,7 +302,58 @@ namespace HillNGun.Proto.Greybox3D
             sign.transform.localScale = new Vector3(0.55f, 0.16f, 0.04f);
             Proto_Greybox3DUtil.DestroySafe(sign.GetComponent<Collider>());
             sign.GetComponent<MeshRenderer>().sharedMaterial =
-                Proto_Greybox3DMaterials.Cel(new Color(0.55f, 0.22f, 0.12f), outline: 0.008f);
+                Proto_Greybox3DMaterials.CelShared(new Color(0.55f, 0.22f, 0.12f), 0.008f);
+
+            // Scalloped awning edge
+            for (int s = 0; s < 6; s++)
+            {
+                var scallop = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                scallop.name = "Scallop";
+                scallop.transform.SetParent(awn.transform, false);
+                scallop.transform.localPosition = new Vector3(-0.42f + s * 0.168f, -0.7f, 0.42f);
+                scallop.transform.localScale = new Vector3(0.18f, 1.6f, 0.22f);
+                Proto_Greybox3DUtil.DestroySafe(scallop.GetComponent<Collider>());
+                scallop.GetComponent<MeshRenderer>().sharedMaterial =
+                    Proto_Greybox3DMaterials.Awning(Color.Lerp(awning, Color.black, 0.08f));
+            }
+
+            // Window frames
+            AddWindowFrame(face.transform, new Vector3(-0.22f, 0.08f, -0.53f), 0.26f, 0.26f);
+            AddWindowFrame(face.transform, new Vector3(0.22f, 0.08f, -0.53f), 0.26f, 0.26f);
+
+            // Hanging sign board (icon only, no text)
+            var hang = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            hang.name = "HangSign";
+            hang.transform.SetParent(face.transform, false);
+            hang.transform.localPosition = new Vector3(0.28f, 0.05f, -0.82f);
+            hang.transform.localScale = new Vector3(0.22f, 0.18f, 0.03f);
+            Proto_Greybox3DUtil.DestroySafe(hang.GetComponent<Collider>());
+            hang.GetComponent<MeshRenderer>().sharedMaterial =
+                Proto_Greybox3DMaterials.CelShared(new Color(0.45f, 0.18f, 0.10f), 0.008f);
+            var icon = GameObject.CreatePrimitive(index % 2 == 0 ? PrimitiveType.Cylinder : PrimitiveType.Sphere);
+            icon.name = "HangIcon";
+            icon.transform.SetParent(hang.transform, false);
+            icon.transform.localPosition = new Vector3(0f, 0f, -0.6f);
+            icon.transform.localScale = new Vector3(0.45f, 0.08f, 0.45f);
+            Proto_Greybox3DUtil.DestroySafe(icon.GetComponent<Collider>());
+            icon.GetComponent<MeshRenderer>().sharedMaterial =
+                Proto_Greybox3DMaterials.CelShared(new Color(0.90f, 0.72f, 0.25f), 0.004f);
+            var hook = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            hook.transform.SetParent(face.transform, false);
+            hook.transform.localPosition = new Vector3(0.28f, 0.18f, -0.82f);
+            hook.transform.localScale = new Vector3(0.02f, 0.12f, 0.02f);
+            Proto_Greybox3DUtil.DestroySafe(hook.GetComponent<Collider>());
+            hook.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.SharedWood;
+        }
+
+        static void AddWindowFrame(Transform parent, Vector3 center, float w, float h)
+        {
+            var wood = new Color(0.32f, 0.18f, 0.10f);
+            float t = 0.03f;
+            AddFacadePanel(parent, center + new Vector3(0f, h * 0.5f, 0f), new Vector3(w + t, t, 0.03f), wood);
+            AddFacadePanel(parent, center + new Vector3(0f, -h * 0.5f, 0f), new Vector3(w + t, t, 0.03f), wood);
+            AddFacadePanel(parent, center + new Vector3(-w * 0.5f, 0f, 0f), new Vector3(t, h, 0.03f), wood);
+            AddFacadePanel(parent, center + new Vector3(w * 0.5f, 0f, 0f), new Vector3(t, h, 0.03f), wood);
         }
 
         static void AddFacadePanel(Transform parent, Vector3 localPos, Vector3 scale, Color color)
@@ -272,7 +362,7 @@ namespace HillNGun.Proto.Greybox3D
             p.transform.SetParent(parent, false);
             p.transform.localPosition = localPos;
             p.transform.localScale = scale;
-            p.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.Cel(color, outline: 0.006f);
+            p.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.CelShared(color, 0.006f);
         }
 
         static void BuildFence(Transform root, Proto_Greybox3DCatalog catalog)
@@ -284,7 +374,7 @@ namespace HillNGun.Proto.Greybox3D
             BuildRailFence(root, -halfW, -gapHalf, z, wood);
             BuildRailFence(root, gapHalf, halfW, z, wood);
             foreach (float x in new[] { -gapHalf, gapHalf })
-                AddFencePost(root, x, z, 1.35f, 0.14f, wood);
+                AddFencePost(root, x, z, 1.35f * PropScale, 0.14f * PropScale, wood);
 
             var prefab = catalog != null ? catalog.Fence : null;
             if (prefab != null)
@@ -298,7 +388,7 @@ namespace HillNGun.Proto.Greybox3D
                         float t = (i + 0.5f) / count;
                         float x = Mathf.Lerp(x0, x1, t);
                         var fence = Proto_Greybox3DSpawn.Prefab(prefab, root, "Greybox3D_FenceKit",
-                            new Vector3(x, 0f, z + 0.12f), Vector3.zero, 1.7f);
+                            new Vector3(x, 0f, z + 0.12f), Vector3.zero, 1.7f * PropScale);
                         Proto_Greybox3DSpawn.Tint(fence, wood, 0.01f);
                     }
                 }
@@ -312,18 +402,18 @@ namespace HillNGun.Proto.Greybox3D
             if (x1 - x0 < 0.2f) return;
             float width = x1 - x0;
             float mid = (x0 + x1) * 0.5f;
-            AddFencePost(root, x0, z, 1.25f, 0.12f, wood);
-            AddFencePost(root, x1, z, 1.25f, 0.12f, wood);
+            AddFencePost(root, x0, z, 1.25f * PropScale, 0.12f * PropScale, wood);
+            AddFencePost(root, x1, z, 1.25f * PropScale, 0.12f * PropScale, wood);
             int midPosts = Mathf.Max(0, Mathf.RoundToInt(width / 1.1f) - 1);
             for (int i = 1; i <= midPosts; i++)
-                AddFencePost(root, Mathf.Lerp(x0, x1, i / (float)(midPosts + 1)), z, 1.25f, 0.11f, wood);
+                AddFencePost(root, Mathf.Lerp(x0, x1, i / (float)(midPosts + 1)), z, 1.25f * PropScale, 0.11f * PropScale, wood);
             foreach (var y in new[] { 0.38f, 0.72f, 1.05f })
             {
                 var rail = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 rail.name = "Greybox3D_FenceRail";
                 rail.transform.SetParent(root, false);
                 rail.transform.position = new Vector3(mid, y, z);
-                rail.transform.localScale = new Vector3(width + 0.08f, 0.09f, 0.08f);
+                rail.transform.localScale = new Vector3(width + 0.08f, 0.09f * PropScale, 0.08f * PropScale);
                 Proto_Greybox3DUtil.DestroySafe(rail.GetComponent<Collider>());
                 rail.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.Cel(wood, outline: 0.01f);
             }
@@ -344,19 +434,76 @@ namespace HillNGun.Proto.Greybox3D
         {
             PlaceProp(catalog != null ? catalog.CrateLarge : null, root, "Crate",
                 Proto_GreyboxLayout.ScreenXPercentToWorldX(54f),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(67f), 1.1f, new Vector3(0.8f, 0.8f, 0.8f));
+                Proto_GreyboxLayout.ScreenYPercentToWorldY(67f), 1.1f * PropScale, new Vector3(0.8f, 0.8f, 0.8f) * PropScale);
             PlaceProp(catalog != null ? catalog.Crate : null, root, "Crate",
                 Proto_GreyboxLayout.ScreenXPercentToWorldX(16f),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(58f), 1f, new Vector3(0.7f, 0.7f, 0.7f));
+                Proto_GreyboxLayout.ScreenYPercentToWorldY(58f), 1f * PropScale, new Vector3(0.7f, 0.7f, 0.7f) * PropScale);
             PlaceProp(catalog != null ? catalog.Crate : null, root, "Crate",
                 Proto_GreyboxLayout.ScreenXPercentToWorldX(63f),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(72f), 1.15f, new Vector3(0.85f, 0.85f, 0.85f));
+                Proto_GreyboxLayout.ScreenYPercentToWorldY(72f), 1.15f * PropScale, new Vector3(0.85f, 0.85f, 0.85f) * PropScale);
             PlaceProp(catalog != null ? catalog.Barrel : null, root, "Barrel",
                 Proto_GreyboxLayout.ScreenXPercentToWorldX(22f),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(64f), 1f, new Vector3(0.55f, 0.7f, 0.55f));
+                Proto_GreyboxLayout.ScreenYPercentToWorldY(64f), 1f * PropScale, new Vector3(0.55f, 0.7f, 0.55f) * PropScale);
             PlaceProp(catalog != null ? catalog.Barrel : null, root, "Barrel",
                 Proto_GreyboxLayout.ScreenXPercentToWorldX(70f),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(60f), 1f, new Vector3(0.55f, 0.7f, 0.55f));
+                Proto_GreyboxLayout.ScreenYPercentToWorldY(60f), 1f * PropScale, new Vector3(0.55f, 0.7f, 0.55f) * PropScale);
+            BuildHayBales(root);
+            BuildWaterTower(root);
+        }
+
+        static void BuildHayBales(Transform root)
+        {
+            var straw = Proto_Greybox3DMaterials.CelShared(new Color(0.78f, 0.62f, 0.22f), 0.008f);
+            Vector3[] pos =
+            {
+                new Vector3(-4.6f, 0.16f, 6.2f),
+                new Vector3(-4.15f, 0.16f, 6.7f),
+                new Vector3(5.1f, 0.16f, 7.0f)
+            };
+            for (int i = 0; i < pos.Length; i++)
+            {
+                var hay = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                hay.name = "Greybox3D_Hay";
+                hay.transform.SetParent(root, false);
+                hay.transform.position = pos[i];
+                hay.transform.rotation = Quaternion.Euler(90f, 20f * i, 0f);
+                hay.transform.localScale = new Vector3(0.55f, 0.38f, 0.55f) * PropScale;
+                Proto_Greybox3DUtil.DestroySafe(hay.GetComponent<Collider>());
+                hay.GetComponent<MeshRenderer>().sharedMaterial = straw;
+            }
+        }
+
+        static void BuildWaterTower(Transform root)
+        {
+            var wood = Proto_Greybox3DMaterials.SharedWood;
+            var tankCol = Proto_Greybox3DMaterials.CelShared(new Color(0.55f, 0.22f, 0.16f), 0.01f);
+            var tower = new GameObject("Greybox3D_WaterTower").transform;
+            tower.SetParent(root, false);
+            tower.position = new Vector3(7.6f, 0f, 16.5f);
+            for (int i = 0; i < 4; i++)
+            {
+                float ang = 45f + i * 90f;
+                var leg = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                leg.transform.SetParent(tower, false);
+                float rad = 0.55f;
+                leg.transform.localPosition = new Vector3(Mathf.Cos(ang * Mathf.Deg2Rad) * rad, 1.3f,
+                    Mathf.Sin(ang * Mathf.Deg2Rad) * rad);
+                leg.transform.localScale = new Vector3(0.12f, 1.3f, 0.12f);
+                Proto_Greybox3DUtil.DestroySafe(leg.GetComponent<Collider>());
+                leg.GetComponent<MeshRenderer>().sharedMaterial = wood;
+            }
+            var tank = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            tank.transform.SetParent(tower, false);
+            tank.transform.localPosition = new Vector3(0f, 2.85f, 0f);
+            tank.transform.localScale = new Vector3(1.5f, 0.55f, 1.5f);
+            Proto_Greybox3DUtil.DestroySafe(tank.GetComponent<Collider>());
+            tank.GetComponent<MeshRenderer>().sharedMaterial = tankCol;
+            var cap = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            cap.transform.SetParent(tower, false);
+            cap.transform.localPosition = new Vector3(0f, 3.35f, 0f);
+            cap.transform.localScale = new Vector3(1.35f, 0.45f, 1.35f);
+            Proto_Greybox3DUtil.DestroySafe(cap.GetComponent<Collider>());
+            cap.GetComponent<MeshRenderer>().sharedMaterial = tankCol;
         }
 
         static void PlaceProp(GameObject prefab, Transform root, string name, float footX, float footY, float scale,
@@ -418,6 +565,27 @@ namespace HillNGun.Proto.Greybox3D
                     Proto_Greybox3DSpawn.Tint(grass, new Color(0.36f, 0.52f, 0.16f), 0.006f);
                 }
             }
+
+            BuildTumbleweed(root, new Vector3(-3.8f, 0.28f, 4.2f));
+            BuildTumbleweed(root, new Vector3(4.4f, 0.28f, 5.0f));
+        }
+
+        static void BuildTumbleweed(Transform root, Vector3 pos)
+        {
+            var tw = new GameObject("Greybox3D_Tumbleweed").transform;
+            tw.SetParent(root, false);
+            tw.position = pos;
+            var mat = Proto_Greybox3DMaterials.CelShared(new Color(0.55f, 0.38f, 0.18f), 0.006f);
+            for (int i = 0; i < 3; i++)
+            {
+                var ring = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                ring.transform.SetParent(tw, false);
+                ring.transform.localScale = new Vector3(0.55f, 0.08f, 0.55f);
+                ring.transform.localRotation = Quaternion.Euler(i * 60f, i * 40f, 15f);
+                Proto_Greybox3DUtil.DestroySafe(ring.GetComponent<Collider>());
+                ring.GetComponent<MeshRenderer>().sharedMaterial = mat;
+            }
+            tw.gameObject.AddComponent<Proto_Greybox3DSpin>().DegreesPerSecond = 22f;
         }
 
         static void EnsureLight(Transform root)
@@ -427,18 +595,31 @@ namespace HillNGun.Proto.Greybox3D
             lightGo.transform.rotation = Quaternion.Euler(42f, -28f, 0f);
             var light = lightGo.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.color = new Color(1f, 0.93f, 0.78f);
-            light.intensity = 1.15f;
+            light.color = new Color(1f, 0.90f, 0.72f);
+            light.intensity = 1.22f;
             light.shadows = LightShadows.None;
 
             var fillGo = new GameObject("Greybox3D_Fill");
             fillGo.transform.SetParent(root, false);
-            fillGo.transform.rotation = Quaternion.Euler(20f, 140f, 0f);
+            fillGo.transform.rotation = Quaternion.Euler(18f, 145f, 0f);
             var fill = fillGo.AddComponent<Light>();
             fill.type = LightType.Directional;
-            fill.color = new Color(0.55f, 0.70f, 0.95f);
-            fill.intensity = 0.28f;
+            fill.color = new Color(0.48f, 0.66f, 0.95f);
+            fill.intensity = 0.34f;
             fill.shadows = LightShadows.None;
+
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            RenderSettings.ambientLight = new Color(0.42f, 0.36f, 0.32f);
+            RenderSettings.fog = false;
+        }
+    }
+
+    sealed class Proto_Greybox3DSpin : MonoBehaviour
+    {
+        public float DegreesPerSecond = 20f;
+        void Update()
+        {
+            transform.Rotate(0f, DegreesPerSecond * Time.deltaTime, DegreesPerSecond * 0.35f * Time.deltaTime, Space.World);
         }
     }
 }

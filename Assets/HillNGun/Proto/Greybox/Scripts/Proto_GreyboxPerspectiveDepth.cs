@@ -13,21 +13,21 @@ namespace HillNGun.Proto.Greybox
         public const float PerspectiveEnemyFootMinPercent = 40f;
         public const float PerspectiveEnemyFootMaxPercent = 52f;
         public const float PerspectiveEnemyHeightFarPercent = 6f;
-        public const float PerspectiveEnemyHeightNearPercent = 11f;
-        public const float PerspectiveFenceTopPercent = 54f;
+        public const float PerspectiveEnemyHeightNearPercent = 8f;
+        public const float PerspectiveFenceTopPercent = 56f;
         public const float PerspectiveFenceBottomPercent = 59f;
         public const float PerspectiveMoveFootMinPercent = 62f;
         public const float PerspectiveMoveFootMaxPercent = 95f;
 
         public const bool DefaultPlayerPerspectiveEnabled = true;
         public const bool DefaultPlayerDepthMoveEnabled = true;
-        public const float DefaultPlayerHeightFarPercent = 14f;
-        public const float DefaultPlayerHeightNearPercent = 20f;
+        public const float DefaultPlayerHeightFarPercent = 9f;
+        public const float DefaultPlayerHeightNearPercent = 12f;
         public const float PlayerVerticalMoveSlowAtFar = 0.9f;
 
         public const float FlatEnemyFootPercent = 37f;
-        public const float FlatEnemyHeightPercent = 11f;
-        public const float FlatFenceTopPercent = 41f;
+        public const float FlatEnemyHeightPercent = 8f;
+        public const float FlatFenceTopPercent = 43f;
         public const float FlatFenceBottomPercent = 46f;
         public const float FlatMoveFootMinPercent = 60f;
         public const float FlatMoveFootMaxPercent = 90f;
@@ -94,7 +94,7 @@ namespace HillNGun.Proto.Greybox
             if (!Enabled)
                 return ReferenceScreenHeightPx * FlatEnemyHeightPercent / 100f;
             float yf = ClampedFootFraction(footPercentFromTop);
-            return ReferenceScreenHeightPx * (0.06f + (yf - 0.40f) / 0.12f * 0.05f);
+            return ReferenceScreenHeightPx * (0.06f + (yf - 0.40f) / 0.12f * 0.02f);
         }
 
         public static float EnemyHeightScreenPercentAtFootPercent(float footPercentFromTop)
@@ -113,7 +113,7 @@ namespace HillNGun.Proto.Greybox
         public static float EnemyBodyHeightWorld(float footWorldY) =>
             Proto_GreyboxLayout.ScreenPercentToWorldHeight(EnemyHeightScreenPercentAtFootWorldY(footWorldY));
 
-        /// <summary>Scale relative to near row (~118.8px body at 52%).</summary>
+        /// <summary>Scale relative to near row (~86.4px body at 52%, 8% of 1080).</summary>
         public static float EnemyVisualScaleAtFootPercent(float footPercentFromTop)
         {
             float nearPx = EnemyBodyHeightScreenPx(PerspectiveEnemyFootMaxPercent);

@@ -50,16 +50,16 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
       Assert.NotNull(builder);
       builder.Build();
 
-      AssertObjectRatios(cam, Proto_GreyboxStageBuilder.PlayerName, 69f, 88f, 19f, Tol);
+      AssertObjectRatios(cam, Proto_GreyboxStageBuilder.PlayerName, 76f, 88f, 12f, Tol);
       AssertObjectRatios(cam, Proto_GreyboxStageBuilder.FenceName,
         Proto_GreyboxPerspectiveDepth.FenceTopPercent,
         Proto_GreyboxPerspectiveDepth.FenceBottomPercent,
         Proto_GreyboxPerspectiveDepth.FenceBottomPercent - Proto_GreyboxPerspectiveDepth.FenceTopPercent, Tol);
-      Assert.AreEqual(11f, Proto_GreyboxTuning.TargetHeightPercent, Tol, "grunt height percent");
+      Assert.AreEqual(8f, Proto_GreyboxTuning.TargetHeightPercent, Tol, "grunt height percent");
 
-      AssertObjectHeight(cam, Proto_GreyboxStageBuilder.CrateFarName, 6f, Tol);
-      AssertObjectHeight(cam, Proto_GreyboxStageBuilder.CrateMidName, 11f, Tol);
-      AssertObjectHeight(cam, Proto_GreyboxStageBuilder.CrateNearName, 20f, Tol);
+      AssertObjectHeight(cam, Proto_GreyboxStageBuilder.CrateFarName, 3.6f, Tol);
+      AssertObjectHeight(cam, Proto_GreyboxStageBuilder.CrateMidName, 6.6f, Tol);
+      AssertObjectHeight(cam, Proto_GreyboxStageBuilder.CrateNearName, 12f, Tol);
 
       AssertCrateX(cam, Proto_GreyboxStageBuilder.CrateFarName, 52f, 56.5f, Tol);
       AssertCrateX(cam, Proto_GreyboxStageBuilder.CrateMidName, 12f, 21f, Tol);

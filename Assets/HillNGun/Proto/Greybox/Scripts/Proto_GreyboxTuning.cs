@@ -2,7 +2,33 @@ namespace HillNGun.Proto.Greybox
 {
     public static class Proto_GreyboxTuning
     {
-        public const float MoveSpeed = 4.2f;
+        /// <summary>
+        /// Brawl Stars "normal" is 720 units/s on a 300-unit tile ≈ 2.4 tiles/s,
+        /// and a brawler is about one tile wide, so we target 2.4 hero body-widths
+        /// per second. Mid-band visible width (default perspective on) is
+        /// WorldWidth * PlayerCapsuleWidthPercent/100 * (mid height / near height).
+        /// After the Brawl Stars size pass, near height is 12% and mid is 10.5% (scale 0.875),
+        /// width percent is 3.36 (12/20 of the old 5.6). Mid-band width =
+        /// (2*5*(16/9)) * 0.0336 * 0.875 = 0.5227 world units.
+        /// 2.4 * 0.5227 = 1.254, baked as 1.25. Previously 4.2, then 2.03 at the old 20% height.
+        /// Shared by the 2D and 3D views (same motor). Vertical depth factor is unchanged.
+        /// </summary>
+        public const float MoveSpeedBodyWidthsPerSec = 2.4f;
+        public const float MoveSpeed = 1.25f;
+
+        public static float MidBandFootPercent =>
+            (Proto_GreyboxPerspectiveDepth.MoveFootMinPercent +
+             Proto_GreyboxPerspectiveDepth.MoveFootMaxPercent) * 0.5f;
+
+        public static float HeroVisibleWidthAtMidBand()
+        {
+            float scale = Proto_GreyboxPerspectiveDepth.PlayerVisualScaleAtFootPercent(MidBandFootPercent);
+            return Proto_GreyboxLayout.WorldWidth * (PlayerCapsuleWidthPercent / 100f) * scale;
+        }
+
+        /// <summary>Walk-cycle travel as a multiple of mid-band body width (two steps ≈ a little over one width).</summary>
+        public const float WalkCycleDistanceInBodyWidths = 1.25f;
+
         public const float RollDistance = 2.2f;
         public const float RollDuration = 0.28f;
         public const float RollInvulnDuration = 0.22f;
@@ -14,17 +40,19 @@ namespace HillNGun.Proto.Greybox
         public const int RollChainMax = 3;
         public const float RollChainLockSec = 5f;
         public const float EnemyBulletSpeed = 4.2f;
-        public const float EnemyBulletDiameter = 0.30f;
+        public const float EnemyBulletDiameter = 0.17f;
         public const float CoverDamageReduction = 1f;
-        public const float PlayerCapsuleHeightPercent = 19f;
-        public const float PlayerCapsuleWidthPercent = 5.6f;
+        public const float PlayerCapsuleHeightPercent = 12f;
+        public const float PlayerCapsuleWidthPercent = 3.36f;
         public const int PlayerDamagePerHit = 5;
 
         public const float AllyBulletSpeed = 4.2f;
         public const int AllyBulletDamage = 3;
-        public const float AllyBulletDiameter = 0.09f;
-        public const float AllyBulletVisualDiameter = 0.48f;
-        public const float AllyBulletVisualTracerLength = 0.90f;
+        public const float AllyBulletWidthOfHero = 0.25f;
+        public const float EnemyBulletWidthOfHero = 0.33f;
+        public const float AllyBulletDiameter = 0.13f;
+        public const float AllyBulletVisualDiameter = 0.13f;
+        public const float AllyBulletVisualTracerLength = 0.32f;
         public const float AllyBulletTracerLength = 0.50f;
         public const float FireInterval = 0.33f;
         public const int MagazineSize = 5;
@@ -42,7 +70,7 @@ namespace HillNGun.Proto.Greybox
         public const float AimDragReturnDuration = 0.3f;
         public const float AllyBulletNearCrateIgnore = 0.3f;
         public const float TargetWidthPercent = 3.5f;
-        public const float TargetHeightPercent = 11f;
+        public const float TargetHeightPercent = 8f;
         public const float ExplosionVisualDuration = 0.3f;
 
         public const float EnemyFireInterval = 1.6f;
@@ -58,8 +86,8 @@ namespace HillNGun.Proto.Greybox
         public const float DepthNearScale = 2.5f;
         public const float BulletDepthScaleCap = 1f;
         public const float EnemyBulletGlowDiameterMul = 1.3f;
-        public const float EnemyBulletVisualDiameterMul = 1.75f;
-        public const float EnemyBulletVisualGlowMul = 1.85f;
+        public const float EnemyBulletVisualDiameterMul = 1f;
+        public const float EnemyBulletVisualGlowMul = 1.45f;
 
         public const float PlayerMuzzleFlashHeightPercent = 5.5f;
         public const float PlayerMuzzleFlashDuration = 0.18f;

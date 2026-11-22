@@ -19,6 +19,9 @@ namespace HillNGun.Proto.Greybox3D
         static Material s_blob;
         static Material s_ring;
         static Material s_sky;
+        static Texture2D s_sandNoise;
+        static readonly System.Collections.Generic.Dictionary<int, Material> s_celCache =
+            new System.Collections.Generic.Dictionary<int, Material>();
 
         public static void BindFromCatalog(Proto_Greybox3DCatalog cat)
         {
@@ -71,7 +74,55 @@ namespace HillNGun.Proto.Greybox3D
                 m.SetFloat("_OutlineWidth", outline);
             if (m.HasProperty("_OutlineColor"))
                 m.SetColor("_OutlineColor", new Color(0.10f, 0.05f, 0.03f, 1f));
+            if (m.HasProperty("_RimStrength"))
+                m.SetFloat("_RimStrength", 0.22f);
+            if (m.HasProperty("_RimColor"))
+                m.SetColor("_RimColor", new Color(1f, 0.95f, 0.85f, 1f));
             return m;
+        }
+
+        public static Material CelShared(Color baseColor, float outline = 0.016f, Texture tex = null)
+        {
+            int key = Quantize(baseColor) ^ ((int)(outline * 1000f) << 8) ^ (tex != null ? tex.GetInstanceID() : 0);
+            if (s_celCache.TryGetValue(key, out var cached) && cached != null)
+                return cached;
+            var m = Cel(baseColor, tex, outline);
+            m.enableInstancing = true;
+            s_celCache[key] = m;
+            return m;
+        }
+
+        static int Quantize(Color c)
+        {
+            return ((int)(c.r * 64f) << 18) ^ ((int)(c.g * 64f) << 10) ^ ((int)(c.b * 64f) << 2) ^ (int)(c.a * 8f);
+        }
+
+        public static Texture2D SandNoise()
+        {
+            if (s_sandNoise != null) return s_sandNoise;
+            const int n = 128;
+            var tex = new Texture2D(n, n, TextureFormat.RGB24, false)
+            {
+                wrapMode = TextureWrapMode.Repeat,
+                filterMode = FilterMode.Bilinear,
+                name = "Greybox3D_SandNoise"
+            };
+            for (int y = 0; y < n; y++)
+            for (int x = 0; x < n; x++)
+            {
+                float v = 0.86f
+                          + 0.08f * Mathf.PerlinNoise(x * 0.09f, y * 0.09f)
+                          + 0.05f * Mathf.PerlinNoise(x * 0.27f + 8f, y * 0.27f);
+                // slight reddish speckles, no printed label
+                float speck = Mathf.PerlinNoise(x * 0.8f, y * 0.8f);
+                var col = Color.Lerp(new Color(0.82f, 0.48f, 0.22f), new Color(1f, 0.72f, 0.42f), v);
+                if (speck > 0.82f)
+                    col = Color.Lerp(col, new Color(0.70f, 0.40f, 0.18f), 0.4f);
+                tex.SetPixel(x, y, col);
+            }
+            tex.Apply(false, true);
+            s_sandNoise = tex;
+            return s_sandNoise;
         }
 
         static void ApplyColor(Material m, Color c)
@@ -91,7 +142,9 @@ namespace HillNGun.Proto.Greybox3D
                     // checker when stretched over the playfield.
                     // Solid sand only: the pack dirt texture has a visible "Dirt SandStone" label
                     // that tiles into a grid on the playfield.
-                    s_ground = Cel(new Color(0.90f, 0.58f, 0.28f), null, 0.0f);
+                    s_ground = Cel(Color.white, SandNoise(), 0.0f);
+                    if (s_ground.HasProperty("_MainTex"))
+                        s_ground.SetTextureScale("_MainTex", new Vector2(14f, 18f));
                 }
                 return s_ground;
             }
@@ -196,16 +249,16 @@ namespace HillNGun.Proto.Greybox3D
                     s_sky = SafeMaterial(SkyShader);
                     var cat = Proto_Greybox3DCatalog.Load();
                     if (s_sky.HasProperty("_Color"))
-                        s_sky.SetColor("_Color", new Color(0.16f, 0.42f, 0.92f));
+                        s_sky.SetColor("_Color", new Color(0.10f, 0.38f, 0.94f));
                     if (s_sky.HasProperty("_Horizon"))
-                        s_sky.SetColor("_Horizon", new Color(0.78f, 0.88f, 0.98f));
+                        s_sky.SetColor("_Horizon", new Color(0.42f, 0.70f, 0.96f));
                     if (cat != null && cat.SkyboxDay != null && s_sky.HasProperty("_MainTex"))
                     {
                         s_sky.SetTexture("_MainTex", cat.SkyboxDay);
                         if (s_sky.HasProperty("_UseTex"))
-                            s_sky.SetFloat("_UseTex", 0.55f);
+                            s_sky.SetFloat("_UseTex", 0.18f);
                     }
-                    s_sky.color = new Color(0.16f, 0.42f, 0.92f);
+                    s_sky.color = new Color(0.10f, 0.38f, 0.94f);
                 }
                 return s_sky;
             }

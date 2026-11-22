@@ -24,20 +24,20 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
         }
 
         [Test]
-        public void EnemyHeight_FollowsSixToElevenPercentCurve_ClampedYf()
+        public void EnemyHeight_FollowsSixToEightPercentCurve_ClampedYf()
         {
             Assert.AreEqual(6f, Proto_GreyboxPerspectiveDepth.EnemyHeightScreenPercentAtFootPercent(40f), 0.08f);
-            Assert.AreEqual(11f, Proto_GreyboxPerspectiveDepth.EnemyHeightScreenPercentAtFootPercent(52f), 0.08f);
+            Assert.AreEqual(8f, Proto_GreyboxPerspectiveDepth.EnemyHeightScreenPercentAtFootPercent(52f), 0.08f);
             Assert.AreEqual(6f, Proto_GreyboxPerspectiveDepth.EnemyHeightScreenPercentAtFootPercent(30f), 0.08f);
             float scale52 = Proto_GreyboxPerspectiveDepth.GruntSpriteUniformScaleAtFootPercent(52f);
-            Assert.AreEqual(118.8f / 120f, scale52, 0.02f);
+            Assert.AreEqual(86.4f / 120f, scale52, 0.02f);
         }
 
         [Test]
         public void WhenDisabled_HeightFlatAndWaveUsesSingleRow()
         {
             Proto_GreyboxPerspectiveDepth.Enabled = false;
-            Assert.AreEqual(11f, Proto_GreyboxPerspectiveDepth.EnemyHeightScreenPercentAtFootPercent(40f), 0.01f);
+            Assert.AreEqual(8f, Proto_GreyboxPerspectiveDepth.EnemyHeightScreenPercentAtFootPercent(40f), 0.01f);
             var director = new Proto_GreyboxWaveDirector(17);
             var tuning = new Proto_GreyboxRuntimeTuning();
             director.StartRun(tuning);
@@ -111,9 +111,9 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
         }
 
         [Test]
-        public void EnemyBulletVisualMul_Is175()
+        public void EnemyBulletVisualMul_MatchesHurtboxWithSofterGlow()
         {
-            Assert.AreEqual(1.75f, Proto_GreyboxTuning.EnemyBulletVisualDiameterMul, 0.001f);
+            Assert.AreEqual(1f, Proto_GreyboxTuning.EnemyBulletVisualDiameterMul, 0.001f);
             Assert.Greater(Proto_GreyboxTuning.EnemyBulletVisualGlowMul, Proto_GreyboxTuning.EnemyBulletVisualDiameterMul);
         }
     }

@@ -178,9 +178,10 @@ namespace HillNGun.Proto.Greybox
 
         void BuildCrates()
         {
-            BuildScaledBox(CrateFarName, 52f, 56.5f, 30f, 36f, Proto_GreyboxPalette.Crate);
-            BuildScaledBox(CrateMidName, 12f, 21f, 52f, 63f, Proto_GreyboxPalette.Crate);
-            BuildScaledBox(CrateNearName, 58f, 69f, 62f, 82f, Proto_GreyboxPalette.Crate);
+            // Heights scaled with the hero (legacy 6/11/20% * 12/20 → 3.6/6.6/12), feet unchanged.
+            BuildScaledBox(CrateFarName, 52f, 56.5f, 32.4f, 36f, Proto_GreyboxPalette.Crate);
+            BuildScaledBox(CrateMidName, 12f, 21f, 56.4f, 63f, Proto_GreyboxPalette.Crate);
+            BuildScaledBox(CrateNearName, 58f, 69f, 70f, 82f, Proto_GreyboxPalette.Crate);
         }
 
         void BuildEnemyMarkers()

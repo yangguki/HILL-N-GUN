@@ -14,6 +14,37 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
         public void SetUp() => Proto_GreyboxMoveZone.ResetToDefaults();
 
         [Test]
+        public void MoveSpeed_Is2Point4BodyWidthsPerSecondAtMidBand()
+        {
+            float width = Proto_GreyboxTuning.HeroVisibleWidthAtMidBand();
+            Assert.Greater(width, 0.4f);
+            Assert.Less(width, 1.0f);
+            Assert.AreEqual(Proto_GreyboxTuning.MoveSpeedBodyWidthsPerSec * width,
+                Proto_GreyboxTuning.MoveSpeed, 0.015f);
+            Assert.Less(Proto_GreyboxTuning.MoveSpeed, 4.2f);
+
+            float midY = Proto_GreyboxLayout.ScreenYPercentToWorldY(Proto_GreyboxTuning.MidBandFootPercent);
+            var motor = new Proto_GreyboxPlayerMotor(new Vector2(0f, midY));
+            var start = motor.FootPosition;
+            motor.TickMove(Vector2.right, 1f);
+            Assert.AreEqual(Proto_GreyboxTuning.MoveSpeed, motor.FootPosition.x - start.x, 0.02f);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void BulletVisuals_AreSmallFractionsOfHeroWidth()
+        {
+            float w = Proto_GreyboxTuning.HeroVisibleWidthAtMidBand();
+            Assert.AreEqual(w * Proto_GreyboxTuning.AllyBulletWidthOfHero,
+                Proto_GreyboxTuning.AllyBulletVisualDiameter, 0.02f);
+            Assert.AreEqual(w * Proto_GreyboxTuning.EnemyBulletWidthOfHero,
+                Proto_GreyboxTuning.EnemyBulletDiameter, 0.02f);
+            Assert.AreEqual(Proto_GreyboxTuning.AllyBulletVisualDiameter, Proto_GreyboxTuning.AllyBulletDiameter, 0.001f);
+            Assert.Less(Proto_GreyboxTuning.EnemyBulletDiameter, 0.25f);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
         public void MoveClamp_KeepsFootInsideMoveZone()
         {
             var motor = new Proto_GreyboxPlayerMotor(Vector2.zero);

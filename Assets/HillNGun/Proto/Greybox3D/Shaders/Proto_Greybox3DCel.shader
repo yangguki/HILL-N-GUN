@@ -7,6 +7,9 @@ Shader "HillNGun/Proto/Greybox3D/Cel"
         _Saturation ("Saturation", Range(0.5, 2.5)) = 1.35
         _OutlineColor ("Outline", Color) = (0.12, 0.07, 0.05, 1)
         _OutlineWidth ("Outline Width", Range(0, 0.08)) = 0.018
+        _RimColor ("Rim", Color) = (1.0, 0.95, 0.85, 1)
+        _RimPower ("Rim Power", Range(1, 8)) = 3.2
+        _RimStrength ("Rim Strength", Range(0, 1)) = 0.22
     }
     SubShader
     {
@@ -74,6 +77,9 @@ Shader "HillNGun/Proto/Greybox3D/Cel"
             float4 _MainTex_ST;
             fixed4 _Color;
             float _Saturation;
+            fixed4 _RimColor;
+            float _RimPower;
+            float _RimStrength;
 
             struct appdata
             {
@@ -89,6 +95,7 @@ Shader "HillNGun/Proto/Greybox3D/Cel"
                 float4 pos : SV_POSITION;
                 float2 uv : TEXCOORD0;
                 float3 n : TEXCOORD1;
+                float3 wpos : TEXCOORD2;
                 fixed4 vcol : COLOR;
             };
 
@@ -99,6 +106,7 @@ Shader "HillNGun/Proto/Greybox3D/Cel"
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 o.n = UnityObjectToWorldNormal(v.normal);
+                o.wpos = mul(unity_ObjectToWorld, v.vertex).xyz;
                 o.vcol = v.color;
                 return o;
             }
@@ -114,8 +122,11 @@ Shader "HillNGun/Proto/Greybox3D/Cel"
                 float3 l = normalize(_WorldSpaceLightPos0.xyz);
                 float ndl = dot(n, l) * 0.5 + 0.5;
                 float ramp = smoothstep(0.32, 0.72, ndl);
-                float shade = 0.55 + 0.45 * ramp;
-                fixed3 lit = albedo.rgb * _LightColor0.rgb * shade + albedo.rgb * 0.22;
+                float shade = 0.52 + 0.48 * ramp;
+                fixed3 lit = albedo.rgb * _LightColor0.rgb * shade + albedo.rgb * 0.20;
+                float3 view = normalize(_WorldSpaceCameraPos.xyz - i.wpos);
+                float rim = pow(1.0 - saturate(dot(n, view)), _RimPower) * _RimStrength;
+                lit += rim * _RimColor.rgb;
                 return fixed4(lit, 1);
             }
             ENDCG

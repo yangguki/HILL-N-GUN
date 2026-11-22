@@ -70,6 +70,7 @@ namespace HillNGun.Proto.Greybox3D.Editor
             catalog.GlowShader = Shader.Find("HillNGun/Proto/Greybox3D/Glow");
             catalog.BlobShader = Shader.Find("HillNGun/Proto/Greybox3D/BlobShadow");
             catalog.SkyShader = Shader.Find("HillNGun/Proto/Greybox3D/Sky");
+            catalog.VignetteShader = Shader.Find("HillNGun/Proto/Greybox3D/Vignette");
 
             var prefab = EnsureCowboyPrefab(catalog.CowboyMale);
             if (prefab != null)

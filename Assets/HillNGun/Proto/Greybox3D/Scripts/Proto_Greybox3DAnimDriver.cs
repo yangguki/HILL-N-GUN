@@ -1,3 +1,4 @@
+using HillNGun.Proto.Greybox;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -22,6 +23,7 @@ namespace HillNGun.Proto.Greybox3D
         OneShot _shot;
         float _shotEnd;
         float _walkWeight;
+        public float WalkPlaybackSpeed { get; private set; } = 1f;
 
         public void Bind(Animator animator, Proto_Greybox3DCatalog cat)
         {
@@ -53,7 +55,8 @@ namespace HillNGun.Proto.Greybox3D
             _ready = true;
         }
 
-        public void Tick(float time, float dt, bool moving, bool firing, bool hit, bool down, bool rolling)
+        public void Tick(float time, float dt, bool moving, bool firing, bool hit, bool down, bool rolling,
+            float groundSpeed = -1f, float walkCycleDistance = -1f)
         {
             if (!_ready) return;
             if (down)
@@ -111,7 +114,22 @@ namespace HillNGun.Proto.Greybox3D
             _locomo = moving ? Locomo.Walk : Locomo.Idle;
             float target = moving ? 1f : 0f;
             _walkWeight = Mathf.MoveTowards(_walkWeight, target, dt * 8f);
-            _walk.SetSpeed(moving ? 1.35f : 1f);
+            float play = 1f;
+            if (moving)
+            {
+                var clip = _walk.GetAnimationClip();
+                float cycleTime = clip != null && clip.length > 0.05f ? clip.length : 1f;
+                float cycleDist = walkCycleDistance > 0.05f
+                    ? walkCycleDistance
+                    : Proto_GreyboxTuning.HeroVisibleWidthAtMidBand() *
+                      Proto_GreyboxTuning.WalkCycleDistanceInBodyWidths;
+                float natural = cycleDist / cycleTime;
+                float speed = groundSpeed >= 0f ? groundSpeed : Proto_GreyboxTuning.MoveSpeed;
+                play = natural > 1e-4f ? speed / natural : 1.35f;
+                play = Mathf.Clamp(play, 0.35f, 2.6f);
+            }
+            WalkPlaybackSpeed = play;
+            _walk.SetSpeed(play);
             SetWeights(1f - _walkWeight, _walkWeight, 0f, 0f);
             if (!Application.isPlaying && _graph.IsValid())
                 _graph.Evaluate(dt);

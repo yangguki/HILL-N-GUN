@@ -26,17 +26,17 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
         {
             float top = Proto_GreyboxPerspectiveDepth.PlayerHeightScreenPercentAtFootPercent(62f);
             float bottom = Proto_GreyboxPerspectiveDepth.PlayerHeightScreenPercentAtFootPercent(95f);
-            Assert.AreEqual(14f, top, 0.08f);
-            Assert.AreEqual(20f, bottom, 0.08f);
+            Assert.AreEqual(9f, top, 0.08f);
+            Assert.AreEqual(12f, bottom, 0.08f);
         }
 
         [Test]
         public void PlayerHeight_MidBand_IsBetweenEnds()
         {
             float mid = Proto_GreyboxPerspectiveDepth.PlayerHeightScreenPercentAtFootPercent(78.5f);
-            Assert.Greater(mid, 14f);
-            Assert.Less(mid, 20f);
-            Assert.AreEqual(17f, mid, 0.15f);
+            Assert.Greater(mid, 9f);
+            Assert.Less(mid, 12f);
+            Assert.AreEqual(10.5f, mid, 0.15f);
         }
 
         [Test]
@@ -44,8 +44,8 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
         {
             float below = Proto_GreyboxPerspectiveDepth.PlayerHeightScreenPercentAtFootPercent(30f);
             float above = Proto_GreyboxPerspectiveDepth.PlayerHeightScreenPercentAtFootPercent(99f);
-            Assert.AreEqual(14f, below, 0.08f);
-            Assert.AreEqual(20f, above, 0.08f);
+            Assert.AreEqual(9f, below, 0.08f);
+            Assert.AreEqual(12f, above, 0.08f);
         }
 
         [Test]
@@ -63,8 +63,8 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
         public void WhenPlayerPerspectiveOff_HeightFlatAtBottom()
         {
             Proto_GreyboxPerspectiveDepth.PlayerPerspectiveEnabled = false;
-            Assert.AreEqual(20f, Proto_GreyboxPerspectiveDepth.PlayerHeightScreenPercentAtFootPercent(62f), 0.08f);
-            Assert.AreEqual(20f, Proto_GreyboxPerspectiveDepth.PlayerHeightScreenPercentAtFootPercent(95f), 0.08f);
+            Assert.AreEqual(12f, Proto_GreyboxPerspectiveDepth.PlayerHeightScreenPercentAtFootPercent(62f), 0.08f);
+            Assert.AreEqual(12f, Proto_GreyboxPerspectiveDepth.PlayerHeightScreenPercentAtFootPercent(95f), 0.08f);
             float yFar = Proto_GreyboxLayout.ScreenYPercentToWorldY(62f);
             float yNear = Proto_GreyboxLayout.ScreenYPercentToWorldY(95f);
             Assert.AreEqual(

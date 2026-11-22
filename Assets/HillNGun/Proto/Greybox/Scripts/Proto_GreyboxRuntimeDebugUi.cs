@@ -131,7 +131,7 @@ namespace HillNGun.Proto.Greybox
                     Proto_GreyboxMoveZone.SetFootYPercentMin(v);
                     _controller?.NotifyMoveZoneChanged();
                 });
-            AddSliderRow(_panelRoot.transform, ref y, "Move speed", 1f, 12f, _tuning.MoveSpeed,
+            AddSliderRow(_panelRoot.transform, ref y, "Move speed", 0.6f, 6f, _tuning.MoveSpeed,
                 v => _tuning.MoveSpeed = v);
             AddSliderRow(_panelRoot.transform, ref y, "Roll dist", 0.5f, 5f, _tuning.RollDistance,
                 v => _tuning.RollDistance = v);
@@ -161,7 +161,7 @@ namespace HillNGun.Proto.Greybox
                     _tuning.EnemyBulletSpeed = v;
                     Proto_GreyboxBulletSpeedPrefs.SaveEnemy(v);
                 });
-            AddSliderRow(_panelRoot.transform, ref y, "Enemy bullet size", 0.2f, 1.2f, _tuning.EnemyBulletDiameter,
+            AddSliderRow(_panelRoot.transform, ref y, "Enemy bullet size", 0.06f, 0.5f, _tuning.EnemyBulletDiameter,
                 v => _tuning.EnemyBulletDiameter = v);
             AddSliderRow(_panelRoot.transform, ref y, "Ally bullet spd", 2f, 12f, _tuning.AllyBulletSpeed,
                 v =>
@@ -228,14 +228,18 @@ namespace HillNGun.Proto.Greybox
                 _tuning.PlayerPerspective = v;
                 _controller?.SetPlayerPerspectiveRuntime();
             });
-            AddSliderRow(_panelRoot.transform, ref y, "Player h top %", 8f, 24f, _tuning.PlayerHeightTopPercent, v =>
+            AddSliderRow(_panelRoot.transform, ref y, "Player h top %", 5f, 16f, _tuning.PlayerHeightTopPercent, v =>
             {
                 _tuning.PlayerHeightTopPercent = Mathf.Min(v, _tuning.PlayerHeightBottomPercent - 0.5f);
+                _tuning.MoveSpeed = Proto_GreyboxTuning.MoveSpeedBodyWidthsPerSec *
+                                    Proto_GreyboxTuning.HeroVisibleWidthAtMidBand();
                 _controller?.SetPlayerPerspectiveRuntime();
             });
-            AddSliderRow(_panelRoot.transform, ref y, "Player h bottom %", 12f, 30f, _tuning.PlayerHeightBottomPercent, v =>
+            AddSliderRow(_panelRoot.transform, ref y, "Player h bottom %", 8f, 22f, _tuning.PlayerHeightBottomPercent, v =>
             {
                 _tuning.PlayerHeightBottomPercent = Mathf.Max(v, _tuning.PlayerHeightTopPercent + 0.5f);
+                _tuning.MoveSpeed = Proto_GreyboxTuning.MoveSpeedBodyWidthsPerSec *
+                                    Proto_GreyboxTuning.HeroVisibleWidthAtMidBand();
                 _controller?.SetPlayerPerspectiveRuntime();
             });
             AddToggleRow(_panelRoot.transform, ref y, "Player depth move", _tuning.PlayerDepthMove, v =>

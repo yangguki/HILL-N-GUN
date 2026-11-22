@@ -255,6 +255,132 @@ namespace HillNGun.Proto.Greybox3D.Editor
             EditorApplication.Exit(0);
         }
 
+        public static void Capture3dECompare()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D E compare: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            const float dt = 0.02f;
+            for (int i = 0; i < 80; i++)
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            Canvas.ForceUpdateCanvases();
+            var tex3D = CaptureActiveWorldCam(CompareW, CompareH);
+            var half3D = ScaleTexture(tex3D, HalfW, CompareH);
+            var concept = LoadConcept();
+            var halfC = concept != null ? ScaleTexture(concept, HalfW, CompareH) : half3D;
+            var stitched = new Texture2D(CompareW, CompareH, TextureFormat.RGB24, false);
+            stitched.SetPixels(0, 0, HalfW, CompareH, halfC.GetPixels());
+            stitched.SetPixels(HalfW, 0, HalfW, CompareH, half3D.GetPixels());
+            stitched.Apply();
+            WritePng(stitched, "v4_greybox/3d_e_compare.png");
+            Object.DestroyImmediate(tex3D);
+            Object.DestroyImmediate(half3D);
+            if (halfC != concept && halfC != half3D) Object.DestroyImmediate(halfC);
+            Object.DestroyImmediate(stitched);
+            EditorApplication.Exit(0);
+        }
+
+        public static void Capture3dECombat()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D E combat: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+            Capture3dECombatOn(controller);
+            EditorApplication.Exit(0);
+        }
+
+        static void Capture3dECombatOn(Proto_GreyboxPlayerController controller)
+        {
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 0.55f;
+            controller.RuntimeTuning.Wave1Count = 6;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 200; i++)
+            {
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = i % 4 != 0 }, dt);
+                if (i % 25 == 0) controller.ResetHp();
+            }
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            controller.PoseAimStickDrag(new Vector2(0.4f, 4.8f));
+            controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            Canvas.ForceUpdateCanvases();
+            var tex = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(tex, "v4_greybox/3d_e_combat.png");
+            Object.DestroyImmediate(tex);
+        }
+
+        public static void Capture3dEBomb()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D E bomb: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 40; i++)
+                controller.Simulate(new Proto_GreyboxInput(), dt);
+            controller.ResetHp();
+            // Aim at the enemy row so the throw lands in front of the fence, then
+            // step until the explosion (puff + shockwave) is on screen.
+            controller.PoseAimStickDrag(new Vector2(0.15f, 5.2f));
+            controller.Simulate(new Proto_GreyboxInput { GrenadePressed = true }, dt);
+            bool seen = false;
+            for (int i = 0; i < 200; i++)
+            {
+                controller.Simulate(new Proto_GreyboxInput(), dt);
+                if (controller.Grenade != null && controller.Grenade.ExplosionVisible(controller.SimTime))
+                {
+                    seen = true;
+                    // Hold a couple of frames so puffs have spawned and grown.
+                    for (int k = 0; k < 4; k++)
+                        controller.Simulate(new Proto_GreyboxInput(), dt);
+                    break;
+                }
+            }
+            if (!seen)
+                Debug.LogWarning("3D E bomb: explosion window was not observed; capturing current frame.");
+            else
+                Debug.Log("3D E bomb: explosion visible, capturing puff + shockwave.");
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            Canvas.ForceUpdateCanvases();
+            var tex = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(tex, "v4_greybox/3d_e_bomb.png");
+            Object.DestroyImmediate(tex);
+            EditorApplication.Exit(0);
+        }
+
         public static void Capture3dDCombat()
         {
             Ensure3DFactory();
