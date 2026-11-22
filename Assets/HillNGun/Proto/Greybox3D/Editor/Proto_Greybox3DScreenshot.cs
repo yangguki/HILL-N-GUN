@@ -381,6 +381,79 @@ namespace HillNGun.Proto.Greybox3D.Editor
             EditorApplication.Exit(0);
         }
 
+        public static void Capture3dFCompare()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D F compare: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            const float dt = 0.02f;
+            for (int i = 0; i < 80; i++)
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            Canvas.ForceUpdateCanvases();
+            var tex3D = CaptureActiveWorldCam(CompareW, CompareH);
+            var half3D = ScaleTexture(tex3D, HalfW, CompareH);
+            var concept = LoadConcept();
+            var halfC = concept != null ? ScaleTexture(concept, HalfW, CompareH) : half3D;
+            var stitched = new Texture2D(CompareW, CompareH, TextureFormat.RGB24, false);
+            stitched.SetPixels(0, 0, HalfW, CompareH, halfC.GetPixels());
+            stitched.SetPixels(HalfW, 0, HalfW, CompareH, half3D.GetPixels());
+            stitched.Apply();
+            WritePng(stitched, "v4_greybox/3d_f_compare.png");
+            Object.DestroyImmediate(tex3D);
+            Object.DestroyImmediate(half3D);
+            if (halfC != concept && halfC != half3D) Object.DestroyImmediate(halfC);
+            Object.DestroyImmediate(stitched);
+            EditorApplication.Exit(0);
+        }
+
+        public static void Capture3dFCombat()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D F combat: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 0.40f;
+            controller.RuntimeTuning.Wave1Count = 6;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 180; i++)
+            {
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+                if (i % 20 == 0) controller.ResetHp();
+            }
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            // Keep firing so ally yellow and enemy red shots are both in flight.
+            controller.PoseAimStickDrag(new Vector2(0.2f, 5.0f));
+            controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            Canvas.ForceUpdateCanvases();
+            var tex = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(tex, "v4_greybox/3d_f_combat.png");
+            Object.DestroyImmediate(tex);
+            EditorApplication.Exit(0);
+        }
+
         public static void Capture3dDCombat()
         {
             Ensure3DFactory();

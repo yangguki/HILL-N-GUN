@@ -88,7 +88,19 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
         }
 
         [Test]
+        public void RollDistance_IsAbout2Point75BodyWidths()
+        {
+            float w = Proto_GreyboxTuning.HeroVisibleWidthAtMidBand();
+            Assert.AreEqual(Proto_GreyboxTuning.RollDistanceBodyWidths * w,
+                Proto_GreyboxTuning.RollDistance, 0.02f);
+            Assert.Greater(Proto_GreyboxTuning.RollDistanceBodyWidths, 2.49f);
+            Assert.Less(Proto_GreyboxTuning.RollDistanceBodyWidths, 3.01f);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
         public void Roll_InvulnCooldownAndDistance()
+
         {
             var start = new Vector2(0f, Proto_GreyboxLayout.ScreenYPercentToWorldY(82.5f));
             var motor = new Proto_GreyboxPlayerMotor(start);

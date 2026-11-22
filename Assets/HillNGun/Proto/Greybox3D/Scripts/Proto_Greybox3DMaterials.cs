@@ -14,7 +14,12 @@ namespace HillNGun.Proto.Greybox3D
         static Material s_fabric;
         static Material s_fence;
         static Material s_allyBullet;
+        static Material s_allyBulletTip;
+        static Material s_allyBulletOutline;
+        static Material s_allyBulletTrail;
         static Material s_enemyBullet;
+        static Material s_enemyBulletCore;
+        static Material s_enemyBulletTrail;
         static Material s_enemyGlow;
         static Material s_blob;
         static Material s_ring;
@@ -110,14 +115,14 @@ namespace HillNGun.Proto.Greybox3D
             for (int y = 0; y < n; y++)
             for (int x = 0; x < n; x++)
             {
-                float v = 0.86f
-                          + 0.08f * Mathf.PerlinNoise(x * 0.09f, y * 0.09f)
-                          + 0.05f * Mathf.PerlinNoise(x * 0.27f + 8f, y * 0.27f);
-                // slight reddish speckles, no printed label
+                // Mid-range dirt, not a blown-out yellow. Concept is warm orange-brown.
+                float v = 0.28f
+                          + 0.40f * Mathf.PerlinNoise(x * 0.09f, y * 0.09f)
+                          + 0.18f * Mathf.PerlinNoise(x * 0.27f + 8f, y * 0.27f);
                 float speck = Mathf.PerlinNoise(x * 0.8f, y * 0.8f);
-                var col = Color.Lerp(new Color(0.82f, 0.48f, 0.22f), new Color(1f, 0.72f, 0.42f), v);
+                var col = Color.Lerp(new Color(0.50f, 0.28f, 0.13f), new Color(0.76f, 0.46f, 0.22f), Mathf.Clamp01(v));
                 if (speck > 0.82f)
-                    col = Color.Lerp(col, new Color(0.70f, 0.40f, 0.18f), 0.4f);
+                    col = Color.Lerp(col, new Color(0.42f, 0.22f, 0.10f), 0.45f);
                 tex.SetPixel(x, y, col);
             }
             tex.Apply(false, true);
@@ -142,7 +147,7 @@ namespace HillNGun.Proto.Greybox3D
                     // checker when stretched over the playfield.
                     // Solid sand only: the pack dirt texture has a visible "Dirt SandStone" label
                     // that tiles into a grid on the playfield.
-                    s_ground = Cel(Color.white, SandNoise(), 0.0f);
+                    s_ground = Cel(new Color(0.92f, 0.78f, 0.58f), SandNoise(), 0.0f);
                     if (s_ground.HasProperty("_MainTex"))
                         s_ground.SetTextureScale("_MainTex", new Vector2(14f, 18f));
                 }
@@ -191,8 +196,38 @@ namespace HillNGun.Proto.Greybox3D
             get
             {
                 if (s_allyBullet == null)
-                    s_allyBullet = Glow(new Color(1f, 0.92f, 0.25f, 0.95f), 2.4f);
+                    s_allyBullet = Cel(new Color(1f, 0.82f, 0.20f), outline: 0.028f);
                 return s_allyBullet;
+            }
+        }
+
+        public static Material SharedAllyBulletTip
+        {
+            get
+            {
+                if (s_allyBulletTip == null)
+                    s_allyBulletTip = Cel(new Color(1f, 0.90f, 0.45f), outline: 0.022f);
+                return s_allyBulletTip;
+            }
+        }
+
+        public static Material SharedAllyBulletOutline
+        {
+            get
+            {
+                if (s_allyBulletOutline == null)
+                    s_allyBulletOutline = Cel(new Color(0.18f, 0.10f, 0.04f), outline: 0.0f);
+                return s_allyBulletOutline;
+            }
+        }
+
+        public static Material SharedAllyBulletTrail
+        {
+            get
+            {
+                if (s_allyBulletTrail == null)
+                    s_allyBulletTrail = Glow(new Color(1f, 0.92f, 0.25f, 0.85f), 2.2f);
+                return s_allyBulletTrail;
             }
         }
 
@@ -201,8 +236,28 @@ namespace HillNGun.Proto.Greybox3D
             get
             {
                 if (s_enemyBullet == null)
-                    s_enemyBullet = Glow(new Color(1f, 0.28f, 0.08f, 1f), 3.2f);
+                    s_enemyBullet = Glow(new Color(1f, 0.22f, 0.05f, 1f), 3.4f);
                 return s_enemyBullet;
+            }
+        }
+
+        public static Material SharedEnemyBulletCore
+        {
+            get
+            {
+                if (s_enemyBulletCore == null)
+                    s_enemyBulletCore = Glow(new Color(1f, 0.96f, 0.80f, 1f), 5.0f);
+                return s_enemyBulletCore;
+            }
+        }
+
+        public static Material SharedEnemyBulletTrail
+        {
+            get
+            {
+                if (s_enemyBulletTrail == null)
+                    s_enemyBulletTrail = Glow(new Color(1f, 0.18f, 0.04f, 0.9f), 2.6f);
+                return s_enemyBulletTrail;
             }
         }
 
@@ -249,16 +304,16 @@ namespace HillNGun.Proto.Greybox3D
                     s_sky = SafeMaterial(SkyShader);
                     var cat = Proto_Greybox3DCatalog.Load();
                     if (s_sky.HasProperty("_Color"))
-                        s_sky.SetColor("_Color", new Color(0.10f, 0.38f, 0.94f));
+                        s_sky.SetColor("_Color", new Color(0.08f, 0.34f, 0.92f));
                     if (s_sky.HasProperty("_Horizon"))
-                        s_sky.SetColor("_Horizon", new Color(0.42f, 0.70f, 0.96f));
+                        s_sky.SetColor("_Horizon", new Color(0.40f, 0.66f, 0.95f));
                     if (cat != null && cat.SkyboxDay != null && s_sky.HasProperty("_MainTex"))
                     {
                         s_sky.SetTexture("_MainTex", cat.SkyboxDay);
                         if (s_sky.HasProperty("_UseTex"))
-                            s_sky.SetFloat("_UseTex", 0.18f);
+                            s_sky.SetFloat("_UseTex", 0.08f);
                     }
-                    s_sky.color = new Color(0.10f, 0.38f, 0.94f);
+                    s_sky.color = new Color(0.08f, 0.34f, 0.92f);
                 }
                 return s_sky;
             }

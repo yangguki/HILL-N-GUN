@@ -10,7 +10,17 @@ namespace HillNGun.Proto.Greybox3D
     {
         public static string LastError { get; private set; }
 
-        public static void ResetForTests() => LastError = null;
+        public static void ResetForTests() => Clear();
+
+        public static void Clear()
+        {
+            LastError = null;
+            Proto_GreyboxRuntimeDebugUi.SetFaultLine(null);
+            var banner = GameObject.Find("Greybox3D_FaultBanner");
+            if (banner != null)
+                Proto_Greybox3DUtil.DestroySafe(banner);
+        }
+
 
         public static void Report(string context, Exception e)
         {

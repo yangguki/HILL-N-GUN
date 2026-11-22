@@ -83,6 +83,12 @@ namespace HillNGun.Proto.Greybox
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
                 var child = transform.GetChild(i);
+                // 3D view is a presentation layer. FullRestart → Build() must not
+                // destroy it, or the registry keeps a dead presenter and the next
+                // Sync throws (fault banner). 3D roots should also not be parented
+                // here; this skip is belt-and-suspenders.
+                if (child.name == "Greybox3D_ViewRoot")
+                    continue;
 #if UNITY_EDITOR
                 if (!Application.isPlaying)
                     DestroyImmediate(child.gameObject);

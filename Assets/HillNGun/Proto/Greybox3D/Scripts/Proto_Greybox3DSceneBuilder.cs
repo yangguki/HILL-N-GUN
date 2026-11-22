@@ -57,15 +57,15 @@ namespace HillNGun.Proto.Greybox3D
                 new Vector3(11f, 18f, 29f), new Vector3(-12f, 16.5f, 30f), new Vector3(1.5f, 19f, 32f),
                 new Vector3(8f, 14.8f, 22f), new Vector3(-5f, 18.5f, 34f), new Vector3(14f, 17.2f, 33f)
             };
-            var mat = Proto_Greybox3DMaterials.CelShared(new Color(0.97f, 0.98f, 1f), 0.0f);
+            var mat = Proto_Greybox3DMaterials.CelShared(new Color(1f, 1f, 1f), 0.0f);
             for (int i = 0; i < spots.Length; i++)
             {
                 var puff = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 puff.name = "Greybox3D_Cloud";
                 puff.transform.SetParent(root, false);
                 puff.transform.position = spots[i];
-                float s = 2.4f + (i % 3) * 0.7f;
-                puff.transform.localScale = new Vector3(s * 2.1f, s * 0.7f, s);
+                float s = 2.8f + (i % 3) * 0.85f;
+                puff.transform.localScale = new Vector3(s * 2.2f, s * 0.85f, s);
                 Proto_Greybox3DUtil.DestroySafe(puff.GetComponent<Collider>());
                 var r = puff.GetComponent<MeshRenderer>();
                 r.sharedMaterial = mat;
@@ -102,9 +102,9 @@ namespace HillNGun.Proto.Greybox3D
                 mat.SetFloat("_Mapping", 1f);
             RenderSettings.skybox = mat;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.28f, 0.52f, 0.95f);
-            RenderSettings.ambientEquatorColor = new Color(0.95f, 0.78f, 0.50f);
-            RenderSettings.ambientGroundColor = new Color(0.62f, 0.38f, 0.18f);
+            RenderSettings.ambientSkyColor = new Color(0.18f, 0.40f, 0.85f);
+            RenderSettings.ambientEquatorColor = new Color(0.90f, 0.62f, 0.32f);
+            RenderSettings.ambientGroundColor = new Color(0.45f, 0.26f, 0.12f);
             DynamicGI.UpdateEnvironment();
         }
 
@@ -122,9 +122,9 @@ namespace HillNGun.Proto.Greybox3D
             // Subtle sand-color patches so the playfield isn't a flat fill.
             Color[] patches =
             {
-                new Color(0.86f, 0.50f, 0.24f),
-                new Color(0.78f, 0.48f, 0.22f),
-                new Color(0.92f, 0.62f, 0.32f)
+                new Color(0.58f, 0.32f, 0.14f),
+                new Color(0.62f, 0.36f, 0.16f),
+                new Color(0.70f, 0.40f, 0.18f)
             };
             Vector3[] pos =
             {
@@ -178,7 +178,7 @@ namespace HillNGun.Proto.Greybox3D
             mesa.transform.position = pos + Vector3.up * 2.4f;
             mesa.transform.localScale = new Vector3(6f * scale * 0.35f, 5f, 4f);
             mesa.GetComponent<MeshRenderer>().sharedMaterial =
-                Proto_Greybox3DMaterials.CelShared(new Color(0.72f, 0.42f, 0.28f), 0.02f);
+                Proto_Greybox3DMaterials.CelShared(new Color(0.78f, 0.28f, 0.14f), 0.02f);
             AddMesaBands(root, pos, scale);
             return;
         }
@@ -187,9 +187,9 @@ namespace HillNGun.Proto.Greybox3D
         {
             Color[] bands =
             {
-                new Color(0.78f, 0.42f, 0.26f),
-                new Color(0.62f, 0.32f, 0.20f),
-                new Color(0.86f, 0.55f, 0.32f)
+                new Color(0.82f, 0.26f, 0.12f),
+                new Color(0.58f, 0.16f, 0.08f),
+                new Color(0.90f, 0.38f, 0.16f)
             };
             for (int i = 0; i < bands.Length; i++)
             {
@@ -209,25 +209,25 @@ namespace HillNGun.Proto.Greybox3D
 
         static void BuildStorefronts(Transform root)
         {
-            // Concept layout: 2–3 facades per side flanking the street, plus a short back row.
-            float z = Proto_Greybox3DFootMap.FootWorldYToDepthZ(
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(32f)) + 3.6f;
-            float zBack = z + 3.4f;
-            float[] leftX = { -6.4f, -4.35f, -2.4f };
-            float[] rightX = { 2.4f, 4.35f, 6.4f };
-            float[] backX = { -2.0f, 0.15f, 2.15f };
+            // Concept: wooden facades with colored awnings lining both sides of the
+            // street, sized for the smaller BS-scale characters, plus a short back row.
+            float z = Proto_Greybox3DFootMap.FenceDepthZ + 1.35f;
+            float zBack = z + 2.2f;
+            float[] leftX = { -7.15f, -5.55f, -3.95f, -2.40f };
+            float[] rightX = { 2.40f, 3.95f, 5.55f, 7.15f };
+            float[] backX = { -1.7f, 0.15f, 1.9f };
             for (int i = 0; i < leftX.Length; i++)
-                BuildOneStore(root, i, leftX[i], z, 1.85f, AwningColors[i], i == 2 ? -8f : -4f);
+                BuildOneStore(root, i, leftX[i], z, 1.22f, AwningColors[i % AwningColors.Length], -6f);
             for (int i = 0; i < rightX.Length; i++)
-                BuildOneStore(root, 10 + i, rightX[i], z, 1.85f, AwningColors[i + 3], i == 0 ? 8f : 4f);
+                BuildOneStore(root, 10 + i, rightX[i], z, 1.22f, AwningColors[(i + 3) % AwningColors.Length], 6f);
             for (int i = 0; i < backX.Length; i++)
-                BuildOneStore(root, 20 + i, backX[i], zBack, 1.7f, AwningColors[(i + 1) % AwningColors.Length], 0f);
+                BuildOneStore(root, 20 + i, backX[i], zBack, 1.15f, AwningColors[(i + 1) % AwningColors.Length], 0f);
         }
 
         static void BuildOneStore(Transform root, int index, float cx, float z, float width, Color awning,
             float yaw = 0f)
         {
-            float height = 3.35f + (index % 3) * 0.28f;
+            float height = 1.85f + (index % 3) * 0.16f;
             var face = GameObject.CreatePrimitive(PrimitiveType.Cube);
             face.name = "Greybox3D_Store_" + index;
             face.transform.SetParent(root, false);
@@ -434,13 +434,14 @@ namespace HillNGun.Proto.Greybox3D
         {
             PlaceProp(catalog != null ? catalog.CrateLarge : null, root, "Crate",
                 Proto_GreyboxLayout.ScreenXPercentToWorldX(54f),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(67f), 1.1f * PropScale, new Vector3(0.8f, 0.8f, 0.8f) * PropScale);
+                Proto_GreyboxLayout.ScreenYPercentToWorldY(67f), 1.05f, new Vector3(0.85f, 0.85f, 0.85f));
             PlaceProp(catalog != null ? catalog.Crate : null, root, "Crate",
                 Proto_GreyboxLayout.ScreenXPercentToWorldX(16f),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(58f), 1f * PropScale, new Vector3(0.7f, 0.7f, 0.7f) * PropScale);
+                Proto_GreyboxLayout.ScreenYPercentToWorldY(58f), 0.85f, new Vector3(0.7f, 0.7f, 0.7f));
+            // Cover crate near the player — about chest height on the 1.14 near hero.
             PlaceProp(catalog != null ? catalog.Crate : null, root, "Crate",
                 Proto_GreyboxLayout.ScreenXPercentToWorldX(63f),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(72f), 1.15f * PropScale, new Vector3(0.85f, 0.85f, 0.85f) * PropScale);
+                Proto_GreyboxLayout.ScreenYPercentToWorldY(78f), 1.25f, new Vector3(1.0f, 1.05f, 1.0f));
             PlaceProp(catalog != null ? catalog.Barrel : null, root, "Barrel",
                 Proto_GreyboxLayout.ScreenXPercentToWorldX(22f),
                 Proto_GreyboxLayout.ScreenYPercentToWorldY(64f), 1f * PropScale, new Vector3(0.55f, 0.7f, 0.55f) * PropScale);
@@ -479,7 +480,7 @@ namespace HillNGun.Proto.Greybox3D
             var tankCol = Proto_Greybox3DMaterials.CelShared(new Color(0.55f, 0.22f, 0.16f), 0.01f);
             var tower = new GameObject("Greybox3D_WaterTower").transform;
             tower.SetParent(root, false);
-            tower.position = new Vector3(7.6f, 0f, 16.5f);
+            tower.position = new Vector3(7.2f, 0f, Proto_Greybox3DFootMap.FenceDepthZ + 3.2f);
             for (int i = 0; i < 4; i++)
             {
                 float ang = 45f + i * 90f;
@@ -526,15 +527,15 @@ namespace HillNGun.Proto.Greybox3D
                 var cactus = Proto_Greybox3DSpawn.PrefabOrCube(prefab, root, "Greybox3D_Cactus",
                     new Vector3(cactusX[i], 0f, z), Vector3.zero, 1.1f + (i % 3) * 0.15f,
                     new Vector3(0.22f, 1.1f, 0.22f),
-                    Proto_Greybox3DMaterials.Cel(new Color(0.22f, 0.62f, 0.28f)));
-                Proto_Greybox3DSpawn.Tint(cactus, new Color(0.28f, 0.62f, 0.22f), 0.012f);
+                    Proto_Greybox3DMaterials.Cel(new Color(0.14f, 0.70f, 0.18f)));
+                Proto_Greybox3DSpawn.Tint(cactus, new Color(0.16f, 0.68f, 0.18f), 0.012f);
             }
 
             // Side cacti near player like the concept
             var nearC = Proto_Greybox3DSpawn.PrefabOrCube(catalog != null ? catalog.CactusTall : null, root, "Greybox3D_CactusNear",
                 new Vector3(-5.4f, 0f, Proto_Greybox3DFootMap.PlayerBandNearZ + 1.2f), Vector3.zero, 1.3f,
-                new Vector3(0.25f, 1.3f, 0.25f), Proto_Greybox3DMaterials.Cel(new Color(0.22f, 0.62f, 0.28f)));
-            Proto_Greybox3DSpawn.Tint(nearC, new Color(0.28f, 0.62f, 0.22f), 0.012f);
+                new Vector3(0.25f, 1.3f, 0.25f), Proto_Greybox3DMaterials.Cel(new Color(0.14f, 0.70f, 0.18f)));
+            Proto_Greybox3DSpawn.Tint(nearC, new Color(0.16f, 0.68f, 0.18f), 0.012f);
 
             Vector3[] rockPos =
             {
@@ -595,8 +596,8 @@ namespace HillNGun.Proto.Greybox3D
             lightGo.transform.rotation = Quaternion.Euler(42f, -28f, 0f);
             var light = lightGo.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.color = new Color(1f, 0.90f, 0.72f);
-            light.intensity = 1.22f;
+            light.color = new Color(1f, 0.84f, 0.62f);
+            light.intensity = 1.02f;
             light.shadows = LightShadows.None;
 
             var fillGo = new GameObject("Greybox3D_Fill");
@@ -604,12 +605,12 @@ namespace HillNGun.Proto.Greybox3D
             fillGo.transform.rotation = Quaternion.Euler(18f, 145f, 0f);
             var fill = fillGo.AddComponent<Light>();
             fill.type = LightType.Directional;
-            fill.color = new Color(0.48f, 0.66f, 0.95f);
-            fill.intensity = 0.34f;
+            fill.color = new Color(0.40f, 0.58f, 0.90f);
+            fill.intensity = 0.22f;
             fill.shadows = LightShadows.None;
 
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.42f, 0.36f, 0.32f);
+            RenderSettings.ambientLight = new Color(0.46f, 0.30f, 0.16f);
             RenderSettings.fog = false;
         }
     }

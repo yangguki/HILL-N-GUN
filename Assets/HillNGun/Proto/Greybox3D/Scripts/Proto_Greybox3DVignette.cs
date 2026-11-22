@@ -21,8 +21,8 @@ namespace HillNGun.Proto.Greybox3D
                 sh = Shader.Find("HillNGun/Proto/Greybox3D/Vignette");
             if (sh == null) return;
             _mat = new Material(sh);
-            _mat.SetFloat("_Vignette", 0.32f);
-            _mat.SetFloat("_Warmth", 0.07f);
+            _mat.SetFloat("_Vignette", 0.10f);
+            _mat.SetFloat("_Warmth", 0.14f);
         }
 
         void OnRenderImage(RenderTexture src, RenderTexture dest)

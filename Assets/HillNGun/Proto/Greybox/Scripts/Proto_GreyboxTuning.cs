@@ -29,8 +29,19 @@ namespace HillNGun.Proto.Greybox
         /// <summary>Walk-cycle travel as a multiple of mid-band body width (two steps ≈ a little over one width).</summary>
         public const float WalkCycleDistanceInBodyWidths = 1.25f;
 
-        public const float RollDistance = 2.2f;
+        /// <summary>
+        /// Brawl-style dash: ~2.5–3 mid-band body widths, shared by 2D and 3D
+        /// (the 3D presenter does not add its own travel). 2.75 * 0.5227 = 1.437,
+        /// baked as 1.44. Previously 2.2 world units (~4.2 widths, and longer still
+        /// on the 3D ground plane because of the depth map).
+        /// </summary>
+        public const float RollDistanceBodyWidths = 2.75f;
+        public const float RollDistance = 1.44f;
         public const float RollDuration = 0.28f;
+
+        public static float RollDistanceFromBodyWidths(float bodyWidths) =>
+            bodyWidths * HeroVisibleWidthAtMidBand();
+
         public const float RollInvulnDuration = 0.22f;
         public const float RollCooldown = 0f;
         public const int PlayerMaxHp = 3;

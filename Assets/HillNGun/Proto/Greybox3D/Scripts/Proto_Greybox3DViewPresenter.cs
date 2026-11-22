@@ -47,7 +47,7 @@ namespace HillNGun.Proto.Greybox3D
             _cam.clearFlags = RenderSettings.skybox != null
                 ? CameraClearFlags.Skybox
                 : CameraClearFlags.SolidColor;
-            _cam.backgroundColor = new Color(0.45f, 0.72f, 0.95f);
+            _cam.backgroundColor = new Color(0.18f, 0.46f, 0.92f);
             _cam.depth = 1f;
             _cam.enabled = false;
             _cam.allowMSAA = false;
@@ -283,8 +283,8 @@ namespace HillNGun.Proto.Greybox3D
                 allyD = host.RuntimeTuning.AllyBulletDiameter;
                 enemyD = host.RuntimeTuning.EnemyBulletDiameter;
             }
-            SyncBulletList(host.AllyBullets, _allyBulletViews, Proto_Greybox3DMaterials.SharedAllyBullet, allyD, allyD * 2.2f, false);
-            SyncBulletList(host.EnemyBullets, _enemyBulletViews, Proto_Greybox3DMaterials.SharedEnemyBullet, enemyD, enemyD * 2.4f, true);
+            SyncBulletList(host.AllyBullets, _allyBulletViews, Proto_Greybox3DMaterials.SharedAllyBullet, allyD, allyD * 2.8f, false);
+            SyncBulletList(host.EnemyBullets, _enemyBulletViews, Proto_Greybox3DMaterials.SharedEnemyBullet, enemyD, enemyD * 2.5f, true);
             int allyNow = CountAliveAllies(host);
             int enemyNow = CountAliveEnemies(host);
             if (allyNow > _prevAllyAlive)
@@ -383,38 +383,64 @@ namespace HillNGun.Proto.Greybox3D
                 view.position = world;
                 if (vel.sqrMagnitude > 0.01f)
                 {
+                    // Long axis of the bullet mesh is +Z. Map sim velocity through
+                    // the same foot→depth function so the shot points along travel.
                     var dir = new Vector3(vel.x, 0f,
-                        Proto_Greybox3DFootMap.FootWorldYToDepthZ(pos.y + vel.y * 0.02f) -
+                        Proto_Greybox3DFootMap.FootWorldYToDepthZ(pos.y + vel.y * 0.05f) -
                         Proto_Greybox3DFootMap.FootWorldYToDepthZ(pos.y));
-                    if (dir.sqrMagnitude > 0.001f)
-                        view.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up) *
-                                        Quaternion.Euler(90f, 0f, 0f);
+                    if (dir.sqrMagnitude < 0.0001f)
+                        dir = vel.y >= 0f ? Vector3.forward : Vector3.back;
+                    view.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
                 }
             }
         }
 
         Transform SpawnBullet(Material mat, float diam, float length, bool enemy)
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            go.name = enemy ? "Greybox3D_EnemyBullet" : "Greybox3D_AllyBullet";
+            var go = new GameObject(enemy ? "Greybox3D_EnemyBullet" : "Greybox3D_AllyBullet");
             go.transform.SetParent(_stageRoot, false);
-            go.transform.localScale = new Vector3(diam, diam, length);
-            Proto_Greybox3DUtil.DestroySafe(go.GetComponent<Collider>());
-            go.GetComponent<MeshRenderer>().sharedMaterial = mat;
-            var shell = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            shell.name = "Glow";
-            shell.transform.SetParent(go.transform, false);
-            shell.transform.localScale = Vector3.one * (enemy ? 1.7f : 1.45f);
-            Proto_Greybox3DUtil.DestroySafe(shell.GetComponent<Collider>());
-            shell.GetComponent<MeshRenderer>().sharedMaterial = enemy
-                ? Proto_Greybox3DMaterials.SharedEnemyGlow
-                : mat;
+
+            // Body elongated along +Z (travel). Ally: brass/gold with a thin dark
+            // outline and rounded tip. Enemy: chunkier red-orange shell, white-hot core.
+            float bodyLen = Mathf.Max(length, diam * (enemy ? 2.4f : 2.8f));
+            var body = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            body.name = "Body";
+            body.transform.SetParent(go.transform, false);
+            body.transform.localScale = new Vector3(diam, diam, bodyLen);
+            Proto_Greybox3DUtil.DestroySafe(body.GetComponent<Collider>());
+            body.GetComponent<MeshRenderer>().sharedMaterial = enemy
+                ? Proto_Greybox3DMaterials.SharedEnemyBullet
+                : Proto_Greybox3DMaterials.SharedAllyBullet;
+
+            var tip = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            tip.name = "Tip";
+            tip.transform.SetParent(go.transform, false);
+            float tipD = diam * (enemy ? 0.95f : 0.78f);
+            tip.transform.localPosition = new Vector3(0f, 0f, bodyLen * 0.42f);
+            tip.transform.localScale = Vector3.one * tipD;
+            Proto_Greybox3DUtil.DestroySafe(tip.GetComponent<Collider>());
+            tip.GetComponent<MeshRenderer>().sharedMaterial = enemy
+                ? Proto_Greybox3DMaterials.SharedEnemyBullet
+                : Proto_Greybox3DMaterials.SharedAllyBulletTip;
+
+            if (enemy)
+            {
+                var core = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                core.name = "Core";
+                core.transform.SetParent(go.transform, false);
+                core.transform.localScale = Vector3.one * (diam * 0.55f);
+                Proto_Greybox3DUtil.DestroySafe(core.GetComponent<Collider>());
+                core.GetComponent<MeshRenderer>().sharedMaterial =
+                    Proto_Greybox3DMaterials.SharedEnemyBulletCore;
+            }
             var trail = go.AddComponent<TrailRenderer>();
-            trail.time = enemy ? 0.28f : 0.14f;
-            trail.startWidth = diam * (enemy ? 1.15f : 0.7f);
-            trail.endWidth = diam * 0.08f;
-            trail.minVertexDistance = 0.04f;
-            trail.material = mat;
+            trail.time = enemy ? 0.22f : 0.10f;
+            trail.startWidth = diam * (enemy ? 0.85f : 0.45f);
+            trail.endWidth = diam * 0.05f;
+            trail.minVertexDistance = 0.03f;
+            trail.material = enemy
+                ? Proto_Greybox3DMaterials.SharedEnemyBulletTrail
+                : Proto_Greybox3DMaterials.SharedAllyBulletTrail;
             trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             trail.numCornerVertices = 2;
             trail.numCapVertices = 2;

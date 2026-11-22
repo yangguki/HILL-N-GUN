@@ -7,7 +7,7 @@ namespace HillNGun.Proto.Greybox3D
     public static class Proto_Greybox3DFootMap
     {
         public const float DepthZNear = 0f;
-        public const float DepthZFar = 22f;
+        public const float DepthZFar = 14f;
 
         public static float FootWorldYPlayerNear =>
             Proto_GreyboxLayout.ScreenYPercentToWorldY(Proto_GreyboxPerspectiveDepth.MoveFootMaxPercent);

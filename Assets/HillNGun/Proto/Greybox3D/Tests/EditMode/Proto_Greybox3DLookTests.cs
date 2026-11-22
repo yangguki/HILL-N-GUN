@@ -23,19 +23,25 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
         }
 
         [Test]
-        public void SceneBuilder_HasNineStorefronts_WaterTower_Hay()
+        public void SceneBuilder_HasStorefrontsAlongBothSides_WaterTower_Hay()
         {
             _root = new GameObject("LookTestRoot").transform;
             var stage = Proto_Greybox3DSceneBuilder.BuildRoot(_root);
             int stores = 0, towers = 0, hay = 0, scallops = 0;
-            foreach (var t in stage.GetComponentsInChildren<Transform>(true))
+            float maxStoreH = 0f;
+            foreach (var child in stage.GetComponentsInChildren<Transform>(true))
             {
-                if (t.name.StartsWith("Greybox3D_Store_")) stores++;
-                if (t.name == "Greybox3D_WaterTower") towers++;
-                if (t.name == "Greybox3D_Hay") hay++;
-                if (t.name == "Scallop") scallops++;
+                if (child.name.StartsWith("Greybox3D_Store_"))
+                {
+                    stores++;
+                    maxStoreH = Mathf.Max(maxStoreH, child.localScale.y);
+                }
+                if (child.name == "Greybox3D_WaterTower") towers++;
+                if (child.name == "Greybox3D_Hay") hay++;
+                if (child.name == "Scallop") scallops++;
             }
-            Assert.AreEqual(9, stores, "3 storefronts per side + 3 in the back row");
+            Assert.AreEqual(11, stores, "4 storefronts per side + 3 in the back row");
+            Assert.Less(maxStoreH, 2.5f, "store facades must shrink with the smaller characters");
             Assert.AreEqual(1, towers, "water tower missing");
             Assert.GreaterOrEqual(hay, 3, "hay bales missing");
             Assert.Greater(scallops, 0, "awnings should have scalloped edges");

@@ -10,9 +10,12 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
         [TearDown]
         public void TearDown()
         {
-            var root = GameObject.Find("Greybox3D_ViewRoot");
-            if (root != null)
-                Object.DestroyImmediate(root);
+            foreach (var name in new[] { "Greybox3D_ViewRoot", "Greybox3D_ViewRoot_Dead" })
+            {
+                var root = GameObject.Find(name);
+                if (root != null)
+                    Object.DestroyImmediate(root);
+            }
             Proto_GreyboxViewPresenterRegistry.ResetForTests();
             Proto_Greybox3DFault.ResetForTests();
         }
@@ -142,5 +145,85 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
                     Object.DestroyImmediate(root);
             }
         }
+
+        [Test]
+        public void Restart_ThreeTimesIn3D_DoesNotThrow_AndKeepsSingleViewRoot()
+        {
+            using (Proto_GreyboxViewModePrefs.EnterTestScope())
+            {
+                Proto_GreyboxViewPresenterRegistry.ClearFactoryForTests();
+                Proto_Greybox3DViewBootstrap.Register();
+                Proto_Greybox3DFault.ResetForTests();
+                Proto_GreyboxViewModePrefs.Save(Proto_GreyboxViewMode.View3D);
+                Proto_GreyboxViewModeState.ResetForTests();
+
+                EditorSceneManager.OpenScene(Proto_GreyboxStageBuilder.ScenePath, OpenSceneMode.Single);
+                var builder = Object.FindFirstObjectByType<Proto_GreyboxStageBuilder>();
+                Assert.NotNull(builder);
+                builder.Build();
+
+                var playerGo = GameObject.Find(Proto_GreyboxStageBuilder.PlayerName);
+                Assert.NotNull(playerGo);
+                var controller = playerGo.GetComponent<Proto_GreyboxPlayerController>();
+                Assert.NotNull(controller);
+                controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+                Assert.IsTrue(Proto_GreyboxViewModeState.Is3D);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    controller.FullRestart();
+                    playerGo = GameObject.Find(Proto_GreyboxStageBuilder.PlayerName);
+                    Assert.NotNull(playerGo, "player missing after restart " + i);
+                    controller = playerGo.GetComponent<Proto_GreyboxPlayerController>();
+                    Assert.NotNull(controller);
+                    // Prefs stay 3D; the new controller must re-apply and keep a live view.
+                    if (!Proto_GreyboxViewModeState.Is3D)
+                        controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+                    var presenter = Proto_GreyboxViewPresenterRegistry.Ensure();
+                    Assert.NotNull(presenter);
+                    presenter.SetActive(true, controller);
+                    presenter.Sync(controller);
+                    Assert.IsTrue(string.IsNullOrEmpty(Proto_Greybox3DFault.LastError),
+                        "restart " + i + " faulted: " + Proto_Greybox3DFault.LastError);
+                    Assert.IsTrue(string.IsNullOrEmpty(Proto_GreyboxRuntimeDebugUi.LastFaultLine),
+                        "restart " + i + " showed a fault banner: " + Proto_GreyboxRuntimeDebugUi.LastFaultLine);
+                    int roots = 0;
+                    foreach (var tr in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (tr.name == "Greybox3D_ViewRoot")
+                            roots++;
+                    }
+                    Assert.AreEqual(1, roots, "duplicate or missing ViewRoot after restart " + i);
+                    Assert.NotNull(presenter.WorldCamera, "3D camera missing after restart " + i);
+                }
+
+                // Switching 2D/3D after restarts must still work.
+                controller.SetViewMode(Proto_GreyboxViewMode.View2D, persist: false);
+                Assert.IsFalse(Proto_GreyboxViewModeState.Is3D);
+                Assert.IsTrue(string.IsNullOrEmpty(Proto_Greybox3DFault.LastError),
+                    "2D switch after restart faulted: " + Proto_Greybox3DFault.LastError);
+                controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+                Assert.IsTrue(Proto_GreyboxViewModeState.Is3D);
+                var again = Proto_GreyboxViewPresenterRegistry.Ensure();
+                Assert.NotNull(again);
+                again.Sync(controller);
+                Assert.IsTrue(string.IsNullOrEmpty(Proto_Greybox3DFault.LastError),
+                    "3D switch after restart faulted: " + Proto_Greybox3DFault.LastError);
+                Assert.NotNull(again.WorldCamera);
+
+                // Destroyed presenter must be rebuilt on the next Sync (play-mode restart path).
+                var root = GameObject.Find("Greybox3D_ViewRoot");
+                Assert.NotNull(root);
+                Object.DestroyImmediate(root);
+                again.Sync(controller);
+                Assert.IsTrue(string.IsNullOrEmpty(Proto_Greybox3DFault.LastError),
+                    "Sync after ViewRoot destroy faulted: " + Proto_Greybox3DFault.LastError);
+                Assert.NotNull(GameObject.Find("Greybox3D_ViewRoot"),
+                    "ViewHost must recreate ViewRoot after it was destroyed");
+                Assert.NotNull(again.WorldCamera);
+
+            }
+        }
+
     }
 }

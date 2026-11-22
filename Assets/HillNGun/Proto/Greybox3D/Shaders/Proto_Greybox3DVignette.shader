@@ -3,8 +3,8 @@ Shader "HillNGun/Proto/Greybox3D/Vignette"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _Vignette ("Vignette", Range(0, 1)) = 0.32
-        _Warmth ("Warmth", Range(0, 0.3)) = 0.07
+        _Vignette ("Vignette", Range(0, 1)) = 0.10
+        _Warmth ("Warmth", Range(0, 0.3)) = 0.14
     }
     SubShader
     {

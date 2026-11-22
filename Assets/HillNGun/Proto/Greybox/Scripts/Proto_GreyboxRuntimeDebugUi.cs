@@ -30,7 +30,10 @@ namespace HillNGun.Proto.Greybox
             if (string.IsNullOrEmpty(message))
             {
                 if (existing != null)
-                    UnityEngine.Object.Destroy(existing);
+                {
+                    if (Application.isPlaying) UnityEngine.Object.Destroy(existing);
+                    else UnityEngine.Object.DestroyImmediate(existing);
+                }
                 return;
             }
 
@@ -133,8 +136,12 @@ namespace HillNGun.Proto.Greybox
                 });
             AddSliderRow(_panelRoot.transform, ref y, "Move speed", 0.6f, 6f, _tuning.MoveSpeed,
                 v => _tuning.MoveSpeed = v);
-            AddSliderRow(_panelRoot.transform, ref y, "Roll dist", 0.5f, 5f, _tuning.RollDistance,
-                v => _tuning.RollDistance = v);
+            float bodyW = Mathf.Max(0.001f, Proto_GreyboxTuning.HeroVisibleWidthAtMidBand());
+            AddSliderRow(_panelRoot.transform, ref y, "Roll distance (body widths)", 1f, 5f,
+                _tuning.RollDistance / bodyW, v =>
+                {
+                    _tuning.RollDistance = Proto_GreyboxTuning.RollDistanceFromBodyWidths(v);
+                });
             AddSliderRow(_panelRoot.transform, ref y, "Roll time", 0.1f, 1f, _tuning.RollDuration,
                 v => _tuning.RollDuration = v);
             AddSliderRow(_panelRoot.transform, ref y, "Roll invuln", 0.05f, 0.8f, _tuning.RollInvulnDuration,
