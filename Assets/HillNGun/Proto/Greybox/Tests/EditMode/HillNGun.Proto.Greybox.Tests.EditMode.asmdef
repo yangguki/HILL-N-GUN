@@ -4,7 +4,9 @@
     "references": [
         "HillNGun.Proto.Greybox",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "Unity.InputSystem",
+        "Unity.ugui"
     ],
     "includePlatforms": [
         "Editor"

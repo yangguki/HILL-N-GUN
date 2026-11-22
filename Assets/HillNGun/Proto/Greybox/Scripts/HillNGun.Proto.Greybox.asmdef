@@ -2,6 +2,7 @@
     "name": "HillNGun.Proto.Greybox",
     "rootNamespace": "HillNGun.Proto.Greybox",
     "references": [
+        "Unity.InputSystem",
         "Unity.ugui"
     ],
     "includePlatforms": [],

@@ -10,7 +10,8 @@ namespace HillNGun.Proto.Greybox
         public const float CameraPositionZ = -10f;
         public const float TargetAspect = 16f / 9f;
 
-        public const float EnemyFarFootWorldY = 6.3f;
+        public static float EnemyFarFootWorldY =>
+            ScreenYPercentToWorldY(Proto_GreyboxPerspectiveDepth.DefaultEnemyFootPercent);
         public const float PlayerNearFootWorldY = 1.2f;
 
         public static float ScreenYPercentToWorldY(float percentFromTop) =>
@@ -32,21 +33,43 @@ namespace HillNGun.Proto.Greybox
 
         /// <summary>Fixed background layers (higher order = drawn in front).</summary>
         public const int SortingSky = -500;
+        public const int SortingGround = -480;
         public const int SortingBuildingBase = -450;
-        public const int SortingEnemyMarker = -435;
+        public const int SortingEnemyMarker = -399;
         public const int SortingCrateFar = -395;
-        public const int SortingGround = -400;
         public const int SortingFence = -390;
         public const int SortingCombatOverlay = 200;
         /// <summary>Screen Space — Camera HUD above all world sprites (combat overlay tops ~200+).</summary>
         public const int SortingHudCanvas = 1000;
 
+        static float FarFieldFootYMin =>
+            ScreenYPercentToWorldY(Proto_GreyboxPerspectiveDepth.FenceBottomPercent);
+        static float FarFieldFootYMax => ScreenYPercentToWorldY(
+            Proto_GreyboxPerspectiveDepth.Enabled
+                ? Proto_GreyboxPerspectiveDepth.PerspectiveEnemyFootMinPercent - 2f
+                : 30f);
+
+        /// <summary>Far band (enemy/crate feet above fence bottom): Y-sort in front of buildings, behind fence.</summary>
+        public static int WorldSpriteSortingOrder(float footWorldY)
+        {
+            if (footWorldY >= FarFieldFootYMin - 0.0001f)
+            {
+                float t = UnityEngine.Mathf.Clamp01(
+                    UnityEngine.Mathf.InverseLerp(FarFieldFootYMax, FarFieldFootYMin, footWorldY));
+                return UnityEngine.Mathf.RoundToInt(
+                    UnityEngine.Mathf.Lerp(SortingBuildingBase + 1, SortingFence - 1, t));
+            }
+
+            return UnityEngine.Mathf.Max(SortingOrderAtFootY(footWorldY), SortingFence + 1);
+        }
+
         /// <summary>탄·폭발 등이 울타리·상자(-390대) 앞에 그려지도록 최소 정렬 보장.</summary>
         public static int CombatDrawSortingOrder(float footWorldY) =>
-            UnityEngine.Mathf.Max(SortingOrderAtFootY(footWorldY) + SortingCombatOverlay, SortingFence + 10);
+            UnityEngine.Mathf.Max(SortingOrderAtFootY(footWorldY) + SortingCombatOverlay, SortingFence + 50);
 
+        /// <summary>Visual-only floor (~2.4% screen height ≈ 26px at 1080p); gameplay hit radius unchanged.</summary>
         public static float MinAllyBulletWorldDiameter =>
-            ScreenPercentToWorldHeight(0.6f);
+            ScreenPercentToWorldHeight(2.4f);
 
         public const float AimVisualTopScreenPercent = 12f;
 

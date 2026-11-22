@@ -18,6 +18,8 @@ namespace HillNGun.Proto.Greybox
         public bool IsRolling => _active;
         public float CooldownRemaining => _cooldownRemaining;
         public float Elapsed => _elapsed;
+        public Vector2 ActiveDirection => _direction;
+        public Proto_GreyboxRollFacing Facing => Proto_GreyboxRollFacingUtil.Classify(_direction);
 
         public Proto_GreyboxRoll(
             float distance = Proto_GreyboxTuning.RollDistance,

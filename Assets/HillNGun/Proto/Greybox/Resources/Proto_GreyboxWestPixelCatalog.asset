@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8a9b0c1d2e345f60718293a4b5c6d7e, type: 3}
+  m_Name: Proto_GreyboxWestPixelCatalog
+  m_EditorClassIdentifier: 
+  bgFar: {fileID: 21300000, guid: 0d14dd311bebf46d18c85d7e7db83d5e, type: 3}
+  bgTown: {fileID: 21300000, guid: 9fd921447878b4cf394d60962bfaf09b, type: 3}
+  ground: {fileID: 21300000, guid: 97e7466e29cd34886809b212d43aebee, type: 3}
+  groundTile: {fileID: 21300000, guid: 8d09c4d0233904a1b9830c85a3cc19db, type: 3}
+  fence: {fileID: 21300000, guid: d411f3f28f19a4b39ba1196e420a71d2, type: 3}
+  fencePost: {fileID: 21300000, guid: 9026b06f5d7a14860aa2deaa74aee532, type: 3}
+  crateNear: {fileID: 21300000, guid: 300ee827c797f4ab7843676484fe65b3, type: 3}
+  crateFar: {fileID: 21300000, guid: 58f144d686aab45fda6e7a331e89b64a, type: 3}
+  bgSkyFar: {fileID: 21300000, guid: 84243e9573daf47a99242560ad4b6bf2, type: 3}
+  bldLeft: {fileID: 21300000, guid: edd856f8526e442ecb0fb46d531b3255, type: 3}
+  bldRight: {fileID: 21300000, guid: d61f7948c857e47dd95fff5f637e8c73, type: 3}
+  perspGround: {fileID: 21300000, guid: 6c44d293b0e724f63af49c588ff59bef, type: 3}
+  perspFence: {fileID: 21300000, guid: 5d22fe5742c9c4444ae3e345bb278785, type: 3}
+  perspFencePost: {fileID: 21300000, guid: 055eb8bbd72af42a8bf03a385f63db44, type: 3}
+  crateD40: {fileID: 21300000, guid: e42b0ac200c814fb9b3c31c2b5338d71, type: 3}
+  crateD46: {fileID: 21300000, guid: 87df5eb933e144e69ae6f756a52521f3, type: 3}
+  crateD52: {fileID: 21300000, guid: d8ab1b1aa4b7b418cbf65d3a26b03356, type: 3}
+  playerIdle:
+  - {fileID: 21300000, guid: eb6791f423cba4e0ead9a80affca263c, type: 3}
+  - {fileID: 21300000, guid: afd015fd61c0e4522a9f36b3930e996e, type: 3}
+  playerShoot:
+  - {fileID: 21300000, guid: 3d0c11fd2dd9f492eb031ef74cdd9f63, type: 3}
+  - {fileID: 21300000, guid: 6e981dc7191614922ab5cf4355e8a427, type: 3}
+  playerRun:
+  - {fileID: 21300000, guid: 43d6b486eea9241a9b90ca081308d3d5, type: 3}
+  - {fileID: 21300000, guid: da881bf7fb41e45e29b2d982aff531f6, type: 3}
+  - {fileID: 21300000, guid: a900d467b48284f59b853def21a81b93, type: 3}
+  - {fileID: 21300000, guid: 15b94274065a44f3cbe0f12cc8bc46a7, type: 3}
+  playerRoll:
+  - {fileID: 21300000, guid: ba41be293b44e4c62af1ebecabe195c4, type: 3}
+  - {fileID: 21300000, guid: d588597319da443aaa98a915443c6dd9, type: 3}
+  - {fileID: 21300000, guid: d19d1ad3d234a49ef9c69a7fdad5d2b9, type: 3}
+  - {fileID: 21300000, guid: 39346a0d9657944f8a4af0d0a1684671, type: 3}
+  playerHit:
+  - {fileID: 21300000, guid: c72e51535643a48ec9d38e604eb0a280, type: 3}
+  gruntIdle:
+  - {fileID: 21300000, guid: 2a56d1b0df6da48bb99026f4c78fcf73, type: 3}
+  - {fileID: 21300000, guid: 0c406ba2f95874d3ca04ad06da58fcdc, type: 3}
+  gruntShoot:
+  - {fileID: 21300000, guid: b65a53d60baee4273834b6e96d9b9c6c, type: 3}
+  - {fileID: 21300000, guid: 48737094db49e4ee4a0e69520da07dc7, type: 3}
+  gruntHit:
+  - {fileID: 21300000, guid: b043911521b36427989445c23e373515, type: 3}
+  gruntDown:
+  - {fileID: 21300000, guid: 36f5524c1961d4213981a8c4acf85ca5, type: 3}
+  - {fileID: 21300000, guid: 778930764d78644b5929fcbdebca3cc6, type: 3}
+  - {fileID: 21300000, guid: dfa28c4f8ee55407d9c89fb9073f54b1, type: 3}
+  bulletEnemy: {fileID: 21300000, guid: ef57bdc2b64d644969c3e61b17c74956, type: 3}
+  bulletAlly: {fileID: 21300000, guid: bdea373126d504480b0f49cb51d6c48a, type: 3}
+  muzzleFlash:
+  - {fileID: 21300000, guid: 37c5d2d8acb2243a8b0a053aa95ae36d, type: 3}
+  - {fileID: 21300000, guid: 91afdc4babf8b459bad5279d7982be12, type: 3}
+  hitSpark:
+  - {fileID: 21300000, guid: d07110d00013d4e3092ed6965a4ba551, type: 3}
+  - {fileID: 21300000, guid: fb5772460bac04376a81cb542408cfe3, type: 3}
+  - {fileID: 21300000, guid: b78f125d7b0f649ccb4006cfdadce3e7, type: 3}
+  crosshair: {fileID: 21300000, guid: 53e873962cb424a94b1c27825f32d024, type: 3}
+  btnFire: {fileID: 21300000, guid: 0780f2c6daf8f43cab8a523d832b30c9, type: 3}
+  btnReload: {fileID: 21300000, guid: 6e477e3831ad6430c962b18f9b0bf3cd, type: 3}
+  btnGrenade: {fileID: 21300000, guid: 19cbab87ab0084d4cac2d81749f87504, type: 3}
+  btnRoll: {fileID: 21300000, guid: 565790f7a314f40589bc678df9cd09e5, type: 3}
+  btnPause: {fileID: 21300000, guid: f3df39ff609284d4e929c74eaee8b4eb, type: 3}
+  joystickBase: {fileID: 21300000, guid: 259f927cba88d47b7b3ceb7db812b57e, type: 3}
+  joystickKnob: {fileID: 21300000, guid: 923645b3cfa404479b5acfc1f6ba4efa, type: 3}
+  hpFrame: {fileID: 21300000, guid: a8bcfcd2a5d98462eacf9e816654da66, type: 3}
+  hpFill: {fileID: 21300000, guid: 0f8a4837b62b34e4c90b62b7ee2c0b07, type: 3}

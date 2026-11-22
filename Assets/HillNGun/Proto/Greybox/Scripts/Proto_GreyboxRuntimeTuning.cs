@@ -7,6 +7,9 @@ namespace HillNGun.Proto.Greybox
         public float RollDuration = Proto_GreyboxTuning.RollDuration;
         public float RollInvulnDuration = Proto_GreyboxTuning.RollInvulnDuration;
         public float RollCooldown = Proto_GreyboxTuning.RollCooldown;
+        public int RollChainMax = Proto_GreyboxTuning.RollChainMax;
+        public float RollChainLockSec = Proto_GreyboxTuning.RollChainLockSec;
+        public float HeartRegenSec = Proto_GreyboxTuning.HeartRegenSec;
         public float EnemyBulletSpeed = Proto_GreyboxTuning.EnemyBulletSpeed;
         public float EnemyBulletDiameter = Proto_GreyboxTuning.EnemyBulletDiameter;
         public float AllyBulletSpeed = Proto_GreyboxTuning.AllyBulletSpeed;
@@ -15,6 +18,7 @@ namespace HillNGun.Proto.Greybox
         public float FireInterval = Proto_GreyboxTuning.FireInterval;
         public int MagazineSize = Proto_GreyboxTuning.MagazineSize;
         public float ReloadDuration = Proto_GreyboxTuning.ReloadDuration;
+        public float ReloadRoundInterval = Proto_GreyboxTuning.ReloadRoundInterval;
         public int Wave1Count = Proto_GreyboxTuning.Wave1EnemyCount;
         public int Wave2Count = Proto_GreyboxTuning.Wave2EnemyCount;
         public int Wave3Count = Proto_GreyboxTuning.Wave3EnemyCount;
@@ -25,6 +29,16 @@ namespace HillNGun.Proto.Greybox
         public float CoverDamageReductionPercent = Proto_GreyboxTuning.CoverDamageReduction * 100f;
         public float DepthFarScale = Proto_GreyboxTuning.DepthFarScale;
         public float DepthNearScale = Proto_GreyboxTuning.DepthNearScale;
+        public float AimStickRadiusHeightPercent = Proto_GreyboxPointerMath.AimStickRadiusScreenHeightPercent;
+        public float AimStickSmoothTime = Proto_GreyboxPointerMath.AimStickSmoothTime;
+        public float AimAngularCapDegPerSec = Proto_GreyboxPointerMath.AimAngularSpeedCapDegPerSec;
+        public float AimFineAimExponent = Proto_GreyboxPointerMath.AimFineAimExponent;
+        public bool WestPixelSkin = Proto_GreyboxWestPixelSkinState.DefaultEnabled;
+        public bool PerspectiveDepth = Proto_GreyboxPerspectiveDepth.DefaultEnabled;
+        public bool PlayerPerspective = Proto_GreyboxPerspectiveDepth.DefaultPlayerPerspectiveEnabled;
+        public bool PlayerDepthMove = Proto_GreyboxPerspectiveDepth.DefaultPlayerDepthMoveEnabled;
+        public float PlayerHeightTopPercent = Proto_GreyboxPerspectiveDepth.DefaultPlayerHeightFarPercent;
+        public float PlayerHeightBottomPercent = Proto_GreyboxPerspectiveDepth.DefaultPlayerHeightNearPercent;
 
         public float CoverDamageReduction01 => CoverDamageReductionPercent / 100f;
 
@@ -40,6 +54,14 @@ namespace HillNGun.Proto.Greybox
         {
             Proto_DepthScale.FarScale = DepthFarScale;
             Proto_DepthScale.NearScale = DepthNearScale;
+        }
+
+        public void ApplyPlayerPerspective()
+        {
+            Proto_GreyboxPerspectiveDepth.PlayerPerspectiveEnabled = PlayerPerspective;
+            Proto_GreyboxPerspectiveDepth.PlayerDepthMoveEnabled = PlayerDepthMove;
+            Proto_GreyboxPerspectiveDepth.PlayerHeightTopPercent = PlayerHeightTopPercent;
+            Proto_GreyboxPerspectiveDepth.PlayerHeightBottomPercent = PlayerHeightBottomPercent;
         }
     }
 }

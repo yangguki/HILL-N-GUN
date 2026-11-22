@@ -6,6 +6,10 @@ namespace HillNGun.Proto.Greybox
     public sealed class Proto_GreyboxResultUi
     {
         public const string RootName = "Greybox_ResultOverlay";
+        public const float ResultRestartHitX0 = 38f;
+        public const float ResultRestartHitX1 = 62f;
+        public const float ResultRestartHitY0 = 73f;
+        public const float ResultRestartHitY1 = 79f;
 
         static readonly Color CardFill = new Color(16f / 255f, 18f / 255f, 26f / 255f, 0.92f);
         static readonly Color CardBorder = new Color(220f / 255f, 210f / 255f, 180f / 255f, 1f);
@@ -72,7 +76,8 @@ namespace HillNGun.Proto.Greybox
 
             string survivalLabel = _useKorean ? "생존 시간" : "SURVIVAL";
             string killsLabel = _useKorean ? "처치" : "KILLS";
-            string hint = _useKorean ? "R  /  탭하여 다시 시작" : "R  /  TAP TO RESTART";
+            string hint = _useKorean ? "또는 R  /  Enter" : "OR  R  /  ENTER";
+            string restartLabel = _useKorean ? "다시하기" : "RESTART";
 
             PlaceText(_root.transform, "Greybox_ResultScoreLabel", 34.5f, 34f, 50f, 38f, font, 20,
                 TextAnchor.MiddleLeft, StatLabel, "SCORE");
@@ -94,7 +99,11 @@ namespace HillNGun.Proto.Greybox
             _killsVal = PlaceText(_root.transform, "Greybox_ResultKillsValue", 50f, 55f, 65.5f, 59f, font, 24,
                 TextAnchor.MiddleRight, StatValue, "0");
 
-            _hint = PlaceText(_root.transform, "Greybox_ResultHint", 28f, 68.5f, 72f, 72.5f, font, 18,
+            PlaceImage(_root.transform, "Greybox_ResultRestartPlate", ResultRestartHitX0, ResultRestartHitY0,
+                ResultRestartHitX1, ResultRestartHitY1, new Color(0.22f, 0.45f, 0.72f, 0.92f));
+            PlaceText(_root.transform, "Greybox_ResultRestartLabel", ResultRestartHitX0, ResultRestartHitY0,
+                ResultRestartHitX1, ResultRestartHitY1, font, 22, TextAnchor.MiddleCenter, Color.white, restartLabel);
+            _hint = PlaceText(_root.transform, "Greybox_ResultHint", 28f, 81f, 72f, 84.5f, font, 16,
                 TextAnchor.MiddleCenter, HintColor, hint);
 
             var texts = _root.GetComponentsInChildren<Text>(true);
@@ -127,6 +136,10 @@ namespace HillNGun.Proto.Greybox
                 g.SetAllDirty();
             Canvas.ForceUpdateCanvases();
         }
+
+        public static bool IsRestartHit(float xPct, float yPct) =>
+            xPct >= ResultRestartHitX0 && xPct <= ResultRestartHitX1 && yPct >= ResultRestartHitY0
+            && yPct <= ResultRestartHitY1;
 
         static string FormatSurvival(float simTime)
         {

@@ -19,6 +19,16 @@ namespace HillNGun.Proto.Greybox
         Vector2 _stickDrag;
         bool _dragActive;
         float _peakDragMag;
+        bool _screenStickActive;
+        Vector2 _stickScreenDelta;
+        float _peakScreenMag;
+        float _screenStickRadiusHeightPercent = Proto_GreyboxPointerMath.AimStickRadiusScreenHeightPercent;
+        float _screenStickSmoothTau = Proto_GreyboxPointerMath.AimStickSmoothTime;
+        float _screenStickDeadPortion = Proto_GreyboxPointerMath.AimStickDeadZonePortion;
+        float _screenStickDragThresholdPortion = Proto_GreyboxPointerMath.AimStickDragThresholdPortion;
+        float _screenStickAngularCap = Proto_GreyboxPointerMath.AimAngularSpeedCapDegPerSec;
+        float _screenStickFineExponent = Proto_GreyboxPointerMath.AimFineAimExponent;
+        float _lastScreenH = 1080f;
         Vector2 _playerFoot;
         IList<Proto_GreyboxTarget> _targets;
         float _maxRange = 25f;
@@ -31,13 +41,16 @@ namespace HillNGun.Proto.Greybox
         public static Vector2 DefaultAimGround =>
             new Vector2(
                 Proto_GreyboxLayout.ScreenXPercentToWorldX(50f),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(38f));
+                Proto_GreyboxLayout.ScreenYPercentToWorldY(Proto_GreyboxPerspectiveDepth.DefaultAimFootPercent));
 
         public void BeginDrag(Vector2 playerFoot, IList<Proto_GreyboxTarget> targets, float maxRange = 25f)
         {
             _dragActive = true;
+            _screenStickActive = false;
             _stickDrag = Vector2.zero;
             _peakDragMag = 0f;
+            _stickScreenDelta = Vector2.zero;
+            _peakScreenMag = 0f;
             _playerFoot = playerFoot;
             _targets = targets;
             _maxRange = maxRange;
@@ -45,12 +58,45 @@ namespace HillNGun.Proto.Greybox
             UpdateAimGeometry();
         }
 
+        public void ConfigureScreenStick(float radiusHeightPercent, float smoothTauSeconds, float deadZonePortion,
+            float dragThresholdPortion, float angularCapDegPerSec = Proto_GreyboxPointerMath.AimAngularSpeedCapDegPerSec,
+            float fineAimExponent = Proto_GreyboxPointerMath.AimFineAimExponent)
+        {
+            _screenStickRadiusHeightPercent = radiusHeightPercent;
+            _screenStickSmoothTau = smoothTauSeconds;
+            _screenStickDeadPortion = deadZonePortion;
+            _screenStickDragThresholdPortion = dragThresholdPortion;
+            _screenStickAngularCap = angularCapDegPerSec;
+            _screenStickFineExponent = fineAimExponent;
+        }
+
         public void SetAimDirection(Vector2 dragOffsetWorld)
         {
             if (!_dragActive) return;
+            _screenStickActive = false;
             _stickDrag = dragOffsetWorld;
             _peakDragMag = Mathf.Max(_peakDragMag, _stickDrag.magnitude);
             UpdateAimGeometry();
+        }
+
+        public void SetAimStickScreenDelta(Vector2 screenDelta, float screenW, float screenH, float dt)
+        {
+            if (!_dragActive) return;
+            _screenStickActive = true;
+            _lastScreenH = screenH;
+            _stickScreenDelta = screenDelta;
+            float mag = screenDelta.magnitude;
+            _peakScreenMag = Mathf.Max(_peakScreenMag, mag);
+            float stickRadiusPx = Proto_GreyboxPointerMath.AimStickRadiusPx(screenH, _screenStickRadiusHeightPercent);
+            float deadPx = stickRadiusPx * _screenStickDeadPortion;
+            Vector2 targetDir;
+            if (mag < deadPx)
+                targetDir = IdleAimDirection();
+            else
+                targetDir = Proto_GreyboxPointerMath.WorldDirectionFromScreenDrag(screenDelta, screenW, screenH);
+            AimDirection = Proto_GreyboxPointerMath.SmoothAimDirection(AimDirection, targetDir, dt, _screenStickSmoothTau,
+                _screenStickAngularCap, _screenStickFineExponent);
+            AimLineEnd = ClipAimEnd(_playerFoot, AimDirection, _maxRange);
         }
 
         public void PoseInProgressDrag(Vector2 playerFoot, IList<Proto_GreyboxTarget> targets, Vector2 dragOffsetWorld,
@@ -64,6 +110,14 @@ namespace HillNGun.Proto.Greybox
         {
             if (!_dragActive) return Proto_GreyboxAimReleaseIntent.None;
             _dragActive = false;
+            if (_screenStickActive)
+            {
+                float stickRadiusPx =
+                    Proto_GreyboxPointerMath.AimStickRadiusPx(_lastScreenH, _screenStickRadiusHeightPercent);
+                return Proto_GreyboxPointerMath.AimStickReleaseIntent(_stickScreenDelta.magnitude, _peakScreenMag,
+                    stickRadiusPx, _screenStickDeadPortion, _screenStickDragThresholdPortion);
+            }
+
             float mag = _stickDrag.magnitude;
             if (_peakDragMag >= DragThresholdWorld && mag < DeadZoneWorld)
                 return Proto_GreyboxAimReleaseIntent.Cancel;
@@ -144,6 +198,18 @@ namespace HillNGun.Proto.Greybox
         }
 
         void RefreshNearest() => SelectedTarget = Proto_GreyboxTarget.SelectNearest(_playerFoot, _targets);
+
+        Vector2 IdleAimDirection()
+        {
+            if (SelectedTarget != null && SelectedTarget.IsAlive)
+            {
+                var d = SelectedTarget.BodyCenterGround - _playerFoot;
+                return d.sqrMagnitude > 1e-8f ? d.normalized : Vector2.up;
+            }
+
+            var idle = DefaultAimGround - _playerFoot;
+            return idle.sqrMagnitude > 1e-8f ? idle.normalized : Vector2.up;
+        }
 
         void UpdateAimGeometry()
         {

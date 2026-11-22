@@ -7,6 +7,8 @@ namespace HillNGun.Proto.Greybox
     {
         public const int RefWidth = 1280;
         public const int RefHeight = 720;
+        public const float JoystickCenterXPercent = 11.5f;
+        public const float JoystickCenterYPercentFromTop = 78f;
         public const string JoystickRingName = "Greybox_Hud_JoystickRing";
         public const string JoystickKnobName = "Greybox_Hud_JoystickKnob";
         public const string RollButtonName = "Greybox_Hud_Roll";
@@ -16,26 +18,34 @@ namespace HillNGun.Proto.Greybox
         public const string ReloadLabelName = "Greybox_Hud_ReloadLabel";
         public const string GrenadeButtonName = "Greybox_Hud_Grenade";
 
-        public const float RollHitX0 = 73f;
-        public const float RollHitX1 = 83f;
-        public const float RollHitY0 = 72f;
-        public const float RollHitY1 = 84f;
-        public const float FireHitX0 = 88f;
-        public const float FireHitX1 = 98f;
-        public const float FireHitY0 = 66f;
-        public const float FireHitY1 = 79f;
-        public const float ReloadHitX0 = 76f;
-        public const float ReloadHitX1 = 86.5f;
-        public const float ReloadHitY0 = 62f;
-        public const float ReloadHitY1 = 73f;
+        public const float JoystickHitX0 = 4f;
+        public const float JoystickHitX1 = 19f;
+        public const float JoystickHitY0 = 66f;
+        public const float JoystickHitY1 = 91f;
         public const float FireCenterX = 93f;
         public const float FireCenterY = 72.5f;
-        public const float ReloadCenterX = 81.5f;
-        public const float ReloadCenterY = 67f;
-        public const float ReloadEmptyLabelX0 = 77.5f;
-        public const float ReloadEmptyLabelY0 = 63f;
-        public const float ReloadEmptyLabelX1 = 85.5f;
-        public const float ReloadEmptyLabelY1 = 71f;
+        public const float FirePlaceRadiusPercent = 6.8f;
+        public const float ReloadCenterX = 87.2f;
+        public const float ReloadCenterY = 62.2f;
+        public const float GrenadeCenterX = 84.8f;
+        public const float GrenadeCenterY = 72.5f;
+        public const float RollCenterX = 93f;
+        public const float RollCenterY = 57.9f;
+        public const float SmallActionPlaceRadiusPercent = 4.2f;
+        public const float ActionClusterEdgeGapWidthPercent = 2f;
+        public const float ActionClusterHitPaddingPx = 9f;
+        public const float ReloadLabelPadPercent = 3.8f;
+        public const float ReloadEmptyLabelPadPercent = 4.4f;
+        public const string PauseButtonName = "Greybox_Hud_Pause";
+        public const string SettingsGearButtonName = "Greybox_Hud_SettingsGear";
+        public const float SettingsGearCenterX = 89.5f;
+        public const float SettingsGearCenterY = 6.2f;
+        public const float SettingsGearRadiusPercent = 2.7f;
+        public const float HeartsRootX0 = 31f;
+        public const float HeartsRootY0 = 92.2f;
+        public const float HeartsRootX1 = 69f;
+        public const float HeartsRootY1 = 97.2f;
+        public const float HeartsLegacyTopY1 = 8.5f;
         public const string HpTextName = "Greybox_Hud_HpText";
         public const string HpBarFillName = "Greybox_Hud_HpBarFill";
         public const string ScoreTextName = "Greybox_Hud_Score";
@@ -62,6 +72,7 @@ namespace HillNGun.Proto.Greybox
             scaler.matchWidthOrHeight = 0.5f;
 
             canvasGo.AddComponent<GraphicRaycaster>();
+            Proto_GreyboxUiEventSystem.Ensure();
 
             PlaceFloatingText(canvasGo.transform, ScoreLabelName, "SCORE", 2.5f, 2f, 10f, 7.5f, TextAnchor.MiddleLeft,
                 16, FontStyle.Normal);
@@ -70,29 +81,33 @@ namespace HillNGun.Proto.Greybox
             PlaceFloatingText(canvasGo.transform, WaveTextName, "STAGE 1 · WAVE 1/3", 35f, 2f, 65f, 8f,
                 TextAnchor.MiddleCenter, 16, FontStyle.Bold);
             PlaceDbgChip(canvasGo.transform);
-            PlaceCircle(canvasGo.transform, "Greybox_Hud_Pause", 95.5f, 6.2f, 3.0f, Proto_GreyboxPalette.HudGlass, false);
+            PlaceCircle(canvasGo.transform, PauseButtonName, 95.5f, 6.2f, 3.0f, Proto_GreyboxPalette.HudGlass, false);
             PlaceText(canvasGo.transform, "Greybox_Hud_PauseLabel", "||", 93.8f, 4.6f, 97.2f, 8.2f,
                 TextAnchor.MiddleCenter, 13);
+            PlaceCircle(canvasGo.transform, SettingsGearButtonName, SettingsGearCenterX, SettingsGearCenterY,
+                SettingsGearRadiusPercent, new Color(0.18f, 0.2f, 0.28f, 0.82f), false);
+            PlaceText(canvasGo.transform, "Greybox_Hud_SettingsGearLabel", "⚙", SettingsGearCenterX - 2.4f,
+                SettingsGearCenterY - 2.4f, SettingsGearCenterX + 2.4f, SettingsGearCenterY + 2.4f,
+                TextAnchor.MiddleCenter, 14);
 
             PlaceHpBar(canvasGo.transform);
 
             PlaceJoystick(canvasGo.transform);
-            const float actionRadius = 7.5f;
-            PlaceActionButton(canvasGo.transform, RollButtonName, "Greybox_Hud_RollLabel", "ROLL",
-                Proto_GreyboxSpriteUtil.HudIconKind.Roll, 78.0f, 78.0f, actionRadius, RollHitX0, RollHitY0, RollHitX1,
-                RollHitY1);
-            PlaceCircle(canvasGo.transform, FireButtonName, 93.0f, 72.5f, 6.8f, Proto_GreyboxPalette.HudFire, false);
-            PlaceHudIcon(canvasGo.transform, FireButtonName + "_Icon", Proto_GreyboxSpriteUtil.HudIconKind.Fire, 93.0f, 72.5f,
-                6.8f * 0.5f, new Color(0.12f, 0.1f, 0.08f, 0.92f));
-            PlaceLabel(canvasGo.transform, "Greybox_Hud_FireLabel", "FIRE", FireHitX0, FireHitY0, FireHitX1, FireHitY1);
+            PlaceClusterActionButton(canvasGo.transform, RollButtonName, "Greybox_Hud_RollLabel", "ROLL",
+                Proto_GreyboxSpriteUtil.HudIconKind.Roll, RollCenterX, RollCenterY);
+            PlaceCircle(canvasGo.transform, FireButtonName, FireCenterX, FireCenterY, FirePlaceRadiusPercent,
+                Proto_GreyboxPalette.HudFire, false);
+            PlaceHudIcon(canvasGo.transform, FireButtonName + "_Icon", Proto_GreyboxSpriteUtil.HudIconKind.Fire,
+                FireCenterX, FireCenterY, FirePlaceRadiusPercent * 0.5f, new Color(0.12f, 0.1f, 0.08f, 0.92f));
+            PlaceLabelAroundCenter(canvasGo.transform, "Greybox_Hud_FireLabel", "FIRE", FireCenterX, FireCenterY,
+                FirePlaceRadiusPercent);
             PlaceAmmoPips(canvasGo.transform);
-            PlaceText(canvasGo.transform, AmmoTextName, "1/1", 90f, 81.5f, 98f, 85.5f, TextAnchor.MiddleCenter, 11);
-            PlaceActionButton(canvasGo.transform, ReloadButtonName, ReloadLabelName, "RELOAD",
-                Proto_GreyboxSpriteUtil.HudIconKind.Reload, ReloadCenterX, ReloadCenterY, 5.2f, ReloadHitX0, ReloadHitY0,
-                ReloadHitX1, ReloadHitY1);
+            PlaceText(canvasGo.transform, AmmoTextName, "5/5", 90f, 81.5f, 98f, 85.5f, TextAnchor.MiddleCenter, 11);
+            PlaceClusterActionButton(canvasGo.transform, ReloadButtonName, ReloadLabelName, "RELOAD",
+                Proto_GreyboxSpriteUtil.HudIconKind.Reload, ReloadCenterX, ReloadCenterY);
             PlaceReloadRadialFill(canvasGo.transform);
-            PlaceActionButton(canvasGo.transform, GrenadeButtonName, "Greybox_Hud_GrenadeLabel", "GRENADE",
-                Proto_GreyboxSpriteUtil.HudIconKind.Grenade, 93.0f, 89.5f, 5.5f, 88f, 82f, 98f, 94f);
+            PlaceClusterActionButton(canvasGo.transform, GrenadeButtonName, "Greybox_Hud_GrenadeLabel", "GRENADE",
+                Proto_GreyboxSpriteUtil.HudIconKind.Grenade, GrenadeCenterX, GrenadeCenterY);
 
             return canvas;
         }
@@ -131,7 +146,8 @@ namespace HillNGun.Proto.Greybox
             var go = new GameObject(ReloadFillName);
             go.transform.SetParent(parent, false);
             var rt = go.AddComponent<RectTransform>();
-            ApplyRect(rt, ReloadHitX0, ReloadHitY0, ReloadHitX1, ReloadHitY1);
+            ApplyRect(rt, ReloadCenterX - SmallActionPlaceRadiusPercent, ReloadCenterY - SmallActionPlaceRadiusPercent,
+                ReloadCenterX + SmallActionPlaceRadiusPercent, ReloadCenterY + SmallActionPlaceRadiusPercent);
             var img = go.AddComponent<Image>();
             img.sprite = Proto_GreyboxSpriteUtil.GetCircleSprite(false);
             img.color = new Color(1f, 0.86f, 0.2f, 0.55f);
@@ -154,18 +170,60 @@ namespace HillNGun.Proto.Greybox
 
         static void PlaceJoystick(Transform parent)
         {
-            PlaceCircle(parent, JoystickRingName, 11.5f, 78f, JoystickRadiusPercent, Color.white, true);
-            PlaceCircle(parent, JoystickKnobName, 11.5f, 78f, JoystickKnobRadiusPercent, new Color(1f, 1f, 1f, 0.96f),
-                false);
+            PlaceCircle(parent, JoystickRingName, JoystickCenterXPercent, JoystickCenterYPercentFromTop,
+                JoystickRadiusPercent, Color.white, true);
+            PlaceCircle(parent, JoystickKnobName, JoystickCenterXPercent, JoystickCenterYPercentFromTop,
+                JoystickKnobRadiusPercent, new Color(1f, 1f, 1f, 0.96f), false);
         }
 
-        static void PlaceActionButton(Transform parent, string buttonName, string labelName, string label,
-            Proto_GreyboxSpriteUtil.HudIconKind icon, float cx, float cy, float radius, float lx0, float ly0, float lx1,
-            float ly1)
+        static void PlaceClusterActionButton(Transform parent, string buttonName, string labelName, string label,
+            Proto_GreyboxSpriteUtil.HudIconKind icon, float cx, float cy)
         {
-            PlaceCircle(parent, buttonName, cx, cy, radius, Proto_GreyboxPalette.HudActionDisc, false);
-            PlaceHudIcon(parent, buttonName + "_Icon", icon, cx, cy, radius * 0.68f);
-            PlaceLabel(parent, labelName, label, lx0, ly0, lx1, ly1);
+            PlaceCircle(parent, buttonName, cx, cy, SmallActionPlaceRadiusPercent, Proto_GreyboxPalette.HudActionDisc,
+                false);
+            PlaceHudIcon(parent, buttonName + "_Icon", icon, cx, cy, SmallActionPlaceRadiusPercent * 0.68f);
+            PlaceLabelAroundCenter(parent, labelName, label, cx, cy, SmallActionPlaceRadiusPercent);
+        }
+
+        static void PlaceLabelAroundCenter(Transform parent, string name, string text, float cx, float cy,
+            float placeRadiusPercent)
+        {
+            float pad = placeRadiusPercent * 0.92f;
+            PlaceLabel(parent, name, text, cx - pad, cy - pad, cx + pad, cy + pad);
+        }
+
+        public static float CircleVisualRadiusPx(float placeRadiusPercent) =>
+            RefHeight * (placeRadiusPercent / 100f);
+
+        public static float CircleHitRadiusPx(float placeRadiusPercent,
+            float paddingPx = ActionClusterHitPaddingPx) =>
+            CircleVisualRadiusPx(placeRadiusPercent) + paddingPx;
+
+        public static bool CircleHitTest(float xPct, float yPct, float cx, float cy, float placeRadiusPercent,
+            float paddingPx = ActionClusterHitPaddingPx)
+        {
+            float hitR = CircleHitRadiusPx(placeRadiusPercent, paddingPx);
+            float x = xPct / 100f * RefWidth;
+            float y = yPct / 100f * RefHeight;
+            float cxPx = cx / 100f * RefWidth;
+            float cyPx = cy / 100f * RefHeight;
+            float dx = x - cxPx;
+            float dy = y - cyPx;
+            return dx * dx + dy * dy <= hitR * hitR;
+        }
+
+        public static float ClusterCenterDistancePx(float ax, float ay, float bx, float by)
+        {
+            float dx = (ax - bx) / 100f * RefWidth;
+            float dy = (ay - by) / 100f * RefHeight;
+            return Mathf.Sqrt(dx * dx + dy * dy);
+        }
+
+        public static float ExpectedClusterCenterDistancePx(float firePlaceRadius, float smallPlaceRadius,
+            float edgeGapWidthPercent = ActionClusterEdgeGapWidthPercent)
+        {
+            float gapPx = RefWidth * (edgeGapWidthPercent / 100f);
+            return CircleVisualRadiusPx(firePlaceRadius) + gapPx + CircleVisualRadiusPx(smallPlaceRadius);
         }
 
         static void PlaceHudIcon(Transform parent, string name, Proto_GreyboxSpriteUtil.HudIconKind kind, float cx,
@@ -247,6 +305,9 @@ namespace HillNGun.Proto.Greybox
             rt.offsetMin = Vector2.zero;
             rt.offsetMax = Vector2.zero;
         }
+
+        public static void ApplyHeartsRootRect(RectTransform rt) =>
+            ApplyRect(rt, HeartsRootX0, HeartsRootY0, HeartsRootX1, HeartsRootY1);
 
         public static void SetJoystickKnob(RectTransform knob, Vector2 analog)
         {

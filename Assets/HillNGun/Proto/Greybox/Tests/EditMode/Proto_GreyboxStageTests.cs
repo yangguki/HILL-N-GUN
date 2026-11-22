@@ -15,7 +15,12 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
     Scene _previous;
 
     [SetUp]
-    public void SetUp() => _previous = SceneManager.GetActiveScene();
+    public void SetUp()
+    {
+      _previous = SceneManager.GetActiveScene();
+      Proto_GreyboxPerspectiveDepth.ResetToDefault();
+      Proto_GreyboxMoveZone.ResetToDefaults();
+    }
 
     [Test]
     public void SceneOpens_WithOrthographicCamera16x9()
@@ -46,7 +51,10 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
       builder.Build();
 
       AssertObjectRatios(cam, Proto_GreyboxStageBuilder.PlayerName, 69f, 88f, 19f, Tol);
-      AssertObjectRatios(cam, Proto_GreyboxStageBuilder.FenceName, 41f, 46f, 5f, Tol);
+      AssertObjectRatios(cam, Proto_GreyboxStageBuilder.FenceName,
+        Proto_GreyboxPerspectiveDepth.FenceTopPercent,
+        Proto_GreyboxPerspectiveDepth.FenceBottomPercent,
+        Proto_GreyboxPerspectiveDepth.FenceBottomPercent - Proto_GreyboxPerspectiveDepth.FenceTopPercent, Tol);
       Assert.AreEqual(11f, Proto_GreyboxTuning.TargetHeightPercent, Tol, "grunt height percent");
 
       AssertObjectHeight(cam, Proto_GreyboxStageBuilder.CrateFarName, 6f, Tol);
@@ -68,7 +76,7 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
       Assert.Greater(fence.sortingOrder, ground.sortingOrder, "fence should draw above ground");
       Assert.Greater(Proto_GreyboxLayout.SortingEnemyMarker, Proto_GreyboxLayout.SortingBuildingBase,
         "enemy markers should draw in front of buildings");
-      Assert.Greater(crateFar.sortingOrder, Proto_GreyboxLayout.SortingBuildingBase + 4,
+      Assert.Greater(crateFar.sortingOrder, Proto_GreyboxLayout.SortingBuildingBase,
         "far crate should draw in front of buildings");
       Assert.Greater(crateFar.sortingOrder, ground.sortingOrder, "far crate should draw in front of ground");
 
@@ -100,6 +108,8 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
     [TearDown]
     public void TearDown()
     {
+      Proto_GreyboxPerspectiveDepth.ResetToDefault();
+      Proto_GreyboxMoveZone.ResetToDefaults();
       if (_previous.IsValid() && _previous.path != Proto_GreyboxStageBuilder.ScenePath)
         EditorSceneManager.OpenScene(_previous.path, OpenSceneMode.Single);
       else

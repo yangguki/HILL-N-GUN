@@ -51,6 +51,12 @@ namespace HillNGun.Proto.Greybox
             _header = AddLabel(_panelRoot.transform, "TUNING (F1)", 1f, y, 42f, y + 4f, font, 12);
             y += 6f;
 
+            AddSliderRow(_panelRoot.transform, ref y, "Move top %", Proto_GreyboxMoveZone.FootYPercentMinSliderMin,
+                Proto_GreyboxMoveZone.FootYPercentMinSliderMax, Proto_GreyboxMoveZone.FootYPercentMinCurrent, v =>
+                {
+                    Proto_GreyboxMoveZone.SetFootYPercentMin(v);
+                    _controller?.NotifyMoveZoneChanged();
+                });
             AddSliderRow(_panelRoot.transform, ref y, "Move speed", 1f, 12f, _tuning.MoveSpeed,
                 v => _tuning.MoveSpeed = v);
             AddSliderRow(_panelRoot.transform, ref y, "Roll dist", 0.5f, 5f, _tuning.RollDistance,
@@ -61,12 +67,34 @@ namespace HillNGun.Proto.Greybox
                 v => _tuning.RollInvulnDuration = v);
             AddSliderRow(_panelRoot.transform, ref y, "Roll cd", 0.2f, 5f, _tuning.RollCooldown,
                 v => _tuning.RollCooldown = v);
-            AddSliderRow(_panelRoot.transform, ref y, "Enemy bullet spd", 1f, 10f, _tuning.EnemyBulletSpeed,
-                v => _tuning.EnemyBulletSpeed = v);
+            AddSliderRow(_panelRoot.transform, ref y, "Roll chain max", 2f, 8f, _tuning.RollChainMax,
+                v =>
+                {
+                    _tuning.RollChainMax = Mathf.RoundToInt(v);
+                    _controller?.RollDizzy.ApplyRuntime(_tuning);
+                });
+            AddSliderRow(_panelRoot.transform, ref y, "Roll cooldown s", 1f, 12f, _tuning.RollChainLockSec,
+                v =>
+                {
+                    _tuning.RollChainLockSec = v;
+                    _controller?.RollDizzy.ApplyRuntime(_tuning);
+                });
+            AddSliderRow(_panelRoot.transform, ref y, "Heart regen s", 3f, 20f, _tuning.HeartRegenSec,
+                v => _tuning.HeartRegenSec = v);
+            AddSliderRow(_panelRoot.transform, ref y, "Enemy bullet spd", 2f, 12f, _tuning.EnemyBulletSpeed,
+                v =>
+                {
+                    _tuning.EnemyBulletSpeed = v;
+                    Proto_GreyboxBulletSpeedPrefs.SaveEnemy(v);
+                });
             AddSliderRow(_panelRoot.transform, ref y, "Enemy bullet size", 0.2f, 1.2f, _tuning.EnemyBulletDiameter,
                 v => _tuning.EnemyBulletDiameter = v);
-            AddSliderRow(_panelRoot.transform, ref y, "Ally bullet spd", 1f, 24f, _tuning.AllyBulletSpeed,
-                v => _tuning.AllyBulletSpeed = v);
+            AddSliderRow(_panelRoot.transform, ref y, "Ally bullet spd", 2f, 12f, _tuning.AllyBulletSpeed,
+                v =>
+                {
+                    _tuning.AllyBulletSpeed = v;
+                    Proto_GreyboxBulletSpeedPrefs.SaveAlly(v);
+                });
             AddSliderRow(_panelRoot.transform, ref y, "Ally bullet size", 0.05f, 0.4f, _tuning.AllyBulletDiameter,
                 v => _tuning.AllyBulletDiameter = v);
             AddSliderRow(_panelRoot.transform, ref y, "Ally bullet dmg", 1f, 10f, _tuning.AllyBulletDamage,
@@ -75,8 +103,8 @@ namespace HillNGun.Proto.Greybox
                 v => _tuning.FireInterval = v);
             AddSliderRow(_panelRoot.transform, ref y, "Magazine", 1f, 12f, _tuning.MagazineSize,
                 v => _tuning.MagazineSize = Mathf.RoundToInt(v));
-            AddSliderRow(_panelRoot.transform, ref y, "Reload time", 0.3f, 4f, _tuning.ReloadDuration,
-                v => _tuning.ReloadDuration = v);
+            AddSliderRow(_panelRoot.transform, ref y, "Reload / round", 0.1f, 1.5f, _tuning.ReloadRoundInterval,
+                v => _tuning.ReloadRoundInterval = v);
             AddSliderRow(_panelRoot.transform, ref y, "Wave1 count", 0f, 12f, _tuning.Wave1Count,
                 v => _tuning.Wave1Count = Mathf.RoundToInt(v));
             AddSliderRow(_panelRoot.transform, ref y, "Wave2 count", 0f, 12f, _tuning.Wave2Count,
@@ -89,7 +117,7 @@ namespace HillNGun.Proto.Greybox
                 v => _tuning.EnemyHp = Mathf.RoundToInt(v));
             AddSliderRow(_panelRoot.transform, ref y, "Player max HP", 1f, 50f, _tuning.PlayerMaxHp,
                 v => _tuning.PlayerMaxHp = Mathf.RoundToInt(v));
-            AddSliderRow(_panelRoot.transform, ref y, "Grenade cd", 1f, 15f, _tuning.GrenadeCooldown,
+            AddSliderRow(_panelRoot.transform, ref y, "Grenade recharge s", 2f, 15f, _tuning.GrenadeCooldown,
                 v => _tuning.GrenadeCooldown = v);
             AddSliderRow(_panelRoot.transform, ref y, "Cover dmg reduce%", 0f, 100f, _tuning.CoverDamageReductionPercent,
                 v => _tuning.CoverDamageReductionPercent = v);
@@ -97,6 +125,90 @@ namespace HillNGun.Proto.Greybox
                 v => _tuning.DepthFarScale = v);
             AddSliderRow(_panelRoot.transform, ref y, "Depth near scale", 1f, 4f, _tuning.DepthNearScale,
                 v => _tuning.DepthNearScale = v);
+            AddSliderRow(_panelRoot.transform, ref y, "Aim stick radius %H", 12f, 26f,
+                _tuning.AimStickRadiusHeightPercent, v => _tuning.AimStickRadiusHeightPercent = v);
+            AddSliderRow(_panelRoot.transform, ref y, "Aim stick smooth s", 0.04f, 0.25f, _tuning.AimStickSmoothTime,
+                v => _tuning.AimStickSmoothTime = v);
+            AddSliderRow(_panelRoot.transform, ref y, "Aim angular cap deg/s", 90f, 480f,
+                _tuning.AimAngularCapDegPerSec, v => _tuning.AimAngularCapDegPerSec = v);
+            AddSliderRow(_panelRoot.transform, ref y, "Aim fine-aim exponent", 1f, 2.5f, _tuning.AimFineAimExponent,
+                v => _tuning.AimFineAimExponent = v);
+            AddToggleRow(_panelRoot.transform, ref y, "West pixel skin", _tuning.WestPixelSkin, v =>
+            {
+                _tuning.WestPixelSkin = v;
+                Proto_GreyboxWestPixelSkinState.Enabled = v;
+                _controller?.SetWestPixelSkin(v);
+            });
+            AddToggleRow(_panelRoot.transform, ref y, "Perspective depth", _tuning.PerspectiveDepth, v =>
+            {
+                _tuning.PerspectiveDepth = v;
+                _controller?.SetPerspectiveDepth(v);
+            });
+            AddToggleRow(_panelRoot.transform, ref y, "Player perspective", _tuning.PlayerPerspective, v =>
+            {
+                _tuning.PlayerPerspective = v;
+                _controller?.SetPlayerPerspectiveRuntime();
+            });
+            AddSliderRow(_panelRoot.transform, ref y, "Player h top %", 8f, 24f, _tuning.PlayerHeightTopPercent, v =>
+            {
+                _tuning.PlayerHeightTopPercent = Mathf.Min(v, _tuning.PlayerHeightBottomPercent - 0.5f);
+                _controller?.SetPlayerPerspectiveRuntime();
+            });
+            AddSliderRow(_panelRoot.transform, ref y, "Player h bottom %", 12f, 30f, _tuning.PlayerHeightBottomPercent, v =>
+            {
+                _tuning.PlayerHeightBottomPercent = Mathf.Max(v, _tuning.PlayerHeightTopPercent + 0.5f);
+                _controller?.SetPlayerPerspectiveRuntime();
+            });
+            AddToggleRow(_panelRoot.transform, ref y, "Player depth move", _tuning.PlayerDepthMove, v =>
+            {
+                _tuning.PlayerDepthMove = v;
+                _controller?.SetPlayerPerspectiveRuntime();
+            });
+        }
+
+        void AddToggleRow(Transform parent, ref float y, string name, bool value, System.Action<bool> setter)
+        {
+            var row = new GameObject("Row_" + name);
+            row.transform.SetParent(parent, false);
+            var rt = row.AddComponent<RectTransform>();
+            Proto_GreyboxHudBuilder.ApplyRect(rt, 1f, y, 42f, y + 3.6f);
+
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (font == null)
+                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+
+            var nameGo = new GameObject("Name");
+            nameGo.transform.SetParent(row.transform, false);
+            var nameRt = nameGo.AddComponent<RectTransform>();
+            Proto_GreyboxHudBuilder.ApplyRect(nameRt, 0f, 0f, 70f, 42f);
+            var nameText = nameGo.AddComponent<Text>();
+            nameText.font = font;
+            nameText.fontSize = 10;
+            nameText.text = name;
+            nameText.color = new Color(0.92f, 0.92f, 0.95f, 1f);
+            nameText.alignment = TextAnchor.MiddleLeft;
+            nameText.raycastTarget = false;
+
+            var toggleGo = new GameObject("Toggle");
+            toggleGo.transform.SetParent(row.transform, false);
+            var toggleRt = toggleGo.AddComponent<RectTransform>();
+            Proto_GreyboxHudBuilder.ApplyRect(toggleRt, 72f, 10f, 98f, 90f);
+            var toggle = toggleGo.AddComponent<Toggle>();
+            var bg = toggleGo.AddComponent<Image>();
+            bg.sprite = Proto_GreyboxSpriteUtil.WhiteSprite;
+            bg.color = new Color(0.2f, 0.22f, 0.28f, 0.95f);
+            toggle.targetGraphic = bg;
+            var check = new GameObject("Check");
+            check.transform.SetParent(toggleGo.transform, false);
+            var checkRt = check.AddComponent<RectTransform>();
+            Proto_GreyboxHudBuilder.ApplyRect(checkRt, 20f, 20f, 80f, 80f);
+            var checkImg = check.AddComponent<Image>();
+            checkImg.sprite = Proto_GreyboxSpriteUtil.WhiteSprite;
+            checkImg.color = new Color(0.35f, 0.85f, 0.45f, 0.95f);
+            toggle.graphic = checkImg;
+            toggle.isOn = value;
+            toggle.onValueChanged.AddListener(v => setter(v));
+            y += 3.85f;
         }
 
         static Text AddLabel(Transform parent, string text, float x0, float y0, float x1, float y1, Font font, int size)

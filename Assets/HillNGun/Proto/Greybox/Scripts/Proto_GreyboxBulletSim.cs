@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace HillNGun.Proto.Greybox
 {
+    /// <summary>Enemy ground bullet — resolves cover and the player footprint only; never damages grunts or the firing grunt.</summary>
     public class Proto_GreyboxBulletSim
     {
         const float PlayerFootprintDepthHalf = 0.25f;
@@ -62,14 +63,16 @@ namespace HillNGun.Proto.Greybox
 
         public static Rect PlayerGroundFootprint(Vector2 foot)
         {
-            float halfW = Proto_GreyboxLayout.WorldWidth * (Proto_GreyboxTuning.PlayerCapsuleWidthPercent / 100f) * 0.5f;
-            return new Rect(foot.x - halfW, foot.y - PlayerFootprintDepthHalf, halfW * 2f, PlayerFootprintDepthHalf * 2f);
+            float scale = Proto_GreyboxPerspectiveDepth.PlayerVisualScaleAtFootWorldY(foot.y);
+            float halfW = Proto_GreyboxLayout.WorldWidth * (Proto_GreyboxTuning.PlayerCapsuleWidthPercent / 100f) * 0.5f * scale;
+            float depthHalf = PlayerFootprintDepthHalf * scale;
+            return new Rect(foot.x - halfW, foot.y - depthHalf, halfW * 2f, depthHalf * 2f);
         }
 
         public static Vector2 VisualPositionAtGround(Vector2 groundPos)
         {
-            float chest = Proto_GreyboxLayout.ScreenPercentToWorldHeight(Proto_GreyboxTuning.PlayerCapsuleHeightPercent) * 0.35f;
-            return groundPos + new Vector2(0f, chest * Proto_DepthScale.BulletScaleAt(groundPos.y));
+            float chest = Proto_GreyboxPerspectiveDepth.PlayerBodyHeightWorld(groundPos.y) * 0.35f;
+            return groundPos + new Vector2(0f, chest);
         }
 
         static bool CircleIntersectsRect(Vector2 c, float r, Rect rect)

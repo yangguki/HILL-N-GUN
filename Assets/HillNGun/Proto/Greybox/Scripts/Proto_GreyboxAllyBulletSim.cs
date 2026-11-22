@@ -34,7 +34,7 @@ namespace HillNGun.Proto.Greybox
             Alive = vel.sqrMagnitude > 1e-8f;
         }
 
-        public float VisualScale => Proto_DepthScale.BulletScaleAt(GroundPosition.y);
+        public float VisualScale => Proto_GreyboxPerspectiveDepth.AllyBulletVisualScaleAtFootWorldY(GroundPosition.y);
 
         float HitRadius => _radius * VisualScale;
 

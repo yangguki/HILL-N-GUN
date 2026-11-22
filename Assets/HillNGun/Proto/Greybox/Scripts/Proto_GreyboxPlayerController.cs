@@ -49,9 +49,29 @@ namespace HillNGun.Proto.Greybox
         RectTransform _joystickKnob;
         Transform _aimLine;
         Transform _aimCone;
+        Transform _grenadeArcLine;
+        Transform _grenadeLandingMarker;
         GameObject _explosionVis;
         readonly Proto_GreyboxResultUi _resultUi = new Proto_GreyboxResultUi();
+        readonly Proto_GreyboxPauseUi _pauseUi = new Proto_GreyboxPauseUi();
+        readonly Proto_GreyboxSettingsUi _settingsUi = new Proto_GreyboxSettingsUi();
+        readonly Proto_GreyboxPlayerHearts _hearts = new Proto_GreyboxPlayerHearts();
+        readonly Proto_GreyboxHeartsHud _heartsHud = new Proto_GreyboxHeartsHud();
+        readonly Proto_GreyboxRollGaugeHud _rollGaugeHud = new Proto_GreyboxRollGaugeHud();
         Proto_GreyboxRuntimeDebugUi _debugUi;
+        bool _settingsFromGear;
+        Proto_GreyboxWestPixelSkin _westSkin;
+        readonly Proto_GreyboxRollDizzy _rollDizzy = new Proto_GreyboxRollDizzy();
+        readonly Proto_GreyboxCylinderHud _cylinderHud = new Proto_GreyboxCylinderHud();
+        readonly Proto_GreyboxGrenadeGaugeHud _grenadeGaugeHud = new Proto_GreyboxGrenadeGaugeHud();
+        bool _grenadeBlockedTapPrev;
+        bool _wasRolling;
+        Transform _aimTipRing;
+        readonly List<Transform> _grenadeArcDots = new List<Transform>();
+        Transform _grenadeFlyVis;
+        Transform _grenadeFlyShadow;
+        Transform _grenadeFlySmoke;
+        readonly List<Transform> _dizzyStars = new List<Transform>();
 
         Color _baseColor;
         int _hp;
@@ -62,6 +82,12 @@ namespace HillNGun.Proto.Greybox
         bool _fireStickTracking;
         Vector2 _fireStickStartScreen;
         int _fireStickFingerId = -2;
+        int _grenadeStickFingerId = -2;
+        bool _grenadeStickTracking;
+        Vector2 _grenadeStickStartScreen;
+        float _grenadePeakScreenMag;
+        bool _grenadeStickActive;
+        Vector2 _grenadePreviewLanding;
         int _joyFingerId = -2;
         Proto_GreyboxBulletSim _debugBullet;
         bool _mouseAimTracking;
@@ -72,6 +98,7 @@ namespace HillNGun.Proto.Greybox
         Transform _gruntRoot;
         readonly List<SpriteRenderer> _allyBulletViews = new List<SpriteRenderer>();
         readonly List<SpriteRenderer> _allyTracerViews = new List<SpriteRenderer>();
+        readonly List<SpriteRenderer> _allyBulletHotspotViews = new List<SpriteRenderer>();
         readonly List<SpriteRenderer> _enemyBulletViews = new List<SpriteRenderer>();
         readonly List<SpriteRenderer> _enemyBulletGlowViews = new List<SpriteRenderer>();
 
@@ -84,17 +111,82 @@ namespace HillNGun.Proto.Greybox
         public Proto_GreyboxRoll Roll => _roll;
         public Proto_GreyboxAim Aim => _aim;
         public Proto_GreyboxGun Gun => _gun;
+        public Proto_GreyboxRollDizzy RollDizzy => _rollDizzy;
+        public Proto_GreyboxPlayerHearts Hearts => _hearts;
         public Proto_GreyboxGrenade Grenade => _grenade;
         public Proto_GreyboxCover Cover => _cover;
         public Proto_GreyboxRuntimeTuning RuntimeTuning => _tuning;
         public Proto_GreyboxWaveDirector WaveDirector => _waveDirector;
         public IReadOnlyList<Proto_GreyboxTarget> Targets => _targets;
         public IReadOnlyList<Proto_GreyboxAllyBulletSim> AllyBullets => _allyBullets;
+        public IReadOnlyList<SpriteRenderer> AllyBulletViewRenderers => _allyBulletViews;
+        public IReadOnlyList<SpriteRenderer> AllyTracerViewRenderers => _allyTracerViews;
         public IReadOnlyList<Proto_GreyboxBulletSim> EnemyBullets => _enemyBullets;
         public int Hp => _hp;
         public int Score => _score;
         public float SimTime => _simTime;
         public Proto_GreyboxRunResult RunResult => _runResult;
+        public bool IsPaused { get; private set; }
+        public bool PlayerHitFlashActive => _hitFlashTimer > 0f;
+
+        public void NotifyMoveZoneChanged() => _westSkin?.RebuildMoveBoundary();
+
+        public void SetWestPixelSkin(bool enabled)
+        {
+            EnsureLogic();
+            EnsureWestSkin();
+            _westSkin.SetEnabled(enabled);
+        }
+
+        public void SetPlayerPerspectiveRuntime()
+        {
+            EnsureLogic();
+            _tuning.ApplyPlayerPerspective();
+        }
+
+        public void SetPerspectiveDepth(bool enabled)
+        {
+            EnsureLogic();
+            _tuning.PerspectiveDepth = enabled;
+            Proto_GreyboxPerspectiveDepth.Enabled = enabled;
+            Proto_GreyboxMoveZone.ResetToDefaults();
+            var builder = Object.FindFirstObjectByType<Proto_GreyboxStageBuilder>();
+            builder?.RebuildEnvironment();
+            NotifyMoveZoneChanged();
+            EnsureWestSkin();
+            if (_westSkin != null && _westSkin.IsActive)
+                _westSkin.RebuildStageLayout();
+            else if (_tuning.WestPixelSkin)
+                _westSkin?.SetEnabled(true);
+            ApplyCrosshairPosition();
+        }
+
+        void ApplyCrosshairPosition()
+        {
+            var ch = GameObject.Find("Greybox_Crosshair");
+            if (ch == null) return;
+            var aim = Proto_GreyboxAim.DefaultAimGround;
+            ch.transform.position = new Vector3(aim.x, aim.y, 0f);
+        }
+
+        public void SetPaused(bool paused)
+        {
+            IsPaused = paused;
+            if (IsPaused)
+            {
+                Time.timeScale = 0f;
+                EnsurePausePanel();
+                _pauseUi.SetVisible(true);
+            }
+            else
+            {
+                Time.timeScale = 1f;
+                _pauseUi.SetVisible(false);
+            }
+        }
+
+        public static Proto_GreyboxInput FilterCombatInputWhenPaused(Proto_GreyboxInput input, bool paused) =>
+            paused ? Proto_GreyboxCombatInputGate.StripCombatWhenPaused(input) : input;
 
         void Awake() => EnsureLogic();
 
@@ -104,7 +196,10 @@ namespace HillNGun.Proto.Greybox
             _sprite = GetComponent<SpriteRenderer>();
             _baseColor = _sprite != null ? _sprite.color : Color.white;
             var foot = new Vector2(transform.position.x, transform.position.y);
-            _hp = _tuning.PlayerMaxHp;
+            Proto_GreyboxBulletSpeedPrefs.LoadInto(_tuning);
+            _hearts.Configure(_tuning.PlayerMaxHp, _tuning.HeartRegenSec);
+            _rollDizzy.ApplyRuntime(_tuning);
+            _hp = _hearts.Hearts;
             _motor = new Proto_GreyboxPlayerMotor(foot, _tuning.MoveSpeed);
             _roll = new Proto_GreyboxRoll();
             _cover = Proto_GreyboxCover.FromStageCrates();
@@ -237,11 +332,20 @@ namespace HillNGun.Proto.Greybox
             _debugUi = Proto_GreyboxRuntimeDebugUi.Ensure(canvas, _tuning, this);
         }
 
+        void EnsureWestSkin()
+        {
+            if (_westSkin == null)
+                _westSkin = new Proto_GreyboxWestPixelSkin(this);
+            _westSkin.EnsureBound();
+        }
+
         void Update()
         {
             if (!Application.isPlaying) return;
             EnsureLogic();
             var input = PollLegacyInput();
+            if (IsPaused && _runResult == Proto_GreyboxRunResult.Playing)
+                return;
             Simulate(input, Time.deltaTime);
         }
 
@@ -250,6 +354,7 @@ namespace HillNGun.Proto.Greybox
             EnsureLogic();
             EnsureViewRefs();
             ApplyRuntimeTuning();
+            input = FilterCombatInputWhenPaused(input, IsPaused);
 
             if (_runResult != Proto_GreyboxRunResult.Playing)
             {
@@ -261,43 +366,92 @@ namespace HillNGun.Proto.Greybox
 
             if (!_runStarted)
             {
+                Proto_GreyboxPerspectiveDepth.Enabled = _tuning.PerspectiveDepth;
+                _tuning.ApplyPlayerPerspective();
+                Proto_GreyboxMoveZone.ResetToDefaults();
                 _waveDirector.StartRun(_tuning);
                 _runStarted = true;
+                Proto_GreyboxWestPixelSkinState.Enabled = _tuning.WestPixelSkin;
+                EnsureWestSkin();
+                _westSkin?.SetEnabled(_tuning.WestPixelSkin);
             }
 
             _simTime += dt;
+            _rollDizzy.Tick(_simTime);
+            EnsureWestSkin();
+            _westSkin?.SetSimDt(dt);
+            if (_rollDizzy.BlocksMovement)
+                input = new Proto_GreyboxInput
+                {
+                    DebugToggle = input.DebugToggle,
+                    RestartPressed = input.RestartPressed
+                };
             _roll.RememberMoveDirection(input.Move);
 
             if (input.DebugToggle && !_debugTogglePrev)
                 _debugUi?.Toggle();
             _debugTogglePrev = input.DebugToggle;
 
-            if (input.RollPressed && !_rollPressedPrev)
+            if (input.ReloadPressed && !_reloadPressedPrev && !_rollDizzy.BlocksFire)
             {
-                if (_roll.TryStart(input.Move))
-                    _gun.CancelReload();
+                if (_gun.Ammo < _gun.MagazineSize)
+                {
+                    _gun.StartReload(_simTime);
+                    if (_gun.ReloadCasingCount > 0)
+                        _westSkin?.OnReloadStartCasing(_gun.ReloadCasingCount);
+                }
             }
-            _rollPressedPrev = input.RollPressed;
 
-            if (input.ReloadPressed && !_reloadPressedPrev)
-                _gun.StartReload(_simTime);
             _reloadPressedPrev = input.ReloadPressed;
 
+            _wasRolling = _roll.IsRolling;
             if (_roll.IsRolling)
                 _motor.ApplyDelta(_roll.Tick(dt));
             else
             {
                 _roll.Tick(dt);
-                _motor.TickMove(input.Move, dt);
+                var move = input.Move;
+                float footPct = Proto_GreyboxLayout.WorldYToScreenPercentFromTop(_motor.FootPosition.y);
+                float vMul = Proto_GreyboxPerspectiveDepth.PlayerVerticalMoveSpeedFactorAtFootPercent(footPct);
+                move.y *= vMul;
+                _motor.TickMove(move, dt);
             }
+
+            if (_wasRolling && !_roll.IsRolling)
+            {
+                _rollDizzy.NotifyRollEnded(_simTime);
+                _westSkin?.OnRollEnded(_roll.Facing, _rollDizzy.Phase);
+                if (_rollDizzy.Phase == Proto_GreyboxRollDizzyPhase.Stun)
+                    _gun.CancelReload();
+            }
+
+            if (input.RollPressed && _rollDizzy.ChainLocked(_simTime))
+                _rollGaugeHud.TriggerLockedNudge();
+
+            if (input.RollPressed && !_rollDizzy.BlocksRoll && _rollDizzy.TryAcceptRollStart(_simTime)
+                && _roll.TryStart(input.Move))
+            {
+                _gun.CancelReload();
+                _rollDizzy.NotifyRollStarted(_simTime);
+                _westSkin?.OnRollStarted(_roll.Facing);
+            }
+
+            _rollPressedPrev = input.RollPressed;
 
             var foot = _motor.FootPosition;
             var aimTargets = CollectAimTargets();
             if (input.FireStickHeld)
             {
                 if (!_aim.IsDragging)
+                {
+                    _aim.ConfigureScreenStick(_tuning.AimStickRadiusHeightPercent, _tuning.AimStickSmoothTime,
+                        Proto_GreyboxPointerMath.AimStickDeadZonePortion,
+                        Proto_GreyboxPointerMath.AimStickDragThresholdPortion,
+                        _tuning.AimAngularCapDegPerSec, _tuning.AimFineAimExponent);
                     _aim.BeginDrag(foot, aimTargets);
-                _aim.SetAimDirection(input.FireStickDragWorld);
+                }
+
+                _aim.SetAimStickScreenDelta(input.FireStickDragWorld, Screen.width, Screen.height, dt);
             }
             else if (input.MouseAimHeld)
                 _aim.TickKeyboardDrag(foot, aimTargets, input.MouseAimWorld, input.MousePressWorld);
@@ -317,12 +471,11 @@ namespace HillNGun.Proto.Greybox
                 fireIntent = Proto_GreyboxAimReleaseIntent.AutoAim;
             }
 
-            if (fireIntent == Proto_GreyboxAimReleaseIntent.AutoAim
-                || fireIntent == Proto_GreyboxAimReleaseIntent.ManualDirection)
+            if (!_rollDizzy.BlocksFire && (fireIntent == Proto_GreyboxAimReleaseIntent.AutoAim
+                || fireIntent == Proto_GreyboxAimReleaseIntent.ManualDirection))
                 TryFireFromIntent(fireIntent);
 
-            if (input.GrenadePressed)
-                _grenade.TryThrow(_simTime, foot, CombatAimGround());
+            TickGrenadeInput(input, foot, aimTargets);
 
             _grenade.Tick(_simTime, dt, CollectHittableTargets(), _cover, DeactivateCratePercent);
             TickGrunts(dt, foot);
@@ -333,11 +486,17 @@ namespace HillNGun.Proto.Greybox
             SyncEnemyBulletViews();
             SyncGruntViews();
             ApplyTransform(dt);
+            _westSkin?.TickFrame(dt, input);
             UpdateCrosshair();
             UpdateAimLineVisual();
-            UpdateHud();
+            UpdateGrenadePreviewVisual();
+            TickGrenadeFlightVisual();
+            UpdateHud(dt);
+            UpdateDizzyVisual();
             TickExplosionVis();
             TickDebugBullet(dt);
+            _hearts.Tick(dt, _tuning.HeartRegenSec);
+            _hp = _hearts.Hearts;
             CheckRunEnd();
 
             if (Input.GetKeyDown(KeyCode.T))
@@ -347,8 +506,10 @@ namespace HillNGun.Proto.Greybox
         void ApplyRuntimeTuning()
         {
             _tuning.ApplyDepthScales();
+            _tuning.ApplyPlayerPerspective();
             _motor.SetMoveSpeed(_tuning.MoveSpeed);
             _roll.ApplyRuntime(_tuning);
+            _rollDizzy.ApplyRuntime(_tuning);
             _gun.ApplyRuntime(_tuning);
             _grenade.ApplyRuntime(_tuning);
         }
@@ -381,6 +542,7 @@ namespace HillNGun.Proto.Greybox
 
         void TryFireFromIntent(Proto_GreyboxAimReleaseIntent intent)
         {
+            if (_rollDizzy.BlocksFire) return;
             if (!_gun.TryFire(_simTime)) return;
             Vector2 aim = intent == Proto_GreyboxAimReleaseIntent.AutoAim
                 ? _aim.AutoFireAimPoint()
@@ -395,6 +557,7 @@ namespace HillNGun.Proto.Greybox
             var foot = _motor.FootPosition;
             _allyBullets.Add(new Proto_GreyboxAllyBulletSim(foot, aimGround, _cover, 25f, _tuning.AllyBulletSpeed,
                 _tuning.AllyBulletDiameter, _tuning.AllyBulletDamage));
+            _westSkin?.OnPlayerFired();
         }
 
         void EnsureAllyBulletRoot()
@@ -426,15 +589,26 @@ namespace HillNGun.Proto.Greybox
 
         void SyncAllyBulletViews()
         {
+            EnsureWestSkin();
             EnsureAllyBulletRoot();
+            if (_westSkin != null && _westSkin.SyncAllyBullets(_allyBullets, _tuning.AllyBulletDiameter, _allyBulletViews,
+                    _allyTracerViews, _allyBulletHotspotViews, _allyBulletRoot))
+                return;
             while (_allyBulletViews.Count < _allyBullets.Count)
             {
                 var go = new GameObject("Greybox_AllyBullet");
                 go.transform.SetParent(_allyBulletRoot, false);
                 var sr = go.AddComponent<SpriteRenderer>();
                 sr.sprite = Proto_GreyboxSpriteUtil.GetCircleSprite(false);
-                sr.color = Proto_GreyboxPalette.AllyBulletCore;
+                sr.color = new Color(1f, 0.98f, 0.55f, 1f);
                 _allyBulletViews.Add(sr);
+
+                var hotGo = new GameObject("Greybox_AllyBullet_Hotspot");
+                hotGo.transform.SetParent(go.transform, false);
+                var hotSr = hotGo.AddComponent<SpriteRenderer>();
+                hotSr.sprite = Proto_GreyboxSpriteUtil.GetCircleSprite(false);
+                hotSr.color = Color.white;
+                _allyBulletHotspotViews.Add(hotSr);
 
                 var tail = new GameObject("Greybox_AllyTracer");
                 tail.transform.SetParent(_allyBulletRoot, false);
@@ -448,24 +622,36 @@ namespace HillNGun.Proto.Greybox
             {
                 var sr = _allyBulletViews[i];
                 var tracer = i < _allyTracerViews.Count ? _allyTracerViews[i] : null;
+                var hot = i < _allyBulletHotspotViews.Count ? _allyBulletHotspotViews[i] : null;
                 if (i < _allyBullets.Count && _allyBullets[i].Alive)
                 {
                     var b = _allyBullets[i];
+                    var vel = b.GroundVelocity;
+                    var dir = vel.sqrMagnitude > 1e-6f ? vel.normalized : Vector2.right;
                     var vis = b.VisualPositionAtGround();
                     float scale = b.VisualScale;
-                    float diam = Mathf.Max(_tuning.AllyBulletDiameter * scale, Proto_GreyboxLayout.MinAllyBulletWorldDiameter);
+                    float diam = Mathf.Max(Proto_GreyboxTuning.AllyBulletVisualDiameter * scale,
+                        Proto_GreyboxLayout.MinAllyBulletWorldDiameter);
+                    vis += dir * diam * 0.18f;
                     int order = Proto_GreyboxLayout.CombatDrawSortingOrder(b.GroundPosition.y);
                     sr.gameObject.SetActive(true);
                     sr.transform.position = new Vector3(vis.x, vis.y, 0f);
                     sr.transform.localScale = new Vector3(diam, diam, 1f);
+                    sr.color = new Color(1f, 0.98f, 0.55f, 1f);
                     sr.sortingOrder = order;
+
+                    if (hot != null)
+                    {
+                        hot.gameObject.SetActive(true);
+                        float hotD = diam * 0.32f;
+                        hot.transform.localScale = new Vector3(hotD, hotD, 1f);
+                        hot.sortingOrder = order + 1;
+                    }
 
                     if (tracer != null)
                     {
-                        var vel = b.GroundVelocity;
-                        var dir = vel.sqrMagnitude > 1e-6f ? vel.normalized : Vector2.right;
-                        float tailLen = Proto_GreyboxTuning.AllyBulletTracerLength;
-                        var center = b.GroundPosition - dir * tailLen * 0.5f;
+                        float tailLen = Proto_GreyboxTuning.AllyBulletVisualTracerLength;
+                        var center = vis - dir * tailLen * 0.5f;
                         tracer.gameObject.SetActive(true);
                         tracer.transform.position = new Vector3(center.x, center.y + 0.02f * scale, 0f);
                         tracer.transform.localScale = new Vector3(tailLen, diam * 0.3f, 1f);
@@ -478,13 +664,18 @@ namespace HillNGun.Proto.Greybox
                 {
                     sr.gameObject.SetActive(false);
                     if (tracer != null) tracer.gameObject.SetActive(false);
+                    if (hot != null) hot.gameObject.SetActive(false);
                 }
             }
         }
 
         void SyncEnemyBulletViews()
         {
+            EnsureWestSkin();
             EnsureEnemyBulletRoot();
+            if (_westSkin != null && _westSkin.SyncEnemyBullets(_enemyBullets, _tuning.EnemyBulletDiameter,
+                    _enemyBulletViews, _enemyBulletGlowViews, _enemyBulletRoot, _simTime))
+                return;
             while (_enemyBulletViews.Count < _enemyBullets.Count)
             {
                 var glow = new GameObject("Greybox_EnemyBulletGlow");
@@ -509,7 +700,8 @@ namespace HillNGun.Proto.Greybox
                 if (i < _enemyBullets.Count && _enemyBullets[i].Alive)
                 {
                     var b = _enemyBullets[i];
-                    float diam = b.VisualDiameter(_tuning.EnemyBulletDiameter);
+                    float diam = b.VisualDiameter(_tuning.EnemyBulletDiameter) *
+                                 Proto_GreyboxTuning.EnemyBulletVisualDiameterMul;
                     int order = Proto_GreyboxLayout.CombatDrawSortingOrder(b.GroundPosition.y);
                     var pos = new Vector3(b.GroundPosition.x, b.GroundPosition.y, 0f);
                     sr.gameObject.SetActive(true);
@@ -519,7 +711,7 @@ namespace HillNGun.Proto.Greybox
 
                     if (glow != null)
                     {
-                        float halo = diam * Proto_GreyboxTuning.EnemyBulletGlowDiameterMul;
+                        float halo = diam * Proto_GreyboxTuning.EnemyBulletVisualGlowMul;
                         glow.gameObject.SetActive(true);
                         glow.transform.position = pos;
                         glow.transform.localScale = new Vector3(halo, halo, 1f);
@@ -553,12 +745,18 @@ namespace HillNGun.Proto.Greybox
                     {
                         if (v?.Logic != hit) continue;
                         v.FlashHit();
+                        _westSkin?.OnGruntHitFlash(v);
+                        _westSkin?.SpawnHitSpark(hit.FootPosition);
                         break;
                     }
                 }
 
                 if (!b.Alive)
+                {
+                    if (hit == null)
+                        _westSkin?.SpawnBulletDust(b.GroundPosition);
                     _allyBullets.RemoveAt(i);
+                }
             }
         }
 
@@ -574,13 +772,28 @@ namespace HillNGun.Proto.Greybox
                     continue;
                 }
 
-                int hpBefore = _hp;
-                b.Tick(dt, footprint, IsInvulnerable, ref _hp, _tuning.CoverDamageReduction01, _coverRng,
+                int hpBefore = _hearts.Hearts;
+                int hpScratch = hpBefore;
+                b.Tick(dt, footprint, IsInvulnerable, ref hpScratch, _tuning.CoverDamageReduction01, _coverRng,
                     Proto_GreyboxTuning.EnemyBulletDamage);
-                if (_hp < hpBefore)
-                    _hitFlashTimer = 0.12f;
+                if (hpScratch < hpBefore)
+                {
+                    if (_hearts.TakeHit())
+                    {
+                        _hp = _hearts.Hearts;
+                        _heartsHud.TriggerPop(_hearts.Hearts);
+                        _hitFlashTimer = 0.12f;
+                        _westSkin?.OnPlayerHitFlash();
+                    }
+                }
+                else
+                    _hp = _hearts.Hearts;
+
                 if (!b.Alive)
+                {
+                    _westSkin?.SpawnHitSpark(b.GroundPosition);
                     _enemyBullets.RemoveAt(i);
+                }
             }
         }
 
@@ -609,6 +822,7 @@ namespace HillNGun.Proto.Greybox
 
         void CreateGruntView(Proto_GreyboxGrunt grunt)
         {
+            EnsureWestSkin();
             EnsureGruntRoot();
             var go = new GameObject("Greybox_Grunt");
             go.transform.SetParent(_gruntRoot, false);
@@ -618,6 +832,7 @@ namespace HillNGun.Proto.Greybox
             var view = go.AddComponent<Proto_GreyboxTargetView>();
             view.Init(grunt.Target);
             view.SyncFromLogic();
+            _westSkin?.EnsureGruntSprite(view);
             var gruntOrder = sr.sortingOrder;
             Proto_GreyboxSpriteUtil.AttachFootShadow(go.transform, gruntOrder, 0.85f, 0.16f);
             _gruntViews[grunt] = view;
@@ -632,6 +847,8 @@ namespace HillNGun.Proto.Greybox
                 if (grunt == null || view == null) continue;
                 if (!grunt.Target.IsAlive)
                 {
+                    if (_westSkin != null && _westSkin.TryPlayGruntDeath(grunt, view, ref _score))
+                        continue;
                     if (view.gameObject.activeSelf)
                     {
                         view.MarkDefeated();
@@ -643,8 +860,16 @@ namespace HillNGun.Proto.Greybox
                 }
 
                 view.gameObject.SetActive(true);
-                view.SetHiddenVisual(grunt.IsHidden);
-                view.SyncFromLogic();
+                if (_westSkin != null && _westSkin.IsActive)
+                {
+                    _westSkin.SyncGruntLiving(grunt, view, grunt.IsHidden);
+                    view.SyncPositionOnly();
+                }
+                else
+                {
+                    view.SetHiddenVisual(grunt.IsHidden);
+                    view.SyncFromLogic();
+                }
             }
         }
 
@@ -654,15 +879,67 @@ namespace HillNGun.Proto.Greybox
             {
                 _hp = 0;
                 _runResult = Proto_GreyboxRunResult.Down;
-                EnsureResultPanel();
-                UpdateResultPanel();
+                EnterResultScreen();
             }
             else if (_waveDirector.State == Proto_GreyboxWaveDirectorState.Cleared)
             {
                 _runResult = Proto_GreyboxRunResult.Clear;
-                EnsureResultPanel();
-                UpdateResultPanel();
+                EnterResultScreen();
             }
+        }
+
+        void EnterResultScreen()
+        {
+            SetPaused(false);
+            Time.timeScale = 1f;
+            EnsureResultPanel();
+            UpdateResultPanel();
+        }
+
+        void EnsurePausePanel()
+        {
+            if (_pauseUi.IsBuilt) return;
+            var hud = GameObject.Find("Greybox_Hud");
+            if (hud == null) return;
+            _pauseUi.Ensure(hud.transform);
+        }
+
+        void EnsureSettingsPanel()
+        {
+            var hud = GameObject.Find("Greybox_Hud");
+            if (hud == null) return;
+            _settingsUi.Ensure(hud.transform, _tuning, CloseSettings);
+        }
+
+        /// <summary>Editor screenshot / smoke: open 설정 overlay without menu taps.</summary>
+        public void ShowSettingsForCapture() => OpenSettings(true);
+
+        void OpenSettings(bool fromGear)
+        {
+            EnsureSettingsPanel();
+            _settingsFromGear = fromGear;
+            if (fromGear)
+            {
+                SetPaused(true);
+                _pauseUi.SetVisible(false);
+            }
+            else
+                _pauseUi.SetVisible(false);
+
+            _settingsUi.SetVisible(true);
+        }
+
+        void CloseSettings()
+        {
+            _settingsUi.SetVisible(false);
+            if (_settingsFromGear)
+            {
+                SetPaused(false);
+                return;
+            }
+
+            if (IsPaused)
+                _pauseUi.SetVisible(true);
         }
 
         void EnsureResultPanel()
@@ -686,6 +963,8 @@ namespace HillNGun.Proto.Greybox
 
         public void FullRestart()
         {
+            SetPaused(false);
+            Time.timeScale = 1f;
             var builder = FindFirstObjectByType<Proto_GreyboxStageBuilder>();
             if (builder != null) { builder.Build(); return; } // Build() replaces this player with a fresh controller
             _allyBullets.Clear();
@@ -695,7 +974,9 @@ namespace HillNGun.Proto.Greybox
             _targetViews.Clear();
             _simTime = 0f;
             _score = 0;
-            _hp = _tuning.PlayerMaxHp;
+            _hearts.Configure(_tuning.PlayerMaxHp, _tuning.HeartRegenSec);
+            _rollDizzy.ApplyRuntime(_tuning);
+            _hp = _hearts.Hearts;
             _runResult = Proto_GreyboxRunResult.Playing;
             _runStarted = false;
             _grenade = new Proto_GreyboxGrenade();
@@ -705,6 +986,8 @@ namespace HillNGun.Proto.Greybox
             _waveDirector.ResetRun();
             _explosionVis = null;
             _resultUi.Clear();
+            _pauseUi.Clear();
+            _settingsUi.Clear();
             _motor = null;
             EnsureLogic();
             transform.position = new Vector3(
@@ -748,7 +1031,7 @@ namespace HillNGun.Proto.Greybox
             if (_aim != null && (_aim.IsDragging || _aimOverride.HasValue))
                 aim = ResolveAimVisualEnd();
             else
-                aim = CombatAimGround();
+                aim = Proto_GreyboxAim.DefaultAimGround;
             _crosshair.position = new Vector3(aim.x, aim.y, 0f);
         }
 
@@ -762,12 +1045,21 @@ namespace HillNGun.Proto.Greybox
             return Proto_GreyboxAim.ClipAimEnd(foot, delta / len, Mathf.Min(len, 25f));
         }
 
-        void UpdateHud()
+        void UpdateHud(float dt)
         {
             if (_ammoText == null)
                 CacheHudRefs();
+            bool westHud = _westSkin != null && _westSkin.IsActive;
             if (_ammoText != null)
-                _ammoText.text = _gun.IsReloading ? "R..." : $"{_gun.Ammo}/{_gun.MagazineSize}";
+            {
+                if (westHud)
+                    _ammoText.gameObject.SetActive(false);
+                else
+                {
+                    _ammoText.gameObject.SetActive(true);
+                    _ammoText.text = _gun.IsReloading ? "R..." : $"{_gun.Ammo}/{_gun.MagazineSize}";
+                }
+            }
             if (_scoreText != null)
                 _scoreText.text = _score.ToString();
             if (_waveText != null)
@@ -778,13 +1070,20 @@ namespace HillNGun.Proto.Greybox
                 _waveText.text = $"STAGE 1 · WAVE {w}/{_waveDirector.TotalWaves}";
             }
 
-            if (_hpBarFill != null)
-                _hpBarFill.fillAmount = Mathf.Clamp01((float)_hp / _tuning.PlayerMaxHp);
+            var hud = GameObject.Find("Greybox_Hud");
+            if (hud != null)
+                _heartsHud.EnsureBound(hud.transform);
+            _heartsHud.Update(_hearts, _simTime, dt);
+            _cylinderHud.Update(_gun, _simTime, dt);
+            _grenadeGaugeHud.EnsureBound();
+            _grenadeGaugeHud.Update(_grenade, _simTime, dt);
+            _rollGaugeHud.EnsureBound();
+            _rollGaugeHud.Update(_rollDizzy, _simTime, dt);
             for (int i = 0; i < _ammoPips.Count; i++)
             {
                 var pip = _ammoPips[i];
                 if (pip == null) continue;
-                bool visible = i < _gun.MagazineSize;
+                bool visible = false;
                 pip.gameObject.SetActive(visible);
                 if (!visible) continue;
                 bool on = i < _gun.Ammo;
@@ -796,30 +1095,42 @@ namespace HillNGun.Proto.Greybox
             bool pulseReload = _gun.Ammo <= 0 && !_gun.IsReloading;
             if (_reloadLabel != null)
             {
-                _reloadLabel.text = pulseReload ? "장전!" : "RELOAD";
-                if (pulseReload)
-                {
-                    bool hangul;
-                    var font = Proto_GreyboxHudBuilder.GetUiFont(out hangul);
-                    if (font != null)
-                        _reloadLabel.font = font;
-                    _reloadLabel.fontSize = ReloadLabelFontEmpty;
-                    _reloadLabel.fontStyle = FontStyle.Bold;
-                    _reloadLabel.color = new Color(1f, 0.94f, 0.28f, 1f);
-                    if (_reloadLabelRt != null)
-                        Proto_GreyboxHudBuilder.ApplyRect(_reloadLabelRt,
-                            Proto_GreyboxHudBuilder.ReloadEmptyLabelX0, Proto_GreyboxHudBuilder.ReloadEmptyLabelY0,
-                            Proto_GreyboxHudBuilder.ReloadEmptyLabelX1, Proto_GreyboxHudBuilder.ReloadEmptyLabelY1);
-                }
+                if (westHud)
+                    _reloadLabel.gameObject.SetActive(pulseReload);
                 else
+                    _reloadLabel.gameObject.SetActive(true);
+
+                if (!westHud || pulseReload)
                 {
-                    _reloadLabel.fontSize = ReloadLabelFontDefault;
-                    _reloadLabel.fontStyle = FontStyle.Normal;
-                    _reloadLabel.color = new Color(1f, 1f, 1f, 0.7f);
-                    if (_reloadLabelRt != null)
-                        Proto_GreyboxHudBuilder.ApplyRect(_reloadLabelRt, Proto_GreyboxHudBuilder.ReloadHitX0,
-                            Proto_GreyboxHudBuilder.ReloadHitY0, Proto_GreyboxHudBuilder.ReloadHitX1,
-                            Proto_GreyboxHudBuilder.ReloadHitY1);
+                    _reloadLabel.text = pulseReload ? "장전!" : "RELOAD";
+                    if (pulseReload)
+                    {
+                        bool hangul;
+                        var font = Proto_GreyboxHudBuilder.GetUiFont(out hangul);
+                        if (font != null)
+                            _reloadLabel.font = font;
+                        _reloadLabel.fontSize = ReloadLabelFontEmpty;
+                        _reloadLabel.fontStyle = FontStyle.Bold;
+                        _reloadLabel.color = new Color(1f, 0.94f, 0.28f, 1f);
+                        if (_reloadLabelRt != null)
+                            Proto_GreyboxHudBuilder.ApplyRect(_reloadLabelRt,
+                                Proto_GreyboxHudBuilder.ReloadCenterX - Proto_GreyboxHudBuilder.ReloadEmptyLabelPadPercent,
+                                Proto_GreyboxHudBuilder.ReloadCenterY - Proto_GreyboxHudBuilder.ReloadEmptyLabelPadPercent,
+                                Proto_GreyboxHudBuilder.ReloadCenterX + Proto_GreyboxHudBuilder.ReloadEmptyLabelPadPercent,
+                                Proto_GreyboxHudBuilder.ReloadCenterY + Proto_GreyboxHudBuilder.ReloadEmptyLabelPadPercent);
+                    }
+                    else if (!westHud)
+                    {
+                        _reloadLabel.fontSize = ReloadLabelFontDefault;
+                        _reloadLabel.fontStyle = FontStyle.Normal;
+                        _reloadLabel.color = new Color(1f, 1f, 1f, 0.7f);
+                        if (_reloadLabelRt != null)
+                            Proto_GreyboxHudBuilder.ApplyRect(_reloadLabelRt,
+                                Proto_GreyboxHudBuilder.ReloadCenterX - Proto_GreyboxHudBuilder.ReloadLabelPadPercent,
+                                Proto_GreyboxHudBuilder.ReloadCenterY - Proto_GreyboxHudBuilder.ReloadLabelPadPercent,
+                                Proto_GreyboxHudBuilder.ReloadCenterX + Proto_GreyboxHudBuilder.ReloadLabelPadPercent,
+                                Proto_GreyboxHudBuilder.ReloadCenterY + Proto_GreyboxHudBuilder.ReloadLabelPadPercent);
+                    }
                 }
             }
 
@@ -850,6 +1161,7 @@ namespace HillNGun.Proto.Greybox
             {
                 if (_aimLine != null) _aimLine.gameObject.SetActive(false);
                 if (_aimCone != null) _aimCone.gameObject.SetActive(false);
+                if (_aimTipRing != null) _aimTipRing.gameObject.SetActive(false);
                 return;
             }
 
@@ -866,20 +1178,402 @@ namespace HillNGun.Proto.Greybox
             }
 
             var dir = delta / len;
-            var mid = foot + dir * (len * 0.5f);
-            _aimLine.gameObject.SetActive(true);
-            _aimLine.position = new Vector3(mid.x, mid.y, 0f);
-            _aimLine.localScale = new Vector3(len, 0.04f, 1f);
+            int order = Proto_GreyboxLayout.CombatDrawSortingOrder(foot.y) + 2;
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            _aimLine.rotation = Quaternion.Euler(0f, 0f, angle);
+            var fx = Proto_GreyboxFxV2Catalog.LoadRuntime();
             var lineSr = _aimLine.GetComponent<SpriteRenderer>();
-            if (lineSr != null)
-                lineSr.sortingOrder = Proto_GreyboxLayout.CombatDrawSortingOrder(foot.y) + 2;
+            if (fx != null && fx.aimBand != null)
+            {
+                lineSr.sprite = fx.aimBand;
+                lineSr.color = Color.white;
+                _aimLine.gameObject.SetActive(true);
+                _aimLine.position = new Vector3(foot.x, foot.y, 0f);
+                float bandH = fx.aimBand.rect.height / Proto_GreyboxWestPixelCatalog.ImportPpu;
+                float scaleY = len / Mathf.Max(bandH, 0.001f);
+                float scaleX = (fx.aimBand.rect.width / Proto_GreyboxWestPixelCatalog.ImportPpu) * Proto_GreyboxFxV2Catalog.SmallFxWorldMul;
+                _aimLine.localScale = new Vector3(scaleX, scaleY, 1f);
+                _aimLine.rotation = Quaternion.Euler(0f, 0f, angle - 90f);
+                _aimCone.gameObject.SetActive(false);
+            }
+            else
+            {
+                var mid = foot + dir * (len * 0.5f);
+                lineSr.sprite = Proto_GreyboxSpriteUtil.WhiteSprite;
+                _aimLine.gameObject.SetActive(true);
+                _aimLine.position = new Vector3(mid.x, mid.y, 0f);
+                _aimLine.localScale = new Vector3(len, 0.16f, 1f);
+                _aimLine.rotation = Quaternion.Euler(0f, 0f, angle);
+                lineSr.color = new Color(1f, 1f, 1f, 0.22f);
+                _aimCone.gameObject.SetActive(true);
+                _aimCone.position = new Vector3(foot.x, foot.y, 0f);
+                _aimCone.localScale = new Vector3(0.42f, 0.26f, 1f);
+                _aimCone.rotation = Quaternion.Euler(0f, 0f, angle - 90f);
+            }
 
-            _aimCone.gameObject.SetActive(true);
-            _aimCone.position = new Vector3(foot.x, foot.y, 0f);
-            _aimCone.localScale = new Vector3(0.35f, 0.22f, 1f);
-            _aimCone.rotation = Quaternion.Euler(0f, 0f, angle - 90f);
+            if (lineSr != null)
+                lineSr.sortingOrder = order;
+            EnsureAimTipRing();
+            _aimTipRing.gameObject.SetActive(true);
+            _aimTipRing.position = new Vector3(end.x, end.y, 0f);
+            var tipSr = _aimTipRing.GetComponent<SpriteRenderer>();
+            if (fx != null && fx.aimTip != null)
+            {
+                tipSr.sprite = fx.aimTip;
+                tipSr.color = Color.white;
+                float tipScale = (fx.aimTip.rect.width / Proto_GreyboxWestPixelCatalog.ImportPpu) * Proto_GreyboxFxV2Catalog.SmallFxWorldMul;
+                _aimTipRing.localScale = new Vector3(tipScale, tipScale, 1f);
+            }
+            else
+            {
+                float tipScale = 0.22f + 0.08f * Proto_DepthScale.ScaleAt(end.y);
+                _aimTipRing.localScale = new Vector3(tipScale, tipScale, 1f);
+            }
+
+            if (tipSr != null)
+                tipSr.sortingOrder = order + 1;
+        }
+
+        void EnsureAimTipRing()
+        {
+            if (_aimTipRing != null) return;
+            var parent = transform.parent != null ? transform.parent : transform;
+            var go = new GameObject("Greybox_AimTip");
+            go.transform.SetParent(parent, false);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = Proto_GreyboxSpriteUtil.GetCircleSprite(false);
+            sr.color = new Color(1f, 1f, 1f, 0.45f);
+            _aimTipRing = go.transform;
+        }
+
+        void TickGrenadeInput(Proto_GreyboxInput input, Vector2 foot, IList<Proto_GreyboxTarget> aimTargets)
+        {
+            bool blockedTap = (input.GrenadePressed || input.GrenadeStickHeld) && !_grenade.CanThrow(_simTime);
+            if (blockedTap && !_grenadeBlockedTapPrev)
+                _grenadeGaugeHud.TriggerChargeShake();
+            _grenadeBlockedTapPrev = blockedTap;
+
+            _grenadeStickActive = input.GrenadeStickHeld && _grenade.CanThrow(_simTime);
+            if (input.GrenadeStickHeld)
+            {
+                float stickR = Proto_GreyboxPointerMath.AimStickRadiusPx(Screen.height,
+                    _tuning.AimStickRadiusHeightPercent);
+                _grenadePeakScreenMag = Mathf.Max(_grenadePeakScreenMag, input.GrenadeStickDragWorld.magnitude);
+                _grenadePreviewLanding = Proto_GreyboxGrenadeAim.LandingFromScreenDrag(foot,
+                    input.GrenadeStickDragWorld, Screen.width, Screen.height, stickR);
+            }
+            else if (!input.GrenadeStickReleased)
+                _grenadePeakScreenMag = 0f;
+
+            if (input.GrenadeStickReleased && _grenade.CanThrow(_simTime))
+            {
+                float stickR = Proto_GreyboxPointerMath.AimStickRadiusPx(Screen.height,
+                    _tuning.AimStickRadiusHeightPercent);
+                var intent = Proto_GreyboxPointerMath.AimStickReleaseIntent(input.GrenadeStickDragWorld.magnitude,
+                    _grenadePeakScreenMag, stickR, Proto_GreyboxPointerMath.AimStickDeadZonePortion,
+                    Proto_GreyboxPointerMath.AimStickDragThresholdPortion);
+                _grenadePeakScreenMag = 0f;
+                if (intent != Proto_GreyboxAimReleaseIntent.Cancel)
+                {
+                    var landing = intent == Proto_GreyboxAimReleaseIntent.AutoAim
+                        ? Proto_GreyboxGrenadeAim.AutoThrowLanding(foot, aimTargets)
+                        : _grenadePreviewLanding;
+                    _grenade.TryThrow(_simTime, foot, landing);
+                }
+            }
+
+            if (input.GrenadePressed && _grenade.CanThrow(_simTime))
+            {
+                var landing = Proto_GreyboxGrenadeAim.AutoThrowLanding(foot, aimTargets);
+                _grenade.TryThrow(_simTime, foot, landing);
+            }
+        }
+
+        void UpdateGrenadePreviewVisual()
+        {
+            bool show = _grenadeStickActive && _grenade.CanThrow(_simTime);
+            if (!show)
+            {
+                HideGrenadeArcDots();
+                if (_grenadeArcLine != null) _grenadeArcLine.gameObject.SetActive(false);
+                if (_grenadeLandingMarker != null) _grenadeLandingMarker.gameObject.SetActive(false);
+                return;
+            }
+
+            EnsureGrenadePreviewVisual();
+            var foot = _motor.FootPosition;
+            var end = _grenadePreviewLanding;
+            var delta = end - foot;
+            float len = delta.magnitude;
+            if (len < 0.08f)
+            {
+                HideGrenadeArcDots();
+                _grenadeArcLine.gameObject.SetActive(false);
+                _grenadeLandingMarker.gameObject.SetActive(false);
+                return;
+            }
+
+            int order = Proto_GreyboxLayout.CombatDrawSortingOrder(foot.y) + 4;
+            var fx = Proto_GreyboxFxV2Catalog.LoadRuntime();
+            _grenadeArcLine.gameObject.SetActive(false);
+            EnsureGrenadeArcDots(12);
+            const int dotCount = 12;
+            for (int i = 0; i < dotCount; i++)
+            {
+                float t = (i + 0.5f) / dotCount;
+                var flat = Vector2.Lerp(foot, end, t);
+                float lift = Proto_GreyboxTuning.GrenadeArcVisualHeight * 4f * t * (1f - t);
+                var pos = flat + new Vector2(0f, lift);
+                var dot = _grenadeArcDots[i];
+                dot.gameObject.SetActive(true);
+                dot.position = new Vector3(pos.x, pos.y, 0f);
+                var sr = dot.GetComponent<SpriteRenderer>();
+                if (fx != null && fx.aimBombDot != null)
+                {
+                    sr.sprite = fx.aimBombDot;
+                    sr.color = new Color(1f, 1f, 1f, 0.45f + 0.35f * t);
+                    float s = (fx.aimBombDot.rect.width / Proto_GreyboxWestPixelCatalog.ImportPpu) * Proto_GreyboxFxV2Catalog.SmallFxWorldMul;
+                    dot.localScale = new Vector3(s, s, 1f);
+                }
+                else
+                {
+                    float s = 0.05f + 0.03f * t;
+                    dot.localScale = new Vector3(s, s, 1f);
+                    sr.color = new Color(0.95f, 0.62f, 0.2f, 0.35f + 0.25f * t);
+                }
+
+                if (sr != null)
+                    sr.sortingOrder = order;
+            }
+
+            float landR = Proto_GreyboxTuning.GrenadeRadius * 1.15f;
+            float depth = Proto_GreyboxPerspectiveDepth.Enabled
+                ? Proto_GreyboxPerspectiveDepth.EnemyVisualScaleAtFootWorldY(end.y)
+                : Proto_DepthScale.ScaleAt(end.y);
+            _grenadeLandingMarker.gameObject.SetActive(true);
+            _grenadeLandingMarker.position = new Vector3(end.x, end.y, 0f);
+            var landSr = _grenadeLandingMarker.GetComponent<SpriteRenderer>();
+            if (fx != null && fx.aimBombLand != null)
+            {
+                landSr.sprite = fx.aimBombLand;
+                float w = fx.aimBombLand.rect.width / Proto_GreyboxWestPixelCatalog.ImportPpu * depth * Proto_GreyboxFxV2Catalog.SmallFxWorldMul;
+                float h = fx.aimBombLand.rect.height / Proto_GreyboxWestPixelCatalog.ImportPpu * depth * Proto_GreyboxFxV2Catalog.SmallFxWorldMul;
+                _grenadeLandingMarker.localScale = new Vector3(w, h, 1f);
+                landSr.color = new Color(1f, 1f, 1f, 0.72f);
+            }
+            else
+            {
+                float perspY = landR * 2f * 0.45f;
+                _grenadeLandingMarker.localScale = new Vector3(landR * 2f, perspY, 1f);
+                landSr.color = new Color(0.95f, 0.45f, 0.12f, 0.55f);
+            }
+
+            if (landSr != null)
+                landSr.sortingOrder = order + 1;
+        }
+
+        void EnsureGrenadeArcDots(int count)
+        {
+            while (_grenadeArcDots.Count < count)
+            {
+                var parent = transform.parent != null ? transform.parent : transform;
+                var go = new GameObject("Greybox_GrenadeArcDot");
+                go.transform.SetParent(parent, false);
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = Proto_GreyboxSpriteUtil.GetCircleSprite(false);
+                _grenadeArcDots.Add(go.transform);
+            }
+        }
+
+        void HideGrenadeArcDots()
+        {
+            foreach (var d in _grenadeArcDots)
+            {
+                if (d != null)
+                    d.gameObject.SetActive(false);
+            }
+        }
+
+        void TickGrenadeFlightVisual()
+        {
+            if (!_grenade.IsFlying)
+            {
+                if (_grenadeFlyVis != null) _grenadeFlyVis.gameObject.SetActive(false);
+                if (_grenadeFlyShadow != null) _grenadeFlyShadow.gameObject.SetActive(false);
+                if (_grenadeFlySmoke != null) _grenadeFlySmoke.gameObject.SetActive(false);
+                return;
+            }
+
+            EnsureGrenadeFlyVisual();
+            float t = _grenade.FlightProgress01(_simTime);
+            var arcPos = _grenade.ArcVisualGround(_simTime);
+            var shadowPos = Vector2.Lerp(_grenade.StartGround, _grenade.AimGround, t);
+            int order = Proto_GreyboxLayout.CombatDrawSortingOrder(arcPos.y) + 6;
+            float depth = Proto_GreyboxPerspectiveDepth.Enabled
+                ? Proto_GreyboxPerspectiveDepth.EnemyVisualScaleAtFootWorldY(arcPos.y)
+                : Proto_DepthScale.ScaleAt(arcPos.y);
+            var fx = Proto_GreyboxFxV2Catalog.LoadRuntime();
+            var dyn = fx?.dynamiteSpin;
+            _grenadeFlyVis.gameObject.SetActive(true);
+            _grenadeFlyVis.position = new Vector3(arcPos.x, arcPos.y, 0f);
+            var dynSr = _grenadeFlyVis.GetComponent<SpriteRenderer>();
+            if (dyn != null && dyn.Length > 0)
+            {
+                int f = Mathf.FloorToInt(_simTime * 16f) % dyn.Length;
+                dynSr.sprite = dyn[f];
+                dynSr.color = Color.white;
+                // Sprite already has PPU 100; scale is a depth multiplier, with a floor so mid-arc stays readable.
+                float mul = Mathf.Max(depth * 1.2f, 0.85f);
+                _grenadeFlyVis.localScale = new Vector3(mul, mul, 1f);
+                _grenadeFlyVis.rotation = Quaternion.identity;
+            }
+            else
+            {
+                float spin = _simTime * 720f;
+                _grenadeFlyVis.localScale = new Vector3(0.22f * depth, 0.22f * depth, 1f);
+                _grenadeFlyVis.rotation = Quaternion.Euler(0f, 0f, spin);
+            }
+
+            if (dynSr != null)
+                dynSr.sortingOrder = order;
+
+            float shadowA = 0.2f + 0.45f * t;
+            float shadowS = 0.18f + 0.22f * t;
+            _grenadeFlyShadow.gameObject.SetActive(true);
+            _grenadeFlyShadow.position = new Vector3(shadowPos.x, shadowPos.y, 0f);
+            var shSr = _grenadeFlyShadow.GetComponent<SpriteRenderer>();
+            if (fx != null && fx.bombShadow != null)
+            {
+                shSr.sprite = fx.bombShadow;
+                float sw = (fx.bombShadow.rect.width / Proto_GreyboxWestPixelCatalog.ImportPpu) * (0.6f + 0.4f * t) * depth * Proto_GreyboxFxV2Catalog.SmallFxWorldMul;
+                float sh = (fx.bombShadow.rect.height / Proto_GreyboxWestPixelCatalog.ImportPpu) * (0.6f + 0.4f * t) * depth * Proto_GreyboxFxV2Catalog.SmallFxWorldMul;
+                _grenadeFlyShadow.localScale = new Vector3(sw, sh, 1f);
+                shSr.color = new Color(1f, 1f, 1f, Mathf.Lerp(0.5f, 1f, t));
+            }
+            else
+            {
+                _grenadeFlyShadow.localScale = new Vector3(shadowS, shadowS * 0.45f, 1f);
+                shSr.color = new Color(0f, 0f, 0f, shadowA);
+            }
+
+            shSr.sortingOrder = order - 2;
+            var puffs = fx?.smokePuffs;
+            _grenadeFlySmoke.gameObject.SetActive(puffs != null && puffs.Length > 0);
+            if (puffs != null && puffs.Length > 0)
+            {
+                int puffIdx = Mathf.FloorToInt(_simTime * 20f) % puffs.Length;
+                var smSr = _grenadeFlySmoke.GetComponent<SpriteRenderer>();
+                smSr.sprite = puffs[puffIdx];
+                float grow = 1f + 0.15f * Mathf.Sin(_simTime * 6f);
+                float psz = (puffs[puffIdx].rect.width / Proto_GreyboxWestPixelCatalog.ImportPpu) * grow * depth;
+                _grenadeFlySmoke.position = _grenadeFlyVis.position;
+                _grenadeFlySmoke.localScale = new Vector3(psz, psz, 1f);
+                smSr.sortingOrder = order - 1;
+                smSr.color = new Color(1f, 1f, 1f, 0.55f);
+            }
+        }
+
+        void EnsureGrenadeFlyVisual()
+        {
+            if (_grenadeFlyVis != null) return;
+            var parent = transform.parent != null ? transform.parent : transform;
+            _grenadeFlyVis = CreateFxSprite(parent, "Greybox_GrenadeFly", new Color(0.45f, 0.22f, 0.12f, 1f));
+            _grenadeFlyShadow = CreateFxSprite(parent, "Greybox_GrenadeShadow", new Color(0f, 0f, 0f, 0.4f));
+            _grenadeFlySmoke = CreateFxSprite(parent, "Greybox_GrenadeSmoke", new Color(0.6f, 0.58f, 0.55f, 0.4f));
+        }
+
+        static Transform CreateFxSprite(Transform parent, string name, Color color)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = Proto_GreyboxSpriteUtil.WhiteSprite;
+            sr.color = color;
+            return go.transform;
+        }
+
+        void UpdateDizzyVisual()
+        {
+            var phase = _rollDizzy.Phase;
+            if (phase == Proto_GreyboxRollDizzyPhase.None)
+            {
+                foreach (var s in _dizzyStars)
+                {
+                    if (s != null)
+                        s.gameObject.SetActive(false);
+                }
+
+                _westSkin?.SyncDizzyPhase(phase, 0f);
+                return;
+            }
+
+            int want = phase == Proto_GreyboxRollDizzyPhase.Stun ? 5 : 2;
+            while (_dizzyStars.Count < want)
+            {
+                var go = new GameObject("Greybox_DizzyStar");
+                go.transform.SetParent(transform, false);
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = Proto_GreyboxSpriteUtil.GetCircleSprite(false);
+                sr.color = new Color(1f, 0.92f, 0.35f, 0.9f);
+                _dizzyStars.Add(go.transform);
+            }
+
+            _westSkin?.SyncDizzyPhase(phase, _rollDizzy.PhaseElapsed(_simTime));
+            var fx = Proto_GreyboxFxV2Catalog.LoadRuntime();
+            bool designerOrbit = fx != null && (fx.dizzyStar != null || fx.dizzyBird != null);
+            var foot = _motor.FootPosition;
+            float bodyH = Proto_GreyboxPerspectiveDepth.PlayerBodyHeightWorld(foot.y);
+            float fxScale = Proto_GreyboxPerspectiveDepth.PlayerVisualScaleAtFootWorldY(foot.y);
+            for (int i = 0; i < _dizzyStars.Count; i++)
+            {
+                var star = _dizzyStars[i];
+                if (i >= want)
+                {
+                    star.gameObject.SetActive(false);
+                    continue;
+                }
+
+                star.gameObject.SetActive(true);
+                float ang = _simTime * (phase == Proto_GreyboxRollDizzyPhase.Stun ? 420f : 180f) + i * 72f;
+                float rad = designerOrbit ? 0.14f + (i % 2) * 0.05f : 0.12f + (i % 2) * 0.06f;
+                var off = new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad), Mathf.Sin(ang * Mathf.Deg2Rad)) * rad;
+                star.position = new Vector3(foot.x + off.x, foot.y + bodyH * (designerOrbit ? 0.95f : 0.92f) + off.y * 0.3f, 0f);
+                float s = designerOrbit
+                    ? 0.12f * Proto_GreyboxFxV2Catalog.SmallFxWorldMul
+                    : (phase == Proto_GreyboxRollDizzyPhase.Stun ? 0.09f : 0.07f);
+                star.localScale = new Vector3(s * fxScale, s * fxScale, 1f);
+                star.rotation = designerOrbit ? Quaternion.identity : Quaternion.Euler(0f, 0f, ang);
+                var sr = star.GetComponent<SpriteRenderer>();
+                if (sr != null)
+                {
+                    sr.sortingOrder = Proto_GreyboxLayout.WorldSpriteSortingOrder(foot.y) + 8;
+                    if (designerOrbit)
+                    {
+                        sr.sprite = (i % 2 == 0 ? fx.dizzyStar : fx.dizzyBird) ?? fx.dizzyStar ??
+                                    Proto_GreyboxSpriteUtil.GetCircleSprite(false);
+                        sr.color = Color.white;
+                        sr.flipX = off.x < 0f && fx.dizzyBird != null && i % 2 == 1;
+                    }
+                }
+            }
+        }
+
+        void EnsureGrenadePreviewVisual()
+        {
+            if (_grenadeArcLine != null) return;
+            var parent = transform.parent != null ? transform.parent : transform;
+            var arcGo = new GameObject("Greybox_GrenadeArc");
+            arcGo.transform.SetParent(parent, false);
+            var arcSr = arcGo.AddComponent<SpriteRenderer>();
+            arcSr.sprite = Proto_GreyboxSpriteUtil.WhiteSprite;
+            arcSr.color = new Color(0.95f, 0.55f, 0.15f, 0.62f);
+            _grenadeArcLine = arcGo.transform;
+
+            var landGo = new GameObject("Greybox_GrenadeLanding");
+            landGo.transform.SetParent(parent, false);
+            var landSr = landGo.AddComponent<SpriteRenderer>();
+            landSr.sprite = Proto_GreyboxSpriteUtil.GetCircleSprite(false);
+            landSr.color = new Color(0.95f, 0.45f, 0.12f, 0.72f);
+            _grenadeLandingMarker = landGo.transform;
         }
 
         void EnsureAimLineVisual()
@@ -910,26 +1604,44 @@ namespace HillNGun.Proto.Greybox
                     var parent = transform.parent != null ? transform.parent : transform;
                     _explosionVis = new GameObject("Greybox_GrenadeExplosion");
                     _explosionVis.transform.SetParent(parent, false);
-                    var sr = _explosionVis.AddComponent<SpriteRenderer>();
-                    sr.sprite = Proto_GreyboxSpriteUtil.GetCircleSprite(false);
-                    sr.color = new Color(1f, 0.55f, 0.1f, 0.65f);
+                    _explosionVis.AddComponent<SpriteRenderer>();
                 }
 
                 float t = _grenade.ExplosionFadeT(_simTime);
-                float r = _grenade.ExplosionRadius * (0.35f + t * 0.65f);
                 var pos = _grenade.VisualGround;
-                float depth = Proto_DepthScale.ScaleAt(pos.y);
-                float diam = Mathf.Max(r * 2f * depth, Proto_GreyboxLayout.MinAllyBulletWorldDiameter * 2f);
+                float depth = Proto_GreyboxPerspectiveDepth.Enabled
+                    ? Proto_GreyboxPerspectiveDepth.EnemyVisualScaleAtFootWorldY(pos.y)
+                    : Proto_DepthScale.ScaleAt(pos.y);
+                float perspMul = Proto_GreyboxPerspectiveDepth.Enabled
+                    ? Proto_GreyboxPerspectiveDepth.EnemyBodyHeightWorld(pos.y) /
+                      Proto_GreyboxLayout.ScreenPercentToWorldHeight(Proto_GreyboxTuning.TargetHeightPercent)
+                    : 1f;
                 int order = Proto_GreyboxLayout.CombatDrawSortingOrder(pos.y);
                 _explosionVis.transform.position = new Vector3(pos.x, pos.y, 0f);
-                _explosionVis.transform.localScale = new Vector3(diam, diam, 1f);
                 var expSr = _explosionVis.GetComponent<SpriteRenderer>();
-                if (expSr != null)
+                var fx = Proto_GreyboxFxV2Catalog.LoadRuntime();
+                if (fx != null && fx.explosion != null && fx.explosion.Length > 0)
                 {
-                    expSr.sortingOrder = order;
+                    float elapsed = (1f - t) * (fx.explosion.Length / 16f);
+                    int idx = Mathf.Clamp(Mathf.FloorToInt(elapsed * 16f), 0, fx.explosion.Length - 1);
+                    expSr.sprite = fx.explosion[idx];
+                    float h = fx.explosion[idx].rect.height / Proto_GreyboxWestPixelCatalog.ImportPpu;
+                    float scale = (perspMul * 1.2f * depth * Proto_GreyboxLayout.ScreenPercentToWorldHeight(Proto_GreyboxTuning.TargetHeightPercent))
+                        / Mathf.Max(h, 0.001f);
+                    _explosionVis.transform.localScale = new Vector3(scale, scale, 1f);
+                    expSr.color = new Color(1f, 1f, 1f, Mathf.Lerp(1f, 0f, t));
+                }
+                else
+                {
+                    float r = _grenade.ExplosionRadius * (0.35f + t * 0.65f);
+                    expSr.sprite = Proto_GreyboxSpriteUtil.GetCircleSprite(false);
+                    float diam = Mathf.Max(r * 2f * depth, Proto_GreyboxLayout.MinAllyBulletWorldDiameter * 2f);
+                    _explosionVis.transform.localScale = new Vector3(diam, diam, 1f);
                     expSr.color = new Color(1f, 0.55f, 0.1f, Mathf.Lerp(0.75f, 0f, t));
                 }
 
+                if (expSr != null)
+                    expSr.sortingOrder = order;
                 _explosionVis.SetActive(true);
             }
             else if (_explosionVis != null)
@@ -939,8 +1651,50 @@ namespace HillNGun.Proto.Greybox
         void ApplyTransform(float dt)
         {
             var foot = _motor.FootPosition;
-            transform.position = new Vector3(foot.x, foot.y, 0f);
-            float targetH = Proto_GreyboxLayout.ScreenPercentToWorldHeight(Proto_GreyboxTuning.PlayerCapsuleHeightPercent);
+            float wob = 0f;
+            bool fxDizzy = _westSkin != null && _westSkin.IsActive && _westSkin.UsesFxV2DizzyBody;
+            if (!fxDizzy)
+            {
+                if (_rollDizzy.Phase == Proto_GreyboxRollDizzyPhase.Light)
+                    wob = Mathf.Sin(_simTime * 6f) * Proto_GreyboxTuning.RollDizzyWobbleDeg * Mathf.Deg2Rad;
+                else if (_rollDizzy.Phase == Proto_GreyboxRollDizzyPhase.Stun)
+                    wob = Mathf.Sin(_simTime * 9f) * Proto_GreyboxTuning.RollDizzyStunWobbleDeg * Mathf.Deg2Rad;
+            }
+            float cx = foot.x + (wob != 0f ? Mathf.Sin(wob) * 0.04f : 0f);
+            transform.position = new Vector3(cx, foot.y, 0f);
+            if (wob != 0f)
+                transform.rotation = Quaternion.Euler(0f, 0f, wob * Mathf.Rad2Deg);
+            else
+                transform.rotation = Quaternion.identity;
+            if (_westSkin != null && _westSkin.IsActive)
+            {
+                if (_sprite != null)
+                {
+                    _sprite.sortingOrder = Proto_GreyboxLayout.WorldSpriteSortingOrder(foot.y);
+                    if (_hitFlashTimer > 0f)
+                    {
+                        _hitFlashTimer -= dt;
+                        _sprite.color = Color.white;
+                    }
+                    else if (_hearts.IsInvulnerable && !_roll.IsInvulnerable)
+                    {
+                        bool blinkOn = Mathf.PingPong(_simTime * 14f, 1f) > 0.45f;
+                        _sprite.color = blinkOn
+                            ? _baseColor
+                            : new Color(_baseColor.r, _baseColor.g, _baseColor.b, 0.42f);
+                    }
+                    else
+                    {
+                        _sprite.color = _roll.IsRolling
+                            ? new Color(_baseColor.r + 0.12f, _baseColor.g + 0.12f, _baseColor.b + 0.12f, 0.78f)
+                            : _baseColor;
+                    }
+                }
+
+                return;
+            }
+
+            float targetH = Proto_GreyboxPerspectiveDepth.PlayerBodyHeightWorld(foot.y);
             var rollVisual = _roll.IsRolling;
             float sy = rollVisual ? 0.6f : 1f;
             if (_sprite != null && _sprite.sprite != null)
@@ -950,8 +1704,8 @@ namespace HillNGun.Proto.Greybox
             }
             else
             {
-                float scale = Proto_DepthScale.ScaleAt(foot.y);
-                float targetW = Proto_GreyboxLayout.WorldWidth * (Proto_GreyboxTuning.PlayerCapsuleWidthPercent / 100f);
+                float scale = Proto_GreyboxPerspectiveDepth.PlayerVisualScaleAtFootWorldY(foot.y);
+                float targetW = Proto_GreyboxLayout.WorldWidth * (Proto_GreyboxTuning.PlayerCapsuleWidthPercent / 100f) * scale;
                 float baseH = targetH / scale;
                 float baseW = targetW / scale;
                 transform.localScale = new Vector3(baseW * scale, baseH * scale * sy, 1f);
@@ -959,11 +1713,18 @@ namespace HillNGun.Proto.Greybox
 
             if (_sprite != null)
             {
-                _sprite.sortingOrder = Proto_GreyboxLayout.SortingOrderAtFootY(foot.y);
+                _sprite.sortingOrder = Proto_GreyboxLayout.WorldSpriteSortingOrder(foot.y);
                 if (_hitFlashTimer > 0f)
                 {
                     _hitFlashTimer -= dt;
                     _sprite.color = Color.white;
+                }
+                else if (_hearts.IsInvulnerable && !_roll.IsInvulnerable)
+                {
+                    bool blinkOn = Mathf.PingPong(_simTime * 14f, 1f) > 0.45f;
+                    _sprite.color = blinkOn
+                        ? _baseColor
+                        : new Color(_baseColor.r, _baseColor.g, _baseColor.b, 0.42f);
                 }
                 else
                 {
@@ -972,13 +1733,31 @@ namespace HillNGun.Proto.Greybox
                         : _baseColor;
                 }
             }
-
-            if (_hpText != null)
-                _hpText.text = $"HP  {_hp}/{_tuning.PlayerMaxHp}";
         }
 
         Proto_GreyboxInput PollLegacyInput()
         {
+            if (_runResult != Proto_GreyboxRunResult.Playing)
+                return PollResultInput();
+
+            if (IsPaused)
+                return PollPausedInput();
+
+            bool pauseToggled = PollPauseToggleTap();
+            if (pauseToggled)
+            {
+                SetPaused(true);
+                Proto_GreyboxHudBuilder.SetJoystickKnob(_joystickKnob, Vector2.zero);
+                return FilterCombatInputWhenPaused(default, true);
+            }
+
+            if (PollSettingsGearTap())
+            {
+                OpenSettings(true);
+                Proto_GreyboxHudBuilder.SetJoystickKnob(_joystickKnob, Vector2.zero);
+                return FilterCombatInputWhenPaused(default, true);
+            }
+
             var move = Vector2.zero;
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) move.x -= 1f;
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) move.x += 1f;
@@ -993,19 +1772,13 @@ namespace HillNGun.Proto.Greybox
 
             bool roll = Input.GetKey(KeyCode.Space) || PollTouchButton(Proto_GreyboxHudBuilder.RollButtonName);
             bool reload = Input.GetKeyDown(KeyCode.R) || PollTouchButton(Proto_GreyboxHudBuilder.ReloadButtonName);
-            bool grenade = Input.GetKeyDown(KeyCode.G) || PollTouchButton(Proto_GreyboxHudBuilder.GrenadeButtonName);
+            bool grenadeTap = Input.GetKeyDown(KeyCode.G);
             bool debugToggle = Input.GetKeyDown(KeyCode.F1) || PollTouchDbgButton();
             bool fireQuick = Input.GetKeyDown(KeyCode.J);
 
             var fireStick = PollTouchFireStick();
+            var grenadeStick = PollTouchGrenadeStick();
             var mouseAim = PollMouseAim();
-
-            bool restart = false;
-            if (_runResult != Proto_GreyboxRunResult.Playing)
-            {
-                restart = Input.GetKeyDown(KeyCode.R) || PollScreenTapForRestart();
-                reload = false;
-            }
 
             Proto_GreyboxHudBuilder.SetJoystickKnob(_joystickKnob, move);
             return new Proto_GreyboxInput
@@ -1021,21 +1794,128 @@ namespace HillNGun.Proto.Greybox
                 MouseAimWorld = mouseAim.PointerWorld,
                 MousePressWorld = mouseAim.PressWorld,
                 ReloadPressed = reload,
-                GrenadePressed = grenade,
+                GrenadePressed = grenadeTap,
+                GrenadeStickHeld = grenadeStick.Held,
+                GrenadeStickReleased = grenadeStick.Released,
+                GrenadeStickDragWorld = grenadeStick.DragWorld,
                 DebugToggle = debugToggle,
-                RestartPressed = restart
+                RestartPressed = false
             };
         }
 
-        bool PollScreenTapForRestart()
+        Proto_GreyboxInput PollResultInput()
+        {
+            bool restart = Input.GetKeyDown(KeyCode.R) || Input.GetKeyDown(KeyCode.Return)
+                           || Input.GetKeyDown(KeyCode.KeypadEnter) || PollResultRestartTap();
+            Proto_GreyboxHudBuilder.SetJoystickKnob(_joystickKnob, Vector2.zero);
+            return new Proto_GreyboxInput { RestartPressed = restart };
+        }
+
+        Proto_GreyboxInput PollPausedInput()
+        {
+            if (_settingsUi.IsVisible)
+            {
+                if (PollSettingsCloseTap())
+                    CloseSettings();
+            }
+            else if (PollPauseOverlayInput(out bool resume, out bool restart, out bool settings))
+            {
+                if (resume)
+                    SetPaused(false);
+                else if (settings)
+                    OpenSettings(false);
+                else if (restart)
+                    FullRestart();
+            }
+            else if (PollPauseToggleTap())
+                SetPaused(false);
+
+            Proto_GreyboxHudBuilder.SetJoystickKnob(_joystickKnob, Vector2.zero);
+            return FilterCombatInputWhenPaused(default, true);
+        }
+
+        bool PollPauseToggleTap()
         {
             int n = GatherPointers(_pointerBuf);
             for (int i = 0; i < n; i++)
             {
                 if (!_pointerBuf[i].Began) continue;
                 PointerPercent(_pointerBuf[i].Pos, out float xPct, out float yPct);
-                if (IsDbgHit(xPct, yPct)) continue;
-                return true;
+                if (Proto_GreyboxPauseUi.IsPauseToggleHit(xPct, yPct)) return true;
+            }
+
+            return false;
+        }
+
+        bool PollPauseOverlayInput(out bool resume, out bool restart, out bool settings)
+        {
+            resume = false;
+            restart = false;
+            settings = false;
+            int n = GatherPointers(_pointerBuf);
+            for (int i = 0; i < n; i++)
+            {
+                if (!_pointerBuf[i].Began) continue;
+                PointerPercent(_pointerBuf[i].Pos, out float xPct, out float yPct);
+                if (Proto_GreyboxPauseUi.IsResumeHit(xPct, yPct))
+                {
+                    resume = true;
+                    return true;
+                }
+
+                if (Proto_GreyboxPauseUi.IsPauseSettingsHit(xPct, yPct))
+                {
+                    settings = true;
+                    return true;
+                }
+
+                if (Proto_GreyboxPauseUi.IsPauseRestartHit(xPct, yPct))
+                {
+                    restart = true;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        bool PollSettingsCloseTap()
+        {
+            int n = GatherPointers(_pointerBuf);
+            for (int i = 0; i < n; i++)
+            {
+                if (!_pointerBuf[i].Began) continue;
+                PointerPercent(_pointerBuf[i].Pos, out float xPct, out float yPct);
+                if (_settingsUi.TryCloseFromTap(xPct, yPct))
+                    return true;
+            }
+
+            return false;
+        }
+
+        bool PollSettingsGearTap()
+        {
+            int n = GatherPointers(_pointerBuf);
+            for (int i = 0; i < n; i++)
+            {
+                if (!_pointerBuf[i].Began) continue;
+                PointerPercent(_pointerBuf[i].Pos, out float xPct, out float yPct);
+                if (Proto_GreyboxHudBuilder.CircleHitTest(xPct, yPct, Proto_GreyboxHudBuilder.SettingsGearCenterX,
+                        Proto_GreyboxHudBuilder.SettingsGearCenterY, Proto_GreyboxHudBuilder.SettingsGearRadiusPercent))
+                    return true;
+            }
+
+            return false;
+        }
+
+        bool PollResultRestartTap()
+        {
+            int n = GatherPointers(_pointerBuf);
+            for (int i = 0; i < n; i++)
+            {
+                if (!_pointerBuf[i].Began) continue;
+                PointerPercent(_pointerBuf[i].Pos, out float xPct, out float yPct);
+                if (Proto_GreyboxResultUi.IsRestartHit(xPct, yPct)) return true;
             }
 
             return false;
@@ -1112,21 +1992,17 @@ namespace HillNGun.Proto.Greybox
             return 1;
         }
 
-        static void PointerPercent(Vector2 pos, out float xPct, out float yPct)
-        {
-            xPct = pos.x / Screen.width * 100f;
-            yPct = (Screen.height - pos.y) / Screen.height * 100f;
-        }
+        static void PointerPercent(Vector2 pos, out float xPct, out float yPct) =>
+            Proto_GreyboxPointerMath.PointerPercentFromScreen(pos, Screen.width, Screen.height, out xPct, out yPct);
 
         static bool IsDbgHit(float xPct, float yPct) =>
             xPct >= 3.2f && xPct <= 8.6f && yPct >= 8.6f && yPct <= 11.4f;
 
         static bool IsJoystickHit(float xPct, float yPct) =>
-            xPct >= 4f && xPct <= 19f && yPct >= 66f && yPct <= 91f;
+            xPct >= Proto_GreyboxHudBuilder.JoystickHitX0 && xPct <= Proto_GreyboxHudBuilder.JoystickHitX1
+            && yPct >= Proto_GreyboxHudBuilder.JoystickHitY0 && yPct <= Proto_GreyboxHudBuilder.JoystickHitY1;
 
-        static bool IsFireHit(float xPct, float yPct) =>
-            xPct >= Proto_GreyboxHudBuilder.FireHitX0 && xPct <= Proto_GreyboxHudBuilder.FireHitX1
-            && yPct >= Proto_GreyboxHudBuilder.FireHitY0 && yPct <= Proto_GreyboxHudBuilder.FireHitY1;
+        static bool IsFireHit(float xPct, float yPct) => Proto_GreyboxCombatInputGate.FireCircleHit(xPct, yPct);
 
         FireStickPoll PollTouchFireStick()
         {
@@ -1165,15 +2041,67 @@ namespace HillNGun.Proto.Greybox
             if (ev.Held)
             {
                 result.Held = true;
-                result.DragWorld = ScreenDeltaToWorldDrag(ev.Pos - _fireStickStartScreen);
+                result.DragWorld = ev.Pos - _fireStickStartScreen;
             }
 
             if (ev.Ended)
             {
                 result.Released = true;
-                result.DragWorld = ScreenDeltaToWorldDrag(ev.Pos - _fireStickStartScreen);
+                result.DragWorld = ev.Pos - _fireStickStartScreen;
                 _fireStickTracking = false;
                 _fireStickFingerId = -2;
+            }
+
+            return result;
+        }
+
+        FireStickPoll PollTouchGrenadeStick()
+        {
+            var result = new FireStickPoll();
+            int n = GatherPointers(_pointerBuf);
+            PointerEvent? tracked = null;
+            for (int i = 0; i < n; i++)
+            {
+                var p = _pointerBuf[i];
+                PointerPercent(p.Pos, out float xPct, out float yPct);
+                if (_grenadeStickFingerId == -2 && p.Began
+                    && Proto_GreyboxCombatInputGate.GrenadeCircleHit(xPct, yPct))
+                {
+                    _grenadeStickTracking = true;
+                    _grenadeStickFingerId = p.Id;
+                    _grenadeStickStartScreen = p.Pos;
+                    tracked = p;
+                    break;
+                }
+
+                if (_grenadeStickTracking && p.Id == _grenadeStickFingerId)
+                {
+                    tracked = p;
+                    break;
+                }
+            }
+
+            if (!_grenadeStickTracking) return result;
+            if (tracked == null)
+            {
+                _grenadeStickTracking = false;
+                _grenadeStickFingerId = -2;
+                return result;
+            }
+
+            var ev = tracked.Value;
+            if (ev.Held)
+            {
+                result.Held = true;
+                result.DragWorld = ev.Pos - _grenadeStickStartScreen;
+            }
+
+            if (ev.Ended)
+            {
+                result.Released = true;
+                result.DragWorld = ev.Pos - _grenadeStickStartScreen;
+                _grenadeStickTracking = false;
+                _grenadeStickFingerId = -2;
             }
 
             return result;
@@ -1209,34 +2137,22 @@ namespace HillNGun.Proto.Greybox
             return result;
         }
 
-        static Vector2 ScreenDeltaToWorldDrag(Vector2 deltaScreen)
-        {
-            float worldPerPx = Proto_GreyboxLayout.WorldWidth / Screen.width;
-            float worldPerPy = Proto_GreyboxLayout.WorldHeight / Screen.height;
-            return new Vector2(deltaScreen.x * worldPerPx, -deltaScreen.y * worldPerPy);
-        }
+        static Vector2 ScreenDeltaToWorldDrag(Vector2 deltaScreen) =>
+            Proto_GreyboxPointerMath.ScreenDeltaToWorldDrag(deltaScreen, Screen.width, Screen.height);
 
-        static Vector2 ScreenToGroundWorld(Vector2 screenPos)
-        {
-            float xPct = screenPos.x / Screen.width * 100f;
-            float yPct = (Screen.height - screenPos.y) / Screen.height * 100f;
-            return new Vector2(Proto_GreyboxLayout.ScreenXPercentToWorldX(xPct),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(yPct));
-        }
+        static Vector2 ScreenToGroundWorld(Vector2 screenPos) =>
+            Proto_GreyboxPointerMath.ScreenToGroundWorld(screenPos, Screen.width, Screen.height);
 
         static bool IsPointerOnHudButton(Vector2? posOverride = null)
         {
             Vector2 pos = posOverride ?? (Input.touchCount > 0 ? Input.GetTouch(0).position : (Vector2)Input.mousePosition);
             PointerPercent(pos, out float xPct, out float yPct);
-            if (xPct >= Proto_GreyboxHudBuilder.RollHitX0 && xPct <= Proto_GreyboxHudBuilder.RollHitX1
-                && yPct >= Proto_GreyboxHudBuilder.RollHitY0 && yPct <= Proto_GreyboxHudBuilder.RollHitY1)
-                return true;
+            if (Proto_GreyboxCombatInputGate.RollCircleHit(xPct, yPct)) return true;
             if (IsFireHit(xPct, yPct)) return true;
-            if (xPct >= Proto_GreyboxHudBuilder.ReloadHitX0 && xPct <= Proto_GreyboxHudBuilder.ReloadHitX1
-                && yPct >= Proto_GreyboxHudBuilder.ReloadHitY0 && yPct <= Proto_GreyboxHudBuilder.ReloadHitY1)
-                return true;
-            if (xPct >= 88f && xPct <= 98f && yPct >= 84f && yPct <= 95f) return true;
-            if (xPct <= 19f && yPct >= 66f) return true;
+            if (Proto_GreyboxCombatInputGate.ReloadCircleHit(xPct, yPct)) return true;
+            if (Proto_GreyboxCombatInputGate.GrenadeCircleHit(xPct, yPct)) return true;
+            if (IsJoystickHit(xPct, yPct)) return true;
+            if (Proto_GreyboxPauseUi.IsPauseToggleHit(xPct, yPct)) return true;
             if (IsDbgHit(xPct, yPct)) return true;
             return false;
         }
@@ -1250,7 +2166,7 @@ namespace HillNGun.Proto.Greybox
             {
                 var p = _pointerBuf[i];
                 PointerPercent(p.Pos, out float xPct, out float yPct);
-                if (_joyFingerId == -2 && (p.Began || p.Held) && IsJoystickHit(xPct, yPct))
+                if (_joyFingerId == -2 && Proto_GreyboxCombatInputGate.JoystickCaptureOnBegan(xPct, yPct, p.Began))
                 {
                     _joyFingerId = p.Id;
                     tracked = p;
@@ -1278,16 +2194,7 @@ namespace HillNGun.Proto.Greybox
                 return analog;
             }
 
-            Vector2 pos = ev.Pos;
-            float cx = Proto_GreyboxHudBuilder.RefWidth * 0.115f;
-            float cy = Proto_GreyboxHudBuilder.RefHeight * (1f - 0.78f);
-            float sx = pos.x / Screen.width * Proto_GreyboxHudBuilder.RefWidth;
-            float sy = (Screen.height - pos.y) / Screen.height * Proto_GreyboxHudBuilder.RefHeight;
-            var delta = new Vector2(sx - cx, sy - cy);
-            float maxR = Proto_GreyboxHudBuilder.RefWidth * 0.075f;
-            if (delta.magnitude > maxR)
-                delta = delta.normalized * maxR;
-            analog = delta / maxR;
+            analog = Proto_GreyboxPointerMath.TouchJoystickAnalog(ev.Pos, Screen.width, Screen.height);
             return analog;
         }
 
@@ -1300,9 +2207,7 @@ namespace HillNGun.Proto.Greybox
                 PointerPercent(SharedPointerBuf[i].Pos, out float xPct, out float yPct);
                 if (goName == Proto_GreyboxHudBuilder.RollButtonName)
                 {
-                    if (xPct >= Proto_GreyboxHudBuilder.RollHitX0 && xPct <= Proto_GreyboxHudBuilder.RollHitX1
-                        && yPct >= Proto_GreyboxHudBuilder.RollHitY0 && yPct <= Proto_GreyboxHudBuilder.RollHitY1)
-                        return true;
+                    if (Proto_GreyboxCombatInputGate.RollCircleHit(xPct, yPct)) return true;
                 }
                 else if (goName == Proto_GreyboxHudBuilder.FireButtonName)
                 {
@@ -1310,13 +2215,11 @@ namespace HillNGun.Proto.Greybox
                 }
                 else if (goName == Proto_GreyboxHudBuilder.ReloadButtonName)
                 {
-                    if (xPct >= Proto_GreyboxHudBuilder.ReloadHitX0 && xPct <= Proto_GreyboxHudBuilder.ReloadHitX1
-                        && yPct >= Proto_GreyboxHudBuilder.ReloadHitY0 && yPct <= Proto_GreyboxHudBuilder.ReloadHitY1)
-                        return true;
+                    if (Proto_GreyboxCombatInputGate.ReloadCircleHit(xPct, yPct)) return true;
                 }
                 else if (goName == Proto_GreyboxHudBuilder.GrenadeButtonName)
                 {
-                    if (xPct >= 88f && xPct <= 98f && yPct >= 84f && yPct <= 95f) return true;
+                    if (Proto_GreyboxCombatInputGate.GrenadeCircleHit(xPct, yPct)) return true;
                 }
             }
 
@@ -1336,11 +2239,35 @@ namespace HillNGun.Proto.Greybox
             if (_debugBullet == null || !_debugBullet.Alive)
                 return;
             var footprint = Proto_GreyboxBulletSim.PlayerGroundFootprint(_motor.FootPosition);
-            _debugBullet.Tick(dt, footprint, IsInvulnerable, ref _hp);
+            int hpBefore = _hearts.Hearts;
+            int hpScratch = hpBefore;
+            _debugBullet.Tick(dt, footprint, IsInvulnerable, ref hpScratch);
+            if (hpScratch < hpBefore && _hearts.TakeHit())
+            {
+                _hp = _hearts.Hearts;
+                _heartsHud.TriggerPop(_hearts.Hearts);
+                _hitFlashTimer = 0.12f;
+                _westSkin?.OnPlayerHitFlash();
+            }
+            else
+                _hp = _hearts.Hearts;
         }
 
-        public bool IsInvulnerable => _roll != null && _roll.IsInvulnerable;
+        public bool IsInvulnerable => (_roll != null && _roll.IsInvulnerable) || _hearts.IsInvulnerable;
 
-        public void ResetHp() => _hp = _tuning.PlayerMaxHp;
+        public void ResetHp()
+        {
+            _hearts.ResetFull();
+            _hp = _hearts.Hearts;
+        }
+
+        public void ApplyTestPlayerHit()
+        {
+            if (!_hearts.TakeHit()) return;
+            _hp = _hearts.Hearts;
+            _heartsHud.TriggerPop(_hearts.Hearts);
+            _hitFlashTimer = 0.12f;
+            _westSkin?.OnPlayerHitFlash();
+        }
     }
 }

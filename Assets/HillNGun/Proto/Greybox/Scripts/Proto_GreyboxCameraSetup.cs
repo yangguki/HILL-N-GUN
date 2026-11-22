@@ -18,7 +18,9 @@ namespace HillNGun.Proto.Greybox
             var cam = GetComponent<Camera>();
             cam.orthographic = true;
             cam.orthographicSize = Proto_GreyboxLayout.CameraOrthographicSize;
-            cam.aspect = Proto_GreyboxLayout.TargetAspect;
+            cam.aspect = Application.isPlaying && Screen.height > 0
+                ? (float)Screen.width / Screen.height
+                : Proto_GreyboxLayout.TargetAspect;
             transform.position = new Vector3(0f, Proto_GreyboxLayout.CameraPositionY, Proto_GreyboxLayout.CameraPositionZ);
             transform.rotation = Quaternion.identity;
         }

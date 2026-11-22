@@ -34,6 +34,50 @@ namespace HillNGun.Proto.Greybox
             BuildHud();
         }
 
+        /// <summary>Rebuild sky/buildings/ground/fence/crates only. Keeps player, HUD, and west-skin layer.</summary>
+        public void RebuildEnvironment()
+        {
+            if (_root == null)
+            {
+                var existing = GameObject.Find(RootName);
+                _root = existing != null ? existing.transform : null;
+            }
+
+            if (_root == null)
+            {
+                Build();
+                return;
+            }
+
+            for (int i = _root.childCount - 1; i >= 0; i--)
+            {
+                var child = _root.GetChild(i);
+                if (!IsEnvironmentChild(child.name))
+                    continue;
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    DestroyImmediate(child.gameObject);
+                else
+#endif
+                    Destroy(child.gameObject);
+            }
+
+            BuildBackground();
+            BuildFence();
+            BuildCrates();
+        }
+
+        static bool IsEnvironmentChild(string name)
+        {
+            if (name == SkyName || name == GroundName || name == FenceName)
+                return true;
+            if (name == CrateFarName || name == CrateMidName || name == CrateNearName)
+                return true;
+            if (name.StartsWith("Greybox_Building"))
+                return true;
+            return false;
+        }
+
         void ClearRoot()
         {
             for (int i = transform.childCount - 1; i >= 0; i--)
@@ -100,8 +144,8 @@ namespace HillNGun.Proto.Greybox
 
         void BuildFence()
         {
-            float foot = Proto_GreyboxLayout.ScreenYPercentToWorldY(46f);
-            float top = Proto_GreyboxLayout.ScreenYPercentToWorldY(41f);
+            float foot = Proto_GreyboxLayout.ScreenYPercentToWorldY(Proto_GreyboxPerspectiveDepth.FenceBottomPercent);
+            float top = Proto_GreyboxLayout.ScreenYPercentToWorldY(Proto_GreyboxPerspectiveDepth.FenceTopPercent);
             float h = top - foot;
             var fenceGo = Proto_GreyboxSpriteUtil.CreateQuad(FenceName, _root, Color.white,
                 0f, foot, Proto_GreyboxLayout.WorldWidth, h, Proto_GreyboxLayout.SortingFence);
@@ -121,7 +165,7 @@ namespace HillNGun.Proto.Greybox
             float baseH = targetH / scale;
             float baseW = targetW / scale;
             float cx = (Proto_GreyboxLayout.ScreenXPercentToWorldX(x0) + Proto_GreyboxLayout.ScreenXPercentToWorldX(x1)) * 0.5f;
-            int order = sortingOrderOverride ?? Proto_GreyboxLayout.SortingOrderAtFootY(footY);
+            int order = sortingOrderOverride ?? Proto_GreyboxLayout.WorldSpriteSortingOrder(footY);
             var go = Proto_GreyboxSpriteUtil.CreateQuad(name, _root, color, cx, footY, baseW, baseH, order);
             float worldW = baseW * scale;
             float worldH = baseH * scale;
@@ -134,7 +178,7 @@ namespace HillNGun.Proto.Greybox
 
         void BuildCrates()
         {
-            BuildScaledBox(CrateFarName, 52f, 56.5f, 30f, 36f, Proto_GreyboxPalette.Crate, Proto_GreyboxLayout.SortingCrateFar);
+            BuildScaledBox(CrateFarName, 52f, 56.5f, 30f, 36f, Proto_GreyboxPalette.Crate);
             BuildScaledBox(CrateMidName, 12f, 21f, 52f, 63f, Proto_GreyboxPalette.Crate);
             BuildScaledBox(CrateNearName, 58f, 69f, 62f, 82f, Proto_GreyboxPalette.Crate);
         }
@@ -181,7 +225,7 @@ namespace HillNGun.Proto.Greybox
             float baseH = targetH / scale;
             float baseW = targetW / scale;
             float cx = Proto_GreyboxLayout.ScreenXPercentToWorldX(49f);
-            int order = Proto_GreyboxLayout.SortingOrderAtFootY(footY);
+            int order = Proto_GreyboxLayout.WorldSpriteSortingOrder(footY);
             var go = Proto_GreyboxSpriteUtil.CreateQuad(PlayerName, _root, Color.white, cx, footY, baseW, baseH, order);
             var playerSprite = Proto_GreyboxSpriteUtil.GetPlayerBackSprite();
             var playerSr = go.GetComponent<SpriteRenderer>();
@@ -194,8 +238,9 @@ namespace HillNGun.Proto.Greybox
 
         void BuildCrosshair()
         {
-            float cx = Proto_GreyboxLayout.ScreenXPercentToWorldX(50f);
-            float cy = Proto_GreyboxLayout.ScreenYPercentToWorldY(38f);
+            var aim = Proto_GreyboxAim.DefaultAimGround;
+            float cx = aim.x;
+            float cy = aim.y;
             float w = Proto_GreyboxLayout.WorldWidth * 0.03f;
             float h = Proto_GreyboxLayout.ScreenPercentToWorldHeight(5f);
             Proto_GreyboxSpriteUtil.CreateQuad("Greybox_Crosshair", _root, new Color(0.82f, 0.72f, 0.38f, 0.85f),

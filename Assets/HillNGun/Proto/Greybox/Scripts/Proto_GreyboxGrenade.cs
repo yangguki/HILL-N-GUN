@@ -5,21 +5,70 @@ namespace HillNGun.Proto.Greybox
 {
     public class Proto_GreyboxGrenade
     {
-        enum Phase { Idle, Flying, Cooldown }
+        enum Phase { Idle, Flying, Cooldown, ReadyFlash }
+
+        const float ReadyFlashFps = 10f;
+        const int ReadyFlashCycles = 3;
 
         Phase _phase = Phase.Idle;
         float _phaseDoneTime;
         float _flightStartTime;
         Vector2 _startGround;
         Vector2 _aimGround;
+        float _cooldownStartTime;
         float _cooldownDoneTime;
+        float _readyFlashDoneTime;
         float _grenadeCooldown = Proto_GreyboxTuning.GrenadeCooldown;
         Vector2 _visualGround;
         float _explosionVisUntil;
+        bool _justBecameReady;
 
         public bool IsFlying => _phase == Phase.Flying;
         public bool CanThrow(float time) => _phase == Phase.Idle;
+        public bool JustBecameReady => _justBecameReady;
         public Vector2 VisualGround => _visualGround;
+        public Vector2 StartGround => _startGround;
+        public Vector2 AimGround => _aimGround;
+        public float FlightStartTime => _flightStartTime;
+
+        public float FlightProgress01(float time)
+        {
+            if (_phase != Phase.Flying) return 0f;
+            return Mathf.Clamp01((time - _flightStartTime) / Proto_GreyboxTuning.GrenadeFlightTime);
+        }
+
+        /// <summary>0 during flight; 0–1 while cooldown fills; 1 during ready flash.</summary>
+        public float RechargeProgress01(float time)
+        {
+            if (_phase == Phase.Flying) return 0f;
+            if (_phase == Phase.Cooldown)
+            {
+                float span = Mathf.Max(_grenadeCooldown, 1e-5f);
+                return Mathf.Clamp01((time - _cooldownStartTime) / span);
+            }
+
+            if (_phase == Phase.ReadyFlash) return 1f;
+            return 0f;
+        }
+
+        public bool IsInReadyFlash(float time) => _phase == Phase.ReadyFlash;
+
+        public float ReadyFlashFrame01(float time)
+        {
+            if (_phase != Phase.ReadyFlash) return 0f;
+            float flashStart = _cooldownDoneTime;
+            float t = time - flashStart;
+            int frame = Mathf.FloorToInt(t * ReadyFlashFps) % 2;
+            return frame;
+        }
+
+        public Vector2 ArcVisualGround(float time)
+        {
+            float t = FlightProgress01(time);
+            var flat = Vector2.Lerp(_startGround, _aimGround, t);
+            float lift = Proto_GreyboxTuning.GrenadeArcVisualHeight * 4f * t * (1f - t);
+            return flat + new Vector2(0f, lift);
+        }
         public bool ExplosionVisible(float time) => time < _explosionVisUntil;
         public float ExplosionFadeT(float time) =>
             _explosionVisUntil <= time ? 0f :
@@ -37,12 +86,14 @@ namespace HillNGun.Proto.Greybox
             _phaseDoneTime = time + Proto_GreyboxTuning.GrenadeFlightTime;
             _phase = Phase.Flying;
             _visualGround = playerFoot;
+            _justBecameReady = false;
             return true;
         }
 
         public void Tick(float time, float dt, IList<Proto_GreyboxTarget> targets, Proto_GreyboxCover cover,
             System.Action<float, float, float> destroyCratePercent = null)
         {
+            _justBecameReady = false;
             if (_phase == Phase.Flying)
             {
                 float t = Mathf.Clamp01((time - _flightStartTime) / Proto_GreyboxTuning.GrenadeFlightTime);
@@ -50,12 +101,22 @@ namespace HillNGun.Proto.Greybox
                 if (time >= _phaseDoneTime)
                 {
                     _phase = Phase.Cooldown;
+                    _cooldownStartTime = time;
                     _cooldownDoneTime = time + _grenadeCooldown;
                     Detonate(_visualGround, targets, cover, destroyCratePercent, time);
                 }
             }
             else if (_phase == Phase.Cooldown && time >= _cooldownDoneTime)
+            {
+                _phase = Phase.ReadyFlash;
+                float flashDur = (2f * ReadyFlashCycles) / ReadyFlashFps;
+                _readyFlashDoneTime = time + flashDur;
+            }
+            else if (_phase == Phase.ReadyFlash && time >= _readyFlashDoneTime)
+            {
                 _phase = Phase.Idle;
+                _justBecameReady = true;
+            }
         }
 
         void Detonate(Vector2 center, IList<Proto_GreyboxTarget> targets, Proto_GreyboxCover cover,

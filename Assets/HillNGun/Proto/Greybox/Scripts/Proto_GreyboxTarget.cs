@@ -19,14 +19,24 @@ namespace HillNGun.Proto.Greybox
 
         public static Rect GroundFootprint(Vector2 foot)
         {
-            float halfW = Proto_GreyboxLayout.WorldWidth * (Proto_GreyboxTuning.TargetWidthPercent / 100f) * 0.5f;
-            return new Rect(foot.x - halfW, foot.y - FootprintDepthHalf, halfW * 2f, FootprintDepthHalf * 2f);
+            float hitScale = Proto_GreyboxPerspectiveDepth.EnemyHitScaleAtFootWorldY(foot);
+            float halfW = Proto_GreyboxLayout.WorldWidth * (Proto_GreyboxTuning.TargetWidthPercent / 100f) * 0.5f *
+                          hitScale;
+            float depthHalf = FootprintDepthHalf * hitScale;
+            return new Rect(foot.x - halfW, foot.y - depthHalf, halfW * 2f, depthHalf * 2f);
         }
 
-        public Vector2 BodyCenterGround =>
-            FootPosition + new Vector2(0f,
-                Proto_GreyboxLayout.ScreenPercentToWorldHeight(Proto_GreyboxTuning.TargetHeightPercent) * 0.35f *
-                Proto_DepthScale.ScaleAt(FootPosition.y));
+        public Vector2 BodyCenterGround
+        {
+            get
+            {
+                float bodyH = Proto_GreyboxPerspectiveDepth.Enabled
+                    ? Proto_GreyboxPerspectiveDepth.EnemyBodyHeightWorld(FootPosition.y)
+                    : Proto_GreyboxLayout.ScreenPercentToWorldHeight(Proto_GreyboxTuning.TargetHeightPercent) *
+                      Proto_DepthScale.ScaleAt(FootPosition.y);
+                return FootPosition + new Vector2(0f, bodyH * 0.35f);
+            }
+        }
 
         public bool ApplyDamage(int amount)
         {
@@ -110,6 +120,12 @@ namespace HillNGun.Proto.Greybox
         void LateUpdate()
         {
             if (_logic == null || !_logic.IsAlive) return;
+            if (Proto_GreyboxWestPixelSkinState.Enabled)
+            {
+                SyncPositionOnly();
+                return;
+            }
+
             SyncTransform();
             if (_sprite == null) return;
             if (_flashTimer > 0f)
@@ -127,28 +143,49 @@ namespace HillNGun.Proto.Greybox
             SyncTransform();
         }
 
+        public void SyncPositionOnly()
+        {
+            if (_logic == null) return;
+            var foot = _logic.FootPosition;
+            transform.position = new Vector3(foot.x, foot.y, 0f);
+            if (_sprite != null)
+                _sprite.sortingOrder = Proto_GreyboxLayout.WorldSpriteSortingOrder(foot.y);
+        }
+
         void SyncTransform()
         {
             if (_logic == null) return;
             var foot = _logic.FootPosition;
             transform.position = new Vector3(foot.x, foot.y, 0f);
-            float scale = Proto_DepthScale.ScaleAt(foot.y);
-            float targetH = Proto_GreyboxLayout.ScreenPercentToWorldHeight(Proto_GreyboxTuning.TargetHeightPercent);
             var sprite = _sprite != null ? _sprite.sprite : null;
-            if (sprite != null)
-                transform.localScale = Proto_GreyboxSpriteUtil.ScaleForWorldHeightUniform(sprite, targetH);
+            if (Proto_GreyboxPerspectiveDepth.Enabled)
+            {
+                float targetH = Proto_GreyboxPerspectiveDepth.EnemyBodyHeightWorld(foot.y);
+                if (sprite != null)
+                    transform.localScale = Proto_GreyboxSpriteUtil.ScaleForWorldHeightUniform(sprite, targetH);
+                else
+                {
+                    float targetW = Proto_GreyboxLayout.WorldWidth * (Proto_GreyboxTuning.TargetWidthPercent / 100f) *
+                                    Proto_GreyboxPerspectiveDepth.EnemyHitScaleAtFootWorldY(foot);
+                    transform.localScale = new Vector3(targetW, targetH, 1f);
+                }
+            }
             else
             {
-                float targetW = Proto_GreyboxLayout.WorldWidth * (Proto_GreyboxTuning.TargetWidthPercent / 100f);
-                float baseH = targetH / scale;
-                float baseW = targetW / scale;
-                transform.localScale = new Vector3(baseW * scale, baseH * scale, 1f);
+                float scale = Proto_DepthScale.ScaleAt(foot.y);
+                float targetH = Proto_GreyboxLayout.ScreenPercentToWorldHeight(Proto_GreyboxTuning.TargetHeightPercent);
+                if (sprite != null)
+                    transform.localScale = Proto_GreyboxSpriteUtil.ScaleForWorldHeightUniform(sprite, targetH);
+                else
+                {
+                    float targetW = Proto_GreyboxLayout.WorldWidth * (Proto_GreyboxTuning.TargetWidthPercent / 100f);
+                    float baseH = targetH / scale;
+                    float baseW = targetW / scale;
+                    transform.localScale = new Vector3(baseW * scale, baseH * scale, 1f);
+                }
             }
             if (_sprite != null)
-            {
-                int depthOrder = Proto_GreyboxLayout.SortingOrderAtFootY(foot.y);
-                _sprite.sortingOrder = Mathf.Max(depthOrder, Proto_GreyboxLayout.SortingEnemyMarker);
-            }
+                _sprite.sortingOrder = Proto_GreyboxLayout.WorldSpriteSortingOrder(foot.y);
         }
     }
 }

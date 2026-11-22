@@ -30,6 +30,13 @@ namespace HillNGun.Proto.Greybox
         float _waveDelayTimer;
         public IReadOnlyList<Proto_GreyboxGrunt> Grunts => _grunts;
 
+        static readonly float[] PerspectiveFootRows =
+        {
+            Proto_GreyboxPerspectiveDepth.PerspectiveEnemyFootMinPercent,
+            46f,
+            Proto_GreyboxPerspectiveDepth.PerspectiveEnemyFootMaxPercent
+        };
+
         public Proto_GreyboxWaveDirector(int rngSeed = 42)
         {
             _rngSeed = rngSeed;
@@ -128,13 +135,27 @@ namespace HillNGun.Proto.Greybox
             return _grunts.Count > 0;
         }
 
+        float PickEnemyFootYPercent(int seedHint)
+        {
+            if (!Proto_GreyboxPerspectiveDepth.Enabled)
+                return Proto_GreyboxPerspectiveDepth.FlatEnemyFootPercent;
+            int row = Mathf.Abs(seedHint) % PerspectiveFootRows.Length;
+            return PerspectiveFootRows[row];
+        }
+
+        float RandomEnemyFootYPercent() =>
+            Proto_GreyboxPerspectiveDepth.Enabled
+                ? PerspectiveFootRows[_rng.Next(PerspectiveFootRows.Length)]
+                : Proto_GreyboxPerspectiveDepth.FlatEnemyFootPercent;
+
         Vector2 PickSpawnDoor(int index)
         {
-            float footY = Proto_GreyboxLayout.ScreenYPercentToWorldY(37f);
+            float footPct = PickEnemyFootYPercent(index);
+            float footY = Proto_GreyboxLayout.ScreenYPercentToWorldY(footPct);
             if (index % 3 == 0)
-                return new Vector2(Proto_GreyboxLayout.ScreenXPercentToWorldX(0f), Proto_GreyboxLayout.ScreenYPercentToWorldY(37f));
+                return new Vector2(Proto_GreyboxLayout.ScreenXPercentToWorldX(0f), footY);
             if (index % 3 == 1)
-                return new Vector2(Proto_GreyboxLayout.ScreenXPercentToWorldX(100f), Proto_GreyboxLayout.ScreenYPercentToWorldY(37f));
+                return new Vector2(Proto_GreyboxLayout.ScreenXPercentToWorldX(100f), footY);
             int block = (index / 3) % 5;
             float cx = Proto_GreyboxLayout.ScreenXPercentToWorldX(10f + block * 20f);
             return new Vector2(cx, footY);
@@ -142,39 +163,60 @@ namespace HillNGun.Proto.Greybox
 
         Vector2 PickFreeSlot()
         {
-            float footY = Proto_GreyboxLayout.ScreenYPercentToWorldY(37f);
             for (int attempt = 0; attempt < 32; attempt++)
             {
                 float t = (float)_rng.NextDouble();
                 float xPct = Mathf.Lerp(21f, 79f, t);
+                float yPct = RandomEnemyFootYPercent();
                 float cx = Proto_GreyboxLayout.ScreenXPercentToWorldX(xPct);
-                var candidate = new Vector2(cx, footY);
-                bool busy = false;
-                foreach (var g in _grunts)
-                {
-                    if (!g.Target.IsAlive) continue;
-                    if ((g.Target.FootPosition - candidate).sqrMagnitude < 0.12f)
-                    {
-                        busy = true;
-                        break;
-                    }
-                }
-
-                if (!busy) return candidate;
+                float cy = Proto_GreyboxLayout.ScreenYPercentToWorldY(yPct);
+                var candidate = new Vector2(cx, cy);
+                if (!IsFootSlotFree(candidate))
+                    continue;
+                return candidate;
             }
 
-            return new Vector2(_slotPositions[_grunts.Count % _slotPositions.Count].x, footY);
+            var fallback = _slotPositions[_grunts.Count % _slotPositions.Count];
+            return fallback;
+        }
+
+        bool IsFootSlotFree(Vector2 candidate)
+        {
+            foreach (var g in _grunts)
+            {
+                if (!g.Target.IsAlive) continue;
+                if ((g.Target.FootPosition - candidate).sqrMagnitude < 0.12f)
+                    return false;
+            }
+
+            return true;
         }
 
         static List<Vector2> BuildDefaultSlots()
         {
             var list = new List<Vector2>();
-            float footY = Proto_GreyboxLayout.ScreenYPercentToWorldY(37f);
-            for (int i = 0; i < 8; i++)
+            if (Proto_GreyboxPerspectiveDepth.Enabled)
             {
-                float t = i / 7f;
-                float xPct = Mathf.Lerp(21f, 79f, t);
-                list.Add(new Vector2(Proto_GreyboxLayout.ScreenXPercentToWorldX(xPct), footY));
+                for (int r = 0; r < PerspectiveFootRows.Length; r++)
+                {
+                    float footY = Proto_GreyboxLayout.ScreenYPercentToWorldY(PerspectiveFootRows[r]);
+                    for (int i = 0; i < 4; i++)
+                    {
+                        float t = i / 3f;
+                        float xPct = Mathf.Lerp(24f, 76f, t);
+                        list.Add(new Vector2(Proto_GreyboxLayout.ScreenXPercentToWorldX(xPct), footY));
+                    }
+                }
+            }
+            else
+            {
+                float footY = Proto_GreyboxLayout.ScreenYPercentToWorldY(Proto_GreyboxPerspectiveDepth.FlatEnemyFootPercent);
+                for (int i = 0; i < 8; i++)
+                {
+                    float t = i / 7f;
+                    float xPct = Mathf.Lerp(21f, 79f, t);
+                    list.Add(new Vector2(Proto_GreyboxLayout.ScreenXPercentToWorldX(xPct), footY));
+                }
             }
 
             return list;

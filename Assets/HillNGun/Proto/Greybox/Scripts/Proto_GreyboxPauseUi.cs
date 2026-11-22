@@ -1,0 +1,163 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace HillNGun.Proto.Greybox
+{
+    public sealed class Proto_GreyboxPauseUi
+    {
+        public const string RootName = "Greybox_PauseOverlay";
+        public const float PauseHitX0 = 92.5f;
+        public const float PauseHitX1 = 98.5f;
+        public const float PauseHitY0 = 3.2f;
+        public const float PauseHitY1 = 9.2f;
+        public const float ResumeHitX0 = 38f;
+        public const float ResumeHitX1 = 62f;
+        public const float ResumeHitY0 = 52f;
+        public const float ResumeHitY1 = 58f;
+        public const float PauseSettingsHitX0 = 38f;
+        public const float PauseSettingsHitX1 = 62f;
+        public const float PauseSettingsHitY0 = 61f;
+        public const float PauseSettingsHitY1 = 67f;
+        public const float PauseRestartHitX0 = 38f;
+        public const float PauseRestartHitX1 = 62f;
+        public const float PauseRestartHitY0 = 70f;
+        public const float PauseRestartHitY1 = 76f;
+
+        GameObject _root;
+
+        public bool IsBuilt => _root != null;
+        public bool IsVisible => _root != null && _root.activeSelf;
+
+        public void Clear()
+        {
+            if (_root != null)
+            {
+                if (Application.isPlaying)
+                    Object.Destroy(_root);
+                else
+                    Object.DestroyImmediate(_root);
+            }
+
+            _root = null;
+        }
+
+        public void Ensure(Transform canvasTransform)
+        {
+            if (_root != null) return;
+            if (canvasTransform == null) return;
+
+            var font = Proto_GreyboxHudBuilder.GetUiFont(out bool hangul);
+
+            _root = new GameObject(RootName);
+            _root.transform.SetParent(canvasTransform, false);
+            var rootRt = _root.AddComponent<RectTransform>();
+            StretchFull(rootRt);
+
+            PlaceImage(_root.transform, "Greybox_PauseDim", 0f, 0f, 100f, 100f,
+                new Color(0.04f, 0.05f, 0.07f, 0.62f));
+            PlaceImage(_root.transform, "Greybox_PauseCard", 30f, 32f, 70f, 68f,
+                new Color(16f / 255f, 18f / 255f, 26f / 255f, 0.94f));
+
+            string title = hangul ? "일시정지" : "PAUSED";
+            string resume = hangul ? "계속" : "RESUME";
+            string settings = hangul ? "설정" : "SETTINGS";
+            string restart = hangul ? "다시하기" : "RESTART";
+
+            PlaceText(_root.transform, "Greybox_PauseTitle", 32f, 36f, 68f, 44f, font, 28,
+                TextAnchor.MiddleCenter, Color.white, title);
+            PlaceButtonPlate(_root.transform, "Greybox_PauseResumePlate", ResumeHitX0, ResumeHitY0, ResumeHitX1,
+                ResumeHitY1);
+            PlaceText(_root.transform, "Greybox_PauseResumeLabel", ResumeHitX0, ResumeHitY0, ResumeHitX1,
+                ResumeHitY1, font, 22, TextAnchor.MiddleCenter, Color.white, resume);
+            PlaceButtonPlate(_root.transform, "Greybox_PauseSettingsPlate", PauseSettingsHitX0, PauseSettingsHitY0,
+                PauseSettingsHitX1, PauseSettingsHitY1);
+            PlaceText(_root.transform, "Greybox_PauseSettingsLabel", PauseSettingsHitX0, PauseSettingsHitY0,
+                PauseSettingsHitX1, PauseSettingsHitY1, font, 20, TextAnchor.MiddleCenter, Color.white, settings);
+            PlaceButtonPlate(_root.transform, "Greybox_PauseRestartPlate", PauseRestartHitX0, PauseRestartHitY0,
+                PauseRestartHitX1, PauseRestartHitY1);
+            PlaceText(_root.transform, "Greybox_PauseRestartLabel", PauseRestartHitX0, PauseRestartHitY0,
+                PauseRestartHitX1, PauseRestartHitY1, font, 20, TextAnchor.MiddleCenter,
+                new Color(0.96f, 0.94f, 0.88f, 1f), restart);
+
+            foreach (var t in _root.GetComponentsInChildren<Text>(true))
+            {
+                t.raycastTarget = false;
+                t.supportRichText = false;
+            }
+
+            _root.SetActive(false);
+        }
+
+        public void SetVisible(bool visible)
+        {
+            if (_root == null) return;
+            _root.SetActive(visible);
+            if (visible)
+                _root.transform.SetAsLastSibling();
+        }
+
+        public static bool IsPauseToggleHit(float xPct, float yPct) =>
+            xPct >= PauseHitX0 && xPct <= PauseHitX1 && yPct >= PauseHitY0 && yPct <= PauseHitY1;
+
+        public static bool IsResumeHit(float xPct, float yPct) =>
+            xPct >= ResumeHitX0 && xPct <= ResumeHitX1 && yPct >= ResumeHitY0 && yPct <= ResumeHitY1;
+
+        public static bool IsPauseSettingsHit(float xPct, float yPct) =>
+            xPct >= PauseSettingsHitX0 && xPct <= PauseSettingsHitX1 && yPct >= PauseSettingsHitY0
+            && yPct <= PauseSettingsHitY1;
+
+        public static bool IsPauseRestartHit(float xPct, float yPct) =>
+            xPct >= PauseRestartHitX0 && xPct <= PauseRestartHitX1 && yPct >= PauseRestartHitY0
+            && yPct <= PauseRestartHitY1;
+
+        static void StretchFull(RectTransform rt)
+        {
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+        }
+
+        static void PlaceImage(Transform parent, string name, float x0, float y0, float x1, float y1, Color color)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            var rt = go.AddComponent<RectTransform>();
+            Proto_GreyboxHudBuilder.ApplyRect(rt, x0, y0, x1, y1);
+            var img = go.AddComponent<Image>();
+            img.sprite = Proto_GreyboxSpriteUtil.WhiteSprite;
+            img.color = color;
+            img.raycastTarget = false;
+        }
+
+        static void PlaceButtonPlate(Transform parent, string name, float x0, float y0, float x1, float y1)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            var rt = go.AddComponent<RectTransform>();
+            Proto_GreyboxHudBuilder.ApplyRect(rt, x0, y0, x1, y1);
+            var img = go.AddComponent<Image>();
+            img.sprite = Proto_GreyboxSpriteUtil.WhiteSprite;
+            img.color = new Color(0.22f, 0.45f, 0.72f, 0.85f);
+            img.raycastTarget = false;
+        }
+
+        static Text PlaceText(Transform parent, string name, float x0, float y0, float x1, float y1, Font font,
+            int size, TextAnchor align, Color color, string text)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            var rt = go.AddComponent<RectTransform>();
+            Proto_GreyboxHudBuilder.ApplyRect(rt, x0, y0, x1, y1);
+            var label = go.AddComponent<Text>();
+            label.font = font;
+            label.fontSize = size;
+            label.alignment = align;
+            label.color = color;
+            label.text = text;
+            label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            label.verticalOverflow = VerticalWrapMode.Overflow;
+            return label;
+        }
+    }
+}

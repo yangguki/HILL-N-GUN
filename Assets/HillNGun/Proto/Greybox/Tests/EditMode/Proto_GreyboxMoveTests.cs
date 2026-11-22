@@ -10,6 +10,9 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
     {
         const float Dt = 0.02f;
 
+        [SetUp]
+        public void SetUp() => Proto_GreyboxMoveZone.ResetToDefaults();
+
         [Test]
         public void MoveClamp_KeepsFootInsideMoveZone()
         {
@@ -81,17 +84,24 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
             }
 
             Assert.AreEqual(Proto_GreyboxTuning.RollDistance, dist, 0.05f);
-            Assert.IsFalse(roll.TryStart(Vector2.right), "cooldown blocks restart");
-            float cd = 0f;
-            while (cd < Proto_GreyboxTuning.RollCooldown - Dt * 0.5f)
-            {
-                roll.Tick(Dt);
-                cd += Dt;
-            }
-            Assert.IsFalse(roll.TryStart(Vector2.right), "still on cooldown");
+            Assert.IsTrue(roll.TryStart(Vector2.right), "zero cooldown allows immediate restart after roll ends");
 
-            roll.Tick(Proto_GreyboxTuning.RollCooldown);
-            Assert.IsTrue(roll.TryStart(Vector2.right), "cooldown elapsed");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void Roll_ChainsImmediatelyAfterPreviousEnds()
+        {
+            var roll = new Proto_GreyboxRoll();
+            Assert.IsTrue(roll.TryStart(Vector2.right));
+            while (roll.IsRolling)
+                roll.Tick(Dt);
+            Assert.IsFalse(roll.IsRolling);
+            Assert.IsTrue(roll.TryStart(Vector2.right), "should chain when previous roll finished");
+            Assert.IsFalse(roll.TryStart(Vector2.left), "cannot start second roll while active");
+            while (roll.IsRolling)
+                roll.Tick(Dt);
+            Assert.IsTrue(roll.TryStart(Vector2.right));
 
             LogAssert.NoUnexpectedReceived();
         }

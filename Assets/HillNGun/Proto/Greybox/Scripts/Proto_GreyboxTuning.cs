@@ -6,8 +6,13 @@ namespace HillNGun.Proto.Greybox
         public const float RollDistance = 2.2f;
         public const float RollDuration = 0.28f;
         public const float RollInvulnDuration = 0.22f;
-        public const float RollCooldown = 1.2f;
-        public const int PlayerMaxHp = 25;
+        public const float RollCooldown = 0f;
+        public const int PlayerMaxHp = 3;
+        public const int PlayerMaxHearts = 3;
+        public const float HeartRegenSec = 10f;
+        public const float PlayerHitIFrameSec = 0.5f;
+        public const int RollChainMax = 3;
+        public const float RollChainLockSec = 5f;
         public const float EnemyBulletSpeed = 4.2f;
         public const float EnemyBulletDiameter = 0.30f;
         public const float CoverDamageReduction = 1f;
@@ -18,13 +23,17 @@ namespace HillNGun.Proto.Greybox
         public const float AllyBulletSpeed = 4.2f;
         public const int AllyBulletDamage = 3;
         public const float AllyBulletDiameter = 0.09f;
+        public const float AllyBulletVisualDiameter = 0.48f;
+        public const float AllyBulletVisualTracerLength = 0.90f;
         public const float AllyBulletTracerLength = 0.50f;
         public const float FireInterval = 0.33f;
-        public const int MagazineSize = 1;
+        public const int MagazineSize = 5;
+        public const float ReloadRoundInterval = 0.3f;
+        /// <summary>Legacy single-fill duration; gun uses <see cref="ReloadRoundInterval"/> per round.</summary>
         public const float ReloadDuration = 0.5f;
         public const int TargetHp = 3;
         public const int ScorePerKill = 100;
-        public const float GrenadeCooldown = 8f;
+        public const float GrenadeCooldown = 6f;
         public const float GrenadeRadius = 1.2f;
         public const int GrenadeDamage = 3;
         public const float GrenadeFlightTime = 0.6f;
@@ -49,5 +58,15 @@ namespace HillNGun.Proto.Greybox
         public const float DepthNearScale = 2.5f;
         public const float BulletDepthScaleCap = 1f;
         public const float EnemyBulletGlowDiameterMul = 1.3f;
+        public const float EnemyBulletVisualDiameterMul = 1.75f;
+        public const float EnemyBulletVisualGlowMul = 1.85f;
+
+        public const float PlayerMuzzleFlashHeightPercent = 5.5f;
+        public const float PlayerMuzzleFlashDuration = 0.18f;
+        public const float GrenadeArcVisualHeight = 1.35f;
+        public const float RollDizzyWobbleDeg = 4f;
+        public const float RollDizzyStunWobbleDeg = 11f;
+        public const float GruntMuzzleFlashHeightPercent = 3.2f;
+        public const float GruntMuzzleFlashDuration = 0.1f;
     }
 }

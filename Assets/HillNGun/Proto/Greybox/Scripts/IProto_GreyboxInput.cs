@@ -16,6 +16,9 @@ namespace HillNGun.Proto.Greybox
         public Vector2 MousePressWorld;
         public bool ReloadPressed;
         public bool GrenadePressed;
+        public bool GrenadeStickHeld;
+        public bool GrenadeStickReleased;
+        public Vector2 GrenadeStickDragWorld;
         public bool DebugToggle;
         public bool RestartPressed;
     }

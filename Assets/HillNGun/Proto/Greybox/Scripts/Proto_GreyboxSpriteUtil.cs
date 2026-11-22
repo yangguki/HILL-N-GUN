@@ -81,6 +81,33 @@ namespace HillNGun.Proto.Greybox
 
         static Sprite s_circleSprite;
         static Sprite s_ringSprite;
+        static Sprite s_heartSprite;
+
+        public static Sprite GetHeartSprite(int size = 64)
+        {
+            if (s_heartSprite != null) return s_heartSprite;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            tex.hideFlags = HideFlags.HideAndDontSave;
+            float cx = size * 0.5f;
+            float cy = size * 0.38f;
+            float scale = size * 0.22f;
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float nx = (x - cx) / scale;
+                    float ny = (cy - y) / scale;
+                    float a = nx * nx + ny * ny - 1f;
+                    float heart = a * a * a - nx * nx * ny * ny * ny;
+                    tex.SetPixel(x, y, heart <= 0f ? Color.white : Color.clear);
+                }
+            }
+
+            tex.Apply();
+            s_heartSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.35f), size);
+            s_heartSprite.hideFlags = HideFlags.HideAndDontSave;
+            return s_heartSprite;
+        }
 
         public static Vector2 NativeWorldSize(Sprite sprite)
         {
