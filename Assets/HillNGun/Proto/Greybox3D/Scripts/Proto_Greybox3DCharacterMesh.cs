@@ -39,12 +39,14 @@ namespace HillNGun.Proto.Greybox3D
         {
             var catalog = Proto_Greybox3DCatalog.Load();
             Transform root = null;
-            if (catalog != null && catalog.HasCowboy)
+            if (catalog != null && catalog.HasMini)
+                root = InstantiateMini(parent, name, catalog, hero, variant);
+            else if (catalog != null && catalog.HasCowboy)
                 root = InstantiateCowboy(parent, name, catalog, hero, variant);
             if (root == null)
             {
                 Debug.LogWarning(
-                    $"[Greybox3D] {name} using primitive fallback. catalog={(catalog != null)} hasCowboy={(catalog != null && catalog.HasCowboy)}");
+                    $"[Greybox3D] {name} using primitive fallback. catalog={(catalog != null)} hasMini={(catalog != null && catalog.HasMini)} hasCowboy={(catalog != null && catalog.HasCowboy)}");
                 root = BuildFallback(parent, name, hero);
             }
 
@@ -52,6 +54,83 @@ namespace HillNGun.Proto.Greybox3D
             if (root.GetComponent<Proto_Greybox3DCombatFx>() == null)
                 root.gameObject.AddComponent<Proto_Greybox3DCombatFx>();
             return root;
+        }
+
+        static Transform InstantiateMini(Transform parent, string name, Proto_Greybox3DCatalog catalog, bool hero, int variant)
+        {
+            var source = hero ? catalog.MiniHero : catalog.MiniGrunt;
+            if (source == null) return null;
+
+            var root = new GameObject(name).transform;
+            root.SetParent(parent, false);
+            var go = Object.Instantiate(source, root);
+            go.name = "Model";
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
+            StripColliders(go);
+            foreach (var smr in go.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                smr.updateWhenOffscreen = true;
+                smr.enabled = true;
+                if (smr.sharedMesh == null)
+                    Debug.LogWarning($"[Greybox3D] {name} skinned renderer '{smr.name}' has no mesh.");
+            }
+
+            var pal = hero
+                ? (catalog.MiniColormapHero != null ? catalog.MiniColormapHero : catalog.MiniColormap)
+                : GruntPalette(catalog, variant);
+            var bodyMat = Proto_Greybox3DMaterials.CelShared(Color.white, 0.014f, pal);
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+                r.sharedMaterial = bodyMat;
+
+            FitHeight(go.transform, 1f);
+            AttachMiniGun(go.transform, catalog, hero);
+
+            var animator = go.GetComponentInChildren<Animator>(true);
+            if (animator == null)
+                animator = go.AddComponent<Animator>();
+            animator.applyRootMotion = false;
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            animator.enabled = true;
+            var driver = go.GetComponent<Proto_Greybox3DAnimDriver>() ?? go.AddComponent<Proto_Greybox3DAnimDriver>();
+            driver.Bind(animator, catalog, useMini: true);
+
+            var rends = go.GetComponentsInChildren<Renderer>(true);
+            if (rends.Length == 0)
+            {
+                Proto_Greybox3DUtil.DestroySafe(root.gameObject);
+                return null;
+            }
+            return root;
+        }
+
+        static Texture GruntPalette(Proto_Greybox3DCatalog catalog, int variant)
+        {
+            int v = Mathf.Abs(variant) % 3;
+            if (v == 1 && catalog.MiniColormapGruntB != null) return catalog.MiniColormapGruntB;
+            if (v == 2 && catalog.MiniColormapGruntC != null) return catalog.MiniColormapGruntC;
+            return catalog.MiniColormapGrunt != null ? catalog.MiniColormapGrunt : catalog.MiniColormap;
+        }
+
+        static void AttachMiniGun(Transform model, Proto_Greybox3DCatalog catalog, bool hero)
+        {
+            if (catalog.MiniGun == null) return;
+            // Hip-holstered on the torso so the gun is readable from the default
+            // behind-the-hero camera (arm-right hang hid it inside the body).
+            var hold = FindBone(model, "torso", "Torso") ??
+                       FindBone(model, "arm-right", "Arm-Right", "arm.right");
+            if (hold == null) return;
+            var gun = Object.Instantiate(catalog.MiniGun, hold);
+            gun.name = "MiniGun";
+            gun.transform.localPosition = new Vector3(0.22f, -0.08f, 0.12f);
+            gun.transform.localRotation = Quaternion.Euler(-80f, 90f, 0f);
+            gun.transform.localScale = Vector3.one * 0.9f;
+            StripColliders(gun);
+            var gunTex = hero && catalog.MiniColormapHero != null ? catalog.MiniColormapHero : catalog.MiniColormap;
+            var gunMat = Proto_Greybox3DMaterials.CelShared(new Color(0.85f, 0.86f, 0.90f), 0.012f, gunTex);
+            foreach (var r in gun.GetComponentsInChildren<Renderer>(true))
+                r.sharedMaterial = gunMat;
         }
 
         static Transform InstantiateCowboy(Transform parent, string name, Proto_Greybox3DCatalog catalog, bool hero, int variant)

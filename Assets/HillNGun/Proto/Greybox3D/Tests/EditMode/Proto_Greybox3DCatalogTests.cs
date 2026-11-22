@@ -73,6 +73,22 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
         }
 
         [Test]
+        public void Catalog_HasMiniHeroGruntGunAndClips()
+        {
+            var cat = Resources.Load<Proto_Greybox3DCatalog>(Proto_Greybox3DCatalog.ResourcesPath);
+            Assert.NotNull(cat);
+            Assert.IsTrue(cat.HasMini, "Kenney Mini hero must be in the Resources catalog");
+            Assert.NotNull(cat.MiniGrunt, "Kenney Mini grunt missing");
+            Assert.NotNull(cat.MiniGun, "Kenney Mini gun prop missing");
+            Assert.NotNull(cat.MiniIdle, "Mini idle clip missing");
+            Assert.NotNull(cat.MiniWalk, "Mini walk clip missing");
+            Assert.NotNull(cat.MiniDie, "Mini die clip missing");
+            Assert.NotNull(cat.MiniColormapHero, "hero palette remap missing");
+            Assert.NotNull(cat.MiniColormapGrunt, "grunt palette remap missing");
+            Assert.AreNotEqual(cat.MiniHero.name, cat.MiniGrunt.name, "hero and grunt must be different models");
+        }
+
+        [Test]
         public void Bootstrap_Register_ThenSetActive_CreatesViewRootAndCamera()
         {
             Proto_GreyboxViewPresenterRegistry.ClearFactoryForTests();

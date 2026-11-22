@@ -19,6 +19,23 @@ namespace HillNGun.Proto.Greybox3D
         public AnimationClip CowboyHit;
         public AnimationClip CowboyPunch;
 
+        // Kenney Mini Characters 2.0 (CC0) — slice H replacements.
+        public GameObject MiniHero;
+        public GameObject MiniGrunt;
+        public GameObject MiniGun;
+        public AnimationClip MiniIdle;
+        public AnimationClip MiniWalk;
+        public AnimationClip MiniSprint;
+        public AnimationClip MiniShoot;
+        public AnimationClip MiniHit;
+        public AnimationClip MiniDie;
+        public AnimationClip MiniJump;
+        public Texture2D MiniColormap;
+        public Texture2D MiniColormapHero;
+        public Texture2D MiniColormapGrunt;
+        public Texture2D MiniColormapGruntB;
+        public Texture2D MiniColormapGruntC;
+
         public GameObject CactusShort;
         public GameObject CactusTall;
         public GameObject Grass;
@@ -56,6 +73,7 @@ namespace HillNGun.Proto.Greybox3D
         public Shader VignetteShader;
 
         public bool HasCowboy => CowboyMale != null;
+        public bool HasMini => MiniHero != null;
         public bool HasCelShader => CelShader != null;
 
         static Proto_Greybox3DCatalog _cached;
@@ -68,7 +86,7 @@ namespace HillNGun.Proto.Greybox3D
 
         public static Proto_Greybox3DCatalog Load()
         {
-            if (_cached != null && _cached.CowboyMale != null)
+            if (_cached != null && (_cached.MiniHero != null || _cached.CowboyMale != null))
                 return _cached;
             var loaded = Resources.Load<Proto_Greybox3DCatalog>(ResourcesPath);
             if (loaded != null)

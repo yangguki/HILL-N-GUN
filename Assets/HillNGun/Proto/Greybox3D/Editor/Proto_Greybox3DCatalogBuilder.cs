@@ -9,12 +9,18 @@ namespace HillNGun.Proto.Greybox3D.Editor
         const string CatalogAsset = "Assets/HillNGun/Proto/Greybox3D/Resources/HillNGunGreybox3D/Catalog.asset";
         const string CowboyPath =
             "Assets/HillNGun/Proto/Greybox3D/ThirdParty/Quaternius/UltimateAnimatedCharacterPack/Cowboy_Male.fbx";
+        const string MiniDir =
+            "Assets/HillNGun/Proto/Greybox3D/ThirdParty/KenneyMiniCharacters/Models/FBX format/";
+        static string Mini(string file) => MiniDir + file;
 
         [MenuItem("HillNGun/Proto/Greybox3D/Rebuild Catalog")]
         public static void Build()
         {
             ConfigureTextures();
             ConfigureCowboyImport();
+            ConfigureMiniImport(Mini("character-male-g.fbx"));
+            ConfigureMiniImport(Mini("character-raider.fbx"));
+            ConfigureMiniImport(Mini("weapon-shooter.fbx"), animations: false);
             AssetDatabase.Refresh();
 
             var dir = Path.GetDirectoryName(CatalogAsset);
@@ -30,6 +36,15 @@ namespace HillNGun.Proto.Greybox3D.Editor
 
             catalog.CowboyMale = LoadGo(CowboyPath);
             AssignCowboyClips(catalog);
+            catalog.MiniHero = LoadGo(Mini("character-male-g.fbx"));
+            catalog.MiniGrunt = LoadGo(Mini("character-raider.fbx"));
+            catalog.MiniGun = LoadGo(Mini("weapon-shooter.fbx"));
+            catalog.MiniColormap = LoadTex(Mini("Textures/colormap.png"));
+            catalog.MiniColormapHero = LoadTex(Mini("Textures/colormap_hero.png"));
+            catalog.MiniColormapGrunt = LoadTex(Mini("Textures/colormap_grunt.png"));
+            catalog.MiniColormapGruntB = LoadTex(Mini("Textures/colormap_grunt_b.png"));
+            catalog.MiniColormapGruntC = LoadTex(Mini("Textures/colormap_grunt_c.png"));
+            AssignMiniClips(catalog);
 
             catalog.CactusShort = LoadGo(Nature("cactus_short.fbx"));
             catalog.CactusTall = LoadGo(Nature("cactus_tall.fbx"));
@@ -81,7 +96,7 @@ namespace HillNGun.Proto.Greybox3D.Editor
             AssetDatabase.Refresh();
             Proto_Greybox3DCatalog.Inject(catalog);
             Debug.Log(
-                $"Greybox3D catalog rebuilt. cowboy={(catalog.CowboyMale != null)} cowboyName={(catalog.CowboyMale != null ? catalog.CowboyMale.name : "null")} idle={(catalog.CowboyIdle != null)} walk={(catalog.CowboyWalk != null)} shoot={(catalog.CowboyShoot != null)} hit={(catalog.CowboyHit != null)} cactus={(catalog.CactusTall != null)} sky={(catalog.SkyboxDay != null)} celShader={(catalog.CelShader != null)}");
+                $"Greybox3D catalog rebuilt. miniHero={(catalog.MiniHero != null)} miniGrunt={(catalog.MiniGrunt != null)} miniIdle={(catalog.MiniIdle != null)} miniWalk={(catalog.MiniWalk != null)} miniShoot={(catalog.MiniShoot != null)} miniDie={(catalog.MiniDie != null)} cowboy={(catalog.CowboyMale != null)} cactus={(catalog.CactusTall != null)} sky={(catalog.SkyboxDay != null)} celShader={(catalog.CelShader != null)}");
         }
 
         public static void BuildAndExit()
@@ -146,6 +161,27 @@ namespace HillNGun.Proto.Greybox3D.Editor
                     tex.maxTextureSize = 512;
                 });
             }
+
+            string[] miniPalettes =
+            {
+                Mini("Textures/colormap.png"),
+                Mini("Textures/colormap_hero.png"),
+                Mini("Textures/colormap_grunt.png"),
+                Mini("Textures/colormap_grunt_b.png"),
+                Mini("Textures/colormap_grunt_c.png")
+            };
+            foreach (var p in miniPalettes)
+            {
+                ConfigureTex(p, tex =>
+                {
+                    tex.textureType = TextureImporterType.Default;
+                    tex.wrapMode = TextureWrapMode.Clamp;
+                    tex.filterMode = FilterMode.Point;
+                    tex.mipmapEnabled = false;
+                    tex.sRGBTexture = true;
+                    tex.maxTextureSize = 512;
+                });
+            }
         }
 
         static void ConfigureTex(string path, System.Action<TextureImporter> cfg)
@@ -184,6 +220,96 @@ namespace HillNGun.Proto.Greybox3D.Editor
             imp.importAnimation = true;
             imp.animationCompression = ModelImporterAnimationCompression.KeyframeReduction;
             imp.SaveAndReimport();
+        }
+
+        static void AssignMiniClips(Proto_Greybox3DCatalog catalog)
+        {
+            foreach (var obj in AssetDatabase.LoadAllAssetsAtPath(Mini("character-male-g.fbx")))
+            {
+                if (obj is not AnimationClip clip || clip.name.StartsWith("__"))
+                    continue;
+                string leaf = ClipLeaf(clip.name);
+                if (leaf.Contains("wheelchair"))
+                    continue;
+                if (leaf == "idle" && catalog.MiniIdle == null) catalog.MiniIdle = clip;
+                else if (leaf == "walk" && catalog.MiniWalk == null) catalog.MiniWalk = clip;
+                else if (leaf == "sprint" && catalog.MiniSprint == null) catalog.MiniSprint = clip;
+                else if (leaf == "holding-right-shoot" && catalog.MiniShoot == null) catalog.MiniShoot = clip;
+                else if (leaf == "fall" && catalog.MiniHit == null) catalog.MiniHit = clip;
+                else if (leaf == "die" && catalog.MiniDie == null) catalog.MiniDie = clip;
+                else if (leaf == "jump" && catalog.MiniJump == null) catalog.MiniJump = clip;
+            }
+            // Fallbacks if Unity names the takes slightly differently.
+            if (catalog.MiniShoot == null || catalog.MiniHit == null || catalog.MiniIdle == null)
+            {
+                foreach (var obj in AssetDatabase.LoadAllAssetsAtPath(Mini("character-male-g.fbx")))
+                {
+                    if (obj is not AnimationClip clip || clip.name.StartsWith("__"))
+                        continue;
+                    string leaf = ClipLeaf(clip.name);
+                    if (leaf.Contains("wheelchair")) continue;
+                    if (catalog.MiniIdle == null && leaf.Contains("idle")) catalog.MiniIdle = clip;
+                    if (catalog.MiniWalk == null && leaf == "walk") catalog.MiniWalk = clip;
+                    if (catalog.MiniShoot == null && leaf.Contains("shoot")) catalog.MiniShoot = clip;
+                    if (catalog.MiniHit == null && leaf.Contains("fall")) catalog.MiniHit = clip;
+                    if (catalog.MiniDie == null && leaf.Contains("die")) catalog.MiniDie = clip;
+                }
+            }
+        }
+
+        static string ClipLeaf(string name)
+        {
+            string n = name.ToLowerInvariant();
+            int at = n.LastIndexOf('@');
+            if (at >= 0) n = n.Substring(at + 1);
+            int pipe = n.LastIndexOf('|');
+            if (pipe >= 0) n = n.Substring(pipe + 1);
+            const string prefix = "character-male-g_";
+            if (n.StartsWith(prefix)) n = n.Substring(prefix.Length);
+            return n.Trim();
+        }
+
+        static void ConfigureMiniImport(string path, bool animations = true)
+        {
+            if (AssetImporter.GetAtPath(path) == null)
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            var imp = AssetImporter.GetAtPath(path) as ModelImporter;
+            if (imp == null)
+            {
+                Debug.LogWarning("[Greybox3D] Mini FBX missing at " + path);
+                return;
+            }
+
+            bool dirty = imp.animationType != ModelImporterAnimationType.Generic
+                         || (animations && !imp.importAnimation)
+                         || imp.materialImportMode != ModelImporterMaterialImportMode.None;
+            if (animations)
+            {
+                imp.animationType = ModelImporterAnimationType.Generic;
+                imp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+                imp.importAnimation = true;
+                imp.animationCompression = ModelImporterAnimationCompression.KeyframeReduction;
+                var clips = imp.defaultClipAnimations;
+                if (clips != null)
+                {
+                    for (int i = 0; i < clips.Length; i++)
+                    {
+                        string n = clips[i].name.ToLowerInvariant();
+                        clips[i].loopTime = n.Contains("idle") || n.Contains("walk") || n.Contains("sprint") ||
+                                            n == "static";
+                    }
+                    imp.clipAnimations = clips;
+                    dirty = true;
+                }
+            }
+            else
+            {
+                imp.importAnimation = false;
+            }
+
+            imp.materialImportMode = ModelImporterMaterialImportMode.None;
+            if (dirty)
+                imp.SaveAndReimport();
         }
     }
 }

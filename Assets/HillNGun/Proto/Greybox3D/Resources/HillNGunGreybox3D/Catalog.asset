@@ -18,6 +18,21 @@ MonoBehaviour:
   CowboyShoot: {fileID: -5307234019925579384, guid: dcf2710dff0244c1aaa93bcb68db6c9e, type: 3}
   CowboyHit: {fileID: -4856542728082765067, guid: dcf2710dff0244c1aaa93bcb68db6c9e, type: 3}
   CowboyPunch: {fileID: -4592842328519117816, guid: dcf2710dff0244c1aaa93bcb68db6c9e, type: 3}
+  MiniHero: {fileID: 919132149155446097, guid: 68b7e1abc328444f29190e035d6f543b, type: 3}
+  MiniGrunt: {fileID: 919132149155446097, guid: 3e03a81d71d204411b5b78272783306f, type: 3}
+  MiniGun: {fileID: 919132149155446097, guid: 28f4e18cb7742480bb53f135d8d22371, type: 3}
+  MiniIdle: {fileID: -5252816984213320552, guid: 68b7e1abc328444f29190e035d6f543b, type: 3}
+  MiniWalk: {fileID: -3419257869308726280, guid: 68b7e1abc328444f29190e035d6f543b, type: 3}
+  MiniSprint: {fileID: 6861445081996442198, guid: 68b7e1abc328444f29190e035d6f543b, type: 3}
+  MiniShoot: {fileID: -4501595119538727285, guid: 68b7e1abc328444f29190e035d6f543b, type: 3}
+  MiniHit: {fileID: -1504929105726005784, guid: 68b7e1abc328444f29190e035d6f543b, type: 3}
+  MiniDie: {fileID: -5455075036266976943, guid: 68b7e1abc328444f29190e035d6f543b, type: 3}
+  MiniJump: {fileID: -2993534804863918692, guid: 68b7e1abc328444f29190e035d6f543b, type: 3}
+  MiniColormap: {fileID: 2800000, guid: 618c997ed131d4bf188074bf462b9165, type: 3}
+  MiniColormapHero: {fileID: 2800000, guid: 0d5a4add7bea445f485cacee7b10f978, type: 3}
+  MiniColormapGrunt: {fileID: 2800000, guid: 6d4315c55efff491395a6ac18f47b011, type: 3}
+  MiniColormapGruntB: {fileID: 2800000, guid: f774f4757eed24a1296053d3d6c4b5ae, type: 3}
+  MiniColormapGruntC: {fileID: 2800000, guid: e77850ab596e946649dbd94b540c09ed, type: 3}
   CactusShort: {fileID: 919132149155446097, guid: 24cfae073d3da4526b0e06e862156305, type: 3}
   CactusTall: {fileID: 919132149155446097, guid: 184bf0378ca0d49aa8051adc6948778a, type: 3}
   Grass: {fileID: 919132149155446097, guid: fd01df24b4e7e42df958bc54921e559f, type: 3}

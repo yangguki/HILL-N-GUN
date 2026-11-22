@@ -58,22 +58,18 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
         }
 
         [Test]
-        public void DressFollow_LocksHatAndBandanaKnot()
+        public void MiniHero_HasArmatureGunAndBlobShadow()
         {
-            _root = new GameObject("DressTestRoot").transform;
+            _root = new GameObject("MiniHeroRoot").transform;
             var hero = Proto_Greybox3DCharacterMesh.BuildHero(_root);
-            var hat = FindDeep(hero, "DressHat");
-            var knot = FindDeep(hero, "DressBandanaKnot");
-            var boots = FindDeep(hero, "DressBoots");
-            Assert.NotNull(hat, "hat dress missing");
-            Assert.NotNull(knot, "bandana knot missing");
-            Assert.NotNull(boots, "boots missing");
-            // Chibi is authored in local space of the 1-unit body: hat at the
-            // top, knot at the nape, boots on the ground — not stacked at origin.
-            Assert.Greater(hat.localPosition.y, 0.70f, "hat should sit on the big chibi head");
-            Assert.Greater(knot.localPosition.y, 0.40f);
-            Assert.Greater(hat.localPosition.y, knot.localPosition.y + 0.15f);
-            Assert.Less(boots.localPosition.y, 0.15f);
+            Assert.NotNull(FindDeep(hero, "arm-right") ?? FindDeepContains(hero, "arm-right"),
+                "Kenney mini armature arm-right missing");
+            Assert.NotNull(FindDeep(hero, "head") ?? FindDeepContains(hero, "head"), "head bone missing");
+            Assert.NotNull(FindDeep(hero, "MiniGun"), "gun prop missing");
+            Assert.NotNull(FindDeep(hero, "BlobShadow"), "blob shadow missing");
+            Assert.Greater(hero.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length, 0,
+                "hero skinned mesh should be visible");
+            Assert.NotNull(hero.GetComponentInChildren<Proto_Greybox3DAnimDriver>(), "anim driver missing");
         }
 
         [Test]
@@ -96,13 +92,11 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
             _root = new GameObject("VariantRoot").transform;
             var a = Proto_Greybox3DCharacterMesh.BuildGrunt(_root, 0);
             var b = Proto_Greybox3DCharacterMesh.BuildGrunt(_root, 1);
-            var hatA = FindDeep(a, "DressHat");
-            var hatB = FindDeep(b, "DressHat");
-            Assert.NotNull(hatA);
-            Assert.NotNull(hatB);
-            var colA = FirstColor(hatA);
-            var colB = FirstColor(hatB);
-            Assert.AreNotEqual(colA, colB, "hat variants should use different tints");
+            var texA = FirstTexName(a);
+            var texB = FirstTexName(b);
+            Assert.IsNotEmpty(texA);
+            Assert.IsNotEmpty(texB);
+            Assert.AreNotEqual(texA, texB, "grunt variants should use different palette remaps");
         }
 
         [Test]
@@ -121,48 +115,52 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
             Assert.AreEqual(2f, b / a, 0.05f);
         }
 
-        static Color FirstColor(Transform t)
+        static string FirstTexName(Transform t)
         {
-            var r = t.GetComponentInChildren<MeshRenderer>();
-            Assert.NotNull(r);
-            var m = r.sharedMaterial;
-            return m.HasProperty("_Color") ? m.GetColor("_Color") : m.color;
-        }
-
-
-        [Test]
-        public void DressHat_HasWideBrimAndBandanaTails()
-        {
-            _root = new GameObject("DressLookRoot").transform;
-            var hero = Proto_Greybox3DCharacterMesh.BuildHero(_root);
-            var brim = FindDeep(hero, "Brim");
-            var tails = 0;
-            var silver = 0;
-            foreach (var child in hero.GetComponentsInChildren<Transform>(true))
+            foreach (var r in t.GetComponentsInChildren<Renderer>(true))
             {
-                if (child.name.StartsWith("DressBandanaTail")) tails++;
-                if (child.name == "Barrel" || child.name == "Body")
+                if (r == null || r.sharedMaterial == null) continue;
+                if (r.name == "BlobShadow") continue;
+                if (r.sharedMaterial.HasProperty("_MainTex"))
                 {
-                    var mr = child.GetComponent<MeshRenderer>();
-                    if (mr != null && mr.sharedMaterial != null && mr.sharedMaterial.HasProperty("_Color"))
-                    {
-                        var c = mr.sharedMaterial.GetColor("_Color");
-                        if (c.r > 0.5f && c.g > 0.5f && c.b > 0.5f && c.b >= c.r * 0.9f)
-                            silver++;
-                    }
+                    var tex = r.sharedMaterial.GetTexture("_MainTex");
+                    if (tex != null) return tex.name;
                 }
             }
-            Assert.NotNull(brim, "wide hat brim missing");
-            Assert.GreaterOrEqual(brim.localScale.x, 0.70f, "hero brim should be wide like the concept");
-            Assert.GreaterOrEqual(tails, 2, "bandana tails should be visible from behind");
-            Assert.Greater(silver, 0, "revolver should read as silver, not dark iron");
-            Assert.NotNull(FindDeep(hero, "HairBack"), "brown hair under the hat missing");
+            return "";
+        }
+
+        [Test]
+        public void MiniHeroAndGrunt_AreDifferentModels()
+        {
+            _root = new GameObject("MiniPairRoot").transform;
+            var hero = Proto_Greybox3DCharacterMesh.BuildHero(_root);
+            var grunt = Proto_Greybox3DCharacterMesh.BuildGrunt(_root, 0);
+            var heroModel = FindDeep(hero, "Model");
+            var gruntModel = FindDeep(grunt, "Model");
+            Assert.NotNull(heroModel);
+            Assert.NotNull(gruntModel);
+            // Instantiated names stay "Model"; distinguish by source mesh / palette.
+            var heroTex = FirstTexName(hero);
+            var gruntTex = FirstTexName(grunt);
+            Assert.IsNotEmpty(heroTex);
+            Assert.IsNotEmpty(gruntTex);
+            Assert.AreNotEqual(heroTex, gruntTex, "hero and grunt should use different remapped colormaps");
+            Assert.NotNull(FindDeep(grunt, "MiniGun"), "grunt should also hold a gun");
         }
 
         static Transform FindDeep(Transform root, string name)
         {
             foreach (var t in root.GetComponentsInChildren<Transform>(true))
                 if (t.name == name) return t;
+            return null;
+        }
+
+        static Transform FindDeepContains(Transform root, string name)
+        {
+            string n = name.ToLowerInvariant();
+            foreach (var t in root.GetComponentsInChildren<Transform>(true))
+                if (t.name.ToLowerInvariant().Contains(n)) return t;
             return null;
         }
     }

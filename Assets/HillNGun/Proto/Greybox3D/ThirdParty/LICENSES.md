@@ -47,3 +47,23 @@ Only the files actually used by this proto were copied into this folder.
 - Files used: `LowPolyWesternObjects.fbx` (crates, barrels, cactus, fence, etc.) and wood / dirt / fabric / vegetation / concrete / metal textures for storefronts and ground.
 
 Credit is not required under CC0; names and URLs are recorded here for provenance.
+
+## Kenney — Mini Characters (2.0)
+
+- Author: Kenney (www.kenney.nl)
+- Official page: https://kenney.nl/assets/mini-characters
+- Author upload (used for the 2.0 zip): https://opengameart.org/content/mini-character-1
+- Direct zip: https://opengameart.org/sites/default/files/kenney_mini-characters_2.0.zip
+- License on page and in included `License.txt`: **Creative Commons CC0 1.0**
+  https://creativecommons.org/publicdomain/zero/1.0/
+- Downloaded 2026-11-23. Only the files used by this proto were copied into
+  `ThirdParty/KenneyMiniCharacters/`.
+- Files used: `character-male-g.fbx` (hero), `character-raider.fbx` (grunt),
+  `weapon-shooter.fbx` (gun prop), `Textures/colormap.png`.
+- In-house remaps of Kenney's CC0 colormap (still CC0, no new third-party):
+  `colormap_hero.png`, `colormap_grunt.png`, `colormap_grunt_b.png`,
+  `colormap_grunt_c.png`.
+- Animations used from the FBX takes: idle, walk, sprint, holding-right-shoot,
+  fall (hit), die, jump (available; roll uses the existing procedural spin).
+
+Credit is not required under CC0; names and URLs are recorded here for provenance.

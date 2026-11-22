@@ -18,6 +18,7 @@ namespace HillNGun.Proto.Greybox3D
         AnimationClipPlayable _walk;
         AnimationClipPlayable _shoot;
         AnimationClipPlayable _hit;
+        AnimationClipPlayable _die;
         bool _ready;
         Locomo _locomo;
         OneShot _shot;
@@ -25,10 +26,17 @@ namespace HillNGun.Proto.Greybox3D
         float _walkWeight;
         public float WalkPlaybackSpeed { get; private set; } = 1f;
 
-        public void Bind(Animator animator, Proto_Greybox3DCatalog cat)
+        public void Bind(Animator animator, Proto_Greybox3DCatalog cat, bool useMini = false)
         {
             _animator = animator;
-            if (_animator == null || cat == null || cat.CowboyIdle == null) return;
+            var idle = useMini && cat != null && cat.MiniIdle != null ? cat.MiniIdle : cat != null ? cat.CowboyIdle : null;
+            if (_animator == null || cat == null || idle == null) return;
+            var walk = useMini && cat.MiniWalk != null ? cat.MiniWalk
+                : (useMini && cat.MiniSprint != null ? cat.MiniSprint
+                    : (cat.CowboyWalk != null ? cat.CowboyWalk : idle));
+            var shoot = useMini && cat.MiniShoot != null ? cat.MiniShoot : (cat.CowboyShoot != null ? cat.CowboyShoot : idle);
+            var hit = useMini && cat.MiniHit != null ? cat.MiniHit : (cat.CowboyHit != null ? cat.CowboyHit : idle);
+            var die = useMini && cat.MiniDie != null ? cat.MiniDie : hit;
 
             if (_graph.IsValid()) _graph.Destroy();
             _graph = PlayableGraph.Create("Greybox3D_Char");
@@ -36,18 +44,20 @@ namespace HillNGun.Proto.Greybox3D
                 ? DirectorUpdateMode.GameTime
                 : DirectorUpdateMode.Manual);
 
-            _mixer = AnimationMixerPlayable.Create(_graph, 4);
-            _idle = AnimationClipPlayable.Create(_graph, cat.CowboyIdle);
-            _walk = AnimationClipPlayable.Create(_graph, cat.CowboyWalk != null ? cat.CowboyWalk : cat.CowboyIdle);
-            _shoot = AnimationClipPlayable.Create(_graph, cat.CowboyShoot != null ? cat.CowboyShoot : cat.CowboyIdle);
-            _hit = AnimationClipPlayable.Create(_graph, cat.CowboyHit != null ? cat.CowboyHit : cat.CowboyIdle);
+            _mixer = AnimationMixerPlayable.Create(_graph, 5);
+            _idle = AnimationClipPlayable.Create(_graph, idle);
+            _walk = AnimationClipPlayable.Create(_graph, walk);
+            _shoot = AnimationClipPlayable.Create(_graph, shoot);
+            _hit = AnimationClipPlayable.Create(_graph, hit);
+            _die = AnimationClipPlayable.Create(_graph, die);
             _idle.SetApplyFootIK(false);
             _walk.SetApplyFootIK(false);
             _graph.Connect(_idle, 0, _mixer, 0);
             _graph.Connect(_walk, 0, _mixer, 1);
             _graph.Connect(_shoot, 0, _mixer, 2);
             _graph.Connect(_hit, 0, _mixer, 3);
-            SetWeights(1f, 0f, 0f, 0f);
+            _graph.Connect(_die, 0, _mixer, 4);
+            SetWeights(1f, 0f, 0f, 0f, 0f);
 
             var output = AnimationPlayableOutput.Create(_graph, "anim", _animator);
             output.SetSourcePlayable(_mixer);
@@ -64,10 +74,22 @@ namespace HillNGun.Proto.Greybox3D
                 if (_shot != OneShot.Down)
                 {
                     _shot = OneShot.Down;
-                    _hit.SetTime(Mathf.Max(0f, _hit.GetAnimationClip().length * 0.85f));
-                    _hit.SetSpeed(0f);
+                    var clip = _die.GetAnimationClip();
+                    _die.SetTime(0);
+                    _die.SetSpeed(1f);
+                    if (clip != null)
+                        _shotEnd = time + clip.length;
                 }
-                SetWeights(0f, 0f, 0f, 1f);
+                else
+                {
+                    var clip = _die.GetAnimationClip();
+                    if (clip != null && _die.GetTime() >= clip.length - 0.02f)
+                    {
+                        _die.SetTime(clip.length - 0.02f);
+                        _die.SetSpeed(0f);
+                    }
+                }
+                SetWeights(0f, 0f, 0f, 0f, 1f);
                 if (!Application.isPlaying) _graph.Evaluate(dt);
                 return;
             }
@@ -92,21 +114,21 @@ namespace HillNGun.Proto.Greybox3D
 
             if (_shot == OneShot.Hit)
             {
-                SetWeights(0f, 0f, 0f, 1f);
+                SetWeights(0f, 0f, 0f, 1f, 0f);
                 if (!Application.isPlaying && _graph.IsValid()) _graph.Evaluate(dt);
                 return;
             }
 
             if (_shot == OneShot.Shoot)
             {
-                SetWeights(0.15f, 0f, 0.85f, 0f);
+                SetWeights(0.15f, 0f, 0.85f, 0f, 0f);
                 if (!Application.isPlaying && _graph.IsValid()) _graph.Evaluate(dt);
                 return;
             }
 
             if (rolling)
             {
-                SetWeights(1f, 0f, 0f, 0f);
+                SetWeights(1f, 0f, 0f, 0f, 0f);
                 if (!Application.isPlaying && _graph.IsValid()) _graph.Evaluate(dt);
                 return;
             }
@@ -130,17 +152,19 @@ namespace HillNGun.Proto.Greybox3D
             }
             WalkPlaybackSpeed = play;
             _walk.SetSpeed(play);
-            SetWeights(1f - _walkWeight, _walkWeight, 0f, 0f);
+            SetWeights(1f - _walkWeight, _walkWeight, 0f, 0f, 0f);
             if (!Application.isPlaying && _graph.IsValid())
                 _graph.Evaluate(dt);
         }
 
-        void SetWeights(float idle, float walk, float shoot, float hit)
+        void SetWeights(float idle, float walk, float shoot, float hit, float die = 0f)
         {
             _mixer.SetInputWeight(0, idle);
             _mixer.SetInputWeight(1, walk);
             _mixer.SetInputWeight(2, shoot);
             _mixer.SetInputWeight(3, hit);
+            if (_mixer.GetInputCount() > 4)
+                _mixer.SetInputWeight(4, die);
         }
 
         void OnDestroy()

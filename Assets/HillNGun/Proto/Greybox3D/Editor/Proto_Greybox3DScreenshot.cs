@@ -381,6 +381,147 @@ namespace HillNGun.Proto.Greybox3D.Editor
             EditorApplication.Exit(0);
         }
 
+        public static void Capture3dHCompare()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D H compare: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            const float dt = 0.02f;
+            for (int i = 0; i < 160; i++)
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = false }, dt);
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            Canvas.ForceUpdateCanvases();
+            var tex3D = CaptureActiveWorldCam(CompareW, CompareH);
+            var half3D = ScaleTexture(tex3D, HalfW, CompareH);
+            var concept = LoadConcept();
+            var halfC = concept != null ? ScaleTexture(concept, HalfW, CompareH) : half3D;
+            var stitched = new Texture2D(CompareW, CompareH, TextureFormat.RGB24, false);
+            stitched.SetPixels(0, 0, HalfW, CompareH, halfC.GetPixels());
+            stitched.SetPixels(HalfW, 0, HalfW, CompareH, half3D.GetPixels());
+            stitched.Apply();
+            WritePng(stitched, "v4_greybox/3d_h_compare.png");
+            Object.DestroyImmediate(tex3D);
+            Object.DestroyImmediate(half3D);
+            if (halfC != concept && halfC != half3D) Object.DestroyImmediate(halfC);
+            Object.DestroyImmediate(stitched);
+            EditorApplication.Exit(0);
+        }
+
+        public static void Capture3dHCombat()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D H combat: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 0.28f;
+            controller.RuntimeTuning.Wave1Count = 6;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 150; i++)
+            {
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = false }, dt);
+                if (i % 8 == 0) controller.ResetHp();
+            }
+            for (int i = 0; i < 90; i++)
+            {
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+                controller.ResetHp();
+                if (HasNearEnemyBullet(controller, 3.4f))
+                    break;
+            }
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            controller.PoseAimStickDrag(new Vector2(0.2f, 5.0f));
+            controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            Canvas.ForceUpdateCanvases();
+            var tex = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(tex, "v4_greybox/3d_h_combat.png");
+            Object.DestroyImmediate(tex);
+            EditorApplication.Exit(0);
+        }
+
+        public static void Capture3dHChars()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D H chars: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 160; i++)
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = false }, dt);
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+
+            var hero = GameObject.Find("Greybox3D_Hero");
+            Transform grunt = null;
+            foreach (var tr in Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (tr.name.StartsWith("Greybox3D_Grunt") && tr.parent != null)
+                {
+                    grunt = tr;
+                    break;
+                }
+            }
+
+            var presenter = Proto_GreyboxViewPresenterRegistry.Ensure();
+            var cam = presenter != null ? presenter.WorldCamera : Camera.main;
+            if (hero != null && grunt != null)
+            {
+                grunt.position = hero.transform.position + hero.transform.forward * 1.55f +
+                                 hero.transform.right * 0.45f;
+                grunt.localScale = hero.transform.localScale * 0.78f;
+                grunt.rotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
+            }
+            if (hero != null && cam != null)
+            {
+                var back = hero.transform.position - hero.transform.forward * 2.15f + Vector3.up * 1.05f +
+                           hero.transform.right * 1.15f;
+                var look = hero.transform.position + Vector3.up * 0.55f + hero.transform.forward * 0.6f;
+                if (grunt != null)
+                    look = Vector3.Lerp(look, grunt.position + Vector3.up * 0.55f, 0.50f);
+                cam.transform.position = back;
+                cam.transform.LookAt(look);
+                cam.fieldOfView = 36f;
+            }
+
+            Canvas.ForceUpdateCanvases();
+            var tex = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(tex, "v4_greybox/3d_h_chars.png");
+            Object.DestroyImmediate(tex);
+            EditorApplication.Exit(0);
+        }
+
         public static void Capture3dGCompare()
         {
             Ensure3DFactory();

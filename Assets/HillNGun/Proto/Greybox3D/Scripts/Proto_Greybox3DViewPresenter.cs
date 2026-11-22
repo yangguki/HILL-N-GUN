@@ -136,8 +136,16 @@ namespace HillNGun.Proto.Greybox3D
                 _hero.rotation = _heroBaseRot * Quaternion.Euler(_animPhase * 540f, move.x * 12f, 0f);
             else if (heroFx == null || !heroFx.IsDying)
             {
-                float yaw = Mathf.Clamp(move.x, -1f, 1f) * 18f;
-                _hero.rotation = _heroBaseRot * Quaternion.Euler(0f, yaw, 0f);
+                var aimWorld = Proto_Greybox3DFootMap.GroundPointToWorld(aim);
+                var toAim = aimWorld - heroPos;
+                toAim.y = 0f;
+                if (toAim.sqrMagnitude > 0.0004f)
+                    _hero.rotation = Quaternion.LookRotation(toAim.normalized, Vector3.up);
+                else
+                {
+                    float yaw = Mathf.Clamp(move.x, -1f, 1f) * 18f;
+                    _hero.rotation = _heroBaseRot * Quaternion.Euler(0f, yaw, 0f);
+                }
             }
 
             if (heroFx != null)

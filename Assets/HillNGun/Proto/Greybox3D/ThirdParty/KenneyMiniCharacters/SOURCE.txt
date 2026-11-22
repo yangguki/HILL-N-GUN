@@ -1,0 +1,7 @@
+Kenney Mini Characters 2.0 (CC0 1.0)
+Official page: https://kenney.nl/assets/mini-characters
+Downloaded 2026-11-23 from the author's OpenGameArt upload
+(https://opengameart.org/content/mini-character-1,
+https://opengameart.org/sites/default/files/kenney_mini-characters_2.0.zip).
+Only the files used by the Hill N Gun 3D proto are included.
+colormap_hero.png and colormap_grunt*.png are in-house palette remaps of Kenney's CC0 colormap.
