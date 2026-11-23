@@ -164,12 +164,21 @@ namespace HillNGun.Proto.Greybox
 
         public void RefreshViewToggle(bool is3D)
         {
+            RefreshViewToggle(is3D
+                ? Proto_GreyboxViewMode.View3D
+                : (Proto_GreyboxViewModeState.IsChibi ? Proto_GreyboxViewMode.View2DChibi : Proto_GreyboxViewMode.View2D));
+        }
+
+        /// <summary>Three-way style toggle label: 2D pixel / 3D / 2D chibi.</summary>
+        public void RefreshViewToggle(Proto_GreyboxViewMode mode)
+        {
             if (_viewLabel != null)
-                _viewLabel.text = is3D ? "View:  3D" : "View:  2D";
+            {
+                Proto_GreyboxHudBuilder.GetUiFont(out bool hangul);
+                _viewLabel.text = Proto_GreyboxViewModeState.Label(mode, hangul);
+            }
             if (_viewPlate != null)
-                _viewPlate.color = is3D
-                    ? new Color(0.55f, 0.22f, 0.72f, 0.95f)
-                    : new Color(0.22f, 0.45f, 0.72f, 0.95f);
+                _viewPlate.color = Proto_GreyboxViewModeState.PlateColor(mode);
         }
 
         static Text PlaceText(Transform parent, string name, float x0, float y0, float x1, float y1, Font font,

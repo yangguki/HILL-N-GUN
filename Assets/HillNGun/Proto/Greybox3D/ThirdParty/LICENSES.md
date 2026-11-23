@@ -82,3 +82,10 @@ Credit is not required under CC0; names and URLs are recorded here for provenanc
 - Location: `Assets/HillNGun/Proto/Greybox3D/Art/{UI,FX,Characters,Environment,Fonts}/`
 - These textures, sprites, and colormaps are original game art, not third-party.
 - Kenney Mini Characters colormap layout is CC0 (see Mini Characters above); designer remaps and extra swatches (T*/X*, turret map) are original.
+
+## HILL N GUN 2D chibi skin (slice J, self-made, CC0)
+
+- Location: `Assets/HillNGun/Proto/Greybox/Art/Chibi/` (61 PNGs + `README.md`; generator scripts in `Source~/`).
+- Drawn procedurally for this project (Python/PIL vector drawing). No third-party images or traced artwork.
+- Dedicated to the public domain under CC0 1.0 — see `Greybox/Art/Chibi/README.md` for the sprite list, sizes and pivots.
+- Sign text and the 2D chibi HUD numerals use Lilita One (SIL OFL 1.1, see the Lilita One section above).

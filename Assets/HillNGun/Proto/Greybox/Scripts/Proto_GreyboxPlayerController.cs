@@ -141,6 +141,10 @@ namespace HillNGun.Proto.Greybox
             Proto_GreyboxViewModeState.SetMode(mode, persist);
             _tuning.View3D = mode == Proto_GreyboxViewMode.View3D;
             ApplyViewMode();
+            // 2D pixel <-> 2D chibi swap the sprite catalog on the same 2D gameplay.
+            _westSkin?.SyncStyle();
+            _pauseUi?.RefreshViewToggle(Proto_GreyboxViewModeState.Current);
+            _settingsUi?.RefreshViewToggle(Proto_GreyboxViewModeState.Current);
         }
 
         void ApplyViewMode()
@@ -216,12 +220,8 @@ namespace HillNGun.Proto.Greybox
 
         public void ToggleViewMode()
         {
-            var next = Proto_GreyboxViewModeState.Is3D
-                ? Proto_GreyboxViewMode.View2D
-                : Proto_GreyboxViewMode.View3D;
+            var next = Proto_GreyboxViewModeState.Next(Proto_GreyboxViewModeState.Current);
             SetViewMode(next, persist: true);
-            _pauseUi?.RefreshViewToggle(Proto_GreyboxViewModeState.Is3D);
-            _settingsUi?.RefreshViewToggle(Proto_GreyboxViewModeState.Is3D);
         }
 
         void SyncViewPresenter()
@@ -1159,7 +1159,7 @@ namespace HillNGun.Proto.Greybox
             bool westHud = _westSkin != null && _westSkin.IsActive;
             if (_ammoText != null)
             {
-                if (westHud)
+                if (westHud && !_westSkin.IsChibiStyle)
                     _ammoText.gameObject.SetActive(false);
                 else
                 {
@@ -1258,7 +1258,7 @@ namespace HillNGun.Proto.Greybox
                     1f);
             }
             else if (_reloadDisc != null)
-                _reloadDisc.color = Proto_GreyboxPalette.HudActionDisc;
+                _reloadDisc.color = westHud && _westSkin.IsChibiStyle ? Color.white : Proto_GreyboxPalette.HudActionDisc;
         }
 
         void UpdateAimLineVisual()

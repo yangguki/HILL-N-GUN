@@ -22,6 +22,40 @@ namespace HillNGun.Proto.Greybox
 
         public static bool Is3D => Current == Proto_GreyboxViewMode.View3D;
 
+        /// <summary>2D gameplay with the flat chibi skin (not 3D).</summary>
+        public static bool IsChibi => Current == Proto_GreyboxViewMode.View2DChibi;
+
+        /// <summary>Toggle order: 2D pixel → 3D → 2D chibi → 2D pixel.</summary>
+        public static Proto_GreyboxViewMode Next(Proto_GreyboxViewMode mode)
+        {
+            switch (mode)
+            {
+                case Proto_GreyboxViewMode.View2D: return Proto_GreyboxViewMode.View3D;
+                case Proto_GreyboxViewMode.View3D: return Proto_GreyboxViewMode.View2DChibi;
+                default: return Proto_GreyboxViewMode.View2D;
+            }
+        }
+
+        public static string Label(Proto_GreyboxViewMode mode, bool hangul)
+        {
+            switch (mode)
+            {
+                case Proto_GreyboxViewMode.View3D: return "View:  3D";
+                case Proto_GreyboxViewMode.View2DChibi: return hangul ? "View:  2D 치비" : "View:  2D Chibi";
+                default: return hangul ? "View:  2D 픽셀" : "View:  2D Pixel";
+            }
+        }
+
+        public static UnityEngine.Color PlateColor(Proto_GreyboxViewMode mode)
+        {
+            switch (mode)
+            {
+                case Proto_GreyboxViewMode.View3D: return new UnityEngine.Color(0.55f, 0.22f, 0.72f, 0.95f);
+                case Proto_GreyboxViewMode.View2DChibi: return new UnityEngine.Color(0.86f, 0.42f, 0.16f, 0.95f);
+                default: return new UnityEngine.Color(0.22f, 0.45f, 0.72f, 0.95f);
+            }
+        }
+
         public static void EnsureLoaded()
         {
             if (s_loaded) return;

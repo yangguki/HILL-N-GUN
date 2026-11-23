@@ -102,8 +102,11 @@ namespace HillNGun.Proto.Greybox
 
         public bool IsActive => Proto_GreyboxWestPixelSkinState.Enabled && _catalog != null && _catalog.IsGameplayReady;
 
+        /// <summary>Slice J: the flat 2D chibi catalog is bound (same 2D gameplay, different sprites).</summary>
+        public bool IsChibiStyle => IsActive && _catalog.isChibi;
+
         public bool UsesFxV2DizzyBody =>
-            _fxV2 != null && _fxV2.dizzyLightBody != null && _fxV2.dizzyLightBody.Length > 0
+            !IsChibiStyle && _fxV2 != null && _fxV2.dizzyLightBody != null && _fxV2.dizzyLightBody.Length > 0
             && _dizzyPhase != Proto_GreyboxRollDizzyPhase.None;
 
         public Proto_GreyboxWestPixelSkin(Proto_GreyboxPlayerController host) => _host = host;
@@ -111,7 +114,7 @@ namespace HillNGun.Proto.Greybox
         public void EnsureCatalog()
         {
             if (_catalog == null)
-                _catalog = Proto_GreyboxWestPixelCatalog.LoadRuntime();
+                _catalog = Proto_GreyboxWestPixelCatalog.LoadForCurrentStyle();
             if (_fxV2 == null)
                 _fxV2 = Proto_GreyboxFxV2Catalog.LoadRuntime();
         }
@@ -132,6 +135,39 @@ namespace HillNGun.Proto.Greybox
                 BindStage();
             else if (_stageBound)
                 UnbindStage();
+        }
+
+        /// <summary>
+        /// Swap pixel / chibi catalogs to match the view mode. In 3D the 2D world is hidden, so the
+        /// catalog is left alone (rebinding would overwrite the 3D HUD skin on shared HUD objects).
+        /// </summary>
+        public void SyncStyle()
+        {
+            if (Proto_GreyboxViewModeState.Is3D)
+            {
+                Proto_GreyboxChibiHud.SetOverlayVisible(false);
+                return;
+            }
+
+            var want = Proto_GreyboxWestPixelCatalog.LoadForCurrentStyle();
+            if (want == null)
+                return;
+            if (_catalog != want)
+            {
+                if (_stageBound)
+                    UnbindStage();
+                _catalog = want;
+                if (IsActive)
+                    BindStage();
+                return;
+            }
+
+            // Same style (e.g. back from 3D, whose HUD restore re-shows every stock widget).
+            if (IsActive && _stageBound)
+            {
+                ApplyHudSkin();
+                Proto_GreyboxChibiHud.SetOverlayVisible(_catalog.isChibi);
+            }
         }
 
         void BindStage()
@@ -233,7 +269,16 @@ namespace HillNGun.Proto.Greybox
             }
 
             float bgUniform = ComputeBgUniformScale();
-            if (Proto_GreyboxPerspectiveDepth.Enabled && _catalog.HasPerspectiveBackground)
+            if (_catalog.bgFullScene != null)
+            {
+                // Chibi: one painted plate (sky + street + buildings lining it), fence on top.
+                PlaceTopLeftSprite("WP_FullScene", _catalog.bgFullScene, 0f, bgUniform, Proto_GreyboxLayout.SortingSky);
+                if (Proto_GreyboxPerspectiveDepth.Enabled && _catalog.perspFence != null)
+                    BuildPerspectiveFenceTiles(bgUniform);
+                else
+                    BuildFlatFenceTiles(bgUniform);
+            }
+            else if (Proto_GreyboxPerspectiveDepth.Enabled && _catalog.HasPerspectiveBackground)
                 BuildPerspectiveBackground(bgUniform);
             else
                 BuildFlatBackground(bgUniform);
@@ -323,7 +368,9 @@ namespace HillNGun.Proto.Greybox
         float ComputeBgUniformScale()
         {
             Sprite basis = null;
-            if (Proto_GreyboxPerspectiveDepth.Enabled && _catalog.bgSkyFar != null)
+            if (_catalog.bgFullScene != null)
+                basis = _catalog.bgFullScene;
+            else if (Proto_GreyboxPerspectiveDepth.Enabled && _catalog.bgSkyFar != null)
                 basis = _catalog.bgSkyFar;
             else if (_catalog.bgFar != null)
                 basis = _catalog.bgFar;
@@ -462,10 +509,15 @@ namespace HillNGun.Proto.Greybox
             var pauseLabel = GameObject.Find("Greybox_Hud_PauseLabel");
             if (pauseLabel != null)
                 pauseLabel.SetActive(false);
+            if (_catalog.isChibi)
+                Proto_GreyboxChibiHud.Apply(hud.transform, _catalog);
+            else
+                Proto_GreyboxChibiHud.Restore();
         }
 
         void RestoreHudSkin()
         {
+            Proto_GreyboxChibiHud.Restore();
             ShowHudTextLabel("Greybox_Hud_FireLabel");
             ShowHudTextLabel("Greybox_Hud_RollLabel");
             ShowHudTextLabel("Greybox_Hud_GrenadeLabel");
@@ -591,6 +643,8 @@ namespace HillNGun.Proto.Greybox
             TickMuzzle(dt);
             TickGruntMuzzles(dt);
             TickSparks(dt);
+            if (_catalog.isChibi)
+                Proto_GreyboxChibiHud.Tick(_catalog);
             EnsureMoveBoundaryUpToDate();
             UpdateMoveBoundaryHighlight(_host.Motor.FootPosition);
         }
@@ -673,7 +727,7 @@ namespace HillNGun.Proto.Greybox
             var footPos = motor.FootPosition;
             float targetBodyH = Proto_GreyboxPerspectiveDepth.PlayerBodyHeightWorld(footPos.y);
             float sy = targetBodyH / (PlayerBodyPx / Proto_GreyboxWestPixelCatalog.ImportPpu);
-            bool fxRoll = _fxV2 != null && _fxV2.HasGameplayRoll;
+            bool fxRoll = IsChibiStyle || (_fxV2 != null && _fxV2.HasGameplayRoll);
             float rollSy = roll.IsRolling && !fxRoll ? 0.6f : 1f;
             _host.transform.localScale = new Vector3(sy, sy * rollSy, 1f);
             if (roll.IsRolling || _rollVisualActive)
@@ -699,7 +753,7 @@ namespace HillNGun.Proto.Greybox
                             return dizzyBody;
                     }
 
-                    var rollFrames = _fxV2 != null ? _fxV2.RollFrames(_rollFacing) : null;
+                    var rollFrames = !IsChibiStyle && _fxV2 != null ? _fxV2.RollFrames(_rollFacing) : null;
                     if (rollFrames == null || rollFrames.Length == 0)
                         rollFrames = _catalog.playerRoll;
                     if (rollFrames != null && rollFrames.Length > 0)

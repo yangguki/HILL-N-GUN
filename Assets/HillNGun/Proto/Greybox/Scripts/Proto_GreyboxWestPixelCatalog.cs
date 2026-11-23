@@ -10,6 +10,12 @@ namespace HillNGun.Proto.Greybox
         public const string PerspectiveArtSubfolder = "perspective_v1";
         public const float ImportPpu = 100f;
 
+        // Slice J: same catalog type, second asset for the flat 2D chibi style.
+        public const string ChibiResourcesName = "Proto_GreyboxChibiCatalog";
+        public const string ChibiArtFolder = "Assets/HillNGun/Proto/Greybox/Art/Chibi";
+        public const string ChibiEditorCatalogAssetPath =
+            "Assets/HillNGun/Proto/Greybox/Resources/Proto_GreyboxChibiCatalog.asset";
+
         public bool HasPerspectiveBackground =>
             bgSkyFar != null && perspGround != null && bldLeft != null && bldRight != null && perspFence != null;
 
@@ -59,6 +65,17 @@ namespace HillNGun.Proto.Greybox
         public Sprite hpFrame;
         public Sprite hpFill;
 
+        [Header("2D chibi only (null in the pixel catalog)")]
+        public bool isChibi;
+        /// <summary>One 1920×1080 painted plate: sky, mesas, street and the buildings lining it.</summary>
+        public Sprite bgFullScene;
+        public Sprite scorePlate;
+        public Sprite stagePlate;
+        public Sprite hpPlate;
+        public Sprite heartFull;
+        public Sprite heartEmpty;
+        public Font uiFont;
+
         public bool IsGameplayReady =>
             bgFar != null && ground != null && fence != null && playerIdle != null && playerIdle.Length > 0
             && gruntIdle != null && gruntIdle.Length > 0 && bulletEnemy != null && bulletAlly != null
@@ -76,6 +93,29 @@ namespace HillNGun.Proto.Greybox
 #endif
             var cat = Resources.Load<Proto_GreyboxWestPixelCatalog>(ResourcesName);
             return cat != null && cat.IsGameplayReady ? cat : null;
+        }
+
+        public static Proto_GreyboxWestPixelCatalog LoadChibiRuntime()
+        {
+#if UNITY_EDITOR
+            var editorCat = UnityEditor.AssetDatabase.LoadAssetAtPath<Proto_GreyboxWestPixelCatalog>(ChibiEditorCatalogAssetPath);
+            if (editorCat != null && editorCat.IsGameplayReady)
+                return editorCat;
+#endif
+            var cat = Resources.Load<Proto_GreyboxWestPixelCatalog>(ChibiResourcesName);
+            return cat != null && cat.IsGameplayReady ? cat : null;
+        }
+
+        /// <summary>Catalog for the current view style. Falls back to pixel when the chibi asset is missing.</summary>
+        public static Proto_GreyboxWestPixelCatalog LoadForCurrentStyle()
+        {
+            if (Proto_GreyboxViewModeState.IsChibi)
+            {
+                var chibi = LoadChibiRuntime();
+                if (chibi != null)
+                    return chibi;
+            }
+            return LoadRuntime();
         }
     }
 }

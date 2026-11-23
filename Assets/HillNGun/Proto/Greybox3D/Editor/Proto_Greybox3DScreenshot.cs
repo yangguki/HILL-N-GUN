@@ -1040,6 +1040,86 @@ namespace HillNGun.Proto.Greybox3D.Editor
             EditorApplication.Exit(0);
         }
 
+        /// <summary>
+        /// Slice J: one run, same stage, three styles (2D pixel / 3D / 2D chibi) + chibi combat + the
+        /// pause-menu style toggle. Writes Builds/v4_greybox/3d_j_*.png (compare sheet is stitched off-Unity).
+        /// </summary>
+        public static void Capture3dJAll()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D J: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetWestPixelSkin(true);
+            var shots = new (Proto_GreyboxViewMode mode, string file)[]
+            {
+                (Proto_GreyboxViewMode.View2D, "v4_greybox/3d_j_pixel.png"),
+                (Proto_GreyboxViewMode.View3D, "v4_greybox/3d_j_3d.png"),
+                (Proto_GreyboxViewMode.View2DChibi, "v4_greybox/3d_j_chibi.png"),
+            };
+            int frames = 160;
+            foreach (var (mode, file) in shots)
+            {
+                controller.SetViewMode(mode, persist: false);
+                for (int i = 0; i < frames; i++)
+                    controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = false }, dt);
+                frames = 30;
+                controller.ResetHp();
+                HideResultOverlay();
+                Canvas.ForceUpdateCanvases();
+                var tex = CaptureActiveWorldCam(CompareW, CompareH);
+                WritePng(tex, file);
+                Object.DestroyImmediate(tex);
+                Debug.Log($"3D J shot {mode} -> {file}");
+            }
+
+            // Chibi combat: enemies shooting, our bullets in flight, one heart lost to show the gauge.
+            controller.RuntimeTuning.EnemyFireInterval = 0.3f;
+            for (int i = 0; i < 120; i++)
+            {
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = i % 3 != 0 }, dt);
+                if (i % 6 == 0) controller.ResetHp();
+                if (i > 60 && HasNearEnemyBullet(controller, 3.4f)) break;
+            }
+            controller.ResetHp();
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            for (int i = 0; i < 120 && !controller.Hearts.TakeHit(); i++)
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            for (int i = 0; i < 12; i++)
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            HideResultOverlay();
+            Canvas.ForceUpdateCanvases();
+            var combat = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(combat, "v4_greybox/3d_j_chibi_combat.png");
+            Object.DestroyImmediate(combat);
+
+            // Style toggle in the pause menu while chibi is active.
+            controller.ResetHp();
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetPaused(true);
+            Canvas.ForceUpdateCanvases();
+            var toggle = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(toggle, "v4_greybox/3d_j_toggle.png");
+            Object.DestroyImmediate(toggle);
+            controller.SetPaused(false);
+            Time.timeScale = 1f;
+            Debug.Log("3D J label: " + Proto_GreyboxViewModeState.Label(Proto_GreyboxViewModeState.Current, true));
+            EditorApplication.Exit(0);
+        }
+
+        static void HideResultOverlay()
+        {
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+        }
+
         static Texture2D LoadConcept1()
         {
             string[] paths =

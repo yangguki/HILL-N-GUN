@@ -13,17 +13,27 @@ namespace HillNGun.Proto.Greybox
             "Greybox_WestPixel_Layer"
         };
 
+        // GameObject.Find skips inactive objects, so roots hidden for 3D could never be found again
+        // when returning to a 2D style (grunts / crosshair / bullets stayed hidden). Remember them.
+        static readonly System.Collections.Generic.List<GameObject> s_hidden = new();
+
         public static void SetWorldVisible(bool visible)
         {
+            if (visible)
+            {
+                foreach (var hidden in s_hidden)
+                    if (hidden != null)
+                        hidden.SetActive(true);
+                s_hidden.Clear();
+            }
+
             var stageRoot = GameObject.Find(Proto_GreyboxStageBuilder.RootName);
             if (stageRoot != null)
                 SetSpriteRenderersEnabled(stageRoot.transform, visible);
 
             foreach (var name in ExtraHideNames)
             {
-                var go = GameObject.Find(name);
-                if (go != null)
-                    go.SetActive(visible);
+                SetActiveTracked(GameObject.Find(name), visible);
             }
 
             var player = GameObject.Find(Proto_GreyboxStageBuilder.PlayerName);
@@ -41,9 +51,15 @@ namespace HillNGun.Proto.Greybox
 
         static void HideNamedTransformChildren(string name, bool visible)
         {
-            var go = GameObject.Find(name);
-            if (go != null)
-                go.SetActive(visible);
+            SetActiveTracked(GameObject.Find(name), visible);
+        }
+
+        static void SetActiveTracked(GameObject go, bool visible)
+        {
+            if (go == null) return;
+            if (!visible && go.activeSelf && !s_hidden.Contains(go))
+                s_hidden.Add(go);
+            go.SetActive(visible);
         }
 
         static void SetSpriteRenderersEnabled(Transform root, bool enabled)
