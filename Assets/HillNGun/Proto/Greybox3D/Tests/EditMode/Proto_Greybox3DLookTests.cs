@@ -163,5 +163,54 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
                 if (t.name.ToLowerInvariant().Contains(n)) return t;
             return null;
         }
+        [Test]
+        public void SceneBuilder_HasStreetProps()
+        {
+            _root = new GameObject("PropRoot").transform;
+            var stage = Proto_Greybox3DSceneBuilder.BuildRoot(_root);
+            Assert.Greater(CountByName(stage, "Greybox3D_Cart"), 0, "cart prop missing");
+            Assert.Greater(CountByName(stage, "Greybox3D_Stall"), 0, "stall prop missing");
+            Assert.Greater(CountByName(stage, "Greybox3D_LampPost"), 0, "lamp post missing");
+        }
+
+        [Test]
+        public void DizzyStars_AppearDuringLightDizzy()
+        {
+            _root = new GameObject("DizzyRoot").transform;
+            var hero = Proto_Greybox3DCharacterMesh.BuildHero(_root);
+            var stars = Proto_Greybox3DDizzyStars.Ensure(hero);
+            Assert.NotNull(stars);
+            var dizzy = new Proto_GreyboxRollDizzy();
+            // 3 chained rolls trigger Light dizzy.
+            float t = 0f;
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.IsTrue(dizzy.TryAcceptRollStart(t));
+                dizzy.NotifyRollStarted(t);
+                t += 0.2f;
+                dizzy.NotifyRollEnded(t);
+                t += 0.05f;
+            }
+            Assert.AreEqual(Proto_GreyboxRollDizzyPhase.Light, dizzy.Phase);
+            stars.Tick(0.02f, dizzy, null);
+            bool any = false;
+            foreach (var tr in hero.GetComponentsInChildren<Transform>(true))
+            {
+                if (tr.name.StartsWith("DizzyStar") || tr.name == "DizzyStarRing")
+                {
+                    any = tr.gameObject.activeSelf || any;
+                }
+            }
+            Assert.IsTrue(any, "dizzy stars/ring should be visible during 3rd-roll dizzy");
+        }
+
+        static int CountByName(Transform root, string name)
+        {
+            int n = 0;
+            foreach (var t in root.GetComponentsInChildren<Transform>(true))
+                if (t.name == name) n++;
+            return n;
+        }
+
     }
 }

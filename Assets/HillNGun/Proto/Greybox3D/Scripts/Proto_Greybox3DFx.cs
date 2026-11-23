@@ -70,6 +70,8 @@ namespace HillNGun.Proto.Greybox3D
         {
             if (_shake > 0f)
                 _shake = Mathf.Max(0f, _shake - dt * 3.2f);
+            foreach (var bb in GetComponentsInChildren<Proto_Greybox3DBillboardFx>(true))
+                bb.Tick(dt, Camera.main);
 
             _scratch.Clear();
             for (int i = 0; i < _live.Count; i++)
@@ -118,6 +120,13 @@ namespace HillNGun.Proto.Greybox3D
 
         public void Muzzle(Vector3 pos, Vector3 dir)
         {
+            var cat = Proto_Greybox3DCatalog.Load();
+            if (cat != null && cat.FxMuzzle != null && cat.FxMuzzle.Length > 0)
+            {
+                Proto_Greybox3DBillboardFx.Play(transform, "Muzzle", pos, Vector3.one * 0.5f,
+                    cat.FxMuzzle, 30f, false, new Vector2(0.25f, 0.5f), dir.normalized * 0.4f, Camera.main);
+                return;
+            }
             dir = dir.sqrMagnitude > 0.01f ? dir.normalized : Vector3.forward;
             var go = MakeSphere("Muzzle", pos + dir * 0.12f, new Color(1f, 0.92f, 0.45f, 0.95f), 2.6f, 0.28f);
             _live.Add(new Burst { Xform = go, Life = 0.11f, BaseScale = go.localScale, Kind = 0, Vel = dir * 1.2f });
@@ -141,6 +150,13 @@ namespace HillNGun.Proto.Greybox3D
 
         public void Impact(Vector3 pos)
         {
+            var cat = Proto_Greybox3DCatalog.Load();
+            if (cat != null && cat.FxHitSpark != null && cat.FxHitSpark.Length > 0)
+            {
+                Proto_Greybox3DBillboardFx.Play(transform, "HitSpark", pos, Vector3.one * 0.4f,
+                    cat.FxHitSpark, 24f, false, new Vector2(0.5f, 0.5f), Vector3.zero, Camera.main);
+                return;
+            }
             for (int i = 0; i < 4; i++)
             {
                 var off = new Vector3(Mathf.Cos(i * 1.7f), 0.2f, Mathf.Sin(i * 1.7f)) * 0.15f;
@@ -157,6 +173,16 @@ namespace HillNGun.Proto.Greybox3D
         {
             _shake = 1f;
             _exploding = true;
+            var cat = Proto_Greybox3DCatalog.Load();
+            if (cat != null && cat.FxExplosion != null && cat.FxExplosion.Length > 0)
+            {
+                Proto_Greybox3DBillboardFx.Play(transform, "Explosion", pos, Vector3.one * 2.0f,
+                    cat.FxExplosion, 15f, false, new Vector2(0.5f, 0.15f), Vector3.zero, Camera.main);
+                if (cat.FxSmoke != null && cat.FxSmoke.Length > 0)
+                    Proto_Greybox3DBillboardFx.Play(transform, "Smoke", pos + Vector3.up * 0.3f, Vector3.one * 1.5f,
+                        cat.FxSmoke, 12f, false, new Vector2(0.5f, 0.5f), Vector3.up * 0.5f, Camera.main);
+                return;
+            }
             Color[] puffs =
             {
                 new Color(1f, 0.85f, 0.35f, 0.95f),
@@ -192,6 +218,19 @@ namespace HillNGun.Proto.Greybox3D
 
         public void RollDust(Vector3 pos)
         {
+            var cat = Proto_Greybox3DCatalog.Load();
+            if (cat != null && cat.FxRollDustPuff != null && cat.FxRollDustPuff.Length > 0)
+            {
+                Proto_Greybox3DBillboardFx.Play(transform, "RollDustPuff", pos, Vector3.one * 0.7f,
+                    cat.FxRollDustPuff, 16f, false, new Vector2(0.5f, 0.15f), Vector3.up * 0.3f, Camera.main);
+                return;
+            }
+            if (cat != null && cat.FxDust != null && cat.FxDust.Length > 0)
+            {
+                Proto_Greybox3DBillboardFx.Play(transform, "Dust", pos, Vector3.one * 0.7f,
+                    cat.FxDust, 12f, false, new Vector2(0.5f, 0.2f), Vector3.up * 0.3f, Camera.main);
+                return;
+            }
             var go = MakeSphere("RollDust", pos + Vector3.up * 0.08f, new Color(0.85f, 0.65f, 0.35f, 0.7f), 1.1f, 0.28f);
             _live.Add(new Burst
             {

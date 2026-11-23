@@ -241,5 +241,18 @@ namespace HillNGun.Proto.Greybox3D.Tests.EditMode
             }
         }
 
+        [Test]
+        public void Catalog_HasDesignerV2Skins()
+        {
+            var cat = Resources.Load<Proto_Greybox3DCatalog>(Proto_Greybox3DCatalog.ResourcesPath);
+            Assert.NotNull(cat);
+            Assert.NotNull(cat.EnvGroundDirt, "designer dirt tile missing");
+            Assert.NotNull(cat.EnvAwningStall);
+            Assert.NotNull(cat.EnvPropLamp);
+            Assert.NotNull(cat.FxDizzyStars);
+            Assert.Greater(cat.FxDizzyStars.Length, 0);
+            Assert.NotNull(cat.FxRollDustPuff);
+            Assert.NotNull(cat.LilitaOne, "Lilita One font missing");
+        }
     }
 }

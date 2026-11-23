@@ -109,10 +109,14 @@ namespace HillNGun.Proto.Greybox3D
             if (active)
             {
                 _cam.tag = "MainCamera";
+                Proto_Greybox3DHudSkin.Apply();
                 Sync(host);
             }
             else
+            {
                 _cam.tag = "Untagged";
+                Proto_Greybox3DHudSkin.Restore();
+            }
         }
 
         public void Sync(Proto_GreyboxPlayerController host)
@@ -188,6 +192,11 @@ namespace HillNGun.Proto.Greybox3D
             SyncGrenade(host);
             _fx?.Tick(dt);
             ApplyDress(_hero);
+            var dizzy = Proto_Greybox3DDizzyStars.Ensure(_hero);
+            dizzy?.Tick(dt, host.RollDizzy, _cam);
+            if (WasRecentShot(host))
+                _fx?.Muzzle(heroPos + Vector3.up * (bodyH * 0.55f) + _hero.forward * 0.25f, _hero.forward);
+            Proto_Greybox3DHudSkin.Tick(host, _cam);
             UpdateCamera(heroPos);
         }
 
@@ -408,6 +417,10 @@ namespace HillNGun.Proto.Greybox3D
 
         Transform SpawnBullet(Material mat, float diam, float length, bool enemy)
         {
+            var cat = Proto_Greybox3DCatalog.Load();
+            if (cat != null && ((enemy && cat.FxBulletEnemy != null) || (!enemy && cat.FxBulletPlayer != null)))
+                return SpawnSpriteBullet(cat, diam, length, enemy);
+
             var go = new GameObject(enemy ? "Greybox3D_EnemyBullet" : "Greybox3D_AllyBullet");
             go.transform.SetParent(_stageRoot, false);
 
@@ -486,6 +499,66 @@ namespace HillNGun.Proto.Greybox3D
             }
             go.SetActive(false);
             return go.transform;
+        }
+
+        Transform SpawnSpriteBullet(Proto_Greybox3DCatalog cat, float diam, float length, bool enemy)
+        {
+            var go = new GameObject(enemy ? "Greybox3D_EnemyBullet" : "Greybox3D_AllyBullet");
+            go.transform.SetParent(_stageRoot, false);
+            var bodyTex = enemy ? cat.FxBulletEnemy : cat.FxBulletPlayer;
+            var streakTex = enemy ? cat.FxBulletEnemyStreak : cat.FxBulletPlayerStreak;
+            var trailTex = enemy ? cat.FxBulletEnemyTrail : cat.FxBulletPlayerTrail;
+            float body = Mathf.Max(diam, enemy ? diam : diam * 0.85f);
+            var billboard = new GameObject("Body").transform;
+            billboard.SetParent(go.transform, false);
+            billboard.localPosition = Vector3.zero;
+            var mf = billboard.gameObject.AddComponent<MeshFilter>();
+            mf.sharedMesh = QuadMesh();
+            var mr = billboard.gameObject.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = Proto_Greybox3DMaterials.Sprite(bodyTex, Color.white);
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            billboard.localScale = new Vector3(body, body, 1f);
+            if (streakTex != null)
+            {
+                var st = new GameObject("Streak").transform;
+                st.SetParent(go.transform, false);
+                st.localPosition = new Vector3(0f, 0f, -body * 0.9f);
+                st.localRotation = Quaternion.Euler(0f, 90f, 0f);
+                var smf = st.gameObject.AddComponent<MeshFilter>();
+                smf.sharedMesh = QuadMesh();
+                var smr = st.gameObject.AddComponent<MeshRenderer>();
+                smr.sharedMaterial = Proto_Greybox3DMaterials.Sprite(streakTex, Color.white);
+                smr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                st.localScale = new Vector3(body * (enemy ? 3.2f : 2.4f), body * (enemy ? 1.1f : 0.7f), 1f);
+            }
+            var trail = go.AddComponent<TrailRenderer>();
+            trail.time = enemy ? 0.28f : 0.10f;
+            trail.startWidth = diam * (enemy ? 1.1f : 0.4f);
+            trail.endWidth = diam * 0.05f;
+            trail.minVertexDistance = 0.03f;
+            trail.textureMode = LineTextureMode.Stretch;
+            trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            trail.material = Proto_Greybox3DMaterials.Trail(trailTex, enemy
+                ? new Color(1f, 0.35f, 0.08f, 0.9f)
+                : new Color(1f, 0.85f, 0.25f, 0.9f));
+            go.SetActive(false);
+            return go.transform;
+        }
+
+        static Mesh s_quad;
+        static Mesh QuadMesh()
+        {
+            if (s_quad != null) return s_quad;
+            s_quad = new Mesh { name = "Greybox3D_BulletQuad" };
+            s_quad.vertices = new[]
+            {
+                new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, -0.5f, 0f),
+                new Vector3(-0.5f, 0.5f, 0f), new Vector3(0.5f, 0.5f, 0f)
+            };
+            s_quad.uv = new[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1), new Vector2(1, 1) };
+            s_quad.triangles = new[] { 0, 2, 1, 2, 3, 1 };
+            s_quad.RecalculateBounds();
+            return s_quad;
         }
 
         void SyncGrenade(Proto_GreyboxPlayerController host)

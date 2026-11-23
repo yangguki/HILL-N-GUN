@@ -879,6 +879,186 @@ namespace HillNGun.Proto.Greybox3D.Editor
             Debug.Log("Greybox3D cowboy closeup saved");
         }
 
+
+        public static void Capture3dICompare()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D I compare: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            const float dt = 0.02f;
+            for (int i = 0; i < 160; i++)
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = false }, dt);
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            Canvas.ForceUpdateCanvases();
+            var tex3D = CaptureActiveWorldCam(CompareW, CompareH);
+            var half3D = ScaleTexture(tex3D, HalfW, CompareH);
+            var concept = LoadConcept1();
+            var halfC = concept != null ? ScaleTexture(concept, HalfW, CompareH) : half3D;
+            var stitched = new Texture2D(CompareW, CompareH, TextureFormat.RGB24, false);
+            stitched.SetPixels(0, 0, HalfW, CompareH, halfC.GetPixels());
+            stitched.SetPixels(HalfW, 0, HalfW, CompareH, half3D.GetPixels());
+            stitched.Apply();
+            WritePng(stitched, "v4_greybox/3d_i_compare.png");
+            Object.DestroyImmediate(tex3D);
+            Object.DestroyImmediate(half3D);
+            if (halfC != concept && halfC != half3D) Object.DestroyImmediate(halfC);
+            Object.DestroyImmediate(stitched);
+            EditorApplication.Exit(0);
+        }
+
+        public static void Capture3dICombat()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D I combat: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 0.28f;
+            controller.RuntimeTuning.Wave1Count = 6;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 150; i++)
+            {
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = false }, dt);
+                if (i % 8 == 0) controller.ResetHp();
+            }
+            for (int i = 0; i < 90; i++)
+            {
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+                controller.ResetHp();
+                if (HasNearEnemyBullet(controller, 3.4f))
+                    break;
+            }
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            controller.PoseAimStickDrag(new Vector2(0.2f, 5.0f));
+            controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = true }, dt);
+            Canvas.ForceUpdateCanvases();
+            var tex = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(tex, "v4_greybox/3d_i_combat.png");
+            Object.DestroyImmediate(tex);
+            EditorApplication.Exit(0);
+        }
+
+        public static void Capture3dIChars()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D I chars: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 160; i++)
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = false }, dt);
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            var hero = GameObject.Find("Greybox3D_Hero");
+            Transform grunt = null;
+            foreach (var tr in Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (tr.name.StartsWith("Greybox3D_Grunt") && tr.parent != null)
+                {
+                    grunt = tr;
+                    break;
+                }
+            }
+            var presenter = Proto_GreyboxViewPresenterRegistry.Ensure();
+            var cam = presenter != null ? presenter.WorldCamera : Camera.main;
+            if (hero != null && grunt != null)
+            {
+                grunt.position = hero.transform.position + hero.transform.forward * 1.55f + hero.transform.right * 0.45f;
+                grunt.localScale = hero.transform.localScale * 0.78f;
+                grunt.rotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
+            }
+            if (hero != null && cam != null)
+            {
+                var back = hero.transform.position - hero.transform.forward * 2.15f + Vector3.up * 1.05f + hero.transform.right * 1.15f;
+                var look = hero.transform.position + Vector3.up * 0.55f + hero.transform.forward * 0.6f;
+                if (grunt != null)
+                    look = Vector3.Lerp(look, grunt.position + Vector3.up * 0.55f, 0.50f);
+                cam.transform.position = back;
+                cam.transform.LookAt(look);
+                cam.fieldOfView = 36f;
+            }
+            Canvas.ForceUpdateCanvases();
+            var tex = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(tex, "v4_greybox/3d_i_chars.png");
+            Object.DestroyImmediate(tex);
+            EditorApplication.Exit(0);
+        }
+
+        public static void Capture3dIHud()
+        {
+            Ensure3DFactory();
+            Proto_Greybox3DCatalogBuilder.Build();
+            var controller = OpenAndBuild();
+            if (controller == null)
+            {
+                Debug.LogError("3D I hud: player missing.");
+                EditorApplication.Exit(1);
+                return;
+            }
+            const float dt = 0.02f;
+            controller.RuntimeTuning.EnemyFireInterval = 9999f;
+            controller.SetWestPixelSkin(true);
+            controller.SetViewMode(Proto_GreyboxViewMode.View3D, persist: false);
+            for (int i = 0; i < 80; i++)
+                controller.Simulate(new Proto_GreyboxInput { FireQuickAuto = false }, dt);
+            controller.ResetHp();
+            var overlay = GameObject.Find(Proto_GreyboxResultUi.RootName);
+            if (overlay != null) overlay.SetActive(false);
+            Canvas.ForceUpdateCanvases();
+            var tex = CaptureActiveWorldCam(CompareW, CompareH);
+            WritePng(tex, "v4_greybox/3d_i_hud.png");
+            Object.DestroyImmediate(tex);
+            EditorApplication.Exit(0);
+        }
+
+        static Texture2D LoadConcept1()
+        {
+            string[] paths =
+            {
+                "Assets/HillNGun/Proto/Greybox3D/Reference/concept1_ingame.png",
+                "Assets/HillNGun/Proto/Greybox3D/Reference/concept_3d_town.jpg"
+            };
+            foreach (var path in paths)
+            {
+                var full = Path.GetFullPath(path);
+                if (!File.Exists(full)) continue;
+                var tex = new Texture2D(2, 2, TextureFormat.RGB24, false);
+                if (tex.LoadImage(File.ReadAllBytes(full)))
+                    return tex;
+                Object.DestroyImmediate(tex);
+            }
+            return LoadConcept();
+        }
+
         static Texture2D LoadConcept()
 
         {
@@ -915,6 +1095,25 @@ namespace HillNGun.Proto.Greybox3D.Editor
             cam.aspect = Proto_GreyboxLayout.TargetAspect;
             if (cam.orthographic)
                 Proto_GreyboxScreenMetrics.ConfigureCaptureCamera(cam);
+
+            // Screen Space - Camera HUD only renders into this RT if it points at this camera.
+            var hud = GameObject.Find("Greybox_Hud");
+            var canvas = hud != null ? hud.GetComponent<Canvas>() : null;
+            Camera prevCanvasCam = null;
+            float prevPlane = 1f;
+            RenderMode prevMode = RenderMode.ScreenSpaceCamera;
+            if (canvas != null)
+            {
+                prevCanvasCam = canvas.worldCamera;
+                prevPlane = canvas.planeDistance;
+                prevMode = canvas.renderMode;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                if (canvas.planeDistance < 0.5f)
+                    canvas.planeDistance = 1f;
+            }
+            Canvas.ForceUpdateCanvases();
+
             var rt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
             var prev = cam.targetTexture;
             var prevActive = RenderTexture.active;
@@ -928,6 +1127,12 @@ namespace HillNGun.Proto.Greybox3D.Editor
             RenderTexture.active = prevActive;
             rt.Release();
             Object.DestroyImmediate(rt);
+            if (canvas != null)
+            {
+                canvas.renderMode = prevMode;
+                canvas.worldCamera = prevCanvasCam;
+                canvas.planeDistance = prevPlane;
+            }
             return tex;
         }
 

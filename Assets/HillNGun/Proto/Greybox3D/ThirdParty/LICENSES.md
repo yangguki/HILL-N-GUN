@@ -67,3 +67,18 @@ Credit is not required under CC0; names and URLs are recorded here for provenanc
   fall (hit), die, jump (available; roll uses the existing procedural spin).
 
 Credit is not required under CC0; names and URLs are recorded here for provenance.
+
+## Lilita One (SIL Open Font License 1.1)
+
+- Font: Lilita One Regular
+- Copyright (c) 2011 Juan Montoreano (juan@remolacha.biz), with Reserved Font Name Lilita
+- License: SIL Open Font License, Version 1.1 — full text in `Assets/HillNGun/Proto/Greybox3D/Art/Fonts/OFL.txt`
+- Used for 3D-view SCORE/STAGE numerals (and any TMP/UI text in the 3D HUD).
+- Downloaded from the box Google Fonts collection (`/usr/share/fonts/truetype/sand-box/google/Lilita One/`).
+
+## HILL N GUN designer 3D skins (original)
+
+- Author: the project's designer (confirmed concept sheets + skin pack).
+- Location: `Assets/HillNGun/Proto/Greybox3D/Art/{UI,FX,Characters,Environment,Fonts}/`
+- These textures, sprites, and colormaps are original game art, not third-party.
+- Kenney Mini Characters colormap layout is CC0 (see Mini Characters above); designer remaps and extra swatches (T*/X*, turret map) are original.

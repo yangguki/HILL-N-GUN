@@ -1600,6 +1600,17 @@ namespace HillNGun.Proto.Greybox
 
         void UpdateDizzyVisual()
         {
+            if (Proto_GreyboxViewModeState.Is3D)
+            {
+                foreach (var s in _dizzyStars)
+                    if (s != null) s.gameObject.SetActive(false);
+                return;
+            }
+            UpdateDizzyVisual2D();
+        }
+
+        void UpdateDizzyVisual2D()
+        {
             var phase = _rollDizzy.Phase;
             if (phase == Proto_GreyboxRollDizzyPhase.None)
             {
@@ -2131,8 +2142,10 @@ namespace HillNGun.Proto.Greybox
             xPct >= 3.2f && xPct <= 8.6f && yPct >= 8.6f && yPct <= 11.4f;
 
         static bool IsJoystickHit(float xPct, float yPct) =>
-            xPct >= Proto_GreyboxHudBuilder.JoystickHitX0 && xPct <= Proto_GreyboxHudBuilder.JoystickHitX1
-            && yPct >= Proto_GreyboxHudBuilder.JoystickHitY0 && yPct <= Proto_GreyboxHudBuilder.JoystickHitY1;
+            Proto_Greybox3DHudLayout.Enabled
+                ? Proto_Greybox3DHudLayout.JoystickHit(xPct, yPct)
+                : (xPct >= Proto_GreyboxHudBuilder.JoystickHitX0 && xPct <= Proto_GreyboxHudBuilder.JoystickHitX1
+                   && yPct >= Proto_GreyboxHudBuilder.JoystickHitY0 && yPct <= Proto_GreyboxHudBuilder.JoystickHitY1);
 
         static bool IsFireHit(float xPct, float yPct) => Proto_GreyboxCombatInputGate.FireCircleHit(xPct, yPct);
 

@@ -8,6 +8,10 @@ namespace HillNGun.Proto.Greybox3D
         static Shader s_glow;
         static Shader s_blobShader;
         static Shader s_skyShader;
+        static Shader s_sprite;
+        static Shader s_cutout;
+        static readonly System.Collections.Generic.Dictionary<int, Material> s_envCache =
+            new System.Collections.Generic.Dictionary<int, Material>();
         static Material s_celTemplate;
         static Material s_ground;
         static Material s_wood;
@@ -35,6 +39,10 @@ namespace HillNGun.Proto.Greybox3D
             if (cat.GlowShader != null) s_glow = cat.GlowShader;
             if (cat.BlobShader != null) s_blobShader = cat.BlobShader;
             if (cat.SkyShader != null) s_skyShader = cat.SkyShader;
+            if (cat.SpriteShader != null) s_sprite = cat.SpriteShader;
+            if (cat.CutoutShader != null) s_cutout = cat.CutoutShader;
+            s_ground = null;
+            s_envCache.Clear();
         }
 
         static Shader Resolve(ref Shader cache, string name, string fallback)
@@ -147,9 +155,17 @@ namespace HillNGun.Proto.Greybox3D
                     // checker when stretched over the playfield.
                     // Solid sand only: the pack dirt texture has a visible "Dirt SandStone" label
                     // that tiles into a grid on the playfield.
-                    s_ground = Cel(new Color(0.92f, 0.78f, 0.58f), SandNoise(), 0.0f);
-                    if (s_ground.HasProperty("_MainTex"))
-                        s_ground.SetTextureScale("_MainTex", new Vector2(14f, 18f));
+                    var cat = Proto_Greybox3DCatalog.Load();
+                    if (cat != null && cat.EnvGroundDirt != null)
+                    {
+                        s_ground = EnvTile(cat.EnvGroundDirt, new Vector2(6.5f, 12f), new Color(1.08f, 1.04f, 1.0f, 1f));
+                    }
+                    else
+                    {
+                        s_ground = Cel(new Color(0.92f, 0.78f, 0.58f), SandNoise(), 0.0f);
+                        if (s_ground.HasProperty("_MainTex"))
+                            s_ground.SetTextureScale("_MainTex", new Vector2(14f, 18f));
+                    }
                 }
                 return s_ground;
             }
@@ -341,5 +357,61 @@ namespace HillNGun.Proto.Greybox3D
             var cat = Proto_Greybox3DCatalog.Load();
             return Cel(tint, cat != null ? cat.FabricTex : null, 0.01f);
         }
+        static Shader SpriteShader => Resolve(ref s_sprite, "HillNGun/Proto/Greybox3D/Sprite", "Sprites/Default");
+
+        public static Material Sprite(Texture tex, Color color)
+        {
+            var m = SafeMaterial(SpriteShader);
+            ApplyColor(m, color);
+            if (tex != null && m.HasProperty("_MainTex"))
+                m.SetTexture("_MainTex", tex);
+            m.renderQueue = 3000;
+            return m;
+        }
+
+        public static Material EnvTile(Texture tex, Vector2 tiling, Color tint)
+        {
+            int key = (tex != null ? tex.GetInstanceID() : 0)
+                      ^ (Quantize(tint) << 1)
+                      ^ ((int)(tiling.x * 10f) << 16)
+                      ^ (int)(tiling.y * 10f);
+            if (s_envCache.TryGetValue(key, out var cached) && cached != null)
+                return cached;
+            var m = Cel(tint, tex, 0.004f);
+            if (m.HasProperty("_MainTex"))
+                m.SetTextureScale("_MainTex", tiling);
+            if (m.HasProperty("_Saturation"))
+                m.SetFloat("_Saturation", 1.15f);
+            s_envCache[key] = m;
+            return m;
+        }
+
+        public static Material Trail(Texture tex, Color color)
+        {
+            var m = Glow(color, 1.4f);
+            if (tex != null && m.HasProperty("_MainTex"))
+                m.SetTexture("_MainTex", tex);
+            return m;
+        }
+
+        static Shader CutoutShader => Resolve(ref s_cutout, "HillNGun/Proto/Greybox3D/Cutout", "Transparent/Cutout/Diffuse");
+
+        public static Material Cutout(Texture tex, Color tint, float cutoff, Vector2 tiling)
+        {
+            int key = (tex != null ? tex.GetInstanceID() : 0) ^ Quantize(tint) ^ ((int)(cutoff * 100f) << 10) ^ ((int)(tiling.x * 10f) << 16);
+            if (s_envCache.TryGetValue(key, out var cached) && cached != null)
+                return cached;
+            var m = SafeMaterial(CutoutShader);
+            ApplyColor(m, tint);
+            if (tex != null && m.HasProperty("_MainTex"))
+            {
+                m.SetTexture("_MainTex", tex);
+                m.SetTextureScale("_MainTex", tiling);
+            }
+            if (m.HasProperty("_Cutoff")) m.SetFloat("_Cutoff", cutoff);
+            s_envCache[key] = m;
+            return m;
+        }
+
     }
 }

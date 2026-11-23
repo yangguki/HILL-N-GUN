@@ -2,7 +2,8 @@
     "name": "HillNGun.Proto.Greybox3D",
     "rootNamespace": "HillNGun.Proto.Greybox3D",
     "references": [
-        "HillNGun.Proto.Greybox"
+        "HillNGun.Proto.Greybox",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

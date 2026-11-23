@@ -1,0 +1,2 @@
+HILL N GUN designer 3D skins (original art) plus Lilita One (SIL OFL 1.1).
+See ../ThirdParty/LICENSES.md and Fonts/OFL.txt.

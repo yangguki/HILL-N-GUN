@@ -60,6 +60,133 @@ MonoBehaviour:
   DirtTex: {fileID: 2800000, guid: ffe1ea4440af94730a4c4e66f10fb4d7, type: 3}
   FabricTex: {fileID: 2800000, guid: a9ef29778ea334b42892e9bee81e5ce0, type: 3}
   SkyboxDay: {fileID: 2800000, guid: 1736f84276f48409688aa41f00b5035e, type: 3}
+  CharColormapPlayer: {fileID: 2800000, guid: cd342e45584bbb24d8e022b7d1648daf, type: 3}
+  CharColormapEnemy: {fileID: 2800000, guid: 5dfce796ea897cd4f889bc09cd06193d, type: 3}
+  CharColormapEnemyFast: {fileID: 2800000, guid: 92439cf1aa52bc4449db0705bf0a1b1a, type: 3}
+  CharColormapEnemyStrong: {fileID: 2800000, guid: 3e0089b4d35780349b8c372805c60a52, type: 3}
+  CharColormapEnemyBomb: {fileID: 2800000, guid: 66506b04dd926ce44bafea9c74818c49, type: 3}
+  CharColormapEnemySniper: {fileID: 2800000, guid: 7ec11e06cc4e7794ea1efdd0e8e1d5f5, type: 3}
+  CharColormapPlayerMaleG: {fileID: 2800000, guid: 19a7eb23c132ded46a0f490600cbda60, type: 3}
+  EnvWallWood: {fileID: 2800000, guid: c9512446c2174224696607ae650e1c6c, type: 3}
+  EnvDeckWood: {fileID: 2800000, guid: 9b3ab25eb101dd74db07bba22438d031, type: 3}
+  EnvRoofShingle: {fileID: 2800000, guid: 069d9fddd0b6dc14c95283f76c149aa9, type: 3}
+  EnvAwningBlue: {fileID: 2800000, guid: c183888a4d062ba48bb092f77b31dd59, type: 3}
+  EnvAwningRed: {fileID: 2800000, guid: adb7b1d5ef11a714aaa7992c97e25fbd, type: 3}
+  EnvAwningYellow: {fileID: 2800000, guid: 77682072015652d42ab26a5133f1c949, type: 3}
+  EnvAwningGreen: {fileID: 2800000, guid: b7748a21b4e65ed4da0a1c47a2f842ac, type: 3}
+  EnvGroundDirt: {fileID: 2800000, guid: 5b6cd7f192248cd4d8b2d95d184bfa1e, type: 3}
+  EnvRockMesa: {fileID: 2800000, guid: dfe7228df182a534baa6fcf0ab441e88, type: 3}
+  EnvAtlas: {fileID: 2800000, guid: d9b50b3d93b4f3a4da4b7bf16d141ffe, type: 3}
+  LilitaOne: {fileID: 12800000, guid: 821328551e1e504479314cd08b7ade69, type: 3}
+  UiJoystickBase: {fileID: 21300000, guid: 11b6ea46b02392b40ab17c7994bc520e, type: 3}
+  UiJoystickKnob: {fileID: 21300000, guid: d6e9ce04b28884341ad03ac34f07c5ac, type: 3}
+  UiJoystickKnobPressed: {fileID: 21300000, guid: a12f26c076151c44e8b38eaf2c379b69, type: 3}
+  UiBtnAttackNormal: {fileID: 21300000, guid: eaa586c1765d86642a27a42eb50facb5, type: 3}
+  UiBtnAttackPressed: {fileID: 21300000, guid: 9523e74214ab0f4408594b1a34841951, type: 3}
+  UiBtnSkillNormal: {fileID: 21300000, guid: ec0e32614d34027478ff2c87bee34658, type: 3}
+  UiBtnSkillPressed: {fileID: 21300000, guid: 2b0116cd68a0ce64fa8e48dad3c05f02, type: 3}
+  UiBtnReloadNormal: {fileID: 21300000, guid: 91143aec724dd8341aca99ebec1063cd, type: 3}
+  UiBtnReloadPressed: {fileID: 21300000, guid: a7f2b13b3a135bc47b7a0c604c96597c, type: 3}
+  UiBtnPauseNormal: {fileID: 21300000, guid: 6e695a344e60c9643a082cfe1bc09cb0, type: 3}
+  UiBtnPausePressed: {fileID: 21300000, guid: d99f49a9796c0714384da0fce450fca8, type: 3}
+  UiHpFrame: {fileID: 21300000, guid: 1632400aa49860c47ad8422f14055af6, type: 3}
+  UiHpTrack: {fileID: 21300000, guid: cec2c1212bad3b346a9a599856123ed7, type: 3}
+  UiHpFill: {fileID: 21300000, guid: 7eb421c773b48824382a4e95b78695df, type: 3}
+  UiHpFillLow: {fileID: 21300000, guid: e01d7572f9a7eae4189c1481f8306ebe, type: 3}
+  UiHpFillFull: {fileID: 21300000, guid: e151f3b8140181a499ddd1c28bdb8c2e, type: 3}
+  UiCrosshair: {fileID: 21300000, guid: 55627937a7b4e974cb77edf2f98db31c, type: 3}
+  UiCrosshairHit: {fileID: 21300000, guid: d7287650eec0dd3448eaf0a9d86caec9, type: 3}
+  UiTextScore: {fileID: 21300000, guid: caebebb0ad9e21e4cbe087b7e3febdf4, type: 3}
+  UiTextStage: {fileID: 21300000, guid: 76f526109fd0b7d4bad3597536900ac9, type: 3}
+  UiTextHp: {fileID: 21300000, guid: e6dad4ce70d6b274a85e64968068bc8a, type: 3}
+  FxBulletPlayer: {fileID: 2800000, guid: 3a0fddd254f2d774fbfc354aabf80d79, type: 3}
+  FxBulletPlayerTrail: {fileID: 2800000, guid: e5e68ccc9865dd94fa149495267b5abb, type: 3}
+  FxBulletPlayerStreak: {fileID: 2800000, guid: 951ce6822b7b07744b7c8f8f259f4978, type: 3}
+  FxBulletEnemy: {fileID: 2800000, guid: 26b6dbce9b7e3144f84f688fa3a267e6, type: 3}
+  FxBulletEnemyTrail: {fileID: 2800000, guid: f7054d1e2a3005c4a99442b2f978c11c, type: 3}
+  FxBulletEnemyStreak: {fileID: 2800000, guid: a5f1b099cfde6104886841e2b180e50f, type: 3}
+  FxMuzzle:
+  - {fileID: -9129653749092915617, guid: e8acaaa14de887545b6d3a51597875eb, type: 3}
+  - {fileID: 5789643267317738026, guid: e8acaaa14de887545b6d3a51597875eb, type: 3}
+  - {fileID: -6799235474595284333, guid: e8acaaa14de887545b6d3a51597875eb, type: 3}
+  - {fileID: 5946943668073334482, guid: e8acaaa14de887545b6d3a51597875eb, type: 3}
+  FxHitSpark:
+  - {fileID: 5933878597898239450, guid: dcb00351d8fd8cb40bab770dc3f22e20, type: 3}
+  - {fileID: 436835744758257549, guid: dcb00351d8fd8cb40bab770dc3f22e20, type: 3}
+  - {fileID: -2298115261892530978, guid: dcb00351d8fd8cb40bab770dc3f22e20, type: 3}
+  - {fileID: 1888998149537963223, guid: dcb00351d8fd8cb40bab770dc3f22e20, type: 3}
+  - {fileID: -7921198398280717970, guid: dcb00351d8fd8cb40bab770dc3f22e20, type: 3}
+  FxExplosion:
+  - {fileID: 7182508577942179589, guid: 3d5c150be8b06f048acf8a8f5d46cc48, type: 3}
+  - {fileID: 1484027279057565441, guid: 3d5c150be8b06f048acf8a8f5d46cc48, type: 3}
+  - {fileID: 70647871043116911, guid: 3d5c150be8b06f048acf8a8f5d46cc48, type: 3}
+  - {fileID: 2026108183246514302, guid: 3d5c150be8b06f048acf8a8f5d46cc48, type: 3}
+  - {fileID: 6533154060696333422, guid: 3d5c150be8b06f048acf8a8f5d46cc48, type: 3}
+  - {fileID: -7549567407226910704, guid: 3d5c150be8b06f048acf8a8f5d46cc48, type: 3}
+  FxSmoke:
+  - {fileID: 9172581780677721990, guid: c55ae42484c43a74e9d5160470f39131, type: 3}
+  - {fileID: -4917158484627958053, guid: c55ae42484c43a74e9d5160470f39131, type: 3}
+  - {fileID: 8815372505872365258, guid: c55ae42484c43a74e9d5160470f39131, type: 3}
+  - {fileID: -7108865902470484287, guid: c55ae42484c43a74e9d5160470f39131, type: 3}
+  - {fileID: -1042465714906575290, guid: c55ae42484c43a74e9d5160470f39131, type: 3}
+  - {fileID: -1784656201056172205, guid: c55ae42484c43a74e9d5160470f39131, type: 3}
+  FxDust:
+  - {fileID: -6197492007612262602, guid: 438f35c946dc44042aa0e3af8c04f218, type: 3}
+  - {fileID: 2066151765278278323, guid: 438f35c946dc44042aa0e3af8c04f218, type: 3}
+  - {fileID: -5844922883288368515, guid: 438f35c946dc44042aa0e3af8c04f218, type: 3}
+  - {fileID: -1105884338499357450, guid: 438f35c946dc44042aa0e3af8c04f218, type: 3}
+  - {fileID: -4442968932559459219, guid: 438f35c946dc44042aa0e3af8c04f218, type: 3}
+  - {fileID: -7215729809002608565, guid: 438f35c946dc44042aa0e3af8c04f218, type: 3}
+  FxCoinSpin:
+  - {fileID: 7579214179663496382, guid: e6a87cf8384bfe84e8e4d15bd42c18ce, type: 3}
+  - {fileID: 3138549810100563206, guid: e6a87cf8384bfe84e8e4d15bd42c18ce, type: 3}
+  - {fileID: -7029864539960430843, guid: e6a87cf8384bfe84e8e4d15bd42c18ce, type: 3}
+  - {fileID: -8384745868251478605, guid: e6a87cf8384bfe84e8e4d15bd42c18ce, type: 3}
+  - {fileID: 3664173645378308756, guid: e6a87cf8384bfe84e8e4d15bd42c18ce, type: 3}
+  - {fileID: 4890763489268932271, guid: e6a87cf8384bfe84e8e4d15bd42c18ce, type: 3}
+  FxCoin: {fileID: 21300000, guid: a7a1dc45aa6ef934baf87f3ade864ae3, type: 3}
+  SpriteShader: {fileID: 4800000, guid: 6ce5d021142622c4295d4d10fc13fd30, type: 3}
+  CharColormapTurret: {fileID: 2800000, guid: 7a6d37b619a8d2340a8e288f5561936c, type: 3}
+  EnvAwningStall: {fileID: 2800000, guid: 6e292361d4a852e439224909eda29293, type: 3}
+  EnvAwningStallEdge: {fileID: 2800000, guid: f75816deca6b21f49bbd6d1784fa0c0e, type: 3}
+  EnvFenceWood: {fileID: 2800000, guid: 3b76c3744cb0fcc46a152c004a5c1058, type: 3}
+  EnvPropWheel: {fileID: 2800000, guid: f4a18d9a7dfa0c549b0a4e622c04be96, type: 3}
+  EnvPropLamp: {fileID: 2800000, guid: b8ea9dcd29339e64eacb2dbf9494fd02, type: 3}
+  EnvPropLampGlow: {fileID: 2800000, guid: d492f6d23bbe7f34eb8e8fc75b6441a1, type: 3}
+  EnvPropRockPile: {fileID: 2800000, guid: f5669998e5704b240b235c389d933be6, type: 3}
+  EnvAtlasV2: {fileID: 2800000, guid: 5557050061d2b9b44baf02acc35b7f79, type: 3}
+  FxDizzyStars:
+  - {fileID: 1209526446347948043, guid: cf030bf0cc071464ca0f5099608298ca, type: 3}
+  - {fileID: 4602048543578161051, guid: cf030bf0cc071464ca0f5099608298ca, type: 3}
+  - {fileID: 6997229774414261135, guid: cf030bf0cc071464ca0f5099608298ca, type: 3}
+  - {fileID: -2083162380786274112, guid: cf030bf0cc071464ca0f5099608298ca, type: 3}
+  - {fileID: 7542107573713289954, guid: cf030bf0cc071464ca0f5099608298ca, type: 3}
+  - {fileID: 6312226711241923579, guid: cf030bf0cc071464ca0f5099608298ca, type: 3}
+  - {fileID: -2872618821248286072, guid: cf030bf0cc071464ca0f5099608298ca, type: 3}
+  - {fileID: -3470826081174252315, guid: cf030bf0cc071464ca0f5099608298ca, type: 3}
+  FxRollDustPuff:
+  - {fileID: -925875535633795140, guid: 7ef5bd88caf7cad4ca0c1ffce42a8d4f, type: 3}
+  - {fileID: -6735751002956473427, guid: 7ef5bd88caf7cad4ca0c1ffce42a8d4f, type: 3}
+  - {fileID: -2951618844013816170, guid: 7ef5bd88caf7cad4ca0c1ffce42a8d4f, type: 3}
+  - {fileID: 5891237109198613548, guid: 7ef5bd88caf7cad4ca0c1ffce42a8d4f, type: 3}
+  FxRollDustTrail: {fileID: 2800000, guid: 5019cc9b331f6404a940c227c08b734a, type: 3}
+  FxShieldBubble:
+  - {fileID: 2847226568060183296, guid: 79d920991d9b08449b32101b27e53361, type: 3}
+  - {fileID: -8019368761251658776, guid: 79d920991d9b08449b32101b27e53361, type: 3}
+  - {fileID: 5731501376754646349, guid: 79d920991d9b08449b32101b27e53361, type: 3}
+  - {fileID: -6390231179571495986, guid: 79d920991d9b08449b32101b27e53361, type: 3}
+  - {fileID: 7065666822011588037, guid: 79d920991d9b08449b32101b27e53361, type: 3}
+  - {fileID: -7503114911307488351, guid: 79d920991d9b08449b32101b27e53361, type: 3}
+  - {fileID: 6573882131794552237, guid: 79d920991d9b08449b32101b27e53361, type: 3}
+  - {fileID: -7982749275238659851, guid: 79d920991d9b08449b32101b27e53361, type: 3}
+  FxShieldPop:
+  - {fileID: 9032718628355332666, guid: cf8c1f4f0c794c8429efd1f942541bfd, type: 3}
+  - {fileID: -828563152036324895, guid: cf8c1f4f0c794c8429efd1f942541bfd, type: 3}
+  - {fileID: 5302668748934660709, guid: cf8c1f4f0c794c8429efd1f942541bfd, type: 3}
+  - {fileID: -2131433570042007820, guid: cf8c1f4f0c794c8429efd1f942541bfd, type: 3}
+  FxShieldSphereAdd: {fileID: 2800000, guid: aba7af81c423f7340957899ccc0ad041, type: 3}
+  FxShieldSphereAlpha: {fileID: 2800000, guid: 1d54381e0d1b2e749a749622ed66dab9, type: 3}
+  CutoutShader: {fileID: 4800000, guid: 5cfce6b334786ff42bf45de856f9fa9d, type: 3}
   CelShader: {fileID: 4800000, guid: 5949bb97c83b34721a0af73b5d5b9ddc, type: 3}
   GlowShader: {fileID: 4800000, guid: 594b43cbe787d4989a690ce846153986, type: 3}
   BlobShader: {fileID: 4800000, guid: 173097b214ac8441799d7d2e1ae59b8b, type: 3}

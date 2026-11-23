@@ -35,6 +35,8 @@ namespace HillNGun.Proto.Greybox3D
             BuildGround(root);
             BuildMesas(root, catalog);
             BuildStorefronts(root);
+            ApplyDesignerEnvTextures(root, catalog);
+            Proto_Greybox3DProps.BuildStreetProps(root);
             BuildFence(root, catalog);
             BuildCratesAndBarrels(root, catalog);
             BuildCactiRocksGrass(root, catalog);
@@ -310,7 +312,7 @@ namespace HillNGun.Proto.Greybox3D
 
             // Porch, posts, and striped awning.
             AddFacadePanel(store, new Vector3(0f, 0.05f, -depth * 0.78f), new Vector3(width * 1.08f, 0.08f, 0.55f),
-                new Color(0.40f, 0.22f, 0.10f));
+                new Color(0.40f, 0.22f, 0.10f), "PorchDeck");
             for (int p = -1; p <= 1; p += 2)
             {
                 var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -359,14 +361,48 @@ namespace HillNGun.Proto.Greybox3D
             AddFacadePanel(parent, center, new Vector3(0.03f, h, 0.045f), wood);
         }
 
-        static void AddFacadePanel(Transform parent, Vector3 localPos, Vector3 scale, Color color)
+        static void AddFacadePanel(Transform parent, Vector3 localPos, Vector3 scale, Color color, string name = null)
         {
             var p = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            if (!string.IsNullOrEmpty(name)) p.name = name;
             p.transform.SetParent(parent, false);
             p.transform.localPosition = localPos;
             p.transform.localScale = scale;
             p.GetComponent<MeshRenderer>().sharedMaterial = Proto_Greybox3DMaterials.CelShared(color, 0.006f);
             Proto_Greybox3DUtil.DestroySafe(p.GetComponent<Collider>());
+        }
+
+        static void ApplyDesignerEnvTextures(Transform root, Proto_Greybox3DCatalog catalog)
+        {
+            if (catalog == null || catalog.EnvWallWood == null) return;
+            var wall = Proto_Greybox3DMaterials.EnvTile(catalog.EnvWallWood, new Vector2(1.4f, 1.6f), new Color(1.08f, 1.02f, 0.96f, 1f));
+            var deck = Proto_Greybox3DMaterials.EnvTile(catalog.EnvDeckWood, new Vector2(1.2f, 1.0f), Color.white);
+            var roof = Proto_Greybox3DMaterials.EnvTile(catalog.EnvRoofShingle, new Vector2(1.6f, 1.2f), Color.white);
+            var mesa = catalog.EnvRockMesa != null
+                ? Proto_Greybox3DMaterials.EnvTile(catalog.EnvRockMesa, new Vector2(1.8f, 1.4f), new Color(1.05f, 1f, 1f, 1f))
+                : null;
+            Texture[] awnTex = { catalog.EnvAwningBlue, catalog.EnvAwningRed, catalog.EnvAwningYellow, catalog.EnvAwningGreen };
+            foreach (var tr in root.GetComponentsInChildren<Transform>(true))
+            {
+                var mr = tr.GetComponent<MeshRenderer>();
+                if (mr == null) continue;
+                if (tr.name == "Plank" || tr.name == "Mass") mr.sharedMaterial = wall;
+                else if (tr.name == "PorchDeck") mr.sharedMaterial = deck;
+                else if (tr.name == "MesaStratum" || tr.name == "MesaCap")
+                {
+                    if (mesa != null) mr.sharedMaterial = mesa;
+                }
+                else if (tr.name == "AwningStripe")
+                {
+                    var store = tr.parent;
+                    int idx = 0;
+                    if (store != null && store.name.StartsWith("Greybox3D_Store_"))
+                        int.TryParse(store.name.Substring("Greybox3D_Store_".Length), out idx);
+                    var tex = awnTex[idx % awnTex.Length];
+                    if (tex != null)
+                        mr.sharedMaterial = Proto_Greybox3DMaterials.EnvTile(tex, new Vector2(0.5f, 0.8f), Color.white);
+                }
+            }
         }
 
         static void BuildFence(Transform root, Proto_Greybox3DCatalog catalog)

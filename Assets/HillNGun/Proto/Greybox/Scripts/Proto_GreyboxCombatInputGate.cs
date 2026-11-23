@@ -14,8 +14,10 @@ namespace HillNGun.Proto.Greybox
         }
 
         public static bool JoystickCaptureOnBegan(float xPct, float yPct, bool began) =>
-            began && xPct >= Proto_GreyboxHudBuilder.JoystickHitX0 && xPct <= Proto_GreyboxHudBuilder.JoystickHitX1
-            && yPct >= Proto_GreyboxHudBuilder.JoystickHitY0 && yPct <= Proto_GreyboxHudBuilder.JoystickHitY1;
+            began && (Proto_Greybox3DHudLayout.Enabled
+                ? Proto_Greybox3DHudLayout.JoystickHit(xPct, yPct)
+                : (xPct >= Proto_GreyboxHudBuilder.JoystickHitX0 && xPct <= Proto_GreyboxHudBuilder.JoystickHitX1
+                   && yPct >= Proto_GreyboxHudBuilder.JoystickHitY0 && yPct <= Proto_GreyboxHudBuilder.JoystickHitY1));
 
         public static bool CircleHitsOverlap(float ax, float ay, float aPlaceRadiusPercent, float bx, float by,
             float bPlaceRadiusPercent, float paddingPx = Proto_GreyboxHudBuilder.ActionClusterHitPaddingPx)
@@ -28,20 +30,28 @@ namespace HillNGun.Proto.Greybox
         }
 
         public static bool FireCircleHit(float xPct, float yPct) =>
-            Proto_GreyboxHudBuilder.CircleHitTest(xPct, yPct, Proto_GreyboxHudBuilder.FireCenterX,
-                Proto_GreyboxHudBuilder.FireCenterY, Proto_GreyboxHudBuilder.FirePlaceRadiusPercent);
+            Proto_Greybox3DHudLayout.Enabled
+                ? Proto_Greybox3DHudLayout.CircleHit(xPct, yPct, Proto_Greybox3DHudLayout.AttackX, Proto_Greybox3DHudLayout.AttackY, Proto_Greybox3DHudLayout.AttackRadius)
+                : Proto_GreyboxHudBuilder.CircleHitTest(xPct, yPct, Proto_GreyboxHudBuilder.FireCenterX,
+                    Proto_GreyboxHudBuilder.FireCenterY, Proto_GreyboxHudBuilder.FirePlaceRadiusPercent);
 
         public static bool ReloadCircleHit(float xPct, float yPct) =>
-            Proto_GreyboxHudBuilder.CircleHitTest(xPct, yPct, Proto_GreyboxHudBuilder.ReloadCenterX,
-                Proto_GreyboxHudBuilder.ReloadCenterY, Proto_GreyboxHudBuilder.SmallActionPlaceRadiusPercent);
+            Proto_Greybox3DHudLayout.Enabled
+                ? Proto_Greybox3DHudLayout.CircleHit(xPct, yPct, Proto_Greybox3DHudLayout.ReloadX, Proto_Greybox3DHudLayout.ReloadY, Proto_Greybox3DHudLayout.ReloadRadius)
+                : Proto_GreyboxHudBuilder.CircleHitTest(xPct, yPct, Proto_GreyboxHudBuilder.ReloadCenterX,
+                    Proto_GreyboxHudBuilder.ReloadCenterY, Proto_GreyboxHudBuilder.SmallActionPlaceRadiusPercent);
 
         public static bool GrenadeCircleHit(float xPct, float yPct) =>
-            Proto_GreyboxHudBuilder.CircleHitTest(xPct, yPct, Proto_GreyboxHudBuilder.GrenadeCenterX,
-                Proto_GreyboxHudBuilder.GrenadeCenterY, Proto_GreyboxHudBuilder.SmallActionPlaceRadiusPercent);
+            Proto_Greybox3DHudLayout.Enabled
+                ? Proto_Greybox3DHudLayout.CircleHit(xPct, yPct, Proto_Greybox3DHudLayout.SkillX, Proto_Greybox3DHudLayout.SkillY, Proto_Greybox3DHudLayout.SkillRadius)
+                : Proto_GreyboxHudBuilder.CircleHitTest(xPct, yPct, Proto_GreyboxHudBuilder.GrenadeCenterX,
+                    Proto_GreyboxHudBuilder.GrenadeCenterY, Proto_GreyboxHudBuilder.SmallActionPlaceRadiusPercent);
 
         public static bool RollCircleHit(float xPct, float yPct) =>
-            Proto_GreyboxHudBuilder.CircleHitTest(xPct, yPct, Proto_GreyboxHudBuilder.RollCenterX,
-                Proto_GreyboxHudBuilder.RollCenterY, Proto_GreyboxHudBuilder.SmallActionPlaceRadiusPercent);
+            Proto_Greybox3DHudLayout.Enabled
+                ? Proto_Greybox3DHudLayout.CircleHit(xPct, yPct, Proto_Greybox3DHudLayout.RollX, Proto_Greybox3DHudLayout.RollY, Proto_Greybox3DHudLayout.RollRadius)
+                : Proto_GreyboxHudBuilder.CircleHitTest(xPct, yPct, Proto_GreyboxHudBuilder.RollCenterX,
+                    Proto_GreyboxHudBuilder.RollCenterY, Proto_GreyboxHudBuilder.SmallActionPlaceRadiusPercent);
 
         public static Proto_GreyboxInput StripCombatWhenPaused(Proto_GreyboxInput input)
         {
