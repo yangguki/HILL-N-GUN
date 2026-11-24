@@ -29,7 +29,7 @@ namespace HillNGun.Proto.Greybox
 
         readonly Proto_GreyboxRuntimeTuning _tuning = new Proto_GreyboxRuntimeTuning();
         readonly Proto_GreyboxWaveDirector _waveDirector = new Proto_GreyboxWaveDirector();
-        readonly System.Random _coverRng = new System.Random(77);
+        System.Random _coverRng = new System.Random(77);
 
         SpriteRenderer _sprite;
         Transform _crosshair;
@@ -61,6 +61,7 @@ namespace HillNGun.Proto.Greybox
         Proto_GreyboxRuntimeDebugUi _debugUi;
         bool _settingsFromGear;
         Proto_GreyboxWestPixelSkin _westSkin;
+        Proto_GreyboxPerspective2DSkin _perspSkin;
         readonly Proto_GreyboxRollDizzy _rollDizzy = new Proto_GreyboxRollDizzy();
         readonly Proto_GreyboxCylinderHud _cylinderHud = new Proto_GreyboxCylinderHud();
         readonly Proto_GreyboxGrenadeGaugeHud _grenadeGaugeHud = new Proto_GreyboxGrenadeGaugeHud();
@@ -107,8 +108,11 @@ namespace HillNGun.Proto.Greybox
         float _hitFlashTimer;
         bool _debugTogglePrev;
         bool _viewModeApplied;
+        bool _initialSpawnFootSynced;
 
         public Proto_GreyboxPlayerMotor Motor => _motor;
+
+        public void BalanceSimSeedCoverRng(int seed) => _coverRng = new System.Random(seed);
         public Proto_GreyboxRoll Roll => _roll;
         public Proto_GreyboxAim Aim => _aim;
         public Proto_GreyboxGun Gun => _gun;
@@ -141,10 +145,32 @@ namespace HillNGun.Proto.Greybox
             Proto_GreyboxViewModeState.SetMode(mode, persist);
             _tuning.View3D = mode == Proto_GreyboxViewMode.View3D;
             ApplyViewMode();
-            // 2D pixel <-> 2D chibi swap the sprite catalog on the same 2D gameplay.
+            EnsureWestSkin();
+            EnsurePerspSkin();
+            _perspSkin?.SyncFromViewMode();
+            Apply2DSkinEnable();
+            // After 2D skin enable (e.g. leaving 3D) so chibi catalog can BindStage.
             _westSkin?.SyncStyle();
+            Refresh2DCameraAfterViewModeChange();
             _pauseUi?.RefreshViewToggle(Proto_GreyboxViewModeState.Current);
             _settingsUi?.RefreshViewToggle(Proto_GreyboxViewModeState.Current);
+        }
+
+        void Refresh2DCameraAfterViewModeChange()
+        {
+            if (Proto_GreyboxViewModeState.Is3D) return;
+            var cam = Camera.main;
+            cam?.GetComponent<Proto_GreyboxCameraSetup>()?.Apply();
+            if (cam != null)
+                Proto_GreyboxScreenMetrics.ConfigureCaptureCamera(cam);
+            if (!Proto_GreyboxViewModeState.IsPersp2D)
+            {
+                EnsureWestSkin();
+                _westSkin?.SetEnabled(true);
+                _westSkin?.SyncStyle();
+                if (_westSkin != null && _westSkin.IsActive)
+                    _westSkin.RebuildStageLayout();
+            }
         }
 
         void ApplyViewMode()
@@ -234,8 +260,9 @@ namespace HillNGun.Proto.Greybox
         public void SetWestPixelSkin(bool enabled)
         {
             EnsureLogic();
+            _tuning.WestPixelSkin = enabled;
             EnsureWestSkin();
-            _westSkin.SetEnabled(enabled);
+            _westSkin.SetEnabled(enabled && !Proto_GreyboxViewModeState.IsPersp2D);
         }
 
         public void SetPlayerPerspectiveRuntime()
@@ -314,6 +341,20 @@ namespace HillNGun.Proto.Greybox
             EnsureDebugUi();
             if (!_viewModeApplied)
                 ApplyViewMode();
+            if (!_initialSpawnFootSynced)
+            {
+                SyncSpawnFootToViewMode();
+                _initialSpawnFootSynced = true;
+            }
+        }
+
+        void SyncSpawnFootToViewMode()
+        {
+            var foot = new Vector2(
+                Proto_GreyboxPlayerSpawn.PlayerStartFootWorldX(),
+                Proto_GreyboxPlayerSpawn.PlayerStartFootWorldY(Proto_GreyboxViewModeState.Current));
+            _motor?.SetFoot(foot);
+            transform.position = new Vector3(foot.x, foot.y, transform.position.z);
         }
 
         public void SetAimOverride(Vector2 groundPos) => _aimOverride = groundPos;
@@ -443,6 +484,27 @@ namespace HillNGun.Proto.Greybox
             _westSkin.EnsureBound();
         }
 
+        void EnsurePerspSkin()
+        {
+            if (_perspSkin == null)
+                _perspSkin = new Proto_GreyboxPerspective2DSkin(this);
+        }
+
+        void Apply2DSkinEnable()
+        {
+            bool persp = Proto_GreyboxViewModeState.IsPersp2D;
+            bool threeD = Proto_GreyboxViewModeState.Is3D;
+            _perspSkin?.SetEnabled(persp);
+            bool useWest2D = !persp && !threeD;
+            _westSkin?.SetEnabled(useWest2D);
+            if (useWest2D)
+                _westSkin?.SyncStyle();
+            if (persp)
+                Proto_GreyboxPersp2DHud.EnsureOnHud(GameObject.Find("Greybox_Hud")?.transform);
+            else if (Proto_GreyboxPersp2DHud.IsApplied)
+                Proto_GreyboxPersp2DHud.Restore();
+        }
+
         void Update()
         {
             if (!Application.isPlaying) return;
@@ -464,7 +526,8 @@ namespace HillNGun.Proto.Greybox
             {
                 if (input.RestartPressed)
                     FullRestart();
-                UpdateResultPanel();
+                if (!Proto_GreyboxCapturePersp2D.HideResultOverlay)
+                    UpdateResultPanel();
                 return;
             }
 
@@ -477,13 +540,17 @@ namespace HillNGun.Proto.Greybox
                 _runStarted = true;
                 Proto_GreyboxWestPixelSkinState.Enabled = _tuning.WestPixelSkin;
                 EnsureWestSkin();
-                _westSkin?.SetEnabled(_tuning.WestPixelSkin);
+                EnsurePerspSkin();
+                Apply2DSkinEnable();
             }
 
             _simTime += dt;
             _rollDizzy.Tick(_simTime);
             EnsureWestSkin();
+            EnsurePerspSkin();
+            Apply2DSkinEnable();
             _westSkin?.SetSimDt(dt);
+            _perspSkin?.SetSimDt(dt);
             if (_rollDizzy.BlocksMovement)
                 input = new Proto_GreyboxInput
                 {
@@ -525,6 +592,7 @@ namespace HillNGun.Proto.Greybox
             {
                 _rollDizzy.NotifyRollEnded(_simTime);
                 _westSkin?.OnRollEnded(_roll.Facing, _rollDizzy.Phase);
+                _perspSkin?.OnRollEnded();
                 if (_rollDizzy.Phase == Proto_GreyboxRollDizzyPhase.Stun)
                     _gun.CancelReload();
             }
@@ -538,6 +606,7 @@ namespace HillNGun.Proto.Greybox
                 _gun.CancelReload();
                 _rollDizzy.NotifyRollStarted(_simTime);
                 _westSkin?.OnRollStarted(_roll.Facing);
+                _perspSkin?.OnRollStarted(_roll.Facing);
             }
 
             _rollPressedPrev = input.RollPressed;
@@ -590,7 +659,10 @@ namespace HillNGun.Proto.Greybox
             SyncEnemyBulletViews();
             SyncGruntViews();
             ApplyTransform(dt);
-            _westSkin?.TickFrame(dt, input);
+            if (_perspSkin != null && _perspSkin.IsActive)
+                _perspSkin.Tick(dt, input);
+            else
+                _westSkin?.TickFrame(dt, input);
             UpdateCrosshair();
             UpdateAimLineVisual();
             UpdateGrenadePreviewVisual();
@@ -651,6 +723,7 @@ namespace HillNGun.Proto.Greybox
         {
             if (_rollDizzy.BlocksFire) return;
             if (!_gun.TryFire(_simTime)) return;
+            Proto_GreyboxBalanceSimContext.NotifyHeroShotFired();
             Vector2 aim = intent == Proto_GreyboxAimReleaseIntent.AutoAim
                 ? _aim.AutoFireAimPoint()
                 : _aim.ManualFireAimPoint();
@@ -665,6 +738,7 @@ namespace HillNGun.Proto.Greybox
             _allyBullets.Add(new Proto_GreyboxAllyBulletSim(foot, aimGround, _cover, 25f, _tuning.AllyBulletSpeed,
                 _tuning.AllyBulletDiameter, _tuning.AllyBulletDamage));
             _westSkin?.OnPlayerFired();
+            _perspSkin?.OnPlayerFired();
         }
 
         void EnsureAllyBulletRoot()
@@ -696,8 +770,13 @@ namespace HillNGun.Proto.Greybox
 
         void SyncAllyBulletViews()
         {
+            EnsurePerspSkin();
             EnsureWestSkin();
             EnsureAllyBulletRoot();
+            if (_perspSkin != null && _perspSkin.IsActive && _perspSkin.SyncAllyBullets(_allyBullets,
+                    _tuning.AllyBulletDiameter, _allyBulletViews, _allyTracerViews, _allyBulletHotspotViews,
+                    _allyBulletRoot))
+                return;
             if (_westSkin != null && _westSkin.SyncAllyBullets(_allyBullets, _tuning.AllyBulletDiameter, _allyBulletViews,
                     _allyTracerViews, _allyBulletHotspotViews, _allyBulletRoot))
                 return;
@@ -778,8 +857,12 @@ namespace HillNGun.Proto.Greybox
 
         void SyncEnemyBulletViews()
         {
+            EnsurePerspSkin();
             EnsureWestSkin();
             EnsureEnemyBulletRoot();
+            if (_perspSkin != null && _perspSkin.IsActive && _perspSkin.SyncEnemyBullets(_enemyBullets,
+                    _tuning.EnemyBulletDiameter, _enemyBulletViews, _enemyBulletGlowViews, _enemyBulletRoot, _simTime))
+                return;
             if (_westSkin != null && _westSkin.SyncEnemyBullets(_enemyBullets, _tuning.EnemyBulletDiameter,
                     _enemyBulletViews, _enemyBulletGlowViews, _enemyBulletRoot, _simTime))
                 return;
@@ -848,12 +931,14 @@ namespace HillNGun.Proto.Greybox
                 var hit = b.Tick(dt, hittable);
                 if (hit != null)
                 {
+                    Proto_GreyboxBalanceSimContext.NotifyHeroShotHit();
                     foreach (var v in _targetViews)
                     {
                         if (v?.Logic != hit) continue;
                         v.FlashHit();
                         _westSkin?.OnGruntHitFlash(v);
                         _westSkin?.SpawnHitSpark(hit.FootPosition);
+                        _perspSkin?.SpawnHitSpark(hit.FootPosition);
                         break;
                     }
                 }
@@ -861,7 +946,10 @@ namespace HillNGun.Proto.Greybox
                 if (!b.Alive)
                 {
                     if (hit == null)
+                    {
                         _westSkin?.SpawnBulletDust(b.GroundPosition);
+                        _perspSkin?.SpawnBulletDust(b.GroundPosition);
+                    }
                     _allyBullets.RemoveAt(i);
                 }
             }
@@ -881,12 +969,19 @@ namespace HillNGun.Proto.Greybox
 
                 int hpBefore = _hearts.Hearts;
                 int hpScratch = hpBefore;
-                b.Tick(dt, footprint, IsInvulnerable, ref hpScratch, _tuning.CoverDamageReduction01, _coverRng,
-                    Proto_GreyboxTuning.EnemyBulletDamage);
+                if (!(Proto_GreyboxCapturePersp2D.Active && Proto_GreyboxCapturePersp2D.IgnorePlayerDamage))
+                {
+                    b.Tick(dt, footprint, IsInvulnerable, ref hpScratch, _tuning.CoverDamageReduction01, _coverRng,
+                        Proto_GreyboxTuning.EnemyBulletDamage);
+                }
+                else
+                    b.Tick(dt, footprint, true, ref hpScratch, _tuning.CoverDamageReduction01, _coverRng,
+                        Proto_GreyboxTuning.EnemyBulletDamage);
                 if (hpScratch < hpBefore)
                 {
                     if (_hearts.TakeHit())
                     {
+                        Proto_GreyboxBalanceSimContext.NotifyHeroHit();
                         _hp = _hearts.Hearts;
                         _heartsHud.TriggerPop(_hearts.Hearts);
                         _hitFlashTimer = 0.12f;
@@ -899,6 +994,7 @@ namespace HillNGun.Proto.Greybox
                 if (!b.Alive)
                 {
                     _westSkin?.SpawnHitSpark(b.GroundPosition);
+                    _perspSkin?.SpawnHitSpark(b.GroundPosition);
                     _enemyBullets.RemoveAt(i);
                 }
             }
@@ -913,6 +1009,7 @@ namespace HillNGun.Proto.Greybox
                 grunt.Tick(dt, Proto_GreyboxTuning.GruntWalkSpeed, Proto_GreyboxTuning.GruntStrafeRange,
                     _tuning.EnemyFireInterval, _tuning.EnemyBulletSpeed, playerFoot);
                 if (!grunt.FiredThisTick) continue;
+                Proto_GreyboxBalanceSimContext.NotifyEnemyShotFired();
                 _enemyBullets.Add(new Proto_GreyboxBulletSim(grunt.LastFireGround, grunt.LastFireVelocity, _cover,
                     _tuning.EnemyBulletDiameter));
             }
@@ -967,7 +1064,12 @@ namespace HillNGun.Proto.Greybox
                 }
 
                 view.gameObject.SetActive(true);
-                if (_westSkin != null && _westSkin.IsActive)
+                if (_perspSkin != null && _perspSkin.IsActive)
+                {
+                    _perspSkin.SyncGruntLiving(grunt, view, grunt.IsHidden);
+                    view.SyncPositionOnly();
+                }
+                else if (_westSkin != null && _westSkin.IsActive)
                 {
                     _westSkin.SyncGruntLiving(grunt, view, grunt.IsHidden);
                     view.SyncPositionOnly();
@@ -1059,6 +1161,11 @@ namespace HillNGun.Proto.Greybox
 
         void UpdateResultPanel()
         {
+            if (Proto_GreyboxCapturePersp2D.HideResultOverlay)
+            {
+                _resultUi.Clear();
+                return;
+            }
             EnsureResultPanel();
             if (!_resultUi.IsBuilt) return;
             int wave = Mathf.Max(1, _waveDirector.CurrentWave);
@@ -1096,10 +1203,8 @@ namespace HillNGun.Proto.Greybox
             _pauseUi.Clear();
             _settingsUi.Clear();
             _motor = null;
+            _initialSpawnFootSynced = false;
             EnsureLogic();
-            transform.position = new Vector3(
-                Proto_GreyboxLayout.ScreenXPercentToWorldX(49f),
-                Proto_GreyboxLayout.ScreenYPercentToWorldY(88f), 0f);
         }
 
         public void SetDebugPanelOpen(bool open)
@@ -1126,12 +1231,51 @@ namespace HillNGun.Proto.Greybox
                 go.SetActive(false);
         }
 
+        public Proto_GreyboxPerspective2DSkin PerspSkin => _perspSkin;
+
+        public void PreparePerspCaptureDecor()
+        {
+            EnsurePerspSkin();
+            Proto_GreyboxCapturePersp2D.DecorStreetBandits = true;
+            _perspSkin?.SetEnabled(true);
+            _perspSkin?.EnsureBound();
+            _perspSkin?.SyncCaptureDecor();
+        }
+
+        public bool TryGetPersp2DCrosshairScreen(out float xPct, out float yPct)
+        {
+            xPct = yPct = 0f;
+            if (!Proto_GreyboxViewModeState.IsPersp2D) return false;
+            EnsurePerspSkin();
+            if (_perspSkin == null || !_perspSkin.IsActive) return false;
+            return _perspSkin.TryGetCrosshairScreenPercent(this, out xPct, out yPct);
+        }
+
+        public SpriteRenderer TryGetGruntSprite(Proto_GreyboxTarget target)
+        {
+            if (target == null) return null;
+            foreach (var pair in _gruntViews)
+            {
+                if (pair.Key == null || pair.Value == null) continue;
+                if (pair.Key.Target == target)
+                    return pair.Value.GetComponent<SpriteRenderer>();
+            }
+
+            return null;
+        }
+
         void UpdateCrosshair()
         {
             if (_crosshair == null)
             {
                 CacheCrosshair();
                 if (_crosshair == null) return;
+            }
+
+            if (Proto_GreyboxViewModeState.IsPersp2D && Proto_GreyboxPersp2DHud.IsApplied)
+            {
+                _crosshair.gameObject.SetActive(false);
+                return;
             }
 
             Vector2 aim;
@@ -1167,21 +1311,32 @@ namespace HillNGun.Proto.Greybox
                     _ammoText.text = _gun.IsReloading ? "R..." : $"{_gun.Ammo}/{_gun.MagazineSize}";
                 }
             }
-            if (_scoreText != null)
-                _scoreText.text = _score.ToString();
-            if (_waveText != null)
+            if (!Proto_GreyboxPersp2DHud.IsApplied)
             {
-                int w = Mathf.Max(1, _waveDirector.CurrentWave);
-                if (_runResult != Proto_GreyboxRunResult.Playing && _waveDirector.State == Proto_GreyboxWaveDirectorState.Cleared)
-                    w = _waveDirector.TotalWaves;
-                _waveText.text = $"STAGE 1 · WAVE {w}/{_waveDirector.TotalWaves}";
+                if (_scoreText != null)
+                    _scoreText.text = _score.ToString();
+                if (_waveText != null)
+                {
+                    int w = Mathf.Max(1, _waveDirector.CurrentWave);
+                    if (_runResult != Proto_GreyboxRunResult.Playing && _waveDirector.State == Proto_GreyboxWaveDirectorState.Cleared)
+                        w = _waveDirector.TotalWaves;
+                    _waveText.text = $"STAGE 1 · WAVE {w}/{_waveDirector.TotalWaves}";
+                }
             }
 
             var hud = GameObject.Find("Greybox_Hud");
-            if (hud != null)
+            if (Proto_GreyboxPersp2DHud.IsApplied)
+            {
+                var legacyHearts = hud != null ? hud.transform.Find("Greybox_Hud_Hearts") : null;
+                if (legacyHearts != null) legacyHearts.gameObject.SetActive(false);
+            }
+            else if (hud != null)
+            {
                 _heartsHud.EnsureBound(hud.transform);
-            _heartsHud.Update(_hearts, _simTime, dt);
-            _cylinderHud.Update(_gun, _simTime, dt);
+                _heartsHud.Update(_hearts, _simTime, dt);
+            }
+            if (!Proto_GreyboxPersp2DHud.IsApplied && !Proto_GreyboxViewModeState.IsPersp2D)
+                _cylinderHud.Update(_gun, _simTime, dt);
             _grenadeGaugeHud.EnsureBound();
             _grenadeGaugeHud.Update(_grenade, _simTime, dt);
             _rollGaugeHud.EnsureBound();
@@ -1263,6 +1418,14 @@ namespace HillNGun.Proto.Greybox
 
         void UpdateAimLineVisual()
         {
+            if (Proto_GreyboxViewModeState.IsPersp2D)
+            {
+                if (_aimLine != null) _aimLine.gameObject.SetActive(false);
+                if (_aimCone != null) _aimCone.gameObject.SetActive(false);
+                if (_aimTipRing != null) _aimTipRing.gameObject.SetActive(false);
+                return;
+            }
+
             bool show = _aim.IsDragging || _aimOverride.HasValue;
             if (!show)
             {
@@ -2142,10 +2305,12 @@ namespace HillNGun.Proto.Greybox
             xPct >= 3.2f && xPct <= 8.6f && yPct >= 8.6f && yPct <= 11.4f;
 
         static bool IsJoystickHit(float xPct, float yPct) =>
-            Proto_Greybox3DHudLayout.Enabled
-                ? Proto_Greybox3DHudLayout.JoystickHit(xPct, yPct)
-                : (xPct >= Proto_GreyboxHudBuilder.JoystickHitX0 && xPct <= Proto_GreyboxHudBuilder.JoystickHitX1
-                   && yPct >= Proto_GreyboxHudBuilder.JoystickHitY0 && yPct <= Proto_GreyboxHudBuilder.JoystickHitY1);
+            Proto_GreyboxViewModeState.IsPersp2D && Proto_GreyboxPersp2DHud.IsApplied
+                ? Proto_GreyboxPersp2DHudLayout.JoystickHit(xPct, yPct)
+                : Proto_Greybox3DHudLayout.Enabled
+                    ? Proto_Greybox3DHudLayout.JoystickHit(xPct, yPct)
+                    : xPct >= Proto_GreyboxHudBuilder.JoystickHitX0 && xPct <= Proto_GreyboxHudBuilder.JoystickHitX1
+                      && yPct >= Proto_GreyboxHudBuilder.JoystickHitY0 && yPct <= Proto_GreyboxHudBuilder.JoystickHitY1;
 
         static bool IsFireHit(float xPct, float yPct) => Proto_GreyboxCombatInputGate.FireCircleHit(xPct, yPct);
 

@@ -1,0 +1,761 @@
+{
+ "character": "bandit",
+ "version": "final_skins_2d v3 (512 cell, prototype cut)",
+ "fps": 30,
+ "play_fps_recommended": {
+  "idle": 8,
+  "run": 12,
+  "shoot": 20,
+  "hit": 15,
+  "down": 12
+ },
+ "play_fps_note": "Frames are authored on a 30 fps grid. Recommended playback: idle 4 f @ 8 fps (0.5 s), run 6 f @ 12 fps (0.5 s cycle, same speed as the old 8 f @ 16 fps), shoot 3 f @ 20, roll 13 f @ 30 (0.43 s), hit 2 f @ 15, down 4 f @ 12 (hold last).",
+ "cell_px": [
+  512,
+  512
+ ],
+ "scale_note": "2x art (3840x2160 reference screen).",
+ "pivot_px": [
+  256.0,
+  400
+ ],
+ "pivot_px_origin": "top-left",
+ "pivot_norm_unity": [
+  0.5,
+  0.21875
+ ],
+ "baseline_y_px": 400,
+ "standing_bbox_idle_S": [
+  123,
+  46,
+  389,
+  414
+ ],
+ "standing_height_px": 368,
+ "outline_px": 4.0,
+ "render": {
+  "projection": "orthographic",
+  "elevation_deg": 20,
+  "px_per_model_unit": 157.333,
+  "supersample": 3
+ },
+ "directions_rendered": [
+  "S",
+  "E",
+  "N"
+ ],
+ "sheet_rows": [
+  "S",
+  "E",
+  "N"
+ ],
+ "direction_map_8way": {
+  "S": {
+   "source": "S",
+   "flipX": false
+  },
+  "SE": {
+   "source": "S",
+   "flipX": false
+  },
+  "E": {
+   "source": "E",
+   "flipX": false
+  },
+  "NE": {
+   "source": "E",
+   "flipX": false
+  },
+  "N": {
+   "source": "N",
+   "flipX": false
+  },
+  "NW": {
+   "source": "E",
+   "flipX": true
+  },
+  "W": {
+   "source": "E",
+   "flipX": true
+  },
+  "SW": {
+   "source": "S",
+   "flipX": false
+  }
+ },
+ "direction_map_note": "Bandit (prototype cut): 3 rendered (S, E, N). SE and SW use S (bandits mostly face the hero/camera, so front diagonals keep the face readable); NE uses E and NW uses E flipped (back diagonals are rare retreats; the side view reads their travel better than the back); W = E flipped; N = N.",
+ "mirror_note": "On flipped frames the revolver appears in the LEFT hand; accepted by design.",
+ "scale_reference": {
+  "hero_height_m": 1.6,
+  "hero_standing_px": 376,
+  "px_per_m_at_engine_scale_1": 235.0,
+  "engine_scale_formula": "character engine scale = (feet_y - 907) / 564.0  (= (feet_y - 907)/844.5 * 563/376; F=2400, camera 2.4 m, hero 1.6 m)",
+  "hero_row": {
+   "feet_y_px": 1764,
+   "screen_height_pct": 26.5,
+   "engine_scale": 1.52
+  },
+  "props": {
+   "px_per_m": 352.5,
+   "prop_engine_scale_formula": "(feet_y - 907) / 846.0  (props keep their own scale: Z_ref = F/352.5, feet_y_at_ref 1753; the old character formula /844.5 is within 0.2%)",
+   "relation": "prop engine scale = character engine scale / 1.5000 at the same feet y (props 352.5 px/m vs characters 235.0 px/m)",
+   "note": "Props were not re-rendered; they keep their own scale. Characters are now drawn smaller (512 cell) and scaled up more."
+  }
+ },
+ "anims": {
+  "idle": {
+   "frames": 4,
+   "loop": true,
+   "sheet": "sheets/hng_char_bandit_idle_sheet.png",
+   "sheet_size": [
+    2048,
+    1536
+   ],
+   "files": {
+    "S": [
+     "bandit/idle/hng_char_bandit_idle_S_00.png",
+     "bandit/idle/hng_char_bandit_idle_S_01.png",
+     "bandit/idle/hng_char_bandit_idle_S_02.png",
+     "bandit/idle/hng_char_bandit_idle_S_03.png"
+    ],
+    "E": [
+     "bandit/idle/hng_char_bandit_idle_E_00.png",
+     "bandit/idle/hng_char_bandit_idle_E_01.png",
+     "bandit/idle/hng_char_bandit_idle_E_02.png",
+     "bandit/idle/hng_char_bandit_idle_E_03.png"
+    ],
+    "N": [
+     "bandit/idle/hng_char_bandit_idle_N_00.png",
+     "bandit/idle/hng_char_bandit_idle_N_01.png",
+     "bandit/idle/hng_char_bandit_idle_N_02.png",
+     "bandit/idle/hng_char_bandit_idle_N_03.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      123,
+      46,
+      389,
+      414
+     ],
+     [
+      123,
+      48,
+      389,
+      413
+     ],
+     [
+      123,
+      46,
+      389,
+      414
+     ],
+     [
+      123,
+      44,
+      389,
+      414
+     ]
+    ],
+    "E": [
+     [
+      151,
+      38,
+      393,
+      417
+     ],
+     [
+      158,
+      38,
+      399,
+      417
+     ],
+     [
+      151,
+      38,
+      393,
+      417
+     ],
+     [
+      145,
+      39,
+      387,
+      417
+     ]
+    ],
+    "N": [
+     [
+      123,
+      32,
+      389,
+      408
+     ],
+     [
+      123,
+      30,
+      389,
+      407
+     ],
+     [
+      123,
+      32,
+      389,
+      408
+     ],
+     [
+      123,
+      35,
+      389,
+      409
+     ]
+    ]
+   }
+  },
+  "run": {
+   "frames": 6,
+   "loop": true,
+   "sheet": "sheets/hng_char_bandit_run_sheet.png",
+   "sheet_size": [
+    3072,
+    1536
+   ],
+   "files": {
+    "S": [
+     "bandit/run/hng_char_bandit_run_S_00.png",
+     "bandit/run/hng_char_bandit_run_S_01.png",
+     "bandit/run/hng_char_bandit_run_S_02.png",
+     "bandit/run/hng_char_bandit_run_S_03.png",
+     "bandit/run/hng_char_bandit_run_S_04.png",
+     "bandit/run/hng_char_bandit_run_S_05.png"
+    ],
+    "E": [
+     "bandit/run/hng_char_bandit_run_E_00.png",
+     "bandit/run/hng_char_bandit_run_E_01.png",
+     "bandit/run/hng_char_bandit_run_E_02.png",
+     "bandit/run/hng_char_bandit_run_E_03.png",
+     "bandit/run/hng_char_bandit_run_E_04.png",
+     "bandit/run/hng_char_bandit_run_E_05.png"
+    ],
+    "N": [
+     "bandit/run/hng_char_bandit_run_N_00.png",
+     "bandit/run/hng_char_bandit_run_N_01.png",
+     "bandit/run/hng_char_bandit_run_N_02.png",
+     "bandit/run/hng_char_bandit_run_N_03.png",
+     "bandit/run/hng_char_bandit_run_N_04.png",
+     "bandit/run/hng_char_bandit_run_N_05.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      123,
+      53,
+      389,
+      404
+     ],
+     [
+      130,
+      67,
+      397,
+      413
+     ],
+     [
+      130,
+      67,
+      397,
+      411
+     ],
+     [
+      123,
+      53,
+      389,
+      404
+     ],
+     [
+      115,
+      67,
+      382,
+      413
+     ],
+     [
+      115,
+      67,
+      382,
+      411
+     ]
+    ],
+    "E": [
+     [
+      183,
+      35,
+      425,
+      412
+     ],
+     [
+      179,
+      46,
+      424,
+      407
+     ],
+     [
+      168,
+      47,
+      424,
+      400
+     ],
+     [
+      183,
+      35,
+      425,
+      396
+     ],
+     [
+      179,
+      50,
+      424,
+      418
+     ],
+     [
+      168,
+      51,
+      424,
+      417
+     ]
+    ],
+    "N": [
+     [
+      123,
+      17,
+      389,
+      397
+     ],
+     [
+      115,
+      31,
+      382,
+      415
+     ],
+     [
+      115,
+      32,
+      382,
+      400
+     ],
+     [
+      123,
+      17,
+      389,
+      397
+     ],
+     [
+      130,
+      31,
+      397,
+      415
+     ],
+     [
+      130,
+      32,
+      397,
+      400
+     ]
+    ]
+   },
+   "note": "6-frame loop (smooth periodic legs/arms/bob); recommended 12 fps."
+  },
+  "shoot": {
+   "frames": 3,
+   "loop": false,
+   "sheet": "sheets/hng_char_bandit_shoot_sheet.png",
+   "sheet_size": [
+    1536,
+    1536
+   ],
+   "files": {
+    "S": [
+     "bandit/shoot/hng_char_bandit_shoot_S_00.png",
+     "bandit/shoot/hng_char_bandit_shoot_S_01.png",
+     "bandit/shoot/hng_char_bandit_shoot_S_02.png"
+    ],
+    "E": [
+     "bandit/shoot/hng_char_bandit_shoot_E_00.png",
+     "bandit/shoot/hng_char_bandit_shoot_E_01.png",
+     "bandit/shoot/hng_char_bandit_shoot_E_02.png"
+    ],
+    "N": [
+     "bandit/shoot/hng_char_bandit_shoot_N_00.png",
+     "bandit/shoot/hng_char_bandit_shoot_N_01.png",
+     "bandit/shoot/hng_char_bandit_shoot_N_02.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      126,
+      41,
+      392,
+      409
+     ],
+     [
+      124,
+      38,
+      391,
+      409
+     ],
+     [
+      125,
+      40,
+      392,
+      409
+     ]
+    ],
+    "E": [
+     [
+      151,
+      33,
+      405,
+      417
+     ],
+     [
+      145,
+      33,
+      388,
+      417
+     ],
+     [
+      149,
+      33,
+      402,
+      417
+     ]
+    ],
+    "N": [
+     [
+      120,
+      28,
+      386,
+      403
+     ],
+     [
+      121,
+      30,
+      388,
+      403
+     ],
+     [
+      120,
+      29,
+      387,
+      403
+     ]
+    ]
+   },
+   "muzzle_px": {
+    "S": [
+     [
+      213.7,
+      288.3
+     ],
+     [
+      213.0,
+      232.2
+     ],
+     [
+      213.7,
+      268.8
+     ]
+    ],
+    "SE": [
+     [
+      213.7,
+      288.3
+     ],
+     [
+      213.0,
+      232.2
+     ],
+     [
+      213.7,
+      268.8
+     ]
+    ],
+    "E": [
+     [
+      400.3,
+      253.4
+     ],
+     [
+      381.8,
+      203.9
+     ],
+     [
+      396.6,
+      235.2
+     ]
+    ],
+    "NE": [
+     [
+      400.3,
+      253.4
+     ],
+     [
+      381.8,
+      203.9
+     ],
+     [
+      396.6,
+      235.2
+     ]
+    ],
+    "N": [
+     [
+      298.3,
+      189.5
+     ],
+     [
+      299.0,
+      146.1
+     ],
+     [
+      298.3,
+      172.6
+     ]
+    ],
+    "NW": [
+     [
+      111.7,
+      253.4
+     ],
+     [
+      130.2,
+      203.9
+     ],
+     [
+      115.4,
+      235.2
+     ]
+    ],
+    "W": [
+     [
+      111.7,
+      253.4
+     ],
+     [
+      130.2,
+      203.9
+     ],
+     [
+      115.4,
+      235.2
+     ]
+    ],
+    "SW": [
+     [
+      213.7,
+      288.3
+     ],
+     [
+      213.0,
+      232.2
+     ],
+     [
+      213.7,
+      268.8
+     ]
+    ]
+   },
+   "muzzle_note": "Barrel tip in cell px (origin top-left) for all 8 directions (flipped ones already mirrored). Spawn the existing muzzle flash / bullet FX here; nothing is baked in. F0 = fire, F1 = recoil kick, F2 = settle.",
+   "fire_frame": 0,
+   "muzzle_behind_body": {
+    "S": false,
+    "SE": false,
+    "E": false,
+    "NE": false,
+    "N": true,
+    "NW": false,
+    "W": false,
+    "SW": false
+   }
+  },
+  "hit": {
+   "frames": 2,
+   "loop": false,
+   "sheet": "sheets/hng_char_bandit_hit_sheet.png",
+   "sheet_size": [
+    1024,
+    1536
+   ],
+   "files": {
+    "S": [
+     "bandit/hit/hng_char_bandit_hit_S_00.png",
+     "bandit/hit/hng_char_bandit_hit_S_01.png"
+    ],
+    "E": [
+     "bandit/hit/hng_char_bandit_hit_E_00.png",
+     "bandit/hit/hng_char_bandit_hit_E_01.png"
+    ],
+    "N": [
+     "bandit/hit/hng_char_bandit_hit_N_00.png",
+     "bandit/hit/hng_char_bandit_hit_N_01.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      115,
+      25,
+      381,
+      414
+     ],
+     [
+      119,
+      32,
+      386,
+      414
+     ]
+    ],
+    "E": [
+     [
+      96,
+      30,
+      344,
+      417
+     ],
+     [
+      121,
+      36,
+      356,
+      417
+     ]
+    ],
+    "N": [
+     [
+      131,
+      49,
+      397,
+      406
+     ],
+     [
+      126,
+      46,
+      393,
+      408
+     ]
+    ]
+   },
+   "note": "Flinch with squeezed eyes; F0 strongest, F1 recovering. Return to idle/run after."
+  },
+  "down": {
+   "frames": 4,
+   "loop": false,
+   "sheet": "sheets/hng_char_bandit_down_sheet.png",
+   "sheet_size": [
+    2048,
+    1536
+   ],
+   "files": {
+    "S": [
+     "bandit/down/hng_char_bandit_down_S_00.png",
+     "bandit/down/hng_char_bandit_down_S_01.png",
+     "bandit/down/hng_char_bandit_down_S_02.png",
+     "bandit/down/hng_char_bandit_down_S_03.png"
+    ],
+    "E": [
+     "bandit/down/hng_char_bandit_down_E_00.png",
+     "bandit/down/hng_char_bandit_down_E_01.png",
+     "bandit/down/hng_char_bandit_down_E_02.png",
+     "bandit/down/hng_char_bandit_down_E_03.png"
+    ],
+    "N": [
+     "bandit/down/hng_char_bandit_down_N_00.png",
+     "bandit/down/hng_char_bandit_down_N_01.png",
+     "bandit/down/hng_char_bandit_down_N_02.png",
+     "bandit/down/hng_char_bandit_down_N_03.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      123,
+      26,
+      389,
+      413
+     ],
+     [
+      123,
+      102,
+      389,
+      440
+     ],
+     [
+      123,
+      157,
+      389,
+      395
+     ],
+     [
+      123,
+      154,
+      389,
+      406
+     ]
+    ],
+    "E": [
+     [
+      87,
+      42,
+      362,
+      417
+     ],
+     [
+      45,
+      133,
+      392,
+      418
+     ],
+     [
+      81,
+      172,
+      430,
+      409
+     ],
+     [
+      77,
+      171,
+      434,
+      410
+     ]
+    ],
+    "N": [
+     [
+      123,
+      60,
+      389,
+      404
+     ],
+     [
+      123,
+      166,
+      389,
+      390
+     ],
+     [
+      123,
+      190,
+      389,
+      433
+     ],
+     [
+      123,
+      191,
+      389,
+      432
+     ]
+    ]
+   },
+   "note": "Stagger back, fall on the back, hat tips over the face, lie still on F3 (hold the last frame). No blood. Lying frames are centred on the pivot."
+  }
+ },
+ "sheet_policy": "Sheets for every animation that fits 4096 px on both sides (rows = rendered directions, columns = frames, exact cells, no padding). All animations have a sheet. Unity should still import the individual PNGs and pack a Sprite Atlas."
+}

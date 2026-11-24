@@ -12,18 +12,20 @@ namespace HillNGun.Proto.Greybox
 
         public static Proto_GreyboxViewMode LoadOrDefault()
         {
-            if (_inTest && _testHas)
-                return _testMode;
-            return FromInt(UnityEngine.PlayerPrefs.GetInt(Key, (int)Proto_GreyboxViewMode.View2D));
+            if (_inTest)
+                return _testHas ? _testMode : Proto_GreyboxViewModeState.DefaultMode;
+            return FromInt(UnityEngine.PlayerPrefs.GetInt(Key, (int)Proto_GreyboxViewModeState.DefaultMode));
         }
 
         public static Proto_GreyboxViewMode FromInt(int raw)
         {
             switch (raw)
             {
+                case (int)Proto_GreyboxViewMode.View2D: return Proto_GreyboxViewMode.View2D;
                 case (int)Proto_GreyboxViewMode.View3D: return Proto_GreyboxViewMode.View3D;
                 case (int)Proto_GreyboxViewMode.View2DChibi: return Proto_GreyboxViewMode.View2DChibi;
-                default: return Proto_GreyboxViewMode.View2D;
+                case (int)Proto_GreyboxViewMode.View2DPerspective: return Proto_GreyboxViewMode.View2DPerspective;
+                default: return Proto_GreyboxViewModeState.DefaultMode;
             }
         }
 

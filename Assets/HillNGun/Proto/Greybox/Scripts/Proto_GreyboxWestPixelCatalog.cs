@@ -109,6 +109,8 @@ namespace HillNGun.Proto.Greybox
         /// <summary>Catalog for the current view style. Falls back to pixel when the chibi asset is missing.</summary>
         public static Proto_GreyboxWestPixelCatalog LoadForCurrentStyle()
         {
+            if (Proto_GreyboxViewModeState.IsPersp2D)
+                return null;
             if (Proto_GreyboxViewModeState.IsChibi)
             {
                 var chibi = LoadChibiRuntime();

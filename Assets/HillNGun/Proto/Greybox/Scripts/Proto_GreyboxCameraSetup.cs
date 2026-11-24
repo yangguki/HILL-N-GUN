@@ -23,6 +23,10 @@ namespace HillNGun.Proto.Greybox
                 : Proto_GreyboxLayout.TargetAspect;
             transform.position = new Vector3(0f, Proto_GreyboxLayout.CameraPositionY, Proto_GreyboxLayout.CameraPositionZ);
             transform.rotation = Quaternion.identity;
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = Proto_GreyboxViewModeState.IsPersp2D
+                ? new Color32(0x3c, 0x2a, 0x58, 0xff)
+                : new Color32(38, 38, 46, 255);
         }
     }
 }

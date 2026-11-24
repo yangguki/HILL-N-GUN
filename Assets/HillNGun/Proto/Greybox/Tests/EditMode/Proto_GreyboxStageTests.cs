@@ -50,7 +50,8 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
       Assert.NotNull(builder);
       builder.Build();
 
-      AssertObjectRatios(cam, Proto_GreyboxStageBuilder.PlayerName, 76f, 88f, 12f, Tol);
+      float playerFootPct = Proto_GreyboxPlayerSpawn.PlayerStartFootPercentFromTop(Proto_GreyboxViewModeState.Current);
+      AssertObjectRatios(cam, Proto_GreyboxStageBuilder.PlayerName, 76f, playerFootPct, 12f, Tol);
       AssertObjectRatios(cam, Proto_GreyboxStageBuilder.FenceName,
         Proto_GreyboxPerspectiveDepth.FenceTopPercent,
         Proto_GreyboxPerspectiveDepth.FenceBottomPercent,

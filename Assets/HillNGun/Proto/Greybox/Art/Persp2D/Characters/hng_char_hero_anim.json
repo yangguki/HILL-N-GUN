@@ -1,0 +1,1581 @@
+{
+ "character": "hero",
+ "version": "final_skins_2d v3 (512 cell, prototype cut)",
+ "fps": 30,
+ "play_fps_recommended": {
+  "idle": 8,
+  "run": 12,
+  "shoot": 20,
+  "roll": 30,
+  "hit": 15,
+  "down": 12
+ },
+ "play_fps_note": "Frames are authored on a 30 fps grid. Recommended playback: idle 4 f @ 8 fps (0.5 s), run 6 f @ 12 fps (0.5 s cycle, same speed as the old 8 f @ 16 fps), shoot 3 f @ 20, roll 13 f @ 30 (0.43 s), hit 2 f @ 15, down 4 f @ 12 (hold last).",
+ "cell_px": [
+  512,
+  512
+ ],
+ "scale_note": "2x art (3840x2160 reference screen).",
+ "pivot_px": [
+  256.0,
+  400
+ ],
+ "pivot_px_origin": "top-left",
+ "pivot_norm_unity": [
+  0.5,
+  0.21875
+ ],
+ "baseline_y_px": 400,
+ "standing_bbox_idle_S": [
+  123,
+  38,
+  389,
+  414
+ ],
+ "standing_height_px": 376,
+ "outline_px": 4.0,
+ "render": {
+  "projection": "orthographic",
+  "elevation_deg": 20,
+  "px_per_model_unit": 157.333,
+  "supersample": 3
+ },
+ "directions_rendered": [
+  "S",
+  "SE",
+  "E",
+  "NE",
+  "N"
+ ],
+ "sheet_rows": [
+  "S",
+  "SE",
+  "E",
+  "NE",
+  "N"
+ ],
+ "direction_map_8way": {
+  "S": {
+   "source": "S",
+   "flipX": false
+  },
+  "SE": {
+   "source": "SE",
+   "flipX": false
+  },
+  "E": {
+   "source": "E",
+   "flipX": false
+  },
+  "NE": {
+   "source": "NE",
+   "flipX": false
+  },
+  "N": {
+   "source": "N",
+   "flipX": false
+  },
+  "NW": {
+   "source": "NE",
+   "flipX": true
+  },
+  "W": {
+   "source": "E",
+   "flipX": true
+  },
+  "SW": {
+   "source": "SE",
+   "flipX": true
+  }
+ },
+ "direction_map_note": "Hero: 5 rendered (S, SE, E, NE, N); SW/W/NW = SE/E/NE flipped on X around the pivot (x -> cell - x).",
+ "mirror_note": "On flipped frames the revolver appears in the LEFT hand; accepted by design.",
+ "scale_reference": {
+  "hero_height_m": 1.6,
+  "hero_standing_px": 376,
+  "px_per_m_at_engine_scale_1": 235.0,
+  "engine_scale_formula": "character engine scale = (feet_y - 907) / 564.0  (= (feet_y - 907)/844.5 * 563/376; F=2400, camera 2.4 m, hero 1.6 m)",
+  "hero_row": {
+   "feet_y_px": 1764,
+   "screen_height_pct": 26.5,
+   "engine_scale": 1.52
+  },
+  "props": {
+   "px_per_m": 352.5,
+   "prop_engine_scale_formula": "(feet_y - 907) / 846.0  (props keep their own scale: Z_ref = F/352.5, feet_y_at_ref 1753; the old character formula /844.5 is within 0.2%)",
+   "relation": "prop engine scale = character engine scale / 1.5000 at the same feet y (props 352.5 px/m vs characters 235.0 px/m)",
+   "note": "Props were not re-rendered; they keep their own scale. Characters are now drawn smaller (512 cell) and scaled up more."
+  }
+ },
+ "anims": {
+  "idle": {
+   "frames": 4,
+   "loop": true,
+   "sheet": "sheets/hng_char_hero_idle_sheet.png",
+   "sheet_size": [
+    2048,
+    2560
+   ],
+   "files": {
+    "S": [
+     "hero/idle/hng_char_hero_idle_S_00.png",
+     "hero/idle/hng_char_hero_idle_S_01.png",
+     "hero/idle/hng_char_hero_idle_S_02.png",
+     "hero/idle/hng_char_hero_idle_S_03.png"
+    ],
+    "SE": [
+     "hero/idle/hng_char_hero_idle_SE_00.png",
+     "hero/idle/hng_char_hero_idle_SE_01.png",
+     "hero/idle/hng_char_hero_idle_SE_02.png",
+     "hero/idle/hng_char_hero_idle_SE_03.png"
+    ],
+    "E": [
+     "hero/idle/hng_char_hero_idle_E_00.png",
+     "hero/idle/hng_char_hero_idle_E_01.png",
+     "hero/idle/hng_char_hero_idle_E_02.png",
+     "hero/idle/hng_char_hero_idle_E_03.png"
+    ],
+    "NE": [
+     "hero/idle/hng_char_hero_idle_NE_00.png",
+     "hero/idle/hng_char_hero_idle_NE_01.png",
+     "hero/idle/hng_char_hero_idle_NE_02.png",
+     "hero/idle/hng_char_hero_idle_NE_03.png"
+    ],
+    "N": [
+     "hero/idle/hng_char_hero_idle_N_00.png",
+     "hero/idle/hng_char_hero_idle_N_01.png",
+     "hero/idle/hng_char_hero_idle_N_02.png",
+     "hero/idle/hng_char_hero_idle_N_03.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      123,
+      38,
+      389,
+      414
+     ],
+     [
+      123,
+      39,
+      389,
+      413
+     ],
+     [
+      123,
+      38,
+      389,
+      414
+     ],
+     [
+      123,
+      37,
+      389,
+      414
+     ]
+    ],
+    "SE": [
+     [
+      126,
+      37,
+      379,
+      420
+     ],
+     [
+      130,
+      38,
+      384,
+      419
+     ],
+     [
+      126,
+      37,
+      379,
+      420
+     ],
+     [
+      121,
+      37,
+      374,
+      420
+     ]
+    ],
+    "E": [
+     [
+      135,
+      37,
+      374,
+      417
+     ],
+     [
+      141,
+      37,
+      380,
+      417
+     ],
+     [
+      135,
+      37,
+      374,
+      417
+     ],
+     [
+      129,
+      38,
+      367,
+      417
+     ]
+    ],
+    "NE": [
+     [
+      126,
+      38,
+      379,
+      414
+     ],
+     [
+      130,
+      36,
+      384,
+      413
+     ],
+     [
+      126,
+      38,
+      379,
+      414
+     ],
+     [
+      121,
+      41,
+      374,
+      416
+     ]
+    ],
+    "N": [
+     [
+      123,
+      38,
+      389,
+      408
+     ],
+     [
+      123,
+      35,
+      389,
+      407
+     ],
+     [
+      123,
+      38,
+      389,
+      408
+     ],
+     [
+      123,
+      42,
+      389,
+      409
+     ]
+    ]
+   }
+  },
+  "run": {
+   "frames": 6,
+   "loop": true,
+   "sheet": "sheets/hng_char_hero_run_sheet.png",
+   "sheet_size": [
+    3072,
+    2560
+   ],
+   "files": {
+    "S": [
+     "hero/run/hng_char_hero_run_S_00.png",
+     "hero/run/hng_char_hero_run_S_01.png",
+     "hero/run/hng_char_hero_run_S_02.png",
+     "hero/run/hng_char_hero_run_S_03.png",
+     "hero/run/hng_char_hero_run_S_04.png",
+     "hero/run/hng_char_hero_run_S_05.png"
+    ],
+    "SE": [
+     "hero/run/hng_char_hero_run_SE_00.png",
+     "hero/run/hng_char_hero_run_SE_01.png",
+     "hero/run/hng_char_hero_run_SE_02.png",
+     "hero/run/hng_char_hero_run_SE_03.png",
+     "hero/run/hng_char_hero_run_SE_04.png",
+     "hero/run/hng_char_hero_run_SE_05.png"
+    ],
+    "E": [
+     "hero/run/hng_char_hero_run_E_00.png",
+     "hero/run/hng_char_hero_run_E_01.png",
+     "hero/run/hng_char_hero_run_E_02.png",
+     "hero/run/hng_char_hero_run_E_03.png",
+     "hero/run/hng_char_hero_run_E_04.png",
+     "hero/run/hng_char_hero_run_E_05.png"
+    ],
+    "NE": [
+     "hero/run/hng_char_hero_run_NE_00.png",
+     "hero/run/hng_char_hero_run_NE_01.png",
+     "hero/run/hng_char_hero_run_NE_02.png",
+     "hero/run/hng_char_hero_run_NE_03.png",
+     "hero/run/hng_char_hero_run_NE_04.png",
+     "hero/run/hng_char_hero_run_NE_05.png"
+    ],
+    "N": [
+     "hero/run/hng_char_hero_run_N_00.png",
+     "hero/run/hng_char_hero_run_N_01.png",
+     "hero/run/hng_char_hero_run_N_02.png",
+     "hero/run/hng_char_hero_run_N_03.png",
+     "hero/run/hng_char_hero_run_N_04.png",
+     "hero/run/hng_char_hero_run_N_05.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      123,
+      43,
+      389,
+      404
+     ],
+     [
+      129,
+      56,
+      395,
+      413
+     ],
+     [
+      129,
+      57,
+      395,
+      411
+     ],
+     [
+      123,
+      43,
+      389,
+      404
+     ],
+     [
+      117,
+      56,
+      383,
+      413
+     ],
+     [
+      117,
+      57,
+      383,
+      411
+     ]
+    ],
+    "SE": [
+     [
+      149,
+      39,
+      403,
+      411
+     ],
+     [
+      152,
+      52,
+      407,
+      407
+     ],
+     [
+      152,
+      52,
+      407,
+      404
+     ],
+     [
+      149,
+      39,
+      403,
+      400
+     ],
+     [
+      145,
+      54,
+      398,
+      419
+     ],
+     [
+      145,
+      54,
+      398,
+      415
+     ]
+    ],
+    "E": [
+     [
+      166,
+      31,
+      407,
+      412
+     ],
+     [
+      166,
+      43,
+      406,
+      407
+     ],
+     [
+      166,
+      43,
+      406,
+      400
+     ],
+     [
+      166,
+      31,
+      407,
+      396
+     ],
+     [
+      166,
+      46,
+      406,
+      418
+     ],
+     [
+      166,
+      47,
+      406,
+      417
+     ]
+    ],
+    "NE": [
+     [
+      149,
+      23,
+      403,
+      404
+     ],
+     [
+      145,
+      36,
+      398,
+      418
+     ],
+     [
+      145,
+      37,
+      398,
+      399
+     ],
+     [
+      149,
+      23,
+      403,
+      397
+     ],
+     [
+      152,
+      39,
+      407,
+      408
+     ],
+     [
+      152,
+      39,
+      407,
+      411
+     ]
+    ],
+    "N": [
+     [
+      123,
+      21,
+      389,
+      397
+     ],
+     [
+      117,
+      34,
+      383,
+      415
+     ],
+     [
+      117,
+      35,
+      383,
+      400
+     ],
+     [
+      123,
+      21,
+      389,
+      397
+     ],
+     [
+      129,
+      34,
+      395,
+      415
+     ],
+     [
+      129,
+      35,
+      395,
+      400
+     ]
+    ]
+   },
+   "note": "6-frame loop (smooth periodic legs/arms/bob); recommended 12 fps."
+  },
+  "shoot": {
+   "frames": 3,
+   "loop": false,
+   "sheet": "sheets/hng_char_hero_shoot_sheet.png",
+   "sheet_size": [
+    1536,
+    2560
+   ],
+   "files": {
+    "S": [
+     "hero/shoot/hng_char_hero_shoot_S_00.png",
+     "hero/shoot/hng_char_hero_shoot_S_01.png",
+     "hero/shoot/hng_char_hero_shoot_S_02.png"
+    ],
+    "SE": [
+     "hero/shoot/hng_char_hero_shoot_SE_00.png",
+     "hero/shoot/hng_char_hero_shoot_SE_01.png",
+     "hero/shoot/hng_char_hero_shoot_SE_02.png"
+    ],
+    "E": [
+     "hero/shoot/hng_char_hero_shoot_E_00.png",
+     "hero/shoot/hng_char_hero_shoot_E_01.png",
+     "hero/shoot/hng_char_hero_shoot_E_02.png"
+    ],
+    "NE": [
+     "hero/shoot/hng_char_hero_shoot_NE_00.png",
+     "hero/shoot/hng_char_hero_shoot_NE_01.png",
+     "hero/shoot/hng_char_hero_shoot_NE_02.png"
+    ],
+    "N": [
+     "hero/shoot/hng_char_hero_shoot_N_00.png",
+     "hero/shoot/hng_char_hero_shoot_N_01.png",
+     "hero/shoot/hng_char_hero_shoot_N_02.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      122,
+      33,
+      389,
+      409
+     ],
+     [
+      121,
+      31,
+      387,
+      409
+     ],
+     [
+      122,
+      33,
+      388,
+      409
+     ]
+    ],
+    "SE": [
+     [
+      127,
+      33,
+      378,
+      415
+     ],
+     [
+      121,
+      32,
+      372,
+      415
+     ],
+     [
+      125,
+      33,
+      376,
+      415
+     ]
+    ],
+    "E": [
+     [
+      135,
+      33,
+      401,
+      417
+     ],
+     [
+      130,
+      34,
+      381,
+      417
+     ],
+     [
+      133,
+      33,
+      396,
+      417
+     ]
+    ],
+    "NE": [
+     [
+      125,
+      34,
+      393,
+      411
+     ],
+     [
+      121,
+      36,
+      379,
+      411
+     ],
+     [
+      123,
+      34,
+      390,
+      411
+     ]
+    ],
+    "N": [
+     [
+      123,
+      34,
+      390,
+      403
+     ],
+     [
+      125,
+      37,
+      391,
+      403
+     ],
+     [
+      124,
+      35,
+      390,
+      403
+     ]
+    ]
+   },
+   "muzzle_px": {
+    "S": [
+     [
+      212.8,
+      278.3
+     ],
+     [
+      211.3,
+      222.3
+     ],
+     [
+      212.5,
+      258.6
+     ]
+    ],
+    "SE": [
+     [
+      324.5,
+      274.7
+     ],
+     [
+      307.8,
+      221.3
+     ],
+     [
+      320.6,
+      255.6
+     ]
+    ],
+    "E": [
+     [
+      396.0,
+      245.1
+     ],
+     [
+      374.0,
+      197.2
+     ],
+     [
+      390.9,
+      227.3
+     ]
+    ],
+    "NE": [
+     [
+      385.6,
+      206.9
+     ],
+     [
+      371.0,
+      164.2
+     ],
+     [
+      382.2,
+      190.3
+     ]
+    ],
+    "N": [
+     [
+      299.2,
+      182.5
+     ],
+     [
+      300.7,
+      141.6
+     ],
+     [
+      299.5,
+      166.3
+     ]
+    ],
+    "NW": [
+     [
+      126.4,
+      206.9
+     ],
+     [
+      141.0,
+      164.2
+     ],
+     [
+      129.8,
+      190.3
+     ]
+    ],
+    "W": [
+     [
+      116.0,
+      245.1
+     ],
+     [
+      138.0,
+      197.2
+     ],
+     [
+      121.1,
+      227.3
+     ]
+    ],
+    "SW": [
+     [
+      187.5,
+      274.7
+     ],
+     [
+      204.2,
+      221.3
+     ],
+     [
+      191.4,
+      255.6
+     ]
+    ]
+   },
+   "muzzle_note": "Barrel tip in cell px (origin top-left) for all 8 directions (flipped ones already mirrored). Spawn the existing muzzle flash / bullet FX here; nothing is baked in. F0 = fire, F1 = recoil kick, F2 = settle.",
+   "fire_frame": 0,
+   "muzzle_behind_body": {
+    "S": false,
+    "SE": false,
+    "E": false,
+    "NE": true,
+    "N": true,
+    "NW": true,
+    "W": false,
+    "SW": false
+   }
+  },
+  "roll": {
+   "frames": 13,
+   "loop": false,
+   "sheet": null,
+   "sheet_size": null,
+   "files": {
+    "S": [
+     "hero/roll/hng_char_hero_roll_S_00.png",
+     "hero/roll/hng_char_hero_roll_S_01.png",
+     "hero/roll/hng_char_hero_roll_S_02.png",
+     "hero/roll/hng_char_hero_roll_S_03.png",
+     "hero/roll/hng_char_hero_roll_S_04.png",
+     "hero/roll/hng_char_hero_roll_S_05.png",
+     "hero/roll/hng_char_hero_roll_S_06.png",
+     "hero/roll/hng_char_hero_roll_S_07.png",
+     "hero/roll/hng_char_hero_roll_S_08.png",
+     "hero/roll/hng_char_hero_roll_S_09.png",
+     "hero/roll/hng_char_hero_roll_S_10.png",
+     "hero/roll/hng_char_hero_roll_S_11.png",
+     "hero/roll/hng_char_hero_roll_S_12.png"
+    ],
+    "SE": [
+     "hero/roll/hng_char_hero_roll_SE_00.png",
+     "hero/roll/hng_char_hero_roll_SE_01.png",
+     "hero/roll/hng_char_hero_roll_SE_02.png",
+     "hero/roll/hng_char_hero_roll_SE_03.png",
+     "hero/roll/hng_char_hero_roll_SE_04.png",
+     "hero/roll/hng_char_hero_roll_SE_05.png",
+     "hero/roll/hng_char_hero_roll_SE_06.png",
+     "hero/roll/hng_char_hero_roll_SE_07.png",
+     "hero/roll/hng_char_hero_roll_SE_08.png",
+     "hero/roll/hng_char_hero_roll_SE_09.png",
+     "hero/roll/hng_char_hero_roll_SE_10.png",
+     "hero/roll/hng_char_hero_roll_SE_11.png",
+     "hero/roll/hng_char_hero_roll_SE_12.png"
+    ],
+    "E": [
+     "hero/roll/hng_char_hero_roll_E_00.png",
+     "hero/roll/hng_char_hero_roll_E_01.png",
+     "hero/roll/hng_char_hero_roll_E_02.png",
+     "hero/roll/hng_char_hero_roll_E_03.png",
+     "hero/roll/hng_char_hero_roll_E_04.png",
+     "hero/roll/hng_char_hero_roll_E_05.png",
+     "hero/roll/hng_char_hero_roll_E_06.png",
+     "hero/roll/hng_char_hero_roll_E_07.png",
+     "hero/roll/hng_char_hero_roll_E_08.png",
+     "hero/roll/hng_char_hero_roll_E_09.png",
+     "hero/roll/hng_char_hero_roll_E_10.png",
+     "hero/roll/hng_char_hero_roll_E_11.png",
+     "hero/roll/hng_char_hero_roll_E_12.png"
+    ],
+    "NE": [
+     "hero/roll/hng_char_hero_roll_NE_00.png",
+     "hero/roll/hng_char_hero_roll_NE_01.png",
+     "hero/roll/hng_char_hero_roll_NE_02.png",
+     "hero/roll/hng_char_hero_roll_NE_03.png",
+     "hero/roll/hng_char_hero_roll_NE_04.png",
+     "hero/roll/hng_char_hero_roll_NE_05.png",
+     "hero/roll/hng_char_hero_roll_NE_06.png",
+     "hero/roll/hng_char_hero_roll_NE_07.png",
+     "hero/roll/hng_char_hero_roll_NE_08.png",
+     "hero/roll/hng_char_hero_roll_NE_09.png",
+     "hero/roll/hng_char_hero_roll_NE_10.png",
+     "hero/roll/hng_char_hero_roll_NE_11.png",
+     "hero/roll/hng_char_hero_roll_NE_12.png"
+    ],
+    "N": [
+     "hero/roll/hng_char_hero_roll_N_00.png",
+     "hero/roll/hng_char_hero_roll_N_01.png",
+     "hero/roll/hng_char_hero_roll_N_02.png",
+     "hero/roll/hng_char_hero_roll_N_03.png",
+     "hero/roll/hng_char_hero_roll_N_04.png",
+     "hero/roll/hng_char_hero_roll_N_05.png",
+     "hero/roll/hng_char_hero_roll_N_06.png",
+     "hero/roll/hng_char_hero_roll_N_07.png",
+     "hero/roll/hng_char_hero_roll_N_08.png",
+     "hero/roll/hng_char_hero_roll_N_09.png",
+     "hero/roll/hng_char_hero_roll_N_10.png",
+     "hero/roll/hng_char_hero_roll_N_11.png",
+     "hero/roll/hng_char_hero_roll_N_12.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      123,
+      60,
+      389,
+      415
+     ],
+     [
+      123,
+      91,
+      389,
+      411
+     ],
+     [
+      123,
+      106,
+      389,
+      405
+     ],
+     [
+      123,
+      112,
+      389,
+      370
+     ],
+     [
+      123,
+      205,
+      389,
+      445
+     ],
+     [
+      123,
+      187,
+      389,
+      469
+     ],
+     [
+      123,
+      128,
+      389,
+      458
+     ],
+     [
+      123,
+      188,
+      389,
+      429
+     ],
+     [
+      123,
+      133,
+      389,
+      430
+     ],
+     [
+      123,
+      90,
+      389,
+      419
+     ],
+     [
+      123,
+      90,
+      389,
+      393
+     ],
+     [
+      123,
+      72,
+      389,
+      403
+     ],
+     [
+      123,
+      46,
+      389,
+      410
+     ]
+    ],
+    "SE": [
+     [
+      161,
+      55,
+      416,
+      421
+     ],
+     [
+      201,
+      78,
+      449,
+      417
+     ],
+     [
+      187,
+      94,
+      461,
+      411
+     ],
+     [
+      115,
+      96,
+      446,
+      370
+     ],
+     [
+      79,
+      190,
+      436,
+      429
+     ],
+     [
+      90,
+      190,
+      425,
+      466
+     ],
+     [
+      129,
+      133,
+      383,
+      459
+     ],
+     [
+      103,
+      199,
+      405,
+      442
+     ],
+     [
+      101,
+      146,
+      408,
+      432
+     ],
+     [
+      129,
+      88,
+      383,
+      421
+     ],
+     [
+      145,
+      79,
+      416,
+      389
+     ],
+     [
+      167,
+      63,
+      419,
+      406
+     ],
+     [
+      147,
+      42,
+      401,
+      415
+     ]
+    ],
+    "E": [
+     [
+      180,
+      42,
+      422,
+      417
+     ],
+     [
+      212,
+      58,
+      461,
+      417
+     ],
+     [
+      200,
+      75,
+      468,
+      417
+     ],
+     [
+      114,
+      84,
+      455,
+      395
+     ],
+     [
+      67,
+      175,
+      446,
+      401
+     ],
+     [
+      86,
+      211,
+      426,
+      467
+     ],
+     [
+      135,
+      135,
+      377,
+      461
+     ],
+     [
+      102,
+      176,
+      410,
+      451
+     ],
+     [
+      99,
+      141,
+      410,
+      408
+     ],
+     [
+      135,
+      87,
+      377,
+      416
+     ],
+     [
+      153,
+      77,
+      415,
+      417
+     ],
+     [
+      188,
+      51,
+      422,
+      417
+     ],
+     [
+      161,
+      35,
+      402,
+      417
+     ]
+    ],
+    "NE": [
+     [
+      161,
+      31,
+      416,
+      412
+     ],
+     [
+      201,
+      39,
+      449,
+      408
+     ],
+     [
+      192,
+      63,
+      460,
+      414
+     ],
+     [
+      128,
+      79,
+      439,
+      420
+     ],
+     [
+      78,
+      171,
+      437,
+      417
+     ],
+     [
+      91,
+      220,
+      424,
+      457
+     ],
+     [
+      129,
+      141,
+      383,
+      461
+     ],
+     [
+      101,
+      146,
+      408,
+      450
+     ],
+     [
+      99,
+      144,
+      410,
+      385
+     ],
+     [
+      129,
+      86,
+      383,
+      411
+     ],
+     [
+      154,
+      78,
+      411,
+      435
+     ],
+     [
+      167,
+      38,
+      419,
+      420
+     ],
+     [
+      147,
+      28,
+      401,
+      410
+     ]
+    ],
+    "N": [
+     [
+      123,
+      26,
+      389,
+      405
+     ],
+     [
+      123,
+      28,
+      389,
+      400
+     ],
+     [
+      123,
+      49,
+      389,
+      404
+     ],
+     [
+      123,
+      64,
+      389,
+      427
+     ],
+     [
+      123,
+      170,
+      389,
+      434
+     ],
+     [
+      123,
+      204,
+      389,
+      443
+     ],
+     [
+      123,
+      146,
+      389,
+      462
+     ],
+     [
+      123,
+      143,
+      389,
+      451
+     ],
+     [
+      123,
+      156,
+      389,
+      384
+     ],
+     [
+      123,
+      86,
+      389,
+      402
+     ],
+     [
+      123,
+      68,
+      389,
+      431
+     ],
+     [
+      123,
+      33,
+      389,
+      413
+     ],
+     [
+      123,
+      26,
+      389,
+      401
+     ]
+    ]
+   },
+   "in_place": true,
+   "root_motion_note": "In place: the body bbox is kept over the pivot from F3 to F9; move the object along the input direction in code (suggested ~1.0 x standing height over the 13 frames, ease-out).",
+   "iframes_suggested": [
+    3,
+    9
+   ],
+   "phases": {
+    "anticipate": [
+     0,
+     2
+    ],
+    "launch": [
+     3,
+     5
+    ],
+    "tuck_roll": [
+     6,
+     9
+    ],
+    "recover": [
+     10,
+     12
+    ]
+   }
+  },
+  "hit": {
+   "frames": 2,
+   "loop": false,
+   "sheet": "sheets/hng_char_hero_hit_sheet.png",
+   "sheet_size": [
+    1024,
+    2560
+   ],
+   "files": {
+    "S": [
+     "hero/hit/hng_char_hero_hit_S_00.png",
+     "hero/hit/hng_char_hero_hit_S_01.png"
+    ],
+    "SE": [
+     "hero/hit/hng_char_hero_hit_SE_00.png",
+     "hero/hit/hng_char_hero_hit_SE_01.png"
+    ],
+    "E": [
+     "hero/hit/hng_char_hero_hit_E_00.png",
+     "hero/hit/hng_char_hero_hit_E_01.png"
+    ],
+    "NE": [
+     "hero/hit/hng_char_hero_hit_NE_00.png",
+     "hero/hit/hng_char_hero_hit_NE_01.png"
+    ],
+    "N": [
+     "hero/hit/hng_char_hero_hit_N_00.png",
+     "hero/hit/hng_char_hero_hit_N_01.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      115,
+      27,
+      382,
+      414
+     ],
+     [
+      119,
+      29,
+      386,
+      414
+     ]
+    ],
+    "SE": [
+     [
+      76,
+      28,
+      362,
+      419
+     ],
+     [
+      100,
+      33,
+      358,
+      420
+     ]
+    ],
+    "E": [
+     [
+      93,
+      31,
+      339,
+      417
+     ],
+     [
+      111,
+      34,
+      352,
+      417
+     ]
+    ],
+    "NE": [
+     [
+      77,
+      45,
+      364,
+      412
+     ],
+     [
+      102,
+      40,
+      366,
+      415
+     ]
+    ],
+    "N": [
+     [
+      130,
+      53,
+      397,
+      406
+     ],
+     [
+      126,
+      47,
+      393,
+      408
+     ]
+    ]
+   },
+   "note": "Flinch with squeezed eyes; F0 strongest, F1 recovering. Return to idle/run after."
+  },
+  "down": {
+   "frames": 4,
+   "loop": false,
+   "sheet": "sheets/hng_char_hero_down_sheet.png",
+   "sheet_size": [
+    2048,
+    2560
+   ],
+   "files": {
+    "S": [
+     "hero/down/hng_char_hero_down_S_00.png",
+     "hero/down/hng_char_hero_down_S_01.png",
+     "hero/down/hng_char_hero_down_S_02.png",
+     "hero/down/hng_char_hero_down_S_03.png"
+    ],
+    "SE": [
+     "hero/down/hng_char_hero_down_SE_00.png",
+     "hero/down/hng_char_hero_down_SE_01.png",
+     "hero/down/hng_char_hero_down_SE_02.png",
+     "hero/down/hng_char_hero_down_SE_03.png"
+    ],
+    "E": [
+     "hero/down/hng_char_hero_down_E_00.png",
+     "hero/down/hng_char_hero_down_E_01.png",
+     "hero/down/hng_char_hero_down_E_02.png",
+     "hero/down/hng_char_hero_down_E_03.png"
+    ],
+    "NE": [
+     "hero/down/hng_char_hero_down_NE_00.png",
+     "hero/down/hng_char_hero_down_NE_01.png",
+     "hero/down/hng_char_hero_down_NE_02.png",
+     "hero/down/hng_char_hero_down_NE_03.png"
+    ],
+    "N": [
+     "hero/down/hng_char_hero_down_N_00.png",
+     "hero/down/hng_char_hero_down_N_01.png",
+     "hero/down/hng_char_hero_down_N_02.png",
+     "hero/down/hng_char_hero_down_N_03.png"
+    ]
+   },
+   "alpha_bbox": {
+    "S": [
+     [
+      123,
+      26,
+      389,
+      413
+     ],
+     [
+      123,
+      107,
+      389,
+      440
+     ],
+     [
+      123,
+      152,
+      389,
+      390
+     ],
+     [
+      123,
+      149,
+      389,
+      400
+     ]
+    ],
+    "SE": [
+     [
+      73,
+      34,
+      346,
+      416
+     ],
+     [
+      56,
+      121,
+      390,
+      441
+     ],
+     [
+      94,
+      160,
+      418,
+      397
+     ],
+     [
+      89,
+      158,
+      422,
+      398
+     ]
+    ],
+    "E": [
+     [
+      81,
+      41,
+      357,
+      417
+     ],
+     [
+      42,
+      136,
+      393,
+      418
+     ],
+     [
+      75,
+      171,
+      435,
+      410
+     ],
+     [
+      71,
+      170,
+      439,
+      409
+     ]
+    ],
+    "NE": [
+     [
+      73,
+      53,
+      374,
+      413
+     ],
+     [
+      56,
+      155,
+      391,
+      386
+     ],
+     [
+      92,
+      183,
+      419,
+      423
+     ],
+     [
+      89,
+      184,
+      423,
+      422
+     ]
+    ],
+    "N": [
+     [
+      123,
+      60,
+      389,
+      404
+     ],
+     [
+      123,
+      168,
+      389,
+      398
+     ],
+     [
+      123,
+      191,
+      389,
+      431
+     ],
+     [
+      123,
+      193,
+      389,
+      430
+     ]
+    ]
+   },
+   "note": "Stagger back, fall on the back, hat tips over the face, lie still on F3 (hold the last frame). No blood. Lying frames are centred on the pivot."
+  }
+ },
+ "sheet_policy": "Sheets for every animation that fits 4096 px on both sides (rows = rendered directions, columns = frames, exact cells, no padding). No sheet (sheet = null): roll. Unity should still import the individual PNGs and pack a Sprite Atlas."
+}

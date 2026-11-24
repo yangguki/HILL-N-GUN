@@ -17,7 +17,7 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
             using (Proto_GreyboxViewModePrefs.EnterTestScope())
             {
                 Proto_GreyboxViewModeState.ResetForTests();
-                Assert.AreEqual(Proto_GreyboxViewMode.View2D, Proto_GreyboxViewModeState.Current);
+                Assert.AreEqual(Proto_GreyboxViewMode.View2DPerspective, Proto_GreyboxViewModeState.Current);
             }
         }
 

@@ -30,12 +30,12 @@ namespace HillNGun.Proto.Greybox
         float _waveDelayTimer;
         public IReadOnlyList<Proto_GreyboxGrunt> Grunts => _grunts;
 
-        static readonly float[] PerspectiveFootRows =
+        static float[] EnemyFootRowPercents()
         {
-            Proto_GreyboxPerspectiveDepth.PerspectiveEnemyFootMinPercent,
-            46f,
-            Proto_GreyboxPerspectiveDepth.PerspectiveEnemyFootMaxPercent
-        };
+            float min = Proto_GreyboxPerspectiveDepth.EnemyFootMinPercent;
+            float max = Proto_GreyboxPerspectiveDepth.EnemyFootMaxPercent;
+            return new[] { min, (min + max) * 0.5f, max };
+        }
 
         public Proto_GreyboxWaveDirector(int rngSeed = 42)
         {
@@ -139,14 +139,18 @@ namespace HillNGun.Proto.Greybox
         {
             if (!Proto_GreyboxPerspectiveDepth.Enabled)
                 return Proto_GreyboxPerspectiveDepth.FlatEnemyFootPercent;
-            int row = Mathf.Abs(seedHint) % PerspectiveFootRows.Length;
-            return PerspectiveFootRows[row];
+            var rows = EnemyFootRowPercents();
+            int row = Mathf.Abs(seedHint) % rows.Length;
+            return rows[row];
         }
 
-        float RandomEnemyFootYPercent() =>
-            Proto_GreyboxPerspectiveDepth.Enabled
-                ? PerspectiveFootRows[_rng.Next(PerspectiveFootRows.Length)]
-                : Proto_GreyboxPerspectiveDepth.FlatEnemyFootPercent;
+        float RandomEnemyFootYPercent()
+        {
+            if (!Proto_GreyboxPerspectiveDepth.Enabled)
+                return Proto_GreyboxPerspectiveDepth.FlatEnemyFootPercent;
+            var rows = EnemyFootRowPercents();
+            return rows[_rng.Next(rows.Length)];
+        }
 
         Vector2 PickSpawnDoor(int index)
         {
@@ -197,9 +201,10 @@ namespace HillNGun.Proto.Greybox
             var list = new List<Vector2>();
             if (Proto_GreyboxPerspectiveDepth.Enabled)
             {
-                for (int r = 0; r < PerspectiveFootRows.Length; r++)
+                var footRows = EnemyFootRowPercents();
+                for (int r = 0; r < footRows.Length; r++)
                 {
-                    float footY = Proto_GreyboxLayout.ScreenYPercentToWorldY(PerspectiveFootRows[r]);
+                    float footY = Proto_GreyboxLayout.ScreenYPercentToWorldY(footRows[r]);
                     for (int i = 0; i < 4; i++)
                     {
                         float t = i / 3f;

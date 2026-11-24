@@ -32,6 +32,14 @@ namespace HillNGun.Proto.Greybox
         public const float FlatMoveFootMinPercent = 60f;
         public const float FlatMoveFootMaxPercent = 90f;
 
+        // Slice K perspective-2D art bands (enemy row partly above art horizon).
+        public const float Persp2DEnemyFootMinPercent = 47f;
+        public const float Persp2DEnemyFootMaxPercent = 58f;
+        public const float Persp2DFenceTopPercent = 59f;
+        public const float Persp2DFenceBottomPercent = 62f;
+        public const float Persp2DMoveFootMinPercent = 62f;
+        public const float Persp2DMoveFootMaxPercent = 95f;
+
         static bool s_enabled = DefaultEnabled;
         static bool s_playerPerspective = DefaultPlayerPerspectiveEnabled;
         static bool s_playerDepthMove = DefaultPlayerDepthMoveEnabled;
@@ -77,17 +85,71 @@ namespace HillNGun.Proto.Greybox
             s_playerHeightBottom = DefaultPlayerHeightNearPercent;
         }
 
-        public static float FenceTopPercent => Enabled ? PerspectiveFenceTopPercent : FlatFenceTopPercent;
-        public static float FenceBottomPercent => Enabled ? PerspectiveFenceBottomPercent : FlatFenceBottomPercent;
-        public static float MoveFootMinPercent => Enabled ? PerspectiveMoveFootMinPercent : FlatMoveFootMinPercent;
-        public static float MoveFootMaxPercent => Enabled ? PerspectiveMoveFootMaxPercent : FlatMoveFootMaxPercent;
-        public static float DefaultEnemyFootPercent => Enabled ? PerspectiveEnemyFootMinPercent : FlatEnemyFootPercent;
+        static bool UsePersp2DArtBands =>
+            Proto_GreyboxViewModeState.IsPersp2D;
+
+        public static float FenceTopPercent
+        {
+            get
+            {
+                if (UsePersp2DArtBands) return Persp2DFenceTopPercent;
+                return Enabled ? PerspectiveFenceTopPercent : FlatFenceTopPercent;
+            }
+        }
+
+        public static float FenceBottomPercent
+        {
+            get
+            {
+                if (UsePersp2DArtBands) return Persp2DFenceBottomPercent;
+                return Enabled ? PerspectiveFenceBottomPercent : FlatFenceBottomPercent;
+            }
+        }
+
+        public static float MoveFootMinPercent
+        {
+            get
+            {
+                if (UsePersp2DArtBands) return Persp2DMoveFootMinPercent;
+                return Enabled ? PerspectiveMoveFootMinPercent : FlatMoveFootMinPercent;
+            }
+        }
+
+        public static float MoveFootMaxPercent
+        {
+            get
+            {
+                if (UsePersp2DArtBands) return Persp2DMoveFootMaxPercent;
+                return Enabled ? PerspectiveMoveFootMaxPercent : FlatMoveFootMaxPercent;
+            }
+        }
+
+        public static float DefaultEnemyFootPercent
+        {
+            get
+            {
+                if (UsePersp2DArtBands) return Persp2DEnemyFootMinPercent;
+                return Enabled ? PerspectiveEnemyFootMinPercent : FlatEnemyFootPercent;
+            }
+        }
+
+        public static float EnemyFootMinPercent =>
+            UsePersp2DArtBands ? Persp2DEnemyFootMinPercent
+            : Enabled ? PerspectiveEnemyFootMinPercent : FlatEnemyFootPercent;
+
+        public static float EnemyFootMaxPercent =>
+            UsePersp2DArtBands ? Persp2DEnemyFootMaxPercent
+            : Enabled ? PerspectiveEnemyFootMaxPercent : 52f;
 
         public const float GruntReferenceBodyPx = 120f;
         public const float ReferenceScreenHeightPx = 1080f;
 
-        public static float ClampedFootFraction(float footPercentFromTop) =>
-            Mathf.Clamp(footPercentFromTop / 100f, 0.40f, 0.52f);
+        public static float ClampedFootFraction(float footPercentFromTop)
+        {
+            float min = EnemyFootMinPercent / 100f;
+            float max = EnemyFootMaxPercent / 100f;
+            return Mathf.Clamp(footPercentFromTop / 100f, min, max);
+        }
 
         public static float EnemyBodyHeightScreenPx(float footPercentFromTop)
         {

@@ -2,7 +2,9 @@
     "name": "HillNGun.Proto.Greybox.Editor",
     "rootNamespace": "HillNGun.Proto.Greybox.Editor",
     "references": [
-        "HillNGun.Proto.Greybox"
+        "HillNGun.Proto.Greybox",
+        "HillNGun.Proto.Greybox3D",
+        "Unity.2D.Sprite.Editor"
     ],
     "includePlatforms": [
         "Editor"

@@ -31,9 +31,12 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
         [Test]
         public void ViewToggle_Cycles_Pixel_3D_Chibi()
         {
+            Assert.AreEqual(Proto_GreyboxViewMode.View2D,
+                Proto_GreyboxViewModeState.Next(Proto_GreyboxViewMode.View2DPerspective));
             Assert.AreEqual(Proto_GreyboxViewMode.View3D, Proto_GreyboxViewModeState.Next(Proto_GreyboxViewMode.View2D));
             Assert.AreEqual(Proto_GreyboxViewMode.View2DChibi, Proto_GreyboxViewModeState.Next(Proto_GreyboxViewMode.View3D));
-            Assert.AreEqual(Proto_GreyboxViewMode.View2D, Proto_GreyboxViewModeState.Next(Proto_GreyboxViewMode.View2DChibi));
+            Assert.AreEqual(Proto_GreyboxViewMode.View2DPerspective,
+                Proto_GreyboxViewModeState.Next(Proto_GreyboxViewMode.View2DChibi));
         }
 
         [Test]
@@ -46,7 +49,7 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
                 Assert.IsTrue(Proto_GreyboxViewModeState.IsChibi);
                 Assert.IsFalse(Proto_GreyboxViewModeState.Is3D);
                 Assert.AreEqual(Proto_GreyboxViewMode.View2DChibi, Proto_GreyboxViewModePrefs.LoadOrDefault());
-                Assert.AreEqual(Proto_GreyboxViewMode.View2D, Proto_GreyboxViewModePrefs.FromInt(99));
+                Assert.AreEqual(Proto_GreyboxViewMode.View2DPerspective, Proto_GreyboxViewModePrefs.FromInt(99));
             }
         }
 

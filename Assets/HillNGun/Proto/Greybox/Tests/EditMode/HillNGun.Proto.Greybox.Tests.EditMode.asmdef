@@ -3,6 +3,7 @@
     "rootNamespace": "HillNGun.Proto.Greybox.Tests.EditMode",
     "references": [
         "HillNGun.Proto.Greybox",
+        "HillNGun.Proto.Greybox3D",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.InputSystem",

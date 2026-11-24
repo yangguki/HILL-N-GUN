@@ -124,7 +124,7 @@ namespace HillNGun.Proto.Greybox
             Proto_GreyboxWestPixelSkinState.Enabled = on;
             if (IsActive)
                 BindStage();
-            else
+            else if (_stageBound)
                 UnbindStage();
         }
 
@@ -149,6 +149,13 @@ namespace HillNGun.Proto.Greybox
                 return;
             }
 
+            if (Proto_GreyboxViewModeState.IsPersp2D)
+            {
+                Proto_GreyboxChibiHud.Restore();
+                if (_stageBound) UnbindStage();
+                return;
+            }
+
             var want = Proto_GreyboxWestPixelCatalog.LoadForCurrentStyle();
             if (want == null)
                 return;
@@ -168,6 +175,10 @@ namespace HillNGun.Proto.Greybox
                 ApplyHudSkin();
                 Proto_GreyboxChibiHud.SetOverlayVisible(_catalog.isChibi);
             }
+
+            if (Proto_GreyboxViewModeState.IsChibi && IsActive && _catalog?.bgFullScene != null
+                && (_layerRoot == null || _layerRoot.Find("WP_FullScene") == null))
+                RebuildStageLayout();
         }
 
         void BindStage()
@@ -517,6 +528,8 @@ namespace HillNGun.Proto.Greybox
 
         void RestoreHudSkin()
         {
+            if (Proto_GreyboxViewModeState.IsPersp2D && Proto_GreyboxPersp2DHud.IsApplied)
+                return;
             Proto_GreyboxChibiHud.Restore();
             ShowHudTextLabel("Greybox_Hud_FireLabel");
             ShowHudTextLabel("Greybox_Hud_RollLabel");

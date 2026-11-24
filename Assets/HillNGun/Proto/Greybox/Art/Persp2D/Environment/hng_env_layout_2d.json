@@ -1,0 +1,1829 @@
+{
+ "_note": "All px are at 2x (3840x2160), y down, origin top-left of the screen / sprite. Unity pivot = [px/w, 1-py/h].",
+ "camera": {
+  "screen_2x": [
+   3840,
+   2160
+  ],
+  "horizon_y_px": 907.0,
+  "horizon_y_norm": 0.4199,
+  "vanishing_point_px": [
+   1920.0,
+   907.0
+  ],
+  "vanishing_point_norm": [
+   0.5,
+   0.4199
+  ],
+  "focal_px": 2400.0,
+  "camera_height_m": 2.4,
+  "character_height_m": 1.6,
+  "ground_formulas": {
+   "depth_from_screen_y": "Z = F*CAM_H/(y - HZ)",
+   "x_from_screen": "X = (x - CX)*Z/F",
+   "screen_y_of_ground": "y = HZ + F*CAM_H/Z",
+   "px_per_metre": "F/Z",
+   "character_scale": "see character_scale"
+  }
+ },
+ "character_scale": {
+  "source": "final_skins_2d/Characters: 512x512 cell, ground line y=400, pivot px (256,400), Unity pivot (0.5,0.21875), standing hero 376 px, bandit 368 px (incl. 4 px outline)",
+  "assumed": "concept scale: hero ~26% of screen height on the nearest row (planner decision 2026-11-24; the earlier 15% was a mis-measure)",
+  "hero_row": {
+   "Z_m": 6.72,
+   "feet_y_px": 1764,
+   "hero_height_px": 571,
+   "engine_scale": 1.52
+  },
+  "formula": "character engine scale = CHAR_H*F/(Z*376) = 10.213/Z = (feet_y - HZ)/564.0  (= (feet_y - HZ)/844.5 * 563/376)",
+  "props": "props are drawn at 352.5 px/m (not re-rendered) and keep their own scale (feet_y - HZ)/846.0 (Z_ref = F/352.5); characters are 376 px / 1.6 m = 235 px/m -> prop engine scale = character engine scale / 1.5 at the same feet y (exact: 352.5/235 = 1.5000)"
+ },
+ "buildings": {
+  "saloon_L": {
+   "back": "Environment/Buildings/hng_env_bld_saloon_L_back.png",
+   "front": "Environment/Buildings/hng_env_bld_saloon_L_front.png",
+   "size": [
+    2001,
+    1155
+   ],
+   "slot": "near",
+   "side": "L",
+   "recommended_in_concept_layout": true,
+   "pivot_px": [
+    1552.6,
+    1107.7
+   ],
+   "pivot_norm_unity": [
+    0.77591,
+    0.04095
+   ],
+   "pivot_desc": "outer porch corner on the ground (X=street porch edge, Y=0, Z=camera-side porch edge)",
+   "recommended_pivot_screen_2x": [
+    995.6,
+    1333.7
+   ],
+   "recommended_topleft_screen_2x": [
+    -557,
+    226
+   ],
+   "world": {
+    "Z_near": 15.0,
+    "Z_far": 20.0,
+    "X_wall": -7.0,
+    "X_porch_edge": -5.2,
+    "X_back": -13.5,
+    "deck_y": 0.35,
+    "depth_m": 6.5,
+    "length_m": 5.0
+   },
+   "sign": {
+    "file": "Environment/Buildings/hng_env_sign_saloon.png",
+    "anchor_bottom_centre_px_in_building": [
+     1011.0,
+     406.6
+    ],
+    "anchor_offset_from_pivot_px": [
+     -541.6,
+     -701.1
+    ],
+    "scale": 1.0013,
+    "size_px_at_scale": [
+     561,
+     220
+    ],
+    "flip": false
+   },
+   "porch_zone_px_in_building": [
+    [
+     103.7,
+     1045.4
+    ],
+    [
+     1552.6,
+     1045.4
+    ],
+    [
+     1848.3,
+     928.9
+    ],
+    [
+     1630.7,
+     928.9
+    ],
+    [
+     1357.0,
+     1009.0
+    ],
+    [
+     341.0,
+     1009.0
+    ]
+   ],
+   "porch_edge_ground_line_px_in_building": [
+    [
+     103.7,
+     1107.7
+    ],
+    [
+     1552.6,
+     1107.7
+    ],
+    [
+     1848.3,
+     971.2
+    ]
+   ],
+   "porch_zone_world": {
+    "near_run": [
+     [
+      -13.35,
+      -5.2
+     ],
+     [
+      13.5,
+      15.0
+     ]
+    ],
+    "street_run": [
+     [
+      -5.2,
+      -7.0
+     ],
+     [
+      15.0,
+      19.85
+     ]
+    ],
+    "deck_y": 0.35
+   },
+   "layers": {
+    "back": "behind every character/prop; order far->near by world.Z_near; its sign right after it",
+    "front": "same canvas & pivot as back (pixel-exact); see sort_rules.front_layer"
+   }
+  },
+  "saloon_R": {
+   "back": "Environment/Buildings/hng_env_bld_saloon_R_back.png",
+   "front": "Environment/Buildings/hng_env_bld_saloon_R_front.png",
+   "size": [
+    2001,
+    1155
+   ],
+   "slot": "near",
+   "side": "R",
+   "recommended_in_concept_layout": false,
+   "pivot_px": [
+    448.4,
+    1107.7
+   ],
+   "pivot_norm_unity": [
+    0.22409,
+    0.04095
+   ],
+   "pivot_desc": "outer porch corner on the ground (X=street porch edge, Y=0, Z=camera-side porch edge)",
+   "recommended_pivot_screen_2x": [
+    2844.4,
+    1333.7
+   ],
+   "recommended_topleft_screen_2x": [
+    2396,
+    226
+   ],
+   "world": {
+    "Z_near": 15.0,
+    "Z_far": 20.0,
+    "X_wall": 7.0,
+    "X_porch_edge": 5.2,
+    "X_back": 13.5,
+    "deck_y": 0.35,
+    "depth_m": 6.5,
+    "length_m": 5.0
+   },
+   "sign": {
+    "file": "Environment/Buildings/hng_env_sign_saloon.png",
+    "anchor_bottom_centre_px_in_building": [
+     990.0,
+     406.6
+    ],
+    "anchor_offset_from_pivot_px": [
+     541.6,
+     -701.1
+    ],
+    "scale": 1.0013,
+    "size_px_at_scale": [
+     561,
+     220
+    ],
+    "flip": false
+   },
+   "porch_zone_px_in_building": [
+    [
+     1897.3,
+     1045.4
+    ],
+    [
+     448.4,
+     1045.4
+    ],
+    [
+     152.7,
+     928.9
+    ],
+    [
+     370.3,
+     928.9
+    ],
+    [
+     644.0,
+     1009.0
+    ],
+    [
+     1660.0,
+     1009.0
+    ]
+   ],
+   "porch_edge_ground_line_px_in_building": [
+    [
+     1897.3,
+     1107.7
+    ],
+    [
+     448.4,
+     1107.7
+    ],
+    [
+     152.7,
+     971.2
+    ]
+   ],
+   "porch_zone_world": {
+    "near_run": [
+     [
+      13.35,
+      5.2
+     ],
+     [
+      13.5,
+      15.0
+     ]
+    ],
+    "street_run": [
+     [
+      5.2,
+      7.0
+     ],
+     [
+      15.0,
+      19.85
+     ]
+    ],
+    "deck_y": 0.35
+   },
+   "layers": {
+    "back": "behind every character/prop; order far->near by world.Z_near; its sign right after it",
+    "front": "same canvas & pivot as back (pixel-exact); see sort_rules.front_layer"
+   }
+  },
+  "hotel_L": {
+   "back": "Environment/Buildings/hng_env_bld_hotel_L_back.png",
+   "front": "Environment/Buildings/hng_env_bld_hotel_L_front.png",
+   "size": [
+    1977,
+    1164
+   ],
+   "slot": "near",
+   "side": "L",
+   "recommended_in_concept_layout": false,
+   "pivot_px": [
+    1552.6,
+    1116.7
+   ],
+   "pivot_norm_unity": [
+    0.78533,
+    0.04064
+   ],
+   "pivot_desc": "outer porch corner on the ground (X=street porch edge, Y=0, Z=camera-side porch edge)",
+   "recommended_pivot_screen_2x": [
+    995.6,
+    1333.7
+   ],
+   "recommended_topleft_screen_2x": [
+    -557,
+    217
+   ],
+   "world": {
+    "Z_near": 15.0,
+    "Z_far": 19.1,
+    "X_wall": -7.0,
+    "X_porch_edge": -5.2,
+    "X_back": -13.5,
+    "deck_y": 0.35,
+    "depth_m": 6.5,
+    "length_m": 4.1
+   },
+   "sign": {
+    "file": "Environment/Buildings/hng_env_sign_hotel.png",
+    "anchor_bottom_centre_px_in_building": [
+     1027.1,
+     363.6
+    ],
+    "anchor_offset_from_pivot_px": [
+     -525.5,
+     -753.1
+    ],
+    "scale": 1.0013,
+    "size_px_at_scale": [
+     497,
+     196
+    ],
+    "flip": false
+   },
+   "porch_zone_px_in_building": [
+    [
+     103.7,
+     1054.4
+    ],
+    [
+     1552.6,
+     1054.4
+    ],
+    [
+     1802.4,
+     955.9
+    ],
+    [
+     1568.9,
+     955.9
+    ],
+    [
+     1357.0,
+     1018.0
+    ],
+    [
+     341.0,
+     1018.0
+    ]
+   ],
+   "porch_edge_ground_line_px_in_building": [
+    [
+     103.7,
+     1116.7
+    ],
+    [
+     1552.6,
+     1116.7
+    ],
+    [
+     1802.4,
+     1001.4
+    ]
+   ],
+   "porch_zone_world": {
+    "near_run": [
+     [
+      -13.35,
+      -5.2
+     ],
+     [
+      13.5,
+      15.0
+     ]
+    ],
+    "street_run": [
+     [
+      -5.2,
+      -7.0
+     ],
+     [
+      15.0,
+      18.5
+     ]
+    ],
+    "deck_y": 0.35
+   },
+   "layers": {
+    "back": "behind every character/prop; order far->near by world.Z_near; its sign right after it",
+    "front": "same canvas & pivot as back (pixel-exact); see sort_rules.front_layer"
+   }
+  },
+  "hotel_R": {
+   "back": "Environment/Buildings/hng_env_bld_hotel_R_back.png",
+   "front": "Environment/Buildings/hng_env_bld_hotel_R_front.png",
+   "size": [
+    1977,
+    1164
+   ],
+   "slot": "near",
+   "side": "R",
+   "recommended_in_concept_layout": true,
+   "pivot_px": [
+    424.4,
+    1116.7
+   ],
+   "pivot_norm_unity": [
+    0.21467,
+    0.04064
+   ],
+   "pivot_desc": "outer porch corner on the ground (X=street porch edge, Y=0, Z=camera-side porch edge)",
+   "recommended_pivot_screen_2x": [
+    2844.4,
+    1333.7
+   ],
+   "recommended_topleft_screen_2x": [
+    2420,
+    217
+   ],
+   "world": {
+    "Z_near": 15.0,
+    "Z_far": 19.1,
+    "X_wall": 7.0,
+    "X_porch_edge": 5.2,
+    "X_back": 13.5,
+    "deck_y": 0.35,
+    "depth_m": 6.5,
+    "length_m": 4.1
+   },
+   "sign": {
+    "file": "Environment/Buildings/hng_env_sign_hotel.png",
+    "anchor_bottom_centre_px_in_building": [
+     949.9,
+     363.6
+    ],
+    "anchor_offset_from_pivot_px": [
+     525.5,
+     -753.1
+    ],
+    "scale": 1.0013,
+    "size_px_at_scale": [
+     497,
+     196
+    ],
+    "flip": false
+   },
+   "porch_zone_px_in_building": [
+    [
+     1873.3,
+     1054.4
+    ],
+    [
+     424.4,
+     1054.4
+    ],
+    [
+     174.6,
+     955.9
+    ],
+    [
+     408.1,
+     955.9
+    ],
+    [
+     620.0,
+     1018.0
+    ],
+    [
+     1636.0,
+     1018.0
+    ]
+   ],
+   "porch_edge_ground_line_px_in_building": [
+    [
+     1873.3,
+     1116.7
+    ],
+    [
+     424.4,
+     1116.7
+    ],
+    [
+     174.6,
+     1001.4
+    ]
+   ],
+   "porch_zone_world": {
+    "near_run": [
+     [
+      13.35,
+      5.2
+     ],
+     [
+      13.5,
+      15.0
+     ]
+    ],
+    "street_run": [
+     [
+      5.2,
+      7.0
+     ],
+     [
+      15.0,
+      18.5
+     ]
+    ],
+    "deck_y": 0.35
+   },
+   "layers": {
+    "back": "behind every character/prop; order far->near by world.Z_near; its sign right after it",
+    "front": "same canvas & pivot as back (pixel-exact); see sort_rules.front_layer"
+   }
+  },
+  "store_L": {
+   "back": "Environment/Buildings/hng_env_bld_store_L_back.png",
+   "front": "Environment/Buildings/hng_env_bld_store_L_front.png",
+   "size": [
+    797,
+    437
+   ],
+   "slot": "far",
+   "side": "L",
+   "recommended_in_concept_layout": true,
+   "pivot_px": [
+    622.9,
+    395.5
+   ],
+   "pivot_norm_unity": [
+    0.78156,
+    0.09497
+   ],
+   "pivot_desc": "outer porch corner on the ground (X=street porch edge, Y=0, Z=camera-side porch edge)",
+   "recommended_pivot_screen_2x": [
+    1570.9,
+    1116.5
+   ],
+   "recommended_topleft_screen_2x": [
+    948,
+    721
+   ],
+   "world": {
+    "Z_near": 29.0,
+    "Z_far": 34.5,
+    "X_wall": -5.6,
+    "X_porch_edge": -3.9999999999999996,
+    "X_back": -10.6,
+    "deck_y": 0.3,
+    "depth_m": 5.0,
+    "length_m": 5.5
+   },
+   "sign": {
+    "file": "Environment/Buildings/hng_env_sign_store.png",
+    "anchor_bottom_centre_px_in_building": [
+     367.4,
+     143.2
+    ],
+    "anchor_offset_from_pivot_px": [
+     -255.5,
+     -252.3
+    ],
+    "scale": 0.5176,
+    "size_px_at_scale": [
+     224,
+     80
+    ],
+    "flip": false
+   },
+   "porch_zone_px_in_building": [
+    [
+     60.0,
+     369.3
+    ],
+    [
+     622.9,
+     369.3
+    ],
+    [
+     692.5,
+     332.7
+    ],
+    [
+     580.7,
+     332.7
+    ],
+    [
+     508.6,
+     359.8
+    ],
+    [
+     107.2,
+     359.8
+    ]
+   ],
+   "porch_edge_ground_line_px_in_building": [
+    [
+     60.0,
+     395.5
+    ],
+    [
+     622.9,
+     395.5
+    ],
+    [
+     692.5,
+     353.7
+    ]
+   ],
+   "porch_zone_world": {
+    "near_run": [
+     [
+      -10.45,
+      -3.9999999999999996
+     ],
+     [
+      27.5,
+      29.0
+     ]
+    ],
+    "street_run": [
+     [
+      -3.9999999999999996,
+      -5.6
+     ],
+     [
+      29.0,
+      34.35
+     ]
+    ],
+    "deck_y": 0.3
+   },
+   "layers": {
+    "back": "behind every character/prop; order far->near by world.Z_near; its sign right after it",
+    "front": "same canvas & pivot as back (pixel-exact); see sort_rules.front_layer"
+   }
+  },
+  "store_R": {
+   "back": "Environment/Buildings/hng_env_bld_store_R_back.png",
+   "front": "Environment/Buildings/hng_env_bld_store_R_front.png",
+   "size": [
+    797,
+    437
+   ],
+   "slot": "far",
+   "side": "R",
+   "recommended_in_concept_layout": false,
+   "pivot_px": [
+    174.1,
+    395.5
+   ],
+   "pivot_norm_unity": [
+    0.21844,
+    0.09497
+   ],
+   "pivot_desc": "outer porch corner on the ground (X=street porch edge, Y=0, Z=camera-side porch edge)",
+   "recommended_pivot_screen_2x": [
+    2269.1,
+    1116.5
+   ],
+   "recommended_topleft_screen_2x": [
+    2095,
+    721
+   ],
+   "world": {
+    "Z_near": 29.0,
+    "Z_far": 34.5,
+    "X_wall": 5.6,
+    "X_porch_edge": 3.9999999999999996,
+    "X_back": 10.6,
+    "deck_y": 0.3,
+    "depth_m": 5.0,
+    "length_m": 5.5
+   },
+   "sign": {
+    "file": "Environment/Buildings/hng_env_sign_store.png",
+    "anchor_bottom_centre_px_in_building": [
+     429.6,
+     143.2
+    ],
+    "anchor_offset_from_pivot_px": [
+     255.5,
+     -252.3
+    ],
+    "scale": 0.5176,
+    "size_px_at_scale": [
+     224,
+     80
+    ],
+    "flip": false
+   },
+   "porch_zone_px_in_building": [
+    [
+     737.0,
+     369.3
+    ],
+    [
+     174.1,
+     369.3
+    ],
+    [
+     104.5,
+     332.7
+    ],
+    [
+     216.3,
+     332.7
+    ],
+    [
+     288.4,
+     359.8
+    ],
+    [
+     689.8,
+     359.8
+    ]
+   ],
+   "porch_edge_ground_line_px_in_building": [
+    [
+     737.0,
+     395.5
+    ],
+    [
+     174.1,
+     395.5
+    ],
+    [
+     104.5,
+     353.7
+    ]
+   ],
+   "porch_zone_world": {
+    "near_run": [
+     [
+      10.45,
+      3.9999999999999996
+     ],
+     [
+      27.5,
+      29.0
+     ]
+    ],
+    "street_run": [
+     [
+      3.9999999999999996,
+      5.6
+     ],
+     [
+      29.0,
+      34.35
+     ]
+    ],
+    "deck_y": 0.3
+   },
+   "layers": {
+    "back": "behind every character/prop; order far->near by world.Z_near; its sign right after it",
+    "front": "same canvas & pivot as back (pixel-exact); see sort_rules.front_layer"
+   }
+  },
+  "sheriff_L": {
+   "back": "Environment/Buildings/hng_env_bld_sheriff_L_back.png",
+   "front": "Environment/Buildings/hng_env_bld_sheriff_L_front.png",
+   "size": [
+    787,
+    494
+   ],
+   "slot": "far",
+   "side": "L",
+   "recommended_in_concept_layout": false,
+   "pivot_px": [
+    614.2,
+    452.5
+   ],
+   "pivot_norm_unity": [
+    0.78043,
+    0.08401
+   ],
+   "pivot_desc": "outer porch corner on the ground (X=street porch edge, Y=0, Z=camera-side porch edge)",
+   "recommended_pivot_screen_2x": [
+    1562.2,
+    1116.5
+   ],
+   "recommended_topleft_screen_2x": [
+    948,
+    664
+   ],
+   "world": {
+    "Z_near": 29.0,
+    "Z_far": 34.0,
+    "X_wall": -5.6,
+    "X_porch_edge": -4.1,
+    "X_back": -10.6,
+    "deck_y": 0.3,
+    "depth_m": 5.0,
+    "length_m": 5.0
+   },
+   "sign": {
+    "file": "Environment/Buildings/hng_env_sign_sheriff.png",
+    "anchor_bottom_centre_px_in_building": [
+     404.7,
+     230.6
+    ],
+    "anchor_offset_from_pivot_px": [
+     -209.5,
+     -221.9
+    ],
+    "scale": 0.5176,
+    "size_px_at_scale": [
+     174,
+     124
+    ],
+    "flip": false
+   },
+   "porch_zone_px_in_building": [
+    [
+     60.0,
+     426.3
+    ],
+    [
+     614.2,
+     426.3
+    ],
+    [
+     681.3,
+     391.9
+    ],
+    [
+     575.0,
+     391.9
+    ],
+    [
+     508.6,
+     416.8
+    ],
+    [
+     107.2,
+     416.8
+    ]
+   ],
+   "porch_edge_ground_line_px_in_building": [
+    [
+     60.0,
+     452.5
+    ],
+    [
+     614.2,
+     452.5
+    ],
+    [
+     681.3,
+     413.2
+    ]
+   ],
+   "porch_zone_world": {
+    "near_run": [
+     [
+      -10.45,
+      -4.1
+     ],
+     [
+      27.5,
+      29.0
+     ]
+    ],
+    "street_run": [
+     [
+      -4.1,
+      -5.6
+     ],
+     [
+      29.0,
+      33.85
+     ]
+    ],
+    "deck_y": 0.3
+   },
+   "layers": {
+    "back": "behind every character/prop; order far->near by world.Z_near; its sign right after it",
+    "front": "same canvas & pivot as back (pixel-exact); see sort_rules.front_layer"
+   }
+  },
+  "sheriff_R": {
+   "back": "Environment/Buildings/hng_env_bld_sheriff_R_back.png",
+   "front": "Environment/Buildings/hng_env_bld_sheriff_R_front.png",
+   "size": [
+    787,
+    494
+   ],
+   "slot": "far",
+   "side": "R",
+   "recommended_in_concept_layout": true,
+   "pivot_px": [
+    172.8,
+    452.5
+   ],
+   "pivot_norm_unity": [
+    0.21957,
+    0.08401
+   ],
+   "pivot_desc": "outer porch corner on the ground (X=street porch edge, Y=0, Z=camera-side porch edge)",
+   "recommended_pivot_screen_2x": [
+    2277.8,
+    1116.5
+   ],
+   "recommended_topleft_screen_2x": [
+    2105,
+    664
+   ],
+   "world": {
+    "Z_near": 29.0,
+    "Z_far": 34.0,
+    "X_wall": 5.6,
+    "X_porch_edge": 4.1,
+    "X_back": 10.6,
+    "deck_y": 0.3,
+    "depth_m": 5.0,
+    "length_m": 5.0
+   },
+   "sign": {
+    "file": "Environment/Buildings/hng_env_sign_sheriff.png",
+    "anchor_bottom_centre_px_in_building": [
+     382.3,
+     230.6
+    ],
+    "anchor_offset_from_pivot_px": [
+     209.5,
+     -221.9
+    ],
+    "scale": 0.5176,
+    "size_px_at_scale": [
+     174,
+     124
+    ],
+    "flip": false
+   },
+   "porch_zone_px_in_building": [
+    [
+     727.0,
+     426.3
+    ],
+    [
+     172.8,
+     426.3
+    ],
+    [
+     105.7,
+     391.9
+    ],
+    [
+     212.0,
+     391.9
+    ],
+    [
+     278.4,
+     416.8
+    ],
+    [
+     679.8,
+     416.8
+    ]
+   ],
+   "porch_edge_ground_line_px_in_building": [
+    [
+     727.0,
+     452.5
+    ],
+    [
+     172.8,
+     452.5
+    ],
+    [
+     105.7,
+     413.2
+    ]
+   ],
+   "porch_zone_world": {
+    "near_run": [
+     [
+      10.45,
+      4.1
+     ],
+     [
+      27.5,
+      29.0
+     ]
+    ],
+    "street_run": [
+     [
+      4.1,
+      5.6
+     ],
+     [
+      29.0,
+      33.85
+     ]
+    ],
+    "deck_y": 0.3
+   },
+   "layers": {
+    "back": "behind every character/prop; order far->near by world.Z_near; its sign right after it",
+    "front": "same canvas & pivot as back (pixel-exact); see sort_rules.front_layer"
+   }
+  }
+ },
+ "signs": {
+  "saloon": {
+   "file": "Environment/Buildings/hng_env_sign_saloon.png",
+   "size": [
+    560,
+    220
+   ],
+   "pivot": "bottom-centre of the board (8 px transparent pad below)",
+   "pivot_px": [
+    280.0,
+    212
+   ],
+   "pivot_norm_unity": [
+    0.5,
+    0.03636
+   ],
+   "drawn_at": "near-slot scale (Z=15 m, 160 px/m); never flipped",
+   "width_m": 3.4
+  },
+  "store": {
+   "file": "Environment/Buildings/hng_env_sign_store.png",
+   "size": [
+    432,
+    155
+   ],
+   "pivot": "bottom-centre of the board (8 px transparent pad below)",
+   "pivot_px": [
+    216.0,
+    147
+   ],
+   "pivot_norm_unity": [
+    0.5,
+    0.05161
+   ],
+   "drawn_at": "near-slot scale (Z=15 m, 160 px/m); never flipped",
+   "width_m": 2.6
+  },
+  "hotel": {
+   "file": "Environment/Buildings/hng_env_sign_hotel.png",
+   "size": [
+    496,
+    196
+   ],
+   "pivot": "bottom-centre of the board (8 px transparent pad below)",
+   "pivot_px": [
+    248.0,
+    188
+   ],
+   "pivot_norm_unity": [
+    0.5,
+    0.04082
+   ],
+   "drawn_at": "near-slot scale (Z=15 m, 160 px/m); never flipped",
+   "width_m": 3.0
+  },
+  "sheriff": {
+   "file": "Environment/Buildings/hng_env_sign_sheriff.png",
+   "size": [
+    336,
+    240
+   ],
+   "pivot": "bottom-centre of the board (8 px transparent pad below)",
+   "pivot_px": [
+    168.0,
+    232
+   ],
+   "pivot_norm_unity": [
+    0.5,
+    0.03333
+   ],
+   "drawn_at": "near-slot scale (Z=15 m, 160 px/m); never flipped",
+   "width_m": 2.0
+  }
+ },
+ "props": {
+  "barrel": {
+   "file": "Environment/Props/hng_env_prop_barrel.png",
+   "size": [
+    270,
+    387
+   ],
+   "pivot_px": [
+    135.2,
+    336.0
+   ],
+   "pivot_norm_unity": [
+    0.50074,
+    0.13178
+   ],
+   "pivot_desc": "ground footprint centre",
+   "ref_scale": {
+    "Z_ref_m": 6.808510638297872,
+    "px_per_m": 352.5,
+    "feet_y_at_ref": 1753.0
+   },
+   "scale_rule": "scale = Z_ref/Z = (feet_y - HZ)/(feet_y_at_ref - HZ) = (feet_y - HZ)/846.0 = character engine scale / 1.5 at the same feet y (props 352.5 px/m, 512-cell characters 376 px/1.6 m = 235 px/m)",
+   "footprint_m": [
+    0.68,
+    0.68
+   ],
+   "height_m": 0.86,
+   "shadow_w_m": 0.95,
+   "shadow": {
+    "file": "Environment/Props/hng_env_prop_shadow_ellipse.png",
+    "width_m": 0.95,
+    "scale_at_ref": 0.6541,
+    "centre_on": "pivot"
+   }
+  },
+  "crate": {
+   "file": "Environment/Props/hng_env_prop_crate.png",
+   "size": [
+    409,
+    400
+   ],
+   "pivot_px": [
+    204.7,
+    319.9
+   ],
+   "pivot_norm_unity": [
+    0.50049,
+    0.20025
+   ],
+   "pivot_desc": "ground footprint centre",
+   "ref_scale": {
+    "Z_ref_m": 6.808510638297872,
+    "px_per_m": 352.5,
+    "feet_y_at_ref": 1753.0
+   },
+   "scale_rule": "scale = Z_ref/Z = (feet_y - HZ)/(feet_y_at_ref - HZ) = (feet_y - HZ)/846.0 = character engine scale / 1.5 at the same feet y (props 352.5 px/m, 512-cell characters 376 px/1.6 m = 235 px/m)",
+   "footprint_m": [
+    0.78,
+    0.78
+   ],
+   "height_m": 0.78,
+   "shadow_w_m": 1.25,
+   "yaw_deg": 32,
+   "shadow": {
+    "file": "Environment/Props/hng_env_prop_shadow_ellipse.png",
+    "width_m": 1.25,
+    "scale_at_ref": 0.8606,
+    "centre_on": "pivot"
+   }
+  },
+  "crate_small": {
+   "file": "Environment/Props/hng_env_prop_crate_small.png",
+   "size": [
+    278,
+    297
+   ],
+   "pivot_px": [
+    139.2,
+    239.6
+   ],
+   "pivot_norm_unity": [
+    0.50072,
+    0.19327
+   ],
+   "pivot_desc": "ground footprint centre",
+   "ref_scale": {
+    "Z_ref_m": 6.808510638297872,
+    "px_per_m": 352.5,
+    "feet_y_at_ref": 1753.0
+   },
+   "scale_rule": "scale = Z_ref/Z = (feet_y - HZ)/(feet_y_at_ref - HZ) = (feet_y - HZ)/846.0 = character engine scale / 1.5 at the same feet y (props 352.5 px/m, 512-cell characters 376 px/1.6 m = 235 px/m)",
+   "footprint_m": [
+    0.55,
+    0.55
+   ],
+   "height_m": 0.55,
+   "shadow_w_m": 0.85,
+   "yaw_deg": -20,
+   "shadow": {
+    "file": "Environment/Props/hng_env_prop_shadow_ellipse.png",
+    "width_m": 0.85,
+    "scale_at_ref": 0.5852,
+    "centre_on": "pivot"
+   }
+  },
+  "cactus_saguaro_tall": {
+   "file": "Environment/Props/hng_env_prop_cactus_saguaro_tall.png",
+   "size": [
+    529,
+    1050
+   ],
+   "pivot_px": [
+    264.5,
+    1007.9
+   ],
+   "pivot_norm_unity": [
+    0.5,
+    0.0401
+   ],
+   "pivot_desc": "ground footprint centre",
+   "ref_scale": {
+    "Z_ref_m": 6.808510638297872,
+    "px_per_m": 352.5,
+    "feet_y_at_ref": 1753.0
+   },
+   "scale_rule": "scale = Z_ref/Z = (feet_y - HZ)/(feet_y_at_ref - HZ) = (feet_y - HZ)/846.0 = character engine scale / 1.5 at the same feet y (props 352.5 px/m, 512-cell characters 376 px/1.6 m = 235 px/m)",
+   "footprint_m": [
+    0.46,
+    0.46
+   ],
+   "height_m": 3.0,
+   "shadow_w_m": 1.1,
+   "shadow": {
+    "file": "Environment/Props/hng_env_prop_shadow_ellipse.png",
+    "width_m": 1.1,
+    "scale_at_ref": 0.7573,
+    "centre_on": "pivot"
+   }
+  },
+  "cactus_small": {
+   "file": "Environment/Props/hng_env_prop_cactus_small.png",
+   "size": [
+    360,
+    437
+   ],
+   "pivot_px": [
+    264.5,
+    394.9
+   ],
+   "pivot_norm_unity": [
+    0.73472,
+    0.09634
+   ],
+   "pivot_desc": "ground footprint centre",
+   "ref_scale": {
+    "Z_ref_m": 6.808510638297872,
+    "px_per_m": 352.5,
+    "feet_y_at_ref": 1753.0
+   },
+   "scale_rule": "scale = Z_ref/Z = (feet_y - HZ)/(feet_y_at_ref - HZ) = (feet_y - HZ)/846.0 = character engine scale / 1.5 at the same feet y (props 352.5 px/m, 512-cell characters 376 px/1.6 m = 235 px/m)",
+   "footprint_m": [
+    0.46,
+    0.46
+   ],
+   "height_m": 1.15,
+   "shadow_w_m": 0.7,
+   "shadow": {
+    "file": "Environment/Props/hng_env_prop_shadow_ellipse.png",
+    "width_m": 0.7,
+    "scale_at_ref": 0.4819,
+    "centre_on": "pivot"
+   }
+  },
+  "agave": {
+   "file": "Environment/Props/hng_env_prop_agave.png",
+   "size": [
+    468,
+    318
+   ],
+   "pivot_px": [
+    233.0,
+    237.8
+   ],
+   "pivot_norm_unity": [
+    0.49786,
+    0.2522
+   ],
+   "pivot_desc": "ground footprint centre",
+   "ref_scale": {
+    "Z_ref_m": 6.808510638297872,
+    "px_per_m": 352.5,
+    "feet_y_at_ref": 1753.0
+   },
+   "scale_rule": "scale = Z_ref/Z = (feet_y - HZ)/(feet_y_at_ref - HZ) = (feet_y - HZ)/846.0 = character engine scale / 1.5 at the same feet y (props 352.5 px/m, 512-cell characters 376 px/1.6 m = 235 px/m)",
+   "footprint_m": [
+    1.0,
+    0.6
+   ],
+   "height_m": 0.65,
+   "shadow_w_m": 1.2,
+   "shadow": {
+    "file": "Environment/Props/hng_env_prop_shadow_ellipse.png",
+    "width_m": 1.2,
+    "scale_at_ref": 0.8262,
+    "centre_on": "pivot"
+   }
+  },
+  "rock_large": {
+   "file": "Environment/Props/hng_env_prop_rock_large.png",
+   "size": [
+    465,
+    235
+   ],
+   "pivot_px": [
+    232.0,
+    200.2
+   ],
+   "pivot_norm_unity": [
+    0.49892,
+    0.14809
+   ],
+   "pivot_desc": "ground footprint centre",
+   "ref_scale": {
+    "Z_ref_m": 6.808510638297872,
+    "px_per_m": 352.5,
+    "feet_y_at_ref": 1753.0
+   },
+   "scale_rule": "scale = Z_ref/Z = (feet_y - HZ)/(feet_y_at_ref - HZ) = (feet_y - HZ)/846.0 = character engine scale / 1.5 at the same feet y (props 352.5 px/m, 512-cell characters 376 px/1.6 m = 235 px/m)",
+   "footprint_m": [
+    1.25,
+    0.8
+   ],
+   "height_m": 0.53,
+   "shadow_w_m": 1.5,
+   "shadow": {
+    "file": "Environment/Props/hng_env_prop_shadow_ellipse.png",
+    "width_m": 1.5,
+    "scale_at_ref": 1.0327,
+    "centre_on": "pivot"
+   }
+  },
+  "rock_cluster": {
+   "file": "Environment/Props/hng_env_prop_rock_cluster.png",
+   "size": [
+    449,
+    163
+   ],
+   "pivot_px": [
+    235.7,
+    130.6
+   ],
+   "pivot_norm_unity": [
+    0.52494,
+    0.19877
+   ],
+   "pivot_desc": "ground footprint centre",
+   "ref_scale": {
+    "Z_ref_m": 6.808510638297872,
+    "px_per_m": 352.5,
+    "feet_y_at_ref": 1753.0
+   },
+   "scale_rule": "scale = Z_ref/Z = (feet_y - HZ)/(feet_y_at_ref - HZ) = (feet_y - HZ)/846.0 = character engine scale / 1.5 at the same feet y (props 352.5 px/m, 512-cell characters 376 px/1.6 m = 235 px/m)",
+   "footprint_m": [
+    1.1,
+    0.5
+   ],
+   "height_m": 0.35,
+   "shadow_w_m": 1.3,
+   "shadow": {
+    "file": "Environment/Props/hng_env_prop_shadow_ellipse.png",
+    "width_m": 1.3,
+    "scale_at_ref": 0.895,
+    "centre_on": "pivot"
+   }
+  },
+  "hitching_post": {
+   "file": "Environment/Props/hng_env_prop_hitching_post.png",
+   "size": [
+    768,
+    408
+   ],
+   "pivot_px": [
+    384.0,
+    369.6
+   ],
+   "pivot_norm_unity": [
+    0.5,
+    0.09412
+   ],
+   "pivot_desc": "ground footprint centre",
+   "ref_scale": {
+    "Z_ref_m": 6.808510638297872,
+    "px_per_m": 352.5,
+    "feet_y_at_ref": 1753.0
+   },
+   "scale_rule": "scale = Z_ref/Z = (feet_y - HZ)/(feet_y_at_ref - HZ) = (feet_y - HZ)/846.0 = character engine scale / 1.5 at the same feet y (props 352.5 px/m, 512-cell characters 376 px/1.6 m = 235 px/m)",
+   "footprint_m": [
+    2.1,
+    0.2
+   ],
+   "height_m": 1.0,
+   "shadow_w_m": 2.3,
+   "shadow": {
+    "file": "Environment/Props/hng_env_prop_shadow_ellipse.png",
+    "width_m": 2.3,
+    "scale_at_ref": 1.5835,
+    "centre_on": "pivot"
+   }
+  },
+  "shadow_ellipse": {
+   "file": "Environment/Props/hng_env_prop_shadow_ellipse.png",
+   "size": [
+    512,
+    166
+   ],
+   "pivot_px": [
+    256.0,
+    83.0
+   ],
+   "pivot_norm_unity": [
+    0.5,
+    0.5
+   ],
+   "note": "shared soft contact shadow; 512 px = 1 unit width; scale = shadow_w_m*px_per_m/512; draw just above the road, below actors",
+   "aspect": 0.324
+  }
+ },
+ "road": {
+  "file": "Environment/Road/hng_env_road_perspective.png",
+  "size": [
+   3840,
+   1253
+  ],
+  "topleft_screen_2x": [
+   0,
+   907
+  ],
+  "pivot_norm_unity": [
+   0.5,
+   1.0
+  ],
+  "note": "row 0 = horizon (y=907). Fully opaque; row 0 meets the sky layer bottom edge (both #f3bd7c-ish far sand). Dirt band +-4.2 m with noisy blended edge, final_skins dirt tile (6 m) projected; ruts at X=+-1.24 m converge on the vanishing point."
+ },
+ "backdrop": {
+  "strip": {
+   "file": "final_skins/Environment/hng_env_backdrop_sunset_strip.png",
+   "src_size": [
+    2048,
+    1024
+   ],
+   "src_horizon_y": 341,
+   "recommended": {
+    "scale": 1.875,
+    "scaled_size": [
+     3840,
+     1920
+    ],
+    "topleft_screen_2x": [
+     0,
+     268
+    ],
+    "sky_fill": {
+     "rows": [
+      0,
+      268
+     ],
+     "top": "#3c2a58",
+     "bottom": "#4a3466",
+     "note": "vertical gradient (or a camera clear colour) above the strip; strip row 0 is #4a3466"
+    },
+    "note": "width-fit (x1.875): strip horizon y=341 -> screen y=907 (=HZ). Sun at u=0.5 -> screen centre."
+   },
+   "alt_cover": {
+    "scale": 2.6598,
+    "scaled_size": [
+     5447,
+     2724
+    ],
+    "topleft_screen_2x": [
+     -804,
+     0
+    ],
+    "note": "uniform cover, no fill needed, but mesas/clouds get x2.66 upscaled (soft); overhang cropped (U-seamless)"
+   }
+  },
+  "skybox": {
+   "file": "final_skins/Environment/hng_env_skybox_sunset_equirect.png",
+   "note": "equirect horizon is at v=0.5; with a level camera it lands on the screen centre line, not HZ - use the strip for the 2D view, skybox only for a 3D camera"
+  },
+  "status": "DEPRECATED / optional: superseded by sky (Environment/Sky/hng_env_sky_sunset_2d.png, native 2x, horizon on y=907). The strip x1.875 + gradient fill and the x2.66 cover options are kept only for reference."
+ },
+ "scene": {
+  "note": "concept layout (final_concept_wide.jpg) recreated; buildings = entries with recommended_in_concept_layout=true at recommended_topleft_screen_2x",
+  "buildings": [
+   "sheriff_R",
+   "store_L",
+   "hotel_R",
+   "saloon_L"
+  ],
+  "props": [
+   {
+    "kind": "prop",
+    "name": "barrel",
+    "pivot_screen_2x": [
+     375.8,
+     1353.5
+    ],
+    "scale": 0.5278,
+    "flip_x": false,
+    "world": [
+     -8.3,
+     0,
+     12.9
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "barrel",
+    "pivot_screen_2x": [
+     538.2,
+     1343.4
+    ],
+    "scale": 0.5158,
+    "flip_x": false,
+    "world": [
+     -7.6,
+     0,
+     13.2
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "crate",
+    "pivot_screen_2x": [
+     673.5,
+     1353.5
+    ],
+    "scale": 0.5278,
+    "flip_x": false,
+    "world": [
+     -6.7,
+     0,
+     12.9
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "crate_small",
+    "pivot_screen_2x": [
+     749.3,
+     1375.3
+    ],
+    "scale": 0.5535,
+    "flip_x": false,
+    "world": [
+     -6.0,
+     0,
+     12.3
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "cactus_saguaro_tall",
+    "pivot_screen_2x": [
+     1440.0,
+     1142.1
+    ],
+    "scale": 0.2779,
+    "flip_x": false,
+    "world": [
+     -4.9,
+     0,
+     24.5
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "cactus_small",
+    "pivot_screen_2x": [
+     1498.6,
+     1126.8
+    ],
+    "scale": 0.2599,
+    "flip_x": false,
+    "world": [
+     -4.6,
+     0,
+     26.2
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "agave",
+    "pivot_screen_2x": [
+     1450.7,
+     1163.0
+    ],
+    "scale": 0.3026,
+    "flip_x": false,
+    "world": [
+     -4.4,
+     0,
+     22.5
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "cactus_saguaro_tall",
+    "pivot_screen_2x": [
+     2457.3,
+     1121.9
+    ],
+    "scale": 0.254,
+    "flip_x": true,
+    "world": [
+     6.0,
+     0,
+     26.8
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "agave",
+    "pivot_screen_2x": [
+     2389.6,
+     1157.4
+    ],
+    "scale": 0.296,
+    "flip_x": true,
+    "world": [
+     4.5,
+     0,
+     23.0
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "hitching_post",
+    "pivot_screen_2x": [
+     2796.2,
+     1364.1
+    ],
+    "scale": 0.5404,
+    "flip_x": false,
+    "world": [
+     4.6,
+     0,
+     12.6
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "rock_large",
+    "pivot_screen_2x": [
+     3467.4,
+     1664.9
+    ],
+    "scale": 0.8959,
+    "flip_x": false,
+    "world": [
+     4.9,
+     0,
+     7.6
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "rock_cluster",
+    "pivot_screen_2x": [
+     428.1,
+     1685.4
+    ],
+    "scale": 0.9201,
+    "flip_x": false,
+    "world": [
+     -4.6,
+     0,
+     7.4
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "rock_cluster",
+    "pivot_screen_2x": [
+     2176.0,
+     1099.0
+    ],
+    "scale": 0.227,
+    "flip_x": true,
+    "world": [
+     3.2,
+     0,
+     30
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "crate",
+    "pivot_screen_2x": [
+     2197.9,
+     1210.2
+    ],
+    "scale": 0.3583,
+    "flip_x": false,
+    "world": [
+     2.2,
+     0,
+     19.0
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "cactus_small",
+    "pivot_screen_2x": [
+     1728.0,
+     1035.0
+    ],
+    "scale": 0.1513,
+    "flip_x": true,
+    "world": [
+     -3.6,
+     0,
+     45
+    ]
+   },
+   {
+    "kind": "prop",
+    "name": "cactus_saguaro_tall",
+    "pivot_screen_2x": [
+     2145.0,
+     1027.0
+    ],
+    "scale": 0.1418,
+    "flip_x": false,
+    "world": [
+     4.5,
+     0,
+     48
+    ]
+   }
+  ]
+ },
+ "sort_rules": {
+  "order": [
+   "sky layer (Environment/Sky/hng_env_sky_sunset_2d.png, rearmost)",
+   "road",
+   "building back layers far->near (+ each sign right after its back layer)",
+   "prop shadows + character shadows",
+   "actors standing ON a porch (feet in porch_zone)",
+   "building front layers far->near",
+   "street actors and props, y-sorted by feet/pivot y"
+  ],
+  "front_layer": "A building front layer draws OVER an actor/prop iff the actor is behind the porch edge: |X| >= |X_porch_edge| and Z >= Z_near_porch (world, from feet: Z=F*CAM_H/(y-HZ), X=(x-CX)*Z/F). Otherwise (street side or camera side of the porch) the actor draws over it. In Unity: put on-porch actors in a sorting layer between Back and Front; street actors above Front, y-sorted. Pure y-sort fallback: front sort key = pivot y (outer porch corner); wrong only when a street actor hugs the porch edge.",
+  "walkable": "street between the porch edges, the porches themselves, and the ground in front of the near porches. Alleys behind |X_wall| are not walkable (would need extra occluders).",
+  "flipping": "Buildings: use the _L or _R file (rendered, not mirrored; lighting stays key-from-left). Signs: never flipped. Props: may flip_x freely (lighting then mirrors).",
+  "other_depths": "Each building is rendered for its slot depth. Moving it along the street by scaling about the vanishing point (scale=Z_slot/Z) is exact for the near face but stretches the street face slightly; OK within ~+-15% depth. For other slots re-run buildings.build(name, side, slot) with a new SLOTS entry."
+ },
+ "sky": {
+  "file": "Environment/Sky/hng_env_sky_sunset_2d.png",
+  "size": [
+   3840,
+   907
+  ],
+  "opaque": true,
+  "topleft_screen_2x": [
+   0,
+   0
+  ],
+  "pivot_px": [
+   0,
+   0
+  ],
+  "pivot_norm_unity": [
+   0.0,
+   1.0
+  ],
+  "pivot_desc": "top-left; bottom edge (y=907) is the horizon = vanishing point y at 2x. Bottom-centre (1920,907) is an equivalent anchor.",
+  "horizon_y_in_image": 907,
+  "sorting": "rearmost: below the road and every other layer (e.g. sorting layer Sky, order -1000)",
+  "wrap": "U-seamless (left/right edges wrap; measured L/R step 0.17 vs interior 0.06). Use texture wrap Repeat and scroll by UV offset if needed; V clamp.",
+  "parallax": {
+   "default": 0.0,
+   "note": "camera is fixed, so 0 needs no scroll. For screen shake or slight lateral scroll, move the sky at 0.1-0.2x the foreground offset (suggest 0.15). Clouds and mesas are one image, so they move together; for a slow cloud drift, scroll U at about 4-8 px/s at 2x."
+  },
+  "joins": "bottom ~26 px of the sky melt into the road far sand #f3bd7c; the road is fully opaque from row 0, so the y=907 join is clean with nothing behind it",
+  "import_hint": "Texture: no mipmaps, bilinear, uncompressed or high-quality (gradient banding), 1 px = 1 unit at 2x",
+  "palette": {
+   "sky": [
+    "#3c2a58",
+    "#4a3466",
+    "#8e4068",
+    "#d0605a",
+    "#ec7448",
+    "#ffb052",
+    "#ffe196"
+   ],
+   "sun_glow": "#fff2c0",
+   "clouds": {
+    "far": [
+     "#7a3e6a",
+     "#a85674",
+     "#d88a8a"
+    ],
+    "mid": [
+     "#b8506a",
+     "#e47a76",
+     "#ffb48a"
+    ],
+    "low": [
+     "#c45a52",
+     "#f08a66",
+     "#ffc890"
+    ]
+   },
+   "mesas": [
+    [
+     "#e8a07e",
+     "#d48a70",
+     "#f6b896"
+    ],
+    [
+     "#cf6a46",
+     "#a84a34",
+     "#ee9060"
+    ],
+    [
+     "#a84a30",
+     "#7a3020",
+     "#cf6a40"
+    ]
+   ],
+   "base_haze": "#f3bd7c",
+   "strata": "mesa shadow tone at 55% alpha"
+  },
+  "source": "_src/env/build_sky_2d.py (code-drawn, self-made)"
+ }
+}

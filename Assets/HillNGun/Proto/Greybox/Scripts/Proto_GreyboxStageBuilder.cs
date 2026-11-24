@@ -221,11 +221,11 @@ namespace HillNGun.Proto.Greybox
 
         void BuildPlayer()
         {
-            float foot = 88f;
+            float footPct = Proto_GreyboxPlayerSpawn.PlayerStartFootPercentFromTop(Proto_GreyboxViewModeState.Current);
             float hPct = Proto_GreyboxTuning.PlayerCapsuleHeightPercent;
-            float head = foot - hPct;
+            float head = footPct - hPct;
             float wPct = Proto_GreyboxTuning.PlayerCapsuleWidthPercent;
-            float footY = Proto_GreyboxLayout.ScreenYPercentToWorldY(foot);
+            float footY = Proto_GreyboxPlayerSpawn.PlayerStartFootWorldY(Proto_GreyboxViewModeState.Current);
             float scale = Proto_DepthScale.ScaleAt(footY);
             float targetH = Proto_GreyboxLayout.ScreenPercentToWorldHeight(hPct);
             float targetW = Proto_GreyboxLayout.WorldWidth * (wPct / 100f);

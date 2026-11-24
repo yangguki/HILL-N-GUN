@@ -12,6 +12,13 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
         const float Dt = 0.02f;
         const float Epsilon = 0.02f;
 
+        [SetUp]
+        public void SetUp()
+        {
+            Proto_Greybox3DHudLayout.Enabled = false;
+            Proto_GreyboxPersp2DHud.Restore();
+        }
+
         [Test]
         public void Drag_RightDrag_WorldDeltaPositiveX()
         {

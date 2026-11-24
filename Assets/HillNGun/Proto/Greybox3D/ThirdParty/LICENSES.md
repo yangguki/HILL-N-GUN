@@ -83,6 +83,12 @@ Credit is not required under CC0; names and URLs are recorded here for provenanc
 - These textures, sprites, and colormaps are original game art, not third-party.
 - Kenney Mini Characters colormap layout is CC0 (see Mini Characters above); designer remaps and extra swatches (T*/X*, turret map) are original.
 
+## HILL N GUN 2D perspective skin (slice K, self-made)
+
+- Location: `Assets/HillNGun/Proto/Greybox/Art/Persp2D/`
+- Characters and environment layers were generated in code for this project (see `_tmp_slice_k/final_skins_2d/manifest.md`). No third-party meshes, Kenney characters, or image-generation APIs.
+- UI and FX reuse the slice I designer sprites under `Greybox3D/Art/{UI,FX}`.
+
 ## HILL N GUN 2D chibi skin (slice J, self-made, CC0)
 
 - Location: `Assets/HillNGun/Proto/Greybox/Art/Chibi/` (61 PNGs + `README.md`; generator scripts in `Source~/`).

@@ -110,9 +110,11 @@ namespace HillNGun.Proto.Greybox
         }
 
         public static bool IsPauseToggleHit(float xPct, float yPct) =>
-            Proto_Greybox3DHudLayout.Enabled
-                ? Proto_Greybox3DHudLayout.PauseHit(xPct, yPct)
-                : (xPct >= PauseHitX0 && xPct <= PauseHitX1 && yPct >= PauseHitY0 && yPct <= PauseHitY1);
+            Proto_GreyboxViewModeState.IsPersp2D && Proto_GreyboxPersp2DHud.IsApplied
+                ? Proto_GreyboxPersp2DHudLayout.PauseHit(xPct, yPct)
+                : Proto_Greybox3DHudLayout.Enabled
+                    ? Proto_Greybox3DHudLayout.PauseHit(xPct, yPct)
+                    : xPct >= PauseHitX0 && xPct <= PauseHitX1 && yPct >= PauseHitY0 && yPct <= PauseHitY1;
 
         public static bool IsResumeHit(float xPct, float yPct) =>
             xPct >= ResumeHitX0 && xPct <= ResumeHitX1 && yPct >= ResumeHitY0 && yPct <= ResumeHitY1;

@@ -12,6 +12,8 @@ namespace HillNGun.Proto.Greybox.Tests.EditMode
         [SetUp]
         public void SetUp()
         {
+            Proto_GreyboxViewModeState.ResetForTests();
+            Proto_GreyboxViewModeState.SetMode(Proto_GreyboxViewMode.View2D, persist: false);
             Proto_GreyboxPerspectiveDepth.ResetToDefault();
             Proto_GreyboxMoveZone.ResetToDefaults();
         }
